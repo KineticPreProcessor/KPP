@@ -1,0 +1,144 @@
+{Model of hysteresis and irreversible transition in eukaryotic cell
+   WITH mRNA! }
+
+#DEFVAR
+A  = ignore; {protein that activates Cdh1 at finish}
+AYp= ignore; {complex}
+Yp = ignore; {inactive (phosphorylated) Cdh1-P/APC}
+XY = ignore; {complex}
+Y  = ignore; {active Cdh1/APC complex}
+X  = ignore; {cyclin/Cdk dimer}
+YX = ignore; {complex}
+XYX= ignore; {complex}
+G  = ignore; {complex}
+TF = ignore; {complex}
+TFp= ignore; {complex}
+C1 = ignore; {complex}
+C2 = ignore; {complex}
+R  = ignore; {mRNA}
+mas= ignore; {mass of the cell} 
+
+
+#EQUATIONS
+mas     =  2mas     : (0.01);
+2mas    =  mas      : (0.001);
+PROD    =  X        : (0.02);   {k1}
+X       =  PROD     : (0.05);   {k2 prime}
+Y + X   =  YX       : (1000);   {k2f double prime}
+YX      =  Y + X    : (3);      {k2r double prime}
+YX      =  Y        : (1);      {k2  double prime}
+X + Y   =  XY       : (1200);   {k4f}
+XY      =  X + Y    : (35);     {k4r}
+XY      =  X + Yp   : (80);     {k4}
+A + Yp  =  AYp      : (4000);   {k3f}
+AYp     =  A + Yp   : (75);     {k3r}
+AYp     =  A + Y    : (60);     {k3}
+X + YX  =  XYX      : (360);    {k5f}
+XYX     =  X + YX   : (18);     {k5r}
+G       =  G + R    : (0.00075);{k5 prime}
+XYX     =  2X + Yp  : (16);     {k6}
+A       =  PROD     : (0.4);    {k6 prime}
+AYp     =  Yp       : (0.4);    {k6 prime}
+TF + X  =  X + TFp  : (2.5);    {k7f}
+TFp     =  TF       : (4.0);    {k7r}
+TFp + G =  C1       : (1.2);    {k8f}
+C1      =  TFp + G  : (320);    {k8r}
+C1      =  C1 + R   : (0.15);   {k9}
+TFp + C1=  C2       : (65);     {k10f}
+C2      =  C1 + TFp : (0.2);    {k10r}
+C2      =  C2 + R   : (3);      {k11}
+R       =  PROD     : (1);      {krd}
+R       =  R + A    : (1);      {krs}
+
+#LOOKAT X;
+#MONITOR X;
+
+#INITVALUES
+CFACTOR = 1;
+mas = 0.1046E+01; 
+TF  = 0.8979E+01; 
+XY  = 0.5458E-02; 
+XYX = 0.8918E-02; 
+YX  = 0.2989E-02; 
+X   = 0.1275E+00; 
+Y   = 0.1714E-02; 
+Yp  = 0.9605E+00; 
+AYp = 0.2046E-01; 
+A   = 0.8577E-03; 
+C2  = 0.1692E-02; 
+C1  = 0.1769E-04; 
+TFp = 0.1731E-01; 
+G   = 0.9983E+00;
+R   = 0;
+
+#INLINE F77_INIT
+      TSTART = 0.d0
+      TEND   = 1000.d0
+      DT     = 5.d0
+      Volume = 1000.d0
+#ENDINLINE
+
+#INLINE F77_UTIL
+      DOUBLE PRECISION FUNCTION CellMass(t)
+       ! Cell mass evolution in time
+       DOUBLE PRECISION t
+       DOUBLE PRECISION m0, mstar, mu, one
+       PARAMETER (m0    = 1.0d0)
+       PARAMETER (mstar = 10.0d0)
+       PARAMETER (mu    = 0.01d0)
+       PARAMETER (one   = 1.0d0)
+       CellMass = mstar/(one-(one-mstar/m0)*EXP(-mu*t))
+      END
+#ENDINLINE
+
+#INLINE F90_INIT
+   TSTART = 0.d0
+   TEND   = 1000.d0
+   DT     = 5.d0
+   !Volume = 1000.d0
+#ENDINLINE
+
+#INLINE F90_UTIL
+   DOUBLE PRECISION FUNCTION CellMass(t)
+     ! Cell mass evolution in time
+     DOUBLE PRECISION, INTENT(IN) :: t
+     DOUBLE PRECISION, PARAMETER:: m0    = 1.0d0
+     DOUBLE PRECISION, PARAMETER:: mstar = 10.0d0
+     DOUBLE PRECISION, PARAMETER:: mu    = 0.01d0
+     DOUBLE PRECISION, PARAMETER:: one   = 1.0d0
+     CellMass = mstar/(one-(one-mstar/m0)*EXP(-mu*t))
+   END FUNCTION CellMass
+#ENDINLINE
+
+#INLINE MATLAB_INIT
+   global TSTART TEND DT TEMP
+   TSTART = 0;
+   TEND   = 1000;
+   DT     = 5.0;
+   Volume = 1000.0;
+#ENDINLINE
+
+#INLINE MATLAB_UTIL
+   function m = CellMass(t)
+     % Cell mass evolution in time
+     m = 10/(1+9*exp(-0.01*t));
+   return
+#ENDINLINE
+
+#INLINE C_INIT
+   TSTART = 0.0;
+   TEND   = 1000.0;
+   DT     = 5.0;
+   Volume = 1000.0;
+#ENDINLINE
+
+#INLINE C_UTIL
+   double CellMass(double t)
+   {/* Cell mass evolution in time */
+     const double m0    = 1.0;
+     const double mstar = 10.0;
+     const double mu    = 0.01;
+     const double one   = 1.0;
+     return mstar/(one-(one-mstar/m0)*exp(-mu*t));
+   }
+#ENDINLINE

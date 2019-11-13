@@ -1,0 +1,354 @@
+!_______________________________________________________________________
+! DVODE_F90 Conversion Change Record
+! Last change: ST 01/01/08
+! ST 06/15/04:
+!   Convert test program dtest.f to dtest.f90
+!   Use unix2dos on vode.f
+!   Use Metcalf converter to produce dvode_1.f90 from vode.f
+!   Change some of the Metcalf formatting
+!   Trim trailing blanks to produce dvode_2.f90
+! ST 06/16/04:
+!   Dimension RPAR, IPAR, ATOL, ITOL as(*) or (1) in the documentation
+!     prologue and in dtest.f to produce dvode_3.f90
+!   Convert DVNORM to a subroutine DVNORMST to produce dvode_4.f90
+!   Convert IXSAV to a subroutine IXSAVST to produce dvode_5.f90
+!   Replace DUMACH and DUMSET by F90 intrinsic calculation to
+!     produce dvode_6.f90
+!   Convert IUMACH to subroutine IUMACHST to produce dvode_.7f90
+!   Convert function DDOT to subroutine DDOTST
+!   Convert function IDAMAX to subroutine IDAMAXST to produce
+!     dvode_.9f90
+!   Note: DVNORM, IXSAV, IUMACH, DDOT, IDAMAX later changed
+!     back to original forms (see 06/23/04 below)
+!   Convert dvode_9.f90 to a module DVODE_M.F90=dvode_10.f90
+!   Convert dvode_10.f90 to dvode_11.f90 with dynamic storage
+!     allocation for the nonuser portions of the RWORK and IWORK
+!     arrays.
+!   Deallocate work arrays at the start of new problems (ISTATE=1)
+!     to produce dvode_12.f90
+! ST 06/17/04:
+!   Remove LRWUSER and LIWUSER from call list. Set internally to
+!     22 and 30, respectively.
+!   Set lengths LRW and LIW of the allocatable works arrays
+!     according to value of MF and MAXORD and verify that the
+!     lengths of the arrays allocated are identical to
+!     original minimum sizes in dvode.f. Inserted IMPLICIT NONE
+!     and necessary declarations in all routines to produce
+!     dvode13.f90
+!   Get rid of warning messages for conditional arithmetic
+!     tests on equality to produce dvode14.f90
+!   Replace LE, GE, LT, GT, NE, EQ with <=, >=, <, >, /=, ==
+!     to produce dvode15.f90
+!   Miscellaneous cleanup to produce dvode16.f90
+! ST 06/18/04:
+!   Move DATA constants to PRIVATE section and eliminated the
+!     corresponding SAVE statements to produce dvode17.f90
+!   Move the DVOD02 common block to PRIVATE section to
+!     produce dvode18.f90
+!   Move the DVOD01 common block to PRIVATE section to
+!     produce dvode19.f90
+!   Modify DVSRCO to reflect above changes to produce dvode20.f90
+!   Add interface DVINDY_USER to allow the user to interpolate
+!     the derivative to produce dvode21.f90
+! ST 06/19/04:
+!   Add SET_OPTS function and GET_STATS subroutine.
+!   Add PUBLIC data type VODE_OPTS
+!   Remove MF, ITOL, ATOL, RTOL, IOPT, RUSER, IUSER from dvode
+!     argument list (passed via fields in OPTS)
+!   Add OPTS to dvode call list to produce dvode22.f90
+! ST 06/20/04:
+!   Add INTERFACE VODE_F90 to allow OPTIONS and JAC to be
+!     OPTIONAL, to produce dvode_f90_m23.f90
+! ST 06/21/04
+!   Add short summary of usage for DVODE_F90
+!   Eliminate RPAR and IPAR
+!   Modify prologue example programs to reflect changes
+! ST 06/22/04
+!   Make necessary changes to accommodate ISTATE=3 calls
+!     to produce dvode_f90_m24.f90 ** not yet tested **
+! ST 06/23/04
+!   Reactivate DVNLSD in its original form (passed as argument)
+!     to produce (v25)
+!   Reactivate DVNORM in its original form (as a function) (v26)
+!   Reactivate DDOT in its original form (as a function) (v27)
+!   Reactivate IDAMAX in its original form (as a function) (v28)
+!   Reactivate IXSAV and IUMACH in their original form (as
+!   functions) to produce dvode_f90_m29.f90 
+!   Convert new PRINT statements to (terminal) XERRDV error
+!     messages
+!   Debug INDEX = 3 changes to produce dvode_f90_m29.f90 
+!     (test program = check3.f90)
+! ST 06/23/04
+!   Change name of DYINDY to DVINDY_CORE and DYINDY_USER to
+!     DVINDY to produce dvode_f90_m31.f90
+! ST 06/29/04
+!   Add routine SET_IAJA to calculate sparse pointer arrays
+!     to produce dvode_f90_m32.f90 
+! ST 07/02/04
+!   Rewrite SET_OPTS to produce dvode_f90_m34.f90 
+!   Test various input options in demo34.f90
+! GB 07/05/04
+!   Change AE/RE options to ABSERR/RELERR
+! ST 07/18/04
+!   Finish first stab at implementing MA28
+! ST 07/26/04
+!   Finish second stab at implementing MA28 and MOSS
+! ST 07/27/04
+!   Finish third stab at implementing MA28 and MOSS
+! ST 07/28/04
+!   Test sparse option with the column humidification problem
+! ST 07/29/04
+!   Adapt LCHECK and LROOTS subroutines from LSODAR and add
+!     to DVODE_F90
+! ST 07/31/04
+!   Make JAC and GFUN optional; the VODE_F90 interface calls
+!     DVODE in one of four ways depending on presence of
+!     JAC and/or GFUN
+!   Error if SET_OPTS not called before DVODE_F90 called
+!     for the first time
+! ST 07/31/04
+!   First stab at root finding
+! ST 08/02/04
+!   Finish implementation of LSODAR root finding and adapt
+!   LSODAR demo problems for vode_f90 solution
+! ST 08/05/04
+!   Implement temporary changes for optional enforcement of
+!     nonnegativity constraints on the solution
+! ST 08/06/04
+!   Replace some labelled DO's and some loops
+!   Modify calls to DVODE_F90 in the test programs and
+!     and verify they work correctly
+!   First cut at printing warning message when |y| < abserr
+! ST 08/07/04
+!   Implement nonnegativity option in SET_OPTS and remove
+!     temporary coding from DVODE_F90
+! ST 08/08/04
+!   Remove temporary subroutine DVSTEPS (copy of DVSTEP for
+!     sparse solutions)
+!   Remove dummy PSOL from calls lists for DVSTEP, DVNLSD,
+!     and DVNLSS
+! ST 08/08/04
+!   Add short summary of typical OPTIONS settings
+!   Run source thru a spell checker
+!   Take another whack at the documentation prologue for DVODE_F90
+! ST 08/11/04
+!   Solve Robertson problem with nonnegativity, dense and sparse tests
+!   Change how sparse pointers arrays determined via derivative
+!     calls in DVPREPS to be the same as elsewhere
+!   Add easy to use version of SET_OPTS named mortal_opts
+!   Take another whack at the documentation prologue for DVODE_F90
+! ST 08/12/04
+!   Add argument Called_From_Where to CHECK_STAT to indicate where
+!     a storage allocation/deallocation occurred
+!   Add subroutine RELEASE_ARRAYS which may be called to deallocate
+!     the arrays allocated by DVODE_F90 and to determine how much
+!     storage was used
+! ST 08/13/04
+!   With the nonnegativity option, project both y and y'
+!   Whack on documentation prologues
+!   Temporary subroutine CHECK_MESSAGES to write all error messages
+!   Renumber error messages
+! ST 08/16/04
+!   Cleaner stab at nonnegativity
+!   Temporarily change DVINDY/DVINDY_CORE not to enforce negativity
+! ST 08/17/04
+!   Add DVINDY_BNDS for use by the user callable DVINDY to enforce
+!     nonnegativity
+!   Add INTENT attribute to all subroutine and function arguments
+! ST 08/18/04
+!   Reorganize type declarations
+!   Make cosmetic header changes
+!   Eliminate NMES from XERRDV and change name to XERRDV
+! ST 09/05/04
+!   Stopped being stupid and got nonnegativity to work
+! ST 09/07/04
+!   Arbitrary bounds enforcement
+! ST 10/26/04
+!   Get rid of some compiler warning messages about tests of equality
+! ST 11/03/04
+!   Fix an problem in DVROOTS involving JROOT
+! ST 11/11/04
+!   Remove mortal_opts function
+! ST 12/25/04-12/28/04
+!   Implement HSL MA48
+! ST 01/05/05
+!   Separate MA28 and MA48 versions
+! ST 01/09/05
+!   MA28 Hollerith formats to strings
+!   MA28 lower case
+!   0 default for lp/mp in MA28
+! ST 01/11/05
+!   Single precision version of MA28
+!   Save TSAVE in blocks G,H in DVODE
+!   Change DOUBLE PRECISION to REAL(KIND=WP)
+!   Single precision version SVODE_F90 of DVODE_F90
+!   D* to E* in SVODE_F90, *=0,...,9,-,+
+!   Some D's replaced by d's to make global replacements possible
+!   D to S in BLAS routines and rest of SVODE_F90
+! ST 01/11/05
+!   Change definition of UMAX in single precision version
+! ST 02/09/05
+!   Reorganize documentation prologue
+! ST 03/30/05
+!   Implement Alan's fix for root too close to X2 in root finder
+! ST 05/11/05
+!   Implement Alan's fix for testing for equality of T in
+!   DVINDY_CORE and DVINDY_BNDS
+!   Implement Alan's fix for nearby zeros in DVCHECK
+! ST 05/14/05
+!   Change distribution file to constitute only one F90 module
+!   Miscellaneous cosmetic changes
+!   Replace several decimal values for numbers by named variables
+!   Delete unused LINPACK function DNRM2
+! ST 05/15/05
+!   Determine the working precision and define UMAX for MA28
+!   accordingly in SET_OPTS
+!   Miscellaneous cosmetic changes
+!   Convert case in MA28
+!   Modify single precision demo programs to call DVODE
+!   than SVODE
+! ST 05/16/05
+!   Define arithmetic constants using _WP extension
+! ST 06/03/05
+!   Change name of NULL to MYNULL in MA28 routines
+!   Delete unnecessary commented out statements
+! ST 06/04/05
+!   Remove ACOR, SAVF, EWT from the RWORK array
+!   Eliminate LACOR, LSAVF, LEWT pointers
+! ST 06/05/05
+!   Remove WM from the RWORK array
+!   Use WM1, WM2 instead of WM(1), WM(2)
+! ST 06/06/05
+!   Make changes necessary to allow the maximum order to be
+!     reduced at output points (save YH, WM and restore)
+! ST 06/07/05
+!   Make cosmetic changes
+! ST 06/08/05
+!   Make cosmetic changes
+!   Add directions for building LAPACK-based and MA48-based
+!     versions
+! ST 06/11/05
+!   Standardize declaration and polish with nag
+!   Cosmetic changes
+! ST 06/12/05
+!   Cosmetic changes
+! ST 06/13/05
+!   Replace USE_LINPACK flag by USE_LAPACK flag
+!   Remove check on sizes of ISTAT and RSTAT arrays in GET_STATS
+!   Add explicit declarations of public and private subroutines
+!     and functions
+!   Add the user callable subroutines to the generic interfaces
+!     block
+! ST 06/14/05
+!   Cosmetic changes
+! ST 07/21/05
+!   Implement option to increase the elbow room in the MA28
+!     work arrays
+!   Implement option to invoke MC19 sparse scaling of numerical
+!     Jacobians
+!   Clean up the 2d diurnal kinetics program
+! ST 07/25/05
+!   Implement MA28_EPS threshold option for numerical singularity
+! ST 07/26/05
+!   Implement MA28_MESSAGES option to control MA28 printing
+! ST 07/30/05
+!   Implement sparsity recalculation if a structurally singular
+!     matrix is encountered
+! ST 07/31/05
+!   Implement MA28_RPS option to force calculation of a new pivot
+!     sequence if MA28BD encounters a singular matrix
+! ST 08/02/05
+!   Add SET_NORMAL_OPTS for normal usage
+!   Add SET_OPTS_2 for changing HMAX, HMIN, and MXSTEP
+! ST 08/03/05
+!   Change how swag storage increment for sparse Jacobians determined
+!   Change length of ISTATS to 31
+!   Change sparse statistics available in GET_STATS
+! ST 08/10/05
+!   Add SUB_DIAGONALS and SUP_DIAGONALS option for banded systems
+!   Add BGROUP to compute sparse column grouping for banded
+!      systems with known diagonals and verify it's results
+!      match those of DGROUP
+! ST 08/11/05
+!   Add subroutine BANDED_IAJA to compute the sparse matrix
+!      descriptor arrays for a banded matrix with known
+!      diagonals
+!   Make miscellaneous cosmetic changes
+! ST 08/12/05
+!   One at a time column version of BANDED_IAJA
+!   Modify DVJAC to handle banded systems using diagonal information
+! ST 08/16/05
+!   Work on documentation for SET_OPTS
+! ST 08/17/05
+!   Use DTEMP rather than SAVF in DVPREPS
+! ST 08/18/05
+!   Add CONSTANT_JACOBIAN option
+! ST 08/23/05
+!   Add SET_INTERMEDIATE_OPTS and work on the documentation for each
+!   of SET_NORMAL_OPTS, SET_INTERMEDIATE_OPTS, and SET_OPTS
+! ST 08/24/05
+!   Add warning if default error tolerances used
+!   Work on OPTs documentation
+! ST 08/25/05
+!   Make miscellaneous cosmetic changes
+! ST 08/28/05
+!   Work on the MA48 based sparse solution option
+! ST 08/29/05
+!   Fixes in the MA48 version
+! ST 09/05/05
+!   Put back the IMPLICIT NONE statements that nag tools deleted
+! ST 09/06/05
+!   Do not allow default error tolerances to be used
+! ST 09/08/05
+!   Add the USE_FAST_FACTOR flag in MA48 version
+! ST 09/11/05
+!   Add debug prints
+! ST 09/14/05
+!   Delete the first two slots in the WM Jacobian array
+! ST 09/18/05
+!   Incorporate option to use JACSP for sparse Jacobians
+! ST 09-19-05
+!   Change name of DSM to DVDSM
+!   Do not allow NEQ to be reduced
+!   Add flags for consecutive error test failures and for consecutive
+!   corrector failures.
+! ST 09-20-05
+!   Modify JACSP to produce JACSPDV
+!   Incorporate option to use JACSPDV for dense Jacobians
+!   Incorporate option to use JACSPDV for banded Jacobians
+!   Incorporate option to use JACSPDV for sparse Jacobians
+! ST 09-21-05
+!   Supply YSCALE to JACSPDV
+! ST 10-04-05
+!   Make a few changes to introductory comments
+! ST 12-05
+!   Add subroutine interfaces
+!   Change some MA28 work arrays to two-dimensional and reference
+!     differently to satisfy the Salford ftn95 compiler
+!   Modify demo programs to make Salford happy
+! ST 01-01-08
+!   Fixed bug found by Richard Cox (restore NZ when sparse
+!   analytic Jacobian used) 
+! End DVODE_F90 Conversion Change Record
+!_______________________________________________________________________
+! f77 REVISION HISTORY(YYYYMMDD)
+!  19890615  Date Written. Initial release.
+!  19890922  Added interrupt/restart ability, minor changes throughout.
+!  19910228  Minor revisions in line format, prologue, etc.
+!  19920227  Modifications by D. Pang:
+!            (1) Applied subgennam to get generic intrinsic names.
+!            (2) Changed intrinsic names to generic in comments.
+!            (3) Added *DECK lines before each routine.
+!  19920721  Names of routines and labelled common blocks changed, so as
+!            to be unique in combined single/real(wp) code (ACH)
+!  19920722  Minor revisions to prologue (ACH).
+!  19920831  Conversion to real(wp) done (ACH).
+!  19921106  Fixed minor bug: ETAQ,ETAQM1 in DVSTEP SAVE statement (ACH)
+!  19921118  Changed LUNSAV/MFLGSV to IXSAV(ACH).
+!  19941222  Removed MF overwrite; attached sign to H in est. second
+!            deriv. in DVHIN; misc. comment changes throughout (ACH).
+!  19970515  Minor corrections to comments in prologue, DVJAC(ACH).
+!  19981111  Corrected Block B by adding final line, GOTO 200 (ACH).
+!  20020430  Various upgrades (ACH): Use ODEPACK error handler package.
+!            Replaced D1MACH by DUMACH. Various changes to main
+!            prologue and other routine prologues.

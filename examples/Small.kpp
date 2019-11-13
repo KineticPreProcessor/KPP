@@ -1,0 +1,6 @@
+#MODEL      small_strato 
+#INTEGRATOR rosenbrock_soa 
+#LANGUAGE   Fortran90 
+#DRIVER     general_soa_check
+#HESSIAN    on
+#STOICMAT   on

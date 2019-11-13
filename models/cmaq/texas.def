@@ -1,0 +1,116 @@
+#include texas.spc
+#include texas.eqn
+
+{#LANGUAGE Fortran77
+#INTEGRATOR rodas3
+#DRIVER matlab
+#HESSIAN ON}
+
+#LOOKATALL
+
+#MONITOR O3; NO; NO2; ETHENE;
+
+#INITVALUES
+
+	CFACTOR = 1.    ;              {Conversion Factor}
+        NO2             = 46.0;       
+        NO              = 30.0;       
+        O3P             = 16.0;       
+        O3              = 48.0;       
+        NO3             = 62.0;       
+        N2O5            = 108.0;       
+        HNO3            = 63.0;       
+        O1D2            = 16.0;       
+        HO              = 17.0;       
+        HONO            = 47.0;       
+        HO2             = 33.0;       
+        CO              = 28.0;       
+        HNO4            = 79.0;       
+        HO2H            = 34.0;       
+        SO2             = 64.0;       
+        SULF            = 98.0;       
+        C_O2            = 47.0;       
+        HCHO            = 30.0;       
+        COOH            = 48.0;       
+        MEOH            = 32.0;       
+        RO2_R           = 1.0;       
+        ROOH            = 62.0;       
+        R2O2            = 1.0;       
+        RO2_N           = 1.0;       
+        RNO3            = 133.0;       
+        MEK             = 72.0;       
+        PROD2           = 100.0;       
+        CCO_O2          = 75.0;       
+        PAN             = 121.0;       
+        CCO_OOH         = 76.0;       
+        CCO_OH          = 60.0;       
+        RCO_O2          = 89.0;       
+        PAN2            = 135.0;       
+        CCHO            = 44.0;       
+        RCO_OOH         = 90.0;       
+        RCO_OH          = 74.0;       
+        BZCO_O2         = 137.0;       
+        PBZN            = 183.0;       
+        BZ_O            = 93.0;       
+        MA_RCO3         = 101.0;       
+        MA_PAN          = 147.0;       
+        TBU_O           = 73.0;       
+        ACET            = 58.0;       
+        NPHE            = 139.0;       
+        PHEN            = 94.0;       
+        BZNO2_O         = 139.0;       
+        HOCOO           = 63.0;       
+        HCOOH           = 46.0;       
+        RCHO            = 58.0;       
+        GLY             = 58.0;       
+        MGLY            = 72.0;       
+        BACL            = 86.0;       
+        CRES            = 108.0;       
+        BALD            = 106.0;       
+        METHACRO        = 70.0;       
+        MVK             = 70.0;       
+        ISOPROD         = 70.0;       
+        DCB1            = 58.0;       
+        DCB2            = 72.0;       
+        DCB3            = 72.0;       
+        ETHENE          = 28.0;       
+        ISOPRENE        = 68.0;       
+        TRP1            = 136.0;       
+        ALK1            = 30.1;       
+        ALK2            = 36.7;       
+        ALK3            = 58.6;       
+        ALK4            = 77.6;       
+        ALK5            = 118.9;       
+        ARO1            = 98.6;       
+        ARO2            = 118.7;       
+        OLE1            = 72.3;       
+        OLE2            = 75.8;       
+
+#INLINE F77_INIT
+        TSTART = 12.0D0*3600.0D0
+        TEND   = TSTART + 120.0D0*3600.0D0
+        DT     = 3600.D0
+        TEMP   = 300.0D0
+#ENDINLINE   
+   
+#INLINE F90_INIT
+        TSTART = 12.0d0*3600.0d0
+        TEND   = TSTART + 120.0d0*3600.0d0
+        DT     = 3600.d0
+        TEMP   = 300.0d0
+#ENDINLINE   
+     
+#INLINE MATLAB_INIT
+   global TSTART TEND DT TEMP
+   TSTART = 12*3600;
+   TEND   = TSTART + 120*3600;
+   DT     = 3600;
+   TEMP   = 300;
+#ENDINLINE   
+     
+#INLINE C_INIT
+   TSTART = 12.0*3600.0;
+   TEND   = TSTART + 120.0*3600.0;
+   DT     = 3600.0;
+   TEMP   = 300.0;
+#ENDINLINE

@@ -1,0 +1,13 @@
+#EQUATIONS { Chapman with catalytical loss }
+
+// Classical Chapman
+<R1>  O2   + hv = 2O		: (2.643E-10) * SUN*SUN*SUN;
+<R2>  O2   + O  = O3		: (8.018E-17);
+<R3>  O3   + hv = O   + O2 	: (6.120E-04) * SUN;
+<R4>  O3   + O  = 2O2		: (1.576E-15);
+// Catalytical loss reaction
+<R5>  NO   + O3 = NO2 + O2 	: (6.062E-15);
+<R6>  NO2  + O  = NO  + O2	: (1.069E-11);
+//<R7>  NO2  + hv = NO  + O       : (1.289E-02) * SUN;
+
+

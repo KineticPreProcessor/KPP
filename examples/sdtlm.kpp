@@ -1,0 +1,6 @@
+#MODEL      small_strato
+#INTEGRATOR sdirk_tlm
+#LANGUAGE   Fortran90
+#DRIVER     general_tlm
+#HESSIAN    on
+#STOICMAT   on
