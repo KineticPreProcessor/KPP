@@ -1,5 +1,5 @@
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+# KPP
+## Versions
   KPP - symbolic chemistry Kinetics PreProcessor, Version 2.2.3
         (http://www.cs.vt.edu/~asandu/Software/KPP)
   KPP is distributed under GPL, the general public licence
@@ -9,13 +9,10 @@
         with contributions from:
         R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+## Getting Started
+   Read user's manual (doc/kpp-UserManual.pdf)
 
-To get started with KPP:  Read user's manual (doc/kpp-UserManual.pdf)
-------------------------
-
-To install KPP:
----------------
+## Installation
 
 1. Make sure that FLEX (public domain lexical analizer) is installed
    on your machine. Type "flex --version" to test this.
@@ -46,10 +43,7 @@ To install KPP:
 4. In KPP_HOME directory build the sources using:
 	make
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To clean the KPP installation: 
-------------------------------
+## Cleanup 
 
 1. Delete the KPP object files with:
 	make clean
@@ -57,9 +51,8 @@ To clean the KPP installation:
 2. Delete the whole distribution (including the KPP binaries) with:
 	make distclean
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+## Troubleshooting
 If you have any problems please send the detailed error report and the machine
 environment to:
 
-	sandu@cs.vt.edu
+	geos-chem-support@g.harvard.edu
