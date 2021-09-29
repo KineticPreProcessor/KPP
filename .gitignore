@@ -1,0 +1,11 @@
+# OS generated files
+.DS_Store
+
+# generated output files
+*.o
+src/y.tab.h
+src/y.tab.c
+src/lex.yy.c
+
+# executables
+bin/
