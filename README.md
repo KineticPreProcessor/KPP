@@ -1,16 +1,16 @@
 # KPP
 ## Versions
-  KPP - symbolic chemistry Kinetics PreProcessor, Version 2.2.3
-        (http://www.cs.vt.edu/~asandu/Software/KPP)
-  KPP is distributed under GPL, the general public licence
-        (http://www.gnu.org/copyleft/gpl.html)
+  KPP - symbolic chemistry Kinetics PreProcessor, [Version 2.2.3](http://www.cs.vt.edu/~asandu/Software/KPP)
+
+  KPP is distributed under GPL, the [general public license](http://www.gnu.org/copyleft/gpl.html)
+  
     (C) 1995-1997, V. Damian & A. Sandu, CGRER, Univ. Iowa
     (C) 1997-2005, A. Sandu, Michigan Tech, Virginia Tech
         with contributions from:
         R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany
 
 ## Getting Started
-   Read user's manual (doc/kpp-UserManual.pdf)
+   Read [user's manual](https://github.com/KineticPreProcessor/KPP/blob/master/doc/kpp_UserManual.pdf)
 
 ## Installation
 
