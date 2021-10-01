@@ -29,26 +29,39 @@
 
 ******************************************************************************/
 
-#define KPP_VERSION "2.2.3"
+#define KPP_VERSION "2.2.3_rs3"
 
 #ifndef _GDATA_H_
 #define _GDATA_H_
 
 #include <stdio.h>
 
-#define MAX_EQN         400
-#define MAX_SPECIES     500
+/* mz_rs_20100222+ */
+/* - Many limits can be changed here by adjusting the MAX_* constants */
+/* - To increase the max size of inlined code (F90_GLOBAL etc.), */
+/*   change MAX_INLINE in scan.h */
+/* mz_rs_20100222- */
+
+#define MAX_EQN       11000 /* mz_rs_20070124 */
+#define MAX_SPECIES    6000 /* mz_rs_20190108 */
 #define MAX_SPNAME       30
 #define MAX_IVAL         40
 /* MAX_EQNTAG = max length of equation ID in eqn file */
-#define MAX_EQNTAG       12
-/* MAX_K = max length of rate expression in eqn file */
-#define MAX_K           150
+/* Check if changes in code_f90.c are also necessary when changing MAX_EQNTAG */
+#define MAX_EQNTAG       32 /*  mz_pj_20080716 */
+/* To allow longer f90 expressions for the rate coefficients in the */
+/* eqn file, change consistently: */
+/* - MAX_K here */
+/* - crtToken, nextToken, crtFile, and crt_rate in scan.l */
+/* - union in scan.y */
+#define MAX_K          1000 /* mz_rs_20170327 */
 #define MAX_ATOMS	 10
 #define MAX_ATNAME	 10
 #define MAX_ATNR	250 
-#define MAX_PATH        120
+#define MAX_PATH        250
 #define MAX_FILES	 20
+/* MAX_EQNLEN only determines how long the printout of the */
+/* equation in the Monitor file will be. */
 #define MAX_EQNLEN      100
 
 #define NO_CODE 	-1

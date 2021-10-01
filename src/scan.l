@@ -60,13 +60,13 @@
   char *yy_filename[ MAX_INCLUDE ];
   int yy_buf_level = 0;
   
-  char crtToken[100];
-  char nextToken[100];
+  char crtToken[1000];  /* must probably be the same as MAX_K in gdata.h */
+  char nextToken[1000]; /* must probably be the same as MAX_K in gdata.h */
   int crtTokType;
   int nextTokType;
   int crtLine;
-  char crtFile[100];
-  char crt_rate[100];
+  char crtFile[1000];   /* must probably be the same as MAX_K in gdata.h */
+  char crt_rate[1000];  /* must probably be the same as MAX_K in gdata.h */
 
   int oldnErr = 0;
 

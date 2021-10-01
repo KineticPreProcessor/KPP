@@ -1,6 +1,6 @@
 ;; kpp.el --- kpp mode for GNU Emacs 21
 ;; (c) Rolf Sander <sander@mpch-mainz.mpg.de>
-;; Time-stamp: <2005-02-15 15:18:42 sander>
+;; Time-stamp: <2014-11-28 18:56:55 sander>
  
 ;; to activate it copy kpp.el to a place where emacs can find it and then
 ;; add "(require 'kpp)" to your .emacs startup file
@@ -31,30 +31,33 @@
   ;; alternatively, use another color for rate constant:
   ;; '("^\\([^=\n]*=[^:\n]*\\):\\([^;\n]*\\);"
   ;;     (1 font-lock-constant-face) (2 font-lock-keyword-face))
-  '("<[A-z0-9_#]+>" 0 font-lock-variable-name-face t) ; equation tag
-  '("{[^}\n]*}"     0 font-lock-comment-face t)       ; comment
-  '("!.*"           0 font-lock-comment-face t)       ; f90 comment
-  '("{@[^}]+}"      0 font-lock-doc-face t)           ; alternative LaTeX text
-  '("{$[^}]+}"      0 font-lock-string-face t)        ; alternative LaTeX text
-  '("{&[^}]+}"      0 font-lock-builtin-face t)       ; BibTeX reference
-  '("{%[A-z0-9#]+}" 0 font-lock-type-face t)          ; marker
+  '("<[A-z0-9_#]*[*]?>" 0 font-lock-variable-name-face t) ; reaction number
+  '("{[^}\n]*}"         0 font-lock-comment-face t)       ; comment
+  '("!.*"               0 font-lock-comment-face t)       ; f90 comment
+  '("{@[^}]+}"          0 font-lock-doc-face t)           ; alternative LaTeX text
+  '("{§[^}]*}"          0 font-lock-builtin-face t)       ; uncertainty of rate coefficient
+  '("{$[^}]+}"          0 font-lock-doc-face t)           ; alternative LaTeX text
+  '("{&[^}]+}"          0 font-lock-function-name-face t) ; BibTeX reference
+  '("{%[A-z0-9#]+}"     0 font-lock-type-face t)          ; marker
   ;; KPP sections (Tab. 3 in thesis), commands (Tab. 13 in thesis), and
   ;; fragments (Tab. 17 in thesis)
   (cons (concat 
          "\\(#ATOMS\\|#CHECKALL\\|#CHECK\\|#DEFFIX\\|#DEFRAD"
-         "\\|#DEFVAR\\|#DOUBLE\\|#DRIVER\\|#DUMMYINDEX"
+         "\\|#DEFVAR\\|#DOUBLE\\|#DRIVER\\|#DUMMYINDEX\\|#ENDREPLACE"
          "\\|#ENDINLINE\\|#EQNTAGS\\|#EQUATIONS\\|#FUNCTION"
          "\\|#HESSIAN\\|#INCLUDE\\|#INITIALIZE"
          "\\|#INITVALUES\\|#INLINE\\|#INTEGRATOR\\|#INTFILE"
          "\\|#JACOBIAN\\|#LANGUAGE\\|#LOOKATALL"
          "\\|#LOOKAT\\|#LUMP\\|#MEX\\|#MODEL\\|#MONITOR"
-         "\\|#REORDER\\|#RUN\\|#SETFIX\\|#SETRAD\\|#SETVAR"
+         "\\|#REORDER\\|#REPLACE\\|#RUN\\|#SETFIX\\|#SETRAD\\|#SETVAR"
          "\\|#SPARSEDATA\\|#STOCHASTIC\\|#STOICMAT\\|#TRANSPORTALL"
          "\\|#TRANSPORT\\|#USE\\|#USES\\|#WRITE_ATM"
          "\\|#WRITE_MAT\\|#WRITE_OPT\\|#WRITE_SPC"
          "\\|#XGRID\\|#YGRID\\|#ZGRID\\)"
          ) 'font-lock-keyword-face)
+  '("//.*"          0 font-lock-string-face t) ; LaTeX note
   '("^//.*"         0 font-lock-comment-face t) ; comment
+  '("qqq"           0 font-lock-warning-face t)       ;
   )
 )
 

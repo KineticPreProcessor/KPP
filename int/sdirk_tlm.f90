@@ -32,6 +32,21 @@ MODULE KPP_ROOT_Integrator
            Nrej=5, Ndec=6, Nsol=7, Nsng=8,               &
            Ntexit=1, Nhexit=2, Nhnew=3
                  
+  ! mz_rs_20181026+
+  ! description of the error numbers IERR
+  CHARACTER(LEN=50), PARAMETER, DIMENSION(-8:1) :: IERR_NAMES = (/ &
+    'Matrix is repeatedly singular                     ', & ! -8
+    'Step size too small: T + 10*H = T or H < Roundoff ', & ! -7
+    'No of steps exceeds maximum bound                 ', & ! -6
+    'Improper tolerance values                         ', & ! -5
+    'FacMin/FacMax/FacRej must be positive             ', & ! -4
+    'Hmin/Hmax/Hstart must be positive                 ', & ! -3
+    'Improper value for maximal no of Newton iterations', & ! -2
+    'Improper value for maximal no of steps            ', & ! -1
+    '                                                  ', & !  0 (not used)
+    'Success                                           ' /) !  1
+  ! mz_rs_20181026-
+
 CONTAINS
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -113,7 +128,7 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm,RTOL_tlm, &
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    SUBROUTINE SdirkTLM(N, NTLM, Tinitial, Tfinal, Y, Y_tlm, RelTol, AbsTol, &
                           RelTol_tlm, AbsTol_tlm, &
-			  RCNTRL, ICNTRL, RSTATUS, ISTATUS, Ierr)
+                    RCNTRL, ICNTRL, RSTATUS, ISTATUS, Ierr)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
 !    Solves the system y'=F(t,y) using a Singly-Diagonally-Implicit
@@ -192,13 +207,13 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm,RTOL_tlm, &
 !        ICNTRL(7)=1 : direct solution (additional one LU factorization per stage)
 !
 !    ICNTRL(9) -> switch for TLM Newton iteration error estimation strategy
-!		ICNTRL(9) = 0: base number of iterations as forward solution
-!		ICNTRL(9) = 1: use RTOL_tlm and ATOL_tlm to calculate
-!				error estimation for TLM at Newton stages
+!            ICNTRL(9) = 0: base number of iterations as forward solution
+!            ICNTRL(9) = 1: use RTOL_tlm and ATOL_tlm to calculate
+!                        error estimation for TLM at Newton stages
 !
 !    ICNTRL(12) -> switch for TLM truncation error control
-!		ICNTRL(12) = 0: TLM error is not used
-!		ICNTRL(12) = 1: TLM error is computed and used
+!            ICNTRL(12) = 0: TLM error is not used
+!            ICNTRL(12) = 1: TLM error is computed and used
 !
 !
 !~~~>  Real parameters
@@ -254,7 +269,7 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm,RTOL_tlm, &
       INTEGER, INTENT(IN)          :: N, NTLM, ICNTRL(20)
       KPP_REAL, INTENT(IN)    :: Tinitial, Tfinal, &
                     RelTol(N), AbsTol(N), RCNTRL(20), &
-		    RelTol_tlm(N,NTLM), AbsTol_tlm(N,NTLM)
+                RelTol_tlm(N,NTLM), AbsTol_tlm(N,NTLM)
       KPP_REAL, INTENT(INOUT) :: Y(NVAR), Y_tlm(N,NTLM)
       INTEGER, INTENT(OUT)         :: Ierr
       INTEGER, INTENT(INOUT)       :: ISTATUS(20) 
@@ -486,7 +501,7 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm,RTOL_tlm, &
                        T, H, Theta, Hratio, NewtonPredictedErr, &
                        Qnewton, Err, Fac, Hnew, Tdirection,     &
                        NewtonIncrement, NewtonIncrementOld, &
-		       SCAL_tlm(NVAR), Yerr(N), Yerr_tlm(N,NTLM), ThetaTLM
+                   SCAL_tlm(NVAR), Yerr(N), Yerr_tlm(N,NTLM), ThetaTLM
       KPP_REAL :: Z_tlm(NVAR,rkS,NTLM)
       INTEGER :: itlm, j, IER, istage, NewtonIter, saveNiter, NewtonIterTLM
       INTEGER :: IP(NVAR), IP_tlm(NVAR)
@@ -555,9 +570,9 @@ stages:DO istage = 1, rkS
                ! Gj(:) = sum_j Theta(i,j)*Zj(:) = H * sum_j A(i,j)*Fun(Zj(:))
                CALL WAXPY(N,rkTheta(istage,j),Z(1,j),1,G,1)
                ! Zi(:) = sum_j Alpha(i,j)*Zj(:)
-	       IF (StartNewton) THEN
+             IF (StartNewton) THEN
                  CALL WAXPY(N,rkAlpha(istage,j),Z(1,j),1,Z(1,istage),1)
-	       END IF
+             END IF
            END DO
        END IF
 
@@ -568,12 +583,12 @@ stages:DO istage = 1, rkS
 NewtonLoop:DO NewtonIter = 1, NewtonMaxit
 
 !~~~>   Prepare the loop-dependent part of the right-hand side
- 	    CALL WADD(N,Y,Z(1,istage),TMP)         	! TMP <- Y + Zi
-            CALL FUN_CHEM(T+rkC(istage)*H,TMP,DZ)	! DZ <- Fun(Y+Zi)
+           CALL WADD(N,Y,Z(1,istage),TMP)               ! TMP <- Y + Zi
+            CALL FUN_CHEM(T+rkC(istage)*H,TMP,DZ)      ! DZ <- Fun(Y+Zi)
             ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 !            DZ(1:N) = G(1:N) - Z(1:N,istage) + (H*rkGamma)*DZ(1:N)
-	    CALL WSCAL(N, H*rkGamma, DZ, 1)
-	    CALL WAXPY (N, -ONE, Z(1,istage), 1, DZ, 1)
+          CALL WSCAL(N, H*rkGamma, DZ, 1)
+          CALL WAXPY (N, -ONE, Z(1,istage), 1, DZ, 1)
             CALL WAXPY (N, ONE, G,1, DZ,1)
 
 !~~~>   Solve the linear system
@@ -608,10 +623,10 @@ NewtonLoop:DO NewtonIter = 1, NewtonMaxit
             ! Check error in Newton iterations
             NewtonDone = (NewtonRate*NewtonIncrement <= NewtonTol)
             IF (NewtonDone) THEN
-    	       ! Tune error in TLM variables by defining the minimal number of Newton iterations.
-	       saveNiter = NewtonIter+1
-	       EXIT NewtonLoop
-	    END IF
+                 ! Tune error in TLM variables by defining the minimal number of Newton iterations.
+             saveNiter = NewtonIter+1
+             EXIT NewtonLoop
+          END IF
             
             END DO NewtonLoop
             
@@ -701,7 +716,7 @@ NewtonLoopTLM:DO NewtonIterTLM = 1, NewtonMaxit
 
             CALL SDIRK_Solve ( H, N, E, IP, IER, DZ )
             
-	    IF (TLMNewtonEst) THEN
+          IF (TLMNewtonEst) THEN
 !~~~>   Check convergence of Newton iterations
             CALL SDIRK_ErrorNorm(N, DZ, SCAL_tlm, NewtonIncrement)
             IF ( NewtonIterTLM <= 1 ) THEN
@@ -725,8 +740,8 @@ NewtonLoopTLM:DO NewtonIterTLM = 1, NewtonMaxit
                 END IF
             END IF
             NewtonIncrementOld = NewtonIncrement
-	    END IF !(TLMNewtonEst)
-	    
+          END IF !(TLMNewtonEst)
+          
             ! Update solution: Z_tlm(:) <-- Z_tlm(:)+DZ(:)
             CALL WAXPY(N,ONE,DZ,1,Z_tlm(1,istage,itlm),1) 
             
@@ -734,10 +749,10 @@ NewtonLoopTLM:DO NewtonIterTLM = 1, NewtonMaxit
             IF (TLMNewtonEst) THEN
                NewtonDone = (NewtonRate*NewtonIncrement <= NewtonTol)
                IF (NewtonDone) EXIT NewtonLoopTLM
-	    ELSE
-  	       ! Minimum number of iterations same as FWD iterations
+          ELSE
+               ! Minimum number of iterations same as FWD iterations
                IF (NewtonIterTLM>=saveNiter) EXIT NewtonLoopTLM
-	    END IF
+          END IF
             
             END DO NewtonLoopTLM
             
@@ -773,7 +788,7 @@ NewtonLoopTLM:DO NewtonIterTLM = 1, NewtonMaxit
           DO j=1,rkS  
             IF (rkE(j) /= ZERO) CALL WAXPY(N,rkE(j),Z_tlm(1,j,itlm),1,Yerr_tlm(1,itlm),1)
           END DO 
-	  CALL SDIRK_Solve (H, N, E, IP, IER, Yerr_tlm(1,itlm))
+        CALL SDIRK_Solve (H, N, E, IP, IER, Yerr_tlm(1,itlm))
         END DO
         CALL SDIRK_ErrorNorm_tlm(N,NTLM, Yerr_tlm, Err)
       END IF
@@ -823,7 +838,7 @@ accept: IF ( Err < ONE ) THEN !~~~> Step is accepted
             SkipLU = ( (Theta <= ThetaMin) .AND. (Hratio >= Qmin) &
                                      .AND. (Hratio <= Qmax) )
             ! For TLM: do not skip LU (decrease TLM error)
-   	    SkipLU = .FALSE.
+             SkipLU = .FALSE.
             IF (.NOT.SkipLU) H = Hnew
          END IF
          ! If convergence is fast enough, do not update Jacobian
@@ -895,8 +910,8 @@ accept: IF ( Err < ONE ) THEN !~~~> Step is accepted
       DO itlm=1,NTLM
         CALL SDIRK_ErrorScale(N,ITOL,AbsTol_tlm(1,itlm),RelTol_tlm(1,itlm), &
                Y_tlm(1,itlm),SCAL_tlm)
-	CALL SDIRK_ErrorNorm(N, Y_tlm(1,itlm), SCAL_tlm, Err)
-	FWD_Err = MAX(FWD_Err, Err)
+      CALL SDIRK_ErrorNorm(N, Y_tlm(1,itlm), SCAL_tlm, Err)
+      FWD_Err = MAX(FWD_Err, Err)
       END DO
 !
       END SUBROUTINE SDIRK_ErrorNorm_tlm

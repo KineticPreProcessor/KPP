@@ -32,6 +32,21 @@ MODULE KPP_ROOT_Integrator
            Nrej=5, Ndec=6, Nsol=7, Nsng=8,               &
            Ntexit=1, Nhexit=2, Nhnew=3
                  
+  ! mz_rs_20181026+
+  ! description of the error numbers IERR
+  CHARACTER(LEN=50), PARAMETER, DIMENSION(-8:1) :: IERR_NAMES = (/ &
+    'Matrix is repeatedly singular                     ', & ! -8
+    'Step size too small: T + 10*H = T or H < Roundoff ', & ! -7
+    'No of steps exceeds maximum bound                 ', & ! -6
+    'Improper tolerance values                         ', & ! -5
+    'FacMin/FacMax/FacRej must be positive             ', & ! -4
+    'Hmin/Hmax/Hstart must be positive                 ', & ! -3
+    'Improper value for maximal no of Newton iterations', & ! -2
+    'Improper value for maximal no of steps            ', & ! -1
+    '                                                  ', & !  0 (not used)
+    'Success                                           ' /) !  1
+  ! mz_rs_20181026-
+
 CONTAINS
 
 SUBROUTINE INTEGRATE_ADJ( NADJ, Y, Lambda, TIN, TOUT, &
@@ -571,12 +586,12 @@ stages:DO istage = 1, rkS
 NewtonLoop:DO NewtonIter = 1, NewtonMaxit
 
 !~~~>   Prepare the loop-dependent part of the right-hand side
- 	    CALL WADD(N,Y,Z(1,istage),TMP)         	! TMP <- Y + Zi
-            CALL FUN_CHEM(T+rkC(istage)*H,TMP,RHS)	! RHS <- Fun(Y+Zi)
+            CALL WADD(N,Y,Z(1,istage),TMP)              ! TMP <- Y + Zi
+            CALL FUN_CHEM(T+rkC(istage)*H,TMP,RHS)      ! RHS <- Fun(Y+Zi)
             ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 !            RHS(1:N) = G(1:N) - Z(1:N,istage) + (H*rkGamma)*RHS(1:N)
-	    CALL WSCAL(N, H*rkGamma, RHS, 1)
-	    CALL WAXPY (N, -ONE, Z(1,istage), 1, RHS, 1)
+            CALL WSCAL(N, H*rkGamma, RHS, 1)
+            CALL WAXPY (N, -ONE, Z(1,istage), 1, RHS, 1)
             CALL WAXPY (N, ONE, G,1, RHS,1)
 
 !~~~>   Solve the linear system

@@ -24,13 +24,20 @@ MODULE KPP_ROOT_Integrator
   
   ! Method parameters
   
-  ! mz_rs_20050717: TODO: use strings of IERR_NAMES for error messages
   ! description of the error numbers IERR
-  CHARACTER(LEN=50), PARAMETER, DIMENSION(-4:1) :: IERR_NAMES = (/ &
-    'Matrix is repeatedly singular                     ', & ! -4
-    'Step size too small                               ', & ! -3
-    'More than Max_no_steps steps are needed           ', & ! -2
-    'Insufficient storage for work or iwork            ', & ! -1
+  CHARACTER(LEN=50), PARAMETER, DIMENSION(-12:1) :: IERR_NAMES = (/ &
+    'Matrix is repeatedly singular                     ', & ! -12
+    'Step size too small: T + 10*H = T or H < Roundoff ', & ! -11
+    'No of steps exceeds maximum bound                 ', & ! -10
+    'Improper tolerance values                         ', & ! -9
+    'FacMin/FacMax/FacRej must be positive             ', & ! -8
+    'Hmin/Hmax/Hstart must be positive                 ', & ! -7
+    'Improper parameters for second order equations    ', & ! -6
+    'Improper number of dense output components        ', & ! -5
+    'Improper value for Lambda (must be 0/1)           ', & ! -4
+    'Improper value for step size sequence             ', & ! -3
+    'Improper value for max no of cols in extrapolation', & ! -2
+    'Improper value for maximal no of steps            ', & ! -1
     '                                                  ', & !  0 (not used)
     'Success                                           ' /) !  1
 

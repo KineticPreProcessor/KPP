@@ -41,7 +41,10 @@
 #    For the native compiler use:
 #      CC=cc
 
-CC=gcc 
+#CC=cc
+#CC=gcc
+#CC=gcc -maix64
+CC=xlc_r -q64
 
 # 2. The name of your lexical analizer. KPP requires FLEX to be used.
 #    FLEX is a public domain lexical analizer and you can download it from
@@ -51,17 +54,21 @@ CC=gcc
 FLEX=flex
 
 # 3. The complete pathname of the FLEX library (libfl.a).
-#    On many systems this is either: 
-#    /usr/lib, /usr/lib64, /usr/local/util/lib/flex
+#    On many systems this is: /usr/local/util/lib/flex
 
-FLEX_LIB_DIR=/usr/lib
+#  op_pj_20091019+
+#FLEX_LIB_DIR=/usr/lib
+dirs := /pf/b/b302019/soft/flex/v2.5.35/lib /u/joeckel/lib /usr/lib
+files := $(foreach dir,$(dirs),$(shell if test -f $(dir)/libfl.a ; then echo $(dir); fi))
+FLEX_LIB_DIR=$(word 1,$(files))
+#  op_pj_20091019-
 
 # 4. Platform independent C compiler flags. By default "-O" is used which 
-#    turns on optimization. If you are experiencing problems you may try 
+#    turns on optimisation. If you are experiencing problems you may try 
 #    "-g" to include debuging informations.
 #    "-Wall" = all warnings
 
 CC_FLAGS=-O
-# CC_FLAGS= -g -Wall
+# CC_FLAGS=-O -Wall
 
 ##############################################################################

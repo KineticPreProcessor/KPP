@@ -26,19 +26,18 @@ MODULE KPP_ROOT_Integrator
   KPP_REAL :: rkAlpha(5,4), rkBeta(5,4), rkD(4,5),  &
                    rkGamma, rkA(5,5), rkB(5), rkC(5)
 
-  ! mz_rs_20050717: TODO: use strings of IERR_NAMES for error messages
-  ! description of the error numbers IERR
-  CHARACTER(LEN=50), PARAMETER, DIMENSION(-8:1) :: IERR_NAMES = (/ &
-    'Matrix is repeatedly singular                     ', & ! -8
-    'Step size too small                               ', & ! -7
-    'No of steps exceeds maximum bound                 ', & ! -6
-    'Improper tolerance values                         ', & ! -5
-    'FacMin/FacMax/FacRej must be positive             ', & ! -4
-    'Hmin/Hmax/Hstart must be positive                 ', & ! -3
-    'Improper value for maximal no of Newton iterations', & ! -2
-    'Improper value for maximal no of steps            ', & ! -1
+  ! mz_rs_20070822+
+  CHARACTER(LEN=50), PARAMETER, DIMENSION(-7:1) :: IERR_NAMES = (/ &
+    'Nothing was done, because TOUT was equal to T     ', & ! -7
+    'Error weight became zero during problem           ', & ! -6
+    'Repeated convergence failures                     ', & ! -5
+    'Repeated error test failures (check all inputs)   ', & ! -4
+    'Illegal input detected (see printed message)      ', & ! -3
+    'Excess accuracy requested (tolerances too small)  ', & ! -2
+    'Excess work done on this call (perhaps wrong MF)  ', & ! -1
     '                                                  ', & !  0 (not used)
     'Success                                           ' /) !  1
+  ! mz_rs_20070822-
 
 CONTAINS
 

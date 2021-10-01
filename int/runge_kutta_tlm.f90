@@ -30,6 +30,26 @@ MODULE KPP_ROOT_Integrator
   INTEGER, PARAMETER :: Nfun=1, Njac=2, Nstp=3, Nacc=4, &
     Nrej=5, Ndec=6, Nsol=7, Nsng=8, Ntexit=1, Nhacc=2, Nhnew=3
 
+  ! mz_rs_20181026+
+  ! description of the error numbers IERR
+  CHARACTER(LEN=50), PARAMETER, DIMENSION(-13:1) :: IERR_NAMES = (/ &
+    'Requested RK method not implemented               ', & ! -13 
+    'Non-convergence of Newton iterations              ', & ! -12 
+    'Matrix is repeatedly singular                     ', & ! -11 
+    'Step size too small: T + 10*H = T or H < Roundoff ', & ! -10 
+    'No of steps exceeds maximum bound                 ', & ! -9  
+    'Tolerances are too small                          ', & ! -8  
+    'Improper values for Qmin, Qmax                    ', & ! -7  
+    'Newton stopping tolerance too small               ', & ! -6  
+    'Improper value for ThetaMin                       ', & ! -5  
+    'Improper values for FacMin/FacMax/FacSafe/FacRej  ', & ! -4  
+    'Hmin/Hmax/Hstart must be positive                 ', & ! -3  
+    'Improper value for maximal no of Newton iterations', & ! -2  
+    'Improper value for maximal no of steps            ', & ! -1  
+    '                                                  ', & !  0 (not used)
+    'Success                                           ' /) !  1
+  ! mz_rs_20181026-
+
 CONTAINS
 
   ! **************************************************************************
@@ -92,7 +112,7 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm, &
     T1 = TIN; T2 = TOUT
     CALL RungeKuttaTLM(  NVAR, NTLM, Y, Y_tlm, T1, T2, RTOL, ATOL, &
                            RTOL_tlm, ATOL_tlm,                     &
-			   RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR  )
+                           RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR  )
 
     Ntotal = Ntotal + ISTATUS(Nstp)
     PRINT*,'NSTEPS=',ISTATUS(Nstp),' (',Ntotal,')','  O3=', VAR(ind_O3)
@@ -169,7 +189,7 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm, &
 !              = 1:  Radau-2A    (the default)
 !              = 2:  Lobatto-3C
 !              = 3:  Gauss
-!	       = 4:  Radau-1A
+!              = 4:  Radau-1A
 !
 !    ICNTRL(4)  -> maximum number of integration steps
 !        For ICNTRL(4)=0 the default value of 100000 is used
@@ -188,15 +208,15 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm, &
 !        ICNTRL(7)=1 : direct solution (additional one *big* LU factorization)
 !
 !    ICNTRL(9) -> switch for TLM Newton iteration error estimation strategy
-!		ICNTRL(9) = 0: base number of iterations as forward solution
-!		ICNTRL(9) = 1: use RTOL_tlm and ATOL_tlm to calculate
-!				error estimation for TLM at Newton stages
+!               ICNTRL(9) = 0: base number of iterations as forward solution
+!               ICNTRL(9) = 1: use RTOL_tlm and ATOL_tlm to calculate
+!                               error estimation for TLM at Newton stages
 !
 !    ICNTRL(10) -> switch for error estimation strategy
-!		ICNTRL(10) = 0: one additional stage: at c=0, 
-!				see Hairer (default)
-!		ICNTRL(10) = 1: two additional stages: one at c=0 
-!				and one SDIRK at c=1, stiffly accurate
+!               ICNTRL(10) = 0: one additional stage: at c=0, 
+!                               see Hairer (default)
+!               ICNTRL(10) = 1: two additional stages: one at c=0 
+!                               and one SDIRK at c=1, stiffly accurate
 !
 !    ICNTRL(11) -> switch for step size strategy
 !              ICNTRL(11)=1:  mod. predictive controller (Gustafsson, default)
@@ -206,8 +226,8 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm, &
 !              often slightly faster runs
 !
 !    ICNTRL(12) -> switch for TLM truncation error control
-!		ICNTRL(12) = 0: TLM error is not used
-!		ICNTRL(12) = 1: TLM error is computed and used
+!               ICNTRL(12) = 0: TLM error is not used
+!               ICNTRL(12) = 1: TLM error is computed and used
 !
 !
 !~~~>  Real input parameters:
@@ -294,8 +314,8 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm, &
       ! Runge-Kutta method parameters
       INTEGER, PARAMETER :: R2A=1, R1A=2, L3C=3, GAU=4, L3A=5
       KPP_REAL :: rkT(3,3), rkTinv(3,3), rkTinvAinv(3,3), rkAinvT(3,3), &
-                       rkA(3,3), rkB(3),  rkC(3), rkD(0:3), rkE(0:3), 	&
-	   	       rkBgam(0:4), rkBhat(0:4), rkTheta(0:3),          &
+                       rkA(3,3), rkB(3),  rkC(3), rkD(0:3), rkE(0:3),   &
+                       rkBgam(0:4), rkBhat(0:4), rkTheta(0:3),          &
                        rkGamma,  rkAlpha, rkBeta, rkELO
       !~~~> Local variables
       INTEGER :: i
@@ -535,7 +555,7 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm, &
       KPP_REAL  :: CONT(NVAR,3), Tdirection,  H, Hacc, Hnew, Hold, Fac, &
                  FacGus, Theta, Err, ErrOld, NewtonRate, NewtonIncrement,    &
                  Hratio, Qnewton, NewtonPredictedErr,NewtonIncrementOld,    &
-		 ThetaTLM, ThetaSD
+                 ThetaTLM, ThetaSD
       INTEGER :: i,j,IP1(NVAR),IP2(NVAR),NewtonIter, ISING, Nconsecutive, itlm
       INTEGER :: saveNiter, NewtonIterTLM, info
       LOGICAL :: Reject, FirstStep, SkipJac, NewtonDone, SkipLU
@@ -655,14 +675,14 @@ NewtonLoop:DO  NewtonIter = 1, NewtonMaxit
             ! Check error in Newton iterations
             NewtonDone = (NewtonRate*NewtonIncrement <= NewtonTol)
             IF (NewtonDone) THEN
-	      ! Tune error in TLM variables by defining the minimal number of Newton iterations.
-	      saveNiter = NewtonIter+1
-	      EXIT NewtonLoop
-	    END IF
-   	    IF (NewtonIter == NewtonMaxit) THEN
-		PRINT*, 'Slow or no convergence in Newton Iteration: Max no. of', &
-		 	'Newton iterations reached'
-	    END IF
+              ! Tune error in TLM variables by defining the minimal number of Newton iterations.
+              saveNiter = NewtonIter+1
+              EXIT NewtonLoop
+            END IF
+            IF (NewtonIter == NewtonMaxit) THEN
+                PRINT*, 'Slow or no convergence in Newton Iteration: Max no. of', &
+                        'Newton iterations reached'
+            END IF
             
       END DO NewtonLoop
             
@@ -698,11 +718,11 @@ NewtonLoop:DO  NewtonIter = 1, NewtonMaxit
 SDNewtonLoop:DO NewtonIter = 1, NewtonMaxit
 
 !~~~>   Prepare the loop-dependent part of the right-hand side
-	    CALL WADD(N,Y,Z4,TMP)         ! TMP <- Y + Z4
-	    CALL FUN_CHEM(T+H,TMP,DZ4) 	  ! DZ4 <- Fun(Y+Z4)         
+            CALL WADD(N,Y,Z4,TMP)         ! TMP <- Y + Z4
+            CALL FUN_CHEM(T+H,TMP,DZ4)    ! DZ4 <- Fun(Y+Z4)         
             ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 !            DZ4(1:N) = (G(1:N)-Z4(1:N))*(rkGamma/H) + DZ4(1:N)
-	    CALL WAXPY (N, -ONE*rkGamma/H, Z4, 1, DZ4, 1)
+            CALL WAXPY (N, -ONE*rkGamma/H, Z4, 1, DZ4, 1)
             CALL WAXPY (N, rkGamma/H, G,1, DZ4,1)
 
 !~~~>   Solve the linear system
@@ -758,11 +778,11 @@ SDNewtonLoop:DO NewtonIter = 1, NewtonMaxit
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       IF (SdirkError) THEN
 !         DZ4(1:N) =  rkD(1)*Z1 + rkD(2)*Z2 + rkD(3)*Z3 - Z4    
-	 CALL Set2Zero(N, DZ4)
-	 IF (rkD(1) /= ZERO) CALL WAXPY(N, rkD(1), Z1, 1, DZ4, 1)
-	 IF (rkD(2) /= ZERO) CALL WAXPY(N, rkD(2), Z2, 1, DZ4, 1)
-	 IF (rkD(3) /= ZERO) CALL WAXPY(N, rkD(3), Z3, 1, DZ4, 1)
-	 CALL WAXPY(N, -ONE, Z4, 1, DZ4, 1)
+         CALL Set2Zero(N, DZ4)
+         IF (rkD(1) /= ZERO) CALL WAXPY(N, rkD(1), Z1, 1, DZ4, 1)
+         IF (rkD(2) /= ZERO) CALL WAXPY(N, rkD(2), Z2, 1, DZ4, 1)
+         IF (rkD(3) /= ZERO) CALL WAXPY(N, rkD(3), Z3, 1, DZ4, 1)
+         CALL WAXPY(N, -ONE, Z4, 1, DZ4, 1)
          Err = RK_ErrorNorm(N,SCAL,DZ4)    
       ELSE
         CALL  RK_ErrorEstimate(N,H,Y,T, &
@@ -844,19 +864,19 @@ TLMDIR: IF (TLMDirect) THEN
 !   Use full big linear algebra:
       Jbig(1:3*N,1:3*N) = 0.0d0
       DO i=1,LU_NONZERO
-	  Jbig(LU_irow(i),LU_icol(i))         = -H*rkA(1,1)*Jac1(i)
-	  Jbig(LU_irow(i),N+LU_icol(i))       = -H*rkA(1,2)*Jac2(i)
-	  Jbig(LU_irow(i),2*N+LU_icol(i))     = -H*rkA(1,3)*Jac3(i)
-	  Jbig(N+LU_irow(i),LU_icol(i))       = -H*rkA(2,1)*Jac1(i)
-	  Jbig(N+LU_irow(i),N+LU_icol(i))     = -H*rkA(2,2)*Jac2(i)
-	  Jbig(N+LU_irow(i),2*N+LU_icol(i))   = -H*rkA(2,3)*Jac3(i)
-	  Jbig(2*N+LU_irow(i),LU_icol(i))     = -H*rkA(3,1)*Jac1(i)
-	  Jbig(2*N+LU_irow(i),N+LU_icol(i))   = -H*rkA(3,2)*Jac2(i)
-	  Jbig(2*N+LU_irow(i),2*N+LU_icol(i)) = -H*rkA(3,3)*Jac3(i)
+          Jbig(LU_irow(i),LU_icol(i))         = -H*rkA(1,1)*Jac1(i)
+          Jbig(LU_irow(i),N+LU_icol(i))       = -H*rkA(1,2)*Jac2(i)
+          Jbig(LU_irow(i),2*N+LU_icol(i))     = -H*rkA(1,3)*Jac3(i)
+          Jbig(N+LU_irow(i),LU_icol(i))       = -H*rkA(2,1)*Jac1(i)
+          Jbig(N+LU_irow(i),N+LU_icol(i))     = -H*rkA(2,2)*Jac2(i)
+          Jbig(N+LU_irow(i),2*N+LU_icol(i))   = -H*rkA(2,3)*Jac3(i)
+          Jbig(2*N+LU_irow(i),LU_icol(i))     = -H*rkA(3,1)*Jac1(i)
+          Jbig(2*N+LU_irow(i),N+LU_icol(i))   = -H*rkA(3,2)*Jac2(i)
+          Jbig(2*N+LU_irow(i),2*N+LU_icol(i)) = -H*rkA(3,3)*Jac3(i)
       END DO
       Ebig = -Jbig
       DO i=1, 3*N
-	 Jbig(i,i) = ONE + Jbig(i,i)
+         Jbig(i,i) = ONE + Jbig(i,i)
       END DO
       ! CALL DGETRF(3*N,3*N,Jbig,3*N,IPbig,info) 
       CALL WGEFA(3*N,Jbig,IPbig,info) 
@@ -878,7 +898,7 @@ TLMDIR: IF (TLMDirect) THEN
         ! Compute RHS
         CALL RK_PrepareRHS_TLMdirect(N,H,Jac1,Jac2,Jac3,Y_tlm(1,itlm),Zbig)
         ! Solve the system
-	! CALL DGETRS('N',3*N,1,Jbig,3*N,IPbig,Zbig,3*N,ISING) 
+        ! CALL DGETRS('N',3*N,1,Jbig,3*N,IPbig,Zbig,3*N,ISING) 
         CALL WGESL('N',3*N,Jbig,IPbig,Zbig)
         Z1_tlm(1:NVAR,itlm) = Zbig(1:NVAR)
         Z2_tlm(1:NVAR,itlm) = Zbig(NVAR+1:2*NVAR)
@@ -918,7 +938,7 @@ NewtonLoopTLM:DO  NewtonIterTLM = 1, NewtonMaxit
             !~~~> Solve the linear systems
             CALL RK_Solve( N,H,E1,IP1,E2,IP2,DZ1,DZ2,DZ3,ISING )
             
-	    IF (TLMNewtonEst) THEN
+            IF (TLMNewtonEst) THEN
 !~~~>   Check convergence of Newton iterations
             NewtonIncrement = SQRT( ( RK_ErrorNorm(N,SCAL_tlm,DZ1)**2 + &
                                 RK_ErrorNorm(N,SCAL_tlm,DZ2)**2 +       &
@@ -947,7 +967,7 @@ NewtonLoopTLM:DO  NewtonIterTLM = 1, NewtonMaxit
             END IF
 
             NewtonIncrementOld = MAX(NewtonIncrement,Roundoff) 
-	    END IF !(TLMNewtonEst)
+            END IF !(TLMNewtonEst)
             ! Update solution
             CALL WAXPY(N,-ONE,DZ1,1,Z1_tlm(1,itlm),1) ! Z1 <- Z1 - DZ1
             CALL WAXPY(N,-ONE,DZ2,1,Z2_tlm(1,itlm),1) ! Z2 <- Z2 - DZ2
@@ -955,12 +975,12 @@ NewtonLoopTLM:DO  NewtonIterTLM = 1, NewtonMaxit
             
             ! Check error in Newton iterations
             IF (TLMNewtonEst) THEN
-  	       NewtonDone = (NewtonRate*NewtonIncrement <= NewtonTol)
-	       IF (NewtonDone) EXIT NewtonLoopTLM
-	    ELSE
-  	       ! Minimum number of iterations same as FWD iterations
+               NewtonDone = (NewtonRate*NewtonIncrement <= NewtonTol)
+               IF (NewtonDone) EXIT NewtonLoopTLM
+            ELSE
+               ! Minimum number of iterations same as FWD iterations
                IF (NewtonIterTLM>=saveNiter) EXIT NewtonLoopTLM
-	    END IF
+            END IF
             
       END DO NewtonLoopTLM
             
@@ -1037,12 +1057,12 @@ accept:IF (Err < ONE) THEN !~~~> STEP IS ACCEPTED
             ! Reuse the LU decomposition
             SkipLU = (Theta<=ThetaMin) .AND. (Hratio>=Qmin) .AND. (Hratio<=Qmax)
             ! For TLM: do not skip LU (decrease TLM error)
-  	    SkipLU = .FALSE.
+            SkipLU = .FALSE.
             IF (.NOT.SkipLU) H=Hnew
          END IF
          ! If convergence is fast enough, do not update Jacobian
 !         SkipJac = (Theta <= ThetaMin)
-         SkipJac  = .FALSE.	! For TLM: do not skip jac
+         SkipJac  = .FALSE.     ! For TLM: do not skip jac
 
       ELSE accept !~~~> Step is rejected
 
@@ -1526,18 +1546,18 @@ accept:IF (Err < ONE) THEN !~~~> STEP IS ACCEPTED
       CALL DGETRS ('N',N,1,E1,N,IP1,TMP,N,ISING) 
       IF ((rkMethod==R1A).OR.(rkMethod==GAU).OR.(rkMethod==L3A)) THEN
             CALL DGETRS ('N',N,1,E1,N,IP1,TMP,N,ISING)
-      END IF	    
+      END IF        
       IF (rkMethod==GAU) THEN  
             CALL DGETRS ('N',N,1,E1,N,IP1,TMP,N,ISING)
-      ENDIF	    
+      ENDIF         
 #else      
       CALL KppSolve (E1, TMP)
       IF ((rkMethod==R1A).OR.(rkMethod==GAU).OR.(rkMethod==L3A)) THEN
             CALL KppSolve (E1,TMP)
-      END IF	    
+      END IF        
       IF (rkMethod==GAU) THEN
             CALL KppSolve (E1,TMP)
-      END IF	    
+      END IF        
 #endif      
 
       Err = RK_ErrorNorm(N,SCAL,TMP)
@@ -1580,48 +1600,48 @@ firej:IF (FirstStep.OR.Reject) THEN
       KPP_REAL :: J0(LU_NONZERO)
 #endif      
       KPP_REAL, INTENT(IN) :: T,H, Z1_tlm(N,NTLM),Z2_tlm(N,NTLM),Z3_tlm(N,NTLM), &
-      				Y_tlm(N,NTLM), Y(N)
+                                Y_tlm(N,NTLM), Y(N)
       LOGICAL, INTENT(IN) :: FirstStep, Reject
       KPP_REAL, INTENT(INOUT) :: FWD_Err
 
       INTEGER :: itlm
       KPP_REAL :: HEE1,HEE2,HEE3, SCAL_tlm(N), Err, TMP(N), TMP2(N), JY_tlm(N)
-	
-	HEE1  = rkE(1)/H
-	HEE2  = rkE(2)/H
-	HEE3  = rkE(3)/H
-	
+        
+        HEE1  = rkE(1)/H
+        HEE2  = rkE(2)/H
+        HEE3  = rkE(3)/H
+        
       DO itlm=1,NTLM
         CALL RK_ErrorScale(N,ITOL,AbsTol_tlm(1,itlm),RelTol_tlm(1,itlm), &
               Y_tlm(1,itlm),SCAL_tlm)
 
- 	CALL JAC_CHEM(T,Y,J0)
-	ISTATUS(Njac) = ISTATUS(Njac) + 1
-	CALL JAC_SP_Vec(J0,Y_tlm(1,itlm),JY_tlm)
+        CALL JAC_CHEM(T,Y,J0)
+        ISTATUS(Njac) = ISTATUS(Njac) + 1
+        CALL JAC_SP_Vec(J0,Y_tlm(1,itlm),JY_tlm)
 
-	DO  i=1,N
+        DO  i=1,N
           TMP2(i)  = HEE1*Z1_tlm(i,itlm)+HEE2*Z2_tlm(i,itlm)+HEE3*Z3_tlm(i,itlm)
           TMP(i) = rkE(0)*JY_tlm(i) + TMP2(i)
-	END DO
+        END DO
 
 #ifdef FULL_ALGEBRA      
-	CALL DGETRS ('N',N,1,E1,N,IP1,TMP,N,ISING) 
-!	IF ((ICNTRL(3)==3).OR.(ICNTRL(3)==4)) 
+        CALL DGETRS ('N',N,1,E1,N,IP1,TMP,N,ISING) 
+!       IF ((ICNTRL(3)==3).OR.(ICNTRL(3)==4)) 
 !               CALL DGETRS('N',N,1,E1,N,IP1,TMP,N,ISING)
-!	IF (ICNTRL(3)==3) CALL DGETRS ('N',N,1,E1,N,IP1,TMP,N,ISING)
+!       IF (ICNTRL(3)==3) CALL DGETRS ('N',N,1,E1,N,IP1,TMP,N,ISING)
 #else      
-	CALL KppSolve (E1, TMP)
-!	IF ((ICNTRL(3)==3).OR.(ICNTRL(3)==4)) THEN
+        CALL KppSolve (E1, TMP)
+!       IF ((ICNTRL(3)==3).OR.(ICNTRL(3)==4)) THEN
 !          CALL KppSolve (E1,TMP)
-!	END IF  
-!	IF (ICNTRL(3)==3) THEN
+!       END IF  
+!       IF (ICNTRL(3)==3) THEN
 !          CALL KppSolve (E1,TMP)
-!	END IF  
+!       END IF  
 #endif      
 
         Err = RK_ErrorNorm(N,SCAL_tlm,TMP)
 !
-	FWD_Err = MAX(FWD_Err, Err)
+        FWD_Err = MAX(FWD_Err, Err)
       END DO
       
    END SUBROUTINE RK_ErrorEstimate_tlm
@@ -1707,9 +1727,9 @@ firej:IF (FirstStep.OR.Reject) THEN
       ! Local order of error estimator 
       IF (b0==0.0d0) THEN
         rkELO  = 6.0d0
-      ELSE	
+      ELSE      
         rkELO  = 4.0d0
-      END IF	
+      END IF    
 
       !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       !~~~> Diagonalize the RK matrix:               
@@ -1838,9 +1858,9 @@ firej:IF (FirstStep.OR.Reject) THEN
       ! Local order of error estimator 
       IF (b0==0.0d0) THEN
         rkELO  = 5.0d0
-      ELSE	
+      ELSE      
         rkELO  = 4.0d0
-      END IF	
+      END IF    
 
       !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       !~~~> Diagonalize the RK matrix:               

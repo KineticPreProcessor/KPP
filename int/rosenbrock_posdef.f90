@@ -1,3 +1,6 @@
+! rosenbrock_posdef: positive definite following a suggestion from Adrian
+! see "MAX(Ynew,ZERO)" for details
+
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 !  Rosenbrock - Implementation of several Rosenbrock methods:             !
 !               * Ros2                                                    !
@@ -11,7 +14,8 @@
 !    (C)  Adrian Sandu, August 2004                                       !
 !    Virginia Polytechnic Institute and State University                  !
 !    Contact: sandu@cs.vt.edu                                             !
-!    Revised by Philipp Miehe and Adrian Sandu, May 2006                  !                               !
+!    Revised by Philipp Miehe and Adrian Sandu, May 2006                  !
+!                                                                         !
 !    This implementation is part of KPP - the Kinetic PreProcessor        !
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 
@@ -51,11 +55,11 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    KPP_REAL, INTENT(IN) :: TIN  ! Start Time
    KPP_REAL, INTENT(IN) :: TOUT ! End Time
    ! Optional input parameters and statistics
-   INTEGER,       INTENT(IN),  OPTIONAL :: ICNTRL_U(20)
+   INTEGER,  INTENT(IN),  OPTIONAL :: ICNTRL_U(20)
    KPP_REAL, INTENT(IN),  OPTIONAL :: RCNTRL_U(20)
-   INTEGER,       INTENT(OUT), OPTIONAL :: ISTATUS_U(20)
+   INTEGER,  INTENT(OUT), OPTIONAL :: ISTATUS_U(20)
    KPP_REAL, INTENT(OUT), OPTIONAL :: RSTATUS_U(20)
-   INTEGER,       INTENT(OUT), OPTIONAL :: IERR_U
+   INTEGER,  INTENT(OUT), OPTIONAL :: IERR_U
 
    KPP_REAL :: RCNTRL(20), RSTATUS(20)
    INTEGER       :: ICNTRL(20), ISTATUS(20), IERR
@@ -166,7 +170,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !        = 5 :    Rodas4
 !
 !    ICNTRL(4)  -> maximum number of integration steps
-!        For ICNTRL(4)=0) the default value of 100000 is used
+!        For ICNTRL(4)=0) the default value of 200000 is used
 !
 !    RCNTRL(1)  -> Hmin, lower bound for the integration step size
 !          It is strongly recommended to keep Hmin = ZERO
@@ -228,7 +232,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
    INTEGER, INTENT(OUT)   :: IERR
 !~~~>  Parameters of the Rosenbrock method, up to 6 stages
    INTEGER ::  ros_S, rosMethod
-   INTEGER, PARAMETER :: RS2=1, RS3=2, RS4=3, RD3=4, RD4=5, RG3=6
+   INTEGER, PARAMETER :: RS2=1, RS3=2, RS4=3, RD3=4, RD4=5
    KPP_REAL :: ros_A(15), ros_C(15), ros_M(6), ros_E(6), &
                     ros_Alpha(6), ros_Gamma(6), ros_ELO
    LOGICAL :: ros_NewF(6)
@@ -272,8 +276,6 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
        CALL Rodas3
      CASE (5)
        CALL Rodas4
-     CASE (6)
-       CALL Rang3
      CASE DEFAULT
        PRINT * , 'Unknown Rosenbrock method: ICNTRL(3)=',ICNTRL(3) 
        CALL ros_ErrorMsg(-2,Tstart,ZERO,IERR)
@@ -389,11 +391,11 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 CONTAINS !  SUBROUTINES internal to Rosenbrock
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  SUBROUTINE ros_ErrorMsg(Code,T,H,IERR)
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !    Handles all error messages
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
    KPP_REAL, INTENT(IN) :: T, H
    INTEGER, INTENT(IN)  :: Code
@@ -401,30 +403,13 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
    
    IERR = Code
    PRINT * , &
-     'Forced exit from Rosenbrock due to the following error:' 
-     
-   SELECT CASE (Code)
-    CASE (-1)    
-      PRINT * , '--> Improper value for maximal no of steps'
-    CASE (-2)    
-      PRINT * , '--> Selected Rosenbrock method not implemented'
-    CASE (-3)    
-      PRINT * , '--> Hmin/Hmax/Hstart must be positive'
-    CASE (-4)    
-      PRINT * , '--> FacMin/FacMax/FacRej must be positive'
-    CASE (-5) 
-      PRINT * , '--> Improper tolerance values'
-    CASE (-6) 
-      PRINT * , '--> No of steps exceeds maximum bound'
-    CASE (-7) 
-      PRINT * , '--> Step size too small: T + 10*H = T', &
-            ' or H < Roundoff'
-    CASE (-8)    
-      PRINT * , '--> Matrix is repeatedly singular'
-    CASE DEFAULT
-      PRINT *, 'Unknown Error code: ', Code
-   END SELECT
-   
+     'Forced exit from Rosenbrock due to the following error:'
+   IF ((Code>=-8).AND.(Code<=-1)) THEN
+     PRINT *, IERR_NAMES(Code)
+   ELSE
+     PRINT *, 'Unknown Error code: ', Code
+   ENDIF
+
    PRINT *, "T=", T, "and H=", H
      
  END SUBROUTINE ros_ErrorMsg
@@ -547,12 +532,10 @@ Stage: DO istage = 1, ros_S
 
       ! For the 1st istage the function has been computed previously
        IF ( istage == 1 ) THEN
-         !slim: CALL WCOPY(N,Fcn0,1,Fcn,1)
-         Fcn(1:N) = Fcn0(1:N)
+         CALL WCOPY(N,Fcn0,1,Fcn,1)
       ! istage>1 and a new function evaluation is needed at the current istage
        ELSEIF ( ros_NewF(istage) ) THEN
-         !slim: CALL WCOPY(N,Y,1,Ynew,1)
-         Ynew(1:N) = Y(1:N)
+         CALL WCOPY(N,Y,1,Ynew,1)
          DO j = 1, istage-1
            CALL WAXPY(N,ros_A((istage-1)*(istage-2)/2+j), &
             K(N*(j-1)+1),1,Ynew,1)
@@ -561,8 +544,7 @@ Stage: DO istage = 1, ros_S
          CALL FunTemplate(Tau,Ynew,Fcn)
          ISTATUS(Nfun) = ISTATUS(Nfun) + 1
        END IF ! if istage == 1 elseif ros_NewF(istage)
-       !slim: CALL WCOPY(N,Fcn,1,K(ioffset+1),1)
-       K(ioffset+1:ioffset+N) = Fcn(1:N)
+       CALL WCOPY(N,Fcn,1,K(ioffset+1),1)
        DO j = 1, istage-1
          HC = ros_C((istage-1)*(istage-2)/2+j)/(Direction*H)
          CALL WAXPY(N,HC,K(N*(j-1)+1),1,K(ioffset+1),1)
@@ -577,15 +559,13 @@ Stage: DO istage = 1, ros_S
 
 
 !~~~>  Compute the new solution
-   !slim: CALL WCOPY(N,Y,1,Ynew,1)
-   Ynew(1:N) = Y(1:N)
+   CALL WCOPY(N,Y,1,Ynew,1)
    DO j=1,ros_S
          CALL WAXPY(N,ros_M(j),K(N*(j-1)+1),1,Ynew,1)
    END DO
 
 !~~~>  Compute the error estimation
-   !slim: CALL WSCAL(N,ZERO,Yerr,1)
-   Yerr(1:N) = ZERO
+   CALL WSCAL(N,ZERO,Yerr,1)
    DO j=1,ros_S
         CALL WAXPY(N,ros_E(j),K(N*(j-1)+1),1,Yerr,1)
    END DO
@@ -599,8 +579,12 @@ Stage: DO istage = 1, ros_S
    ISTATUS(Nstp) = ISTATUS(Nstp) + 1
    IF ( (Err <= ONE).OR.(H <= Hmin) ) THEN  !~~~> Accept step
       ISTATUS(Nacc) = ISTATUS(Nacc) + 1
-      !slim: CALL WCOPY(N,Ynew,1,Y,1)
-      Y(1:N) = Ynew(1:N)
+      ! mz_rs_20061212+
+      ! old version did allow negative values here:
+      ! CALL WCOPY(N,Ynew,1,Y,1)
+      ! new value is positive definite:
+      Y = MAX(Ynew,ZERO)
+      ! mz_rs_20061212-
       T = T + Direction*H
       Hnew = MAX(Hmin,MIN(Hnew,Hmax))
       IF (RejectLastH) THEN  ! No step size increase after a rejected step
@@ -724,7 +708,7 @@ Stage: DO istage = 1, ros_S
 !~~~> Inout arguments
    KPP_REAL, INTENT(INOUT) :: H   ! step size is decreased when LU fails
 !~~~> Local variables
-   INTEGER  :: i, ISING, Nconsecutive
+   INTEGER  :: i, ising, Nconsecutive
    KPP_REAL :: ghinv
    KPP_REAL, PARAMETER :: ONE  = 1.0_dp, HALF = 0.5_dp
 
@@ -735,39 +719,37 @@ Stage: DO istage = 1, ros_S
 
 !~~~>    Construct Ghimj = 1/(H*gam) - Jac0
 #ifdef FULL_ALGEBRA    
-     !slim: CALL WCOPY(N*N,Jac0,1,Ghimj,1)
-     !slim: CALL WSCAL(N*N,(-ONE),Ghimj,1)
-     Ghimj = -Jac0
+     CALL WCOPY(N*N,Jac0,1,Ghimj,1)
+     CALL WSCAL(N*N,(-ONE),Ghimj,1)
      ghinv = ONE/(Direction*H*gam)
      DO i=1,N
        Ghimj(i,i) = Ghimj(i,i)+ghinv
      END DO
 #else
-     !slim: CALL WCOPY(LU_NONZERO,Jac0,1,Ghimj,1)
-     !slim: CALL WSCAL(LU_NONZERO,(-ONE),Ghimj,1)
-     Ghimj(1:LU_NONZERO) = -Jac0(1:LU_NONZERO)
+     CALL WCOPY(LU_NONZERO,Jac0,1,Ghimj,1)
+     CALL WSCAL(LU_NONZERO,(-ONE),Ghimj,1)
      ghinv = ONE/(Direction*H*gam)
      DO i=1,N
        Ghimj(LU_DIAG(i)) = Ghimj(LU_DIAG(i))+ghinv
      END DO
 #endif   
 !~~~>    Compute LU decomposition
-     CALL ros_Decomp( Ghimj, Pivot, ISING )
-     IF (ISING == 0) THEN
+     CALL ros_Decomp( Ghimj, Pivot, ising )
+     IF (ising == 0) THEN
 !~~~>    If successful done
         Singular = .FALSE.
-     ELSE ! ISING .ne. 0
+     ELSE ! ising .ne. 0
 !~~~>    If unsuccessful half the step size; if 5 consecutive fails then return
         ISTATUS(Nsng) = ISTATUS(Nsng) + 1
         Nconsecutive = Nconsecutive+1
         Singular = .TRUE.
-        PRINT*,'Warning: LU Decomposition returned ISING = ',ISING
+        PRINT*,'Warning: LU Decomposition returned ising = ',ising
         IF (Nconsecutive <= 5) THEN ! Less than 5 consecutive failed decompositions
            H = H*HALF
         ELSE  ! More than 5 consecutive failed decompositions
            RETURN
         END IF  ! Nconsecutive
-      END IF    ! ISING
+      END IF    ! ising
 
    END DO ! WHILE Singular
 
@@ -775,24 +757,20 @@ Stage: DO istage = 1, ros_S
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE ros_Decomp( A, Pivot, ISING )
+  SUBROUTINE ros_Decomp( A, Pivot, ising )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the LU decomposition
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    IMPLICIT NONE
 !~~~> Inout variables
-#ifdef FULL_ALGEBRA    
-   KPP_REAL, INTENT(INOUT) :: A(N,N)
-#else   
    KPP_REAL, INTENT(INOUT) :: A(LU_NONZERO)
-#endif
 !~~~> Output variables
-   INTEGER, INTENT(OUT) :: Pivot(N), ISING
+   INTEGER, INTENT(OUT) :: Pivot(N), ising
 
 #ifdef FULL_ALGEBRA    
-   CALL  DGETRF( N, N, A, N, Pivot, ISING )
+   CALL  DGETRF( N, N, A, N, Pivot, ising )
 #else   
-   CALL KppDecomp ( A, ISING )
+   CALL KppDecomp ( A, ising )
    Pivot(1) = 1
 #endif
    ISTATUS(Ndec) = ISTATUS(Ndec) + 1
@@ -807,21 +785,13 @@ Stage: DO istage = 1, ros_S
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    IMPLICIT NONE
 !~~~> Input variables
-#ifdef FULL_ALGEBRA    
-   KPP_REAL, INTENT(IN) :: A(N,N)
-   INTEGER :: ISING
-#else   
    KPP_REAL, INTENT(IN) :: A(LU_NONZERO)
-#endif
    INTEGER, INTENT(IN) :: Pivot(N)
 !~~~> InOut variables
    KPP_REAL, INTENT(INOUT) :: b(N)
 
 #ifdef FULL_ALGEBRA    
-   CALL  DGETRS( 'N', N , 1, A, N, Pivot, b, N, ISING )
-   IF ( Info < 0 ) THEN
-      PRINT*,"Error in DGETRS. ISING=",ISING
-   END IF  
+   CALL  DGETRS( 'N', N , 1, A, N, Pivot, b, N, 0 )
 #else   
    CALL KppSolve( A, b )
 #endif
@@ -1179,76 +1149,6 @@ Stage: DO istage = 1, ros_S
     ros_ELO = 4.0_dp
 
   END SUBROUTINE Rodas4
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE Rang3
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-! STIFFLY-STABLE W METHOD OF ORDER 3, WITH 4 STAGES
-!
-! J. RANG and L. ANGERMANN
-! NEW ROSENBROCK W-METHODS OF ORDER 3
-! FOR PARTIAL DIFFERENTIAL ALGEBRAIC
-!        EQUATIONS OF INDEX 1                                             
-! BIT Numerical Mathematics (2005) 45: 761-787
-!  DOI: 10.1007/s10543-005-0035-y
-! Table 4.1-4.2
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   IMPLICIT NONE
-
-    rosMethod = RG3
-!~~~> Name of the method
-    ros_Name = 'RANG-3'
-!~~~> Number of stages
-    ros_S = 4
-
-    ros_A(1) = 5.09052051067020d+00;
-    ros_A(2) = 5.09052051067020d+00;
-    ros_A(3) = 0.0d0;
-    ros_A(4) = 4.97628111010787d+00;
-    ros_A(5) = 2.77268164715849d-02;
-    ros_A(6) = 2.29428036027904d-01;
-
-    ros_C(1) = -1.16790812312283d+01;
-    ros_C(2) = -1.64057326467367d+01;
-    ros_C(3) = -2.77268164715850d-01;
-    ros_C(4) = -8.38103960500476d+00;
-    ros_C(5) = -8.48328409199343d-01;
-    ros_C(6) =  2.87009860433106d-01;
-
-    ros_M(1) =  5.22582761233094d+00;
-    ros_M(2) = -5.56971148154165d-01;
-    ros_M(3) =  3.57979469353645d-01;
-    ros_M(4) =  1.72337398521064d+00;
-
-    ros_E(1) = -5.16845212784040d+00;
-    ros_E(2) = -1.26351942603842d+00;
-    ros_E(3) = -1.11022302462516d-16;
-    ros_E(4) =  2.22044604925031d-16;
-
-    ros_Alpha(1) = 0.0d00;
-    ros_Alpha(2) = 2.21878746765329d+00;
-    ros_Alpha(3) = 2.21878746765329d+00;
-    ros_Alpha(4) = 1.55392337535788d+00;
-
-    ros_Gamma(1) =  4.35866521508459d-01;
-    ros_Gamma(2) = -1.78292094614483d+00;
-    ros_Gamma(3) = -2.46541900496934d+00;
-    ros_Gamma(4) = -8.05529997906370d-01;
-
-
-!~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
-!   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
-    ros_NewF(1) = .TRUE.
-    ros_NewF(2) = .TRUE.
-    ros_NewF(3) = .TRUE.
-    ros_NewF(4) = .TRUE.
-
-!~~~> ros_ELO  = estimator of local order - the minimum between the
-!        main and the embedded scheme orders plus 1
-    ros_ELO = 3.0_dp
-
-  END SUBROUTINE Rang3
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !   End of the set of internal Rosenbrock subroutines

@@ -30,6 +30,24 @@ MODULE KPP_ROOT_Integrator
   INTEGER, PARAMETER :: Nfun=1, Njac=2, Nstp=3, Nacc=4, &
     Nrej=5, Ndec=6, Nsol=7, Nsng=8, Ntexit=1, Nhacc=2, Nhnew=3
   
+   ! description of the error numbers IERR
+   CHARACTER(LEN=50), PARAMETER, DIMENSION(-13:1) :: IERR_NAMES = (/ &
+     'Requested RK method not implemented               ', & ! -13
+     'Non-convergence of Newton iterations              ', & ! -12
+     'Matrix is repeatedly singular                     ', & ! -11
+     'Step size too small: T + 10*H = T or H < Roundoff ', & ! -10
+     'No of steps exceeds maximum bound                 ', & ! -9
+     'Tolerances are too small                          ', & ! -8
+     'Improper values for Qmin, Qmax                    ', & ! -7
+     'Newton stopping tolerance too small               ', & ! -6
+     'Improper value for ThetaMin                       ', & ! -5
+     'Improper values for FacMin/FacMax/FacSafe/FacRej  ', & ! -4
+     'Hmin/Hmax/Hstart must be positive                 ', & ! -3
+     'Improper value for maximal no of Newton iterations', & ! -2
+     'Improper value for maximal no of steps            ', & ! -1
+     '                                                  ', & !  0 (not used)
+     'Success                                           ' /) !  1
+
 CONTAINS
 
   ! **************************************************************************
@@ -156,7 +174,7 @@ CONTAINS
 !              = 2:  Lobatto-3C
 !              = 3:  Gauss
 !              = 4:  Radau-1A
-!	       = 5:  Lobatto-3A (not yet implemented)
+!              = 5:  Lobatto-3A (not yet implemented)
 !
 !    ICNTRL(4)  -> maximum number of integration steps
 !        For ICNTRL(4)=0 the default value of 10000 is used
@@ -171,10 +189,10 @@ CONTAINS
 !        ICNTRL(6)=1 : starting values are zero
 !
 !    ICNTRL(10) -> switch for error estimation strategy
-!		ICNTRL(10) = 0: one additional stage at c=0, 
-!				see Hairer (default)
-!		ICNTRL(10) = 1: two additional stages at c=0 
-!				and SDIRK at c=1, stiffly accurate
+!               ICNTRL(10) = 0: one additional stage at c=0, 
+!                               see Hairer (default)
+!               ICNTRL(10) = 1: two additional stages at c=0 
+!                               and SDIRK at c=1, stiffly accurate
 !
 !    ICNTRL(11) -> switch for step size strategy
 !              ICNTRL(11)=0:  mod. predictive controller (Gustafsson, default)
@@ -265,7 +283,7 @@ CONTAINS
       INTEGER, PARAMETER :: R2A=1, R1A=2, L3C=3, GAU=4, L3A=5
       KPP_REAL :: rkT(3,3), rkTinv(3,3), rkTinvAinv(3,3), rkAinvT(3,3), &
                        rkA(0:3,0:3), rkB(0:3),  rkC(0:3), rkD(0:3), rkE(0:3), &
-		       rkBgam(0:4), rkBhat(0:4), rkTheta(0:3), rkF(0:4),      &
+                       rkBgam(0:4), rkBhat(0:4), rkTheta(0:3), rkF(0:4),      &
                        rkGamma,  rkAlpha, rkBeta, rkELO
        !~~~> Local variables
       INTEGER :: i
@@ -470,7 +488,7 @@ CONTAINS
       COMPLEX(kind=dp) :: E2(LU_NONZERO)   
 #endif                
       KPP_REAL, DIMENSION(NVAR) :: Z1,Z2,Z3,Z4,SCAL,DZ1,DZ2,DZ3,DZ4, &
-      				G,TMP,F0
+                                G,TMP,F0
       KPP_REAL  :: CONT(NVAR,3), Tdirection,  H, Hacc, Hnew, Hold, Fac, &
                  FacGus, Theta, Err, ErrOld, NewtonRate, NewtonIncrement,    &
                  Hratio, Qnewton, NewtonPredictedErr,NewtonIncrementOld, ThetaSD
@@ -597,10 +615,10 @@ NewtonLoop:DO  NewtonIter = 1, NewtonMaxit
             ! Check error in Newton iterations
             NewtonDone = (NewtonRate*NewtonIncrement <= NewtonTol)
             IF (NewtonDone) EXIT NewtonLoop
-   	    IF (NewtonIter == NewtonMaxit) THEN
-		PRINT*, 'Slow or no convergence in Newton Iteration: Max no. of', &
-		 	'Newton iterations reached'
-	    END IF
+            IF (NewtonIter == NewtonMaxit) THEN
+                PRINT*, 'Slow or no convergence in Newton Iteration: Max no. of', &
+                        'Newton iterations reached'
+            END IF
             
       END DO NewtonLoop
             
@@ -633,11 +651,11 @@ NewtonLoop:DO  NewtonIter = 1, NewtonMaxit
 SDNewtonLoop:DO NewtonIter = 1, NewtonMaxit
 
 !~~~>   Prepare the loop-dependent part of the right-hand side
-	    CALL WADD(N,Y,Z4,TMP)         ! TMP <- Y + Z4
-	    CALL FUN_CHEM(T+H,TMP,DZ4) 	  ! DZ4 <- Fun(Y+Z4)         
+            CALL WADD(N,Y,Z4,TMP)         ! TMP <- Y + Z4
+            CALL FUN_CHEM(T+H,TMP,DZ4)    ! DZ4 <- Fun(Y+Z4)         
             ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 !            DZ4(1:N) = (G(1:N)-Z4(1:N))*(rkGamma/H) + DZ4(1:N)
-	    CALL WAXPY (N, -ONE*rkGamma/H, Z4, 1, DZ4, 1)
+            CALL WAXPY (N, -ONE*rkGamma/H, Z4, 1, DZ4, 1)
             CALL WAXPY (N, rkGamma/H, G,1, DZ4,1)
 
 !~~~>   Solve the linear system
@@ -692,21 +710,21 @@ SDNewtonLoop:DO NewtonIter = 1, NewtonMaxit
 !~~~> Error estimation
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       IF (SdirkError) THEN
-	 CALL Set2Zero(N, DZ4)
+         CALL Set2Zero(N, DZ4)
          IF (rkMethod==L3A) THEN
            DZ4(1:N) = H*rkF(0)*F0(1:N)
-	   IF (rkF(1) /= ZERO)  CALL WAXPY(N, rkF(1), Z1, 1, DZ4, 1)
-	   IF (rkF(2) /= ZERO)  CALL WAXPY(N, rkF(2), Z2, 1, DZ4, 1)
-	   IF (rkF(3) /= ZERO)  CALL WAXPY(N, rkF(3), Z3, 1, DZ4, 1)
+           IF (rkF(1) /= ZERO)  CALL WAXPY(N, rkF(1), Z1, 1, DZ4, 1)
+           IF (rkF(2) /= ZERO)  CALL WAXPY(N, rkF(2), Z2, 1, DZ4, 1)
+           IF (rkF(3) /= ZERO)  CALL WAXPY(N, rkF(3), Z3, 1, DZ4, 1)
            TMP = Y + Z4
            CALL FUN_CHEM(T+H,TMP,DZ1)
- 	   CALL WAXPY(N, H*rkBgam(4), DZ1, 1, DZ4, 1)
+           CALL WAXPY(N, H*rkBgam(4), DZ1, 1, DZ4, 1)
          ELSE
 !         DZ4(1:N) =  rkD(1)*Z1 + rkD(2)*Z2 + rkD(3)*Z3 - Z4    
-  	   IF (rkD(1) /= ZERO)  CALL WAXPY(N, rkD(1), Z1, 1, DZ4, 1)
-	   IF (rkD(2) /= ZERO)  CALL WAXPY(N, rkD(2), Z2, 1, DZ4, 1)
-	   IF (rkD(3) /= ZERO)  CALL WAXPY(N, rkD(3), Z3, 1, DZ4, 1)
-	   CALL WAXPY(N, -ONE, Z4, 1, DZ4, 1)
+           IF (rkD(1) /= ZERO)  CALL WAXPY(N, rkD(1), Z1, 1, DZ4, 1)
+           IF (rkD(2) /= ZERO)  CALL WAXPY(N, rkD(2), Z2, 1, DZ4, 1)
+           IF (rkD(3) /= ZERO)  CALL WAXPY(N, rkD(3), Z3, 1, DZ4, 1)
+           CALL WAXPY(N, -ONE, Z4, 1, DZ4, 1)
          END IF
          Err = RK_ErrorNorm(N,SCAL,DZ4)    
       ELSE
@@ -771,7 +789,7 @@ accept:IF (Err < ONE) THEN !~~~> STEP IS ACCEPTED
              H = Hnew
          END IF
          Reject   = .TRUE.
-         SkipJac  = .TRUE.	! Skip if rejected - Jac is independent of H
+         SkipJac  = .TRUE.      ! Skip if rejected - Jac is independent of H
          SkipLU   = .FALSE. 
          IF (ISTATUS(Nacc) >= 1) ISTATUS(Nrej) = ISTATUS(Nrej) + 1
       END IF accept
@@ -1117,18 +1135,18 @@ accept:IF (Err < ONE) THEN !~~~> STEP IS ACCEPTED
       CALL DGETRS ('N',N,1,E1,N,IP1,TMP,N,ISING) 
       IF ((rkMethod==R1A).OR.(rkMethod==GAU).OR.(rkMethod==L3A)) THEN
            CALL DGETRS ('N',N,1,E1,N,IP1,TMP,N,ISING)
-      END IF 	   
+      END IF       
       IF (rkMethod==GAU) THEN
            CALL DGETRS ('N',N,1,E1,N,IP1,TMP,N,ISING)
-      END IF 	   
+      END IF       
 #else      
       CALL KppSolve (E1, TMP)
       IF ((rkMethod==R1A).OR.(rkMethod==GAU).OR.(rkMethod==L3A)) THEN
             CALL KppSolve (E1,TMP)
-      END IF 	   
+      END IF       
       IF (rkMethod==GAU) THEN
             CALL KppSolve (E1,TMP)
-      END IF 	   
+      END IF       
 #endif      
 
       Err = RK_ErrorNorm(N,SCAL,TMP)
@@ -1236,9 +1254,9 @@ firej:IF (FirstStep.OR.Reject) THEN
       ! Local order of error estimator 
       IF (b0==0.0d0) THEN
         rkELO  = 6.0d0
-      ELSE	
+      ELSE      
         rkELO  = 4.0d0
-      END IF	
+      END IF    
 
       !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       !~~~> Diagonalize the RK matrix:               
@@ -1367,9 +1385,9 @@ firej:IF (FirstStep.OR.Reject) THEN
       ! Local order of error estimator 
       IF (b0==0.0d0) THEN
         rkELO  = 5.0d0
-      ELSE	
+      ELSE      
         rkELO  = 4.0d0
-      END IF	
+      END IF    
 
       !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       !~~~> Diagonalize the RK matrix:               

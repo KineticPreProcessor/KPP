@@ -29,17 +29,26 @@
 #  E-mail: sandu@cs.vt.edu
 #
 #######################################################################################
-
-include ../Makefile.defs
+SYSTEM := $(shell uname)
+include ../Makefile.defs.$(SYSTEM)
 
 BISON=bison -d 
 CFLAGS=`cat ../cflags`
 
 all: kpp
 
+# list the configuration:
+.PHONY: list
+list:
+	@echo "SYSTEM       = $(SYSTEM)"
+	@echo "CC           = $(CC)"
+	@echo "FLEX         = $(FLEX)"
+	@echo "FLEX_LIB_DIR = $(FLEX_LIB_DIR)"
+	@echo "CC_FLAGS     = $(CC_FLAGS)"
+
 .c.o:
-	@echo "  "$(CC) $(CC_FLAGS) $(CFLAGS) -c $*.c
-	@$(CC) $(CC_FLAGS) $(CFLAGS) -I$(INCLUDE_DIR) -c $*.c
+	@echo "  "$(CC) -g $(CC_FLAGS) $(CFLAGS) -c $*.c
+	@$(CC) -g $(CC_FLAGS) $(CFLAGS) -c $*.c
 
 OBJS  = \
 	y.tab.o \
@@ -58,8 +67,7 @@ OBJS  = \
 kpp:    $(OBJS)
 	@echo "  "$(CC) $(CC_FLAGS) $(CFLAGS) $(OBJS) -L$(FLEX_LIB_DIR) -lfl -o kpp
 	@$(CC) $(CC_FLAGS) $(CFLAGS) $(OBJS) -L$(FLEX_LIB_DIR) -lfl -o kpp
-	@mkdir -p ../bin
-	@mv kpp ../bin/kpp
+	@mv kpp ../bin
 
 clean:  
 	@rm -f *~ *.o cflags 

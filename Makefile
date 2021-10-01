@@ -29,7 +29,8 @@
 #
 #######################################################################################
 
-include Makefile.defs
+SYSTEM := $(shell uname)
+include Makefile.defs.$(SYSTEM)
 
 all: setup kpp
 
@@ -44,5 +45,7 @@ clean:
 	@rm -f *~ */*~
 
 distclean: clean
-	@cd src;make maintainer-clean;cd ..
 	@rm -f bin/kpp
+
+maintainer-clean: distclean
+	@cd src;make maintainer-clean;cd ..

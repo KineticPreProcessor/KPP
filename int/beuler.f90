@@ -3,6 +3,8 @@
 !            * Sdirk 2a, 2b: L-stable, 2 stages, order 2                  !
 !            * Sdirk 3a:     L-stable, 3 stages, order 2, adj-invariant   !
 !            * Sdirk 4a, 4b: L-stable, 5 stages, order 4                  !
+!            * Backward Euler: L-stable, 1 stage, order 1                 ! 
+!                              Fixed step size = RCNTRL(3) = Hstart       !
 !  By default the code employs the KPP sparse linear algebra routines     !
 !  Compile with -DFULL_ALGEBRA to use full linear algebra (LAPACK)        !
 !                                                                         !
@@ -10,6 +12,7 @@
 !    Virginia Polytechnic Institute and State University                  !
 !    Contact: sandu@cs.vt.edu                                             !
 !    Revised by Philipp Miehe and Adrian Sandu, May 2006                  !
+!    Backward Euler added by Adrian Sandu, December 2012                  !
 !    This implementation is part of KPP - the Kinetic PreProcessor        !
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 
@@ -31,18 +34,13 @@ MODULE KPP_ROOT_Integrator
            Nrej=5, Ndec=6, Nsol=7, Nsng=8,               &
            Ntexit=1, Nhexit=2, Nhnew=3
                  
+  ! mz_rs_20171120+
   ! description of the error numbers IERR
-  CHARACTER(LEN=50), PARAMETER, DIMENSION(-8:1) :: IERR_NAMES = (/ &
-    'Matrix is repeatedly singular                     ', & ! -8
-    'Step size too small: T + 10*H = T or H < Roundoff ', & ! -7
-    'No of steps exceeds maximum bound                 ', & ! -6
-    'Improper tolerance values                         ', & ! -5
-    'FacMin/FacMax/FacRej must be positive             ', & ! -4
-    'Hmin/Hmax/Hstart must be positive                 ', & ! -3
-    'Improper value for maximal no of Newton iterations', & ! -2
-    'Improper value for maximal no of steps            ', & ! -1
+  CHARACTER(LEN=50), PARAMETER, DIMENSION(-1:1) :: IERR_NAMES = (/ &
+    'DUMMY ERROR MESSAGE                               ', & ! -1
     '                                                  ', & !  0 (not used)
     'Success                                           ' /) !  1
+  ! mz_rs_20171120-
 
 CONTAINS
 
@@ -71,6 +69,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    ISTATUS(:) = 0
    RSTATUS(:) = 0.0_dp
 
+   !~~~> fine-tune the integrator:
+   ICNTRL(2) = 0        ! 0 - vector tolerances, 1 - scalar tolerances
+   ICNTRL(6) = 0        ! starting values of Newton iterations: interpolated (0), zero (1)
   ! If optional parameters are given, and if they are >0, 
    ! then they overwrite default settings. 
    IF (PRESENT(ICNTRL_U)) THEN
@@ -121,11 +122,14 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !            * Sdirk 2a, 2b: L-stable, 2 stages, order 2                  
 !            * Sdirk 3a:     L-stable, 3 stages, order 2, adjoint-invariant   
 !            * Sdirk 4a, 4b: L-stable, 5 stages, order 4                  
+!            * Backward Euler: L-stable, 1 stage, order 1                  
+!                              Fixed step size = RCNTRL(3) = Hstart       
 !
 !    (C)  Adrian Sandu, July 2005
 !    Virginia Polytechnic Institute and State University
 !    Contact: sandu@cs.vt.edu
-!    Revised by Philipp Miehe and Adrian Sandu, May 2006                 
+!    Revised by Philipp Miehe and Adrian Sandu, May 2006  
+!    Backward Euler added by Adrian Sandu, Dec. 2012               
 !    This implementation is part of KPP - the Kinetic PreProcessor
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
@@ -238,7 +242,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
        
 !~~~>  SDIRK method coefficients, up to 5 stages
       INTEGER, PARAMETER :: Smax = 5
-      INTEGER, PARAMETER :: S2A=1, S2B=2, S3A=3, S4A=4, S4B=5
+      INTEGER, PARAMETER :: S2A=1, S2B=2, S3A=3, S4A=4, S4B=5, BEL=6
       KPP_REAL :: rkGamma, rkA(Smax,Smax), rkB(Smax), rkC(Smax), &
                        rkD(Smax),  rkE(Smax), rkBhat(Smax), rkELO,    &
                        rkAlpha(Smax,Smax), rkTheta(Smax,Smax)
@@ -276,6 +280,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
          CALL Sdirk4a
       CASE (5)
          CALL Sdirk4b
+      CASE (6)
+         CALL BEuler
       CASE DEFAULT
          CALL Sdirk2a
       END SELECT
@@ -333,7 +339,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    
 !~~~>  Starting step size: (positive value)
       IF (RCNTRL(3) == ZERO) THEN
-         Hstart = MAX(Hmin,Roundoff)
+         Hstart = MAX(Hmin,101.*Roundoff) ! factor 101 added mz_rs_20171120
       ELSEIF (RCNTRL(3) > ZERO) THEN
          Hstart = MIN(ABS(RCNTRL(3)),ABS(Tfinal-Tinitial))
       ELSE
@@ -420,6 +426,24 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
          END DO
       END IF
     
+!~~~>  Special treatment of backward Euler
+    IF (sdMethod == BEL) THEN
+           StartNewton = .FALSE.
+           FacMin = 1.0_dp
+           FacMax = 1.0_dp
+           FacSafe= 1.0_dp
+           FacRej = 1.0_dp
+           Qmin   = 1.0_dp
+           Qmax   = 1.0_dp
+           Hmax   = Hstart
+           IF ( Hstart <= 100_dp*Roundoff ) THEN
+                   PRINT * , ' Backward Euler calling error:'
+                   PRINT * , '   it requires Hstart > 100*Roundoff'
+                   STOP
+           END IF
+    END IF
+
+
     IF (Ierr < 0) RETURN
 
     CALL SDIRK_Integrator( N,Tinitial,Tfinal,Y,Ierr )
@@ -580,7 +604,7 @@ NewtonLoop:DO NewtonIter = 1, NewtonMaxit
                  CYCLE Tloop
             END IF
 
-!~~~>  End of implified Newton iterations
+!~~~>  End of simplified Newton iterations
 
  
    END DO stages
@@ -590,18 +614,24 @@ NewtonLoop:DO NewtonIter = 1, NewtonMaxit
 !~~~>  Error estimation
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       ISTATUS(Nstp) = ISTATUS(Nstp) + 1
-      CALL Set2zero(N,TMP)
-      DO i = 1,rkS
-         IF (rkE(i)/=ZERO) CALL WAXPY(N,rkE(i),Z(1,i),1,TMP,1)
-      END DO  
 
-      CALL SDIRK_Solve( H, N, E, IP, IER, TMP )
-      CALL SDIRK_ErrorNorm(N, TMP, SCAL, Err)
+      IF (sdMethod /= BEL) THEN ! All methods but Backward Euler
+        CALL Set2zero(N,TMP)
+        DO i = 1,rkS
+          IF (rkE(i)/=ZERO) CALL WAXPY(N,rkE(i),Z(1,i),1,TMP,1)
+        END DO  
+
+        CALL SDIRK_Solve( H, N, E, IP, IER, TMP )
+        CALL SDIRK_ErrorNorm(N, TMP, SCAL, Err)
 
 !~~~> Computation of new step size Hnew
-      Fac  = FacSafe*(Err)**(-ONE/rkELO)
-      Fac  = MAX(FacMin,MIN(FacMax,Fac))
-      Hnew = H*Fac
+        Fac  = FacSafe*(Err)**(-ONE/rkELO)
+        Fac  = MAX(FacMin,MIN(FacMax,Fac))
+        Hnew = H*Fac
+      ELSE ! Backward Euler Method
+        Err = ZERO
+        Hnew = MIN( Hstart, 1.2_dp*H )
+      END IF
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~>  Accept/Reject step
@@ -841,6 +871,41 @@ Hloop: DO WHILE (ISING /= 0)
       ISTATUS(Nsol) = ISTATUS(Nsol) + 1
  
       END SUBROUTINE SDIRK_Solve
+
+
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SUBROUTINE BEuler
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+sdMethod = BEL
+! Number of stages
+rkS = 1
+
+! Method coefficients
+rkGamma = 1.0_dp
+rkA(1,1) = 1.0_dp
+rkB(1)   = 1.0_dp
+rkBhat(1)= 1.0_dp
+rkC(1)   = 1.0_dp
+
+! Ynew = Yold + h*Sum_i {rkB_i*k_i} = Yold + Sum_i {rkD_i*Z_i}
+rkD(1)   = 1.0_dp
+
+! Err = h * Sum_i {(rkB_i-rkBhat_i)*k_i} = Sum_i {rkE_i*Z_i}
+rkE(1)   =  1.0_dp
+
+! Local order of Err estimate
+rkElo    = -1.0_dp
+
+! h*Sum_j {rkA_ij*k_j} = Sum_j {rkTheta_ij*Z_j}
+rkTheta(1,1) =  0.0_dp
+
+! Starting value for Newton iterations: Z_i^0 = Sum_j {rkAlpha_ij*Z_j}
+rkAlpha(1,1) =   0.0_dp
+
+END SUBROUTINE BEuler
+
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1227,6 +1292,7 @@ Hloop: DO WHILE (ISING /= 0)
 
       USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
       USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
+      USE KPP_ROOT_Jacobian
       USE KPP_ROOT_Jacobian, ONLY: Jac_SP
       USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
       IMPLICIT NONE

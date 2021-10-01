@@ -51,17 +51,19 @@ CC=gcc
 FLEX=flex
 
 # 3. The complete pathname of the FLEX library (libfl.a).
-#    On many systems this is either: 
-#    /usr/lib, /usr/lib64, /usr/local/util/lib/flex
+#    On many systems this is: /usr/local/util/lib/flex
 
 FLEX_LIB_DIR=/usr/lib
 
 # 4. Platform independent C compiler flags. By default "-O" is used which 
-#    turns on optimization. If you are experiencing problems you may try 
+#    turns on optimisation. If you are experiencing problems you may try 
 #    "-g" to include debuging informations.
 #    "-Wall" = all warnings
 
-CC_FLAGS=-O
-# CC_FLAGS= -g -Wall
+#  mz_rs_20161121+
+#CC_FLAGS=-O
+CC_FLAGS=-O -Wno-implicit-function-declaration
+#  mz_rs_20161121-
+# CC_FLAGS=-O -Wall
 
 ##############################################################################

@@ -37,7 +37,10 @@
 %{
   #include <stdio.h>
   #include <stdlib.h>
-  #include <malloc.h>
+  /*  mz_rs_20090904+ */
+  /* not necessary, "malloc" comes from <stdlib.h>
+  /* #include <malloc.h> */
+  /*  mz_rs_20090904- */
   #include <string.h>
   #include <unistd.h>
   #include "scan.h"
@@ -69,8 +72,9 @@
 
 %}
 
+/* mz_rs_20170327 value increased (must be the same as MAX_K) */
 %union{
-  char str[80];
+  char str[1000];
 };
 
 %token JACOBIAN DOUBLE FUNCTION DEFVAR DEFRAD DEFFIX SETVAR SETRAD SETFIX 

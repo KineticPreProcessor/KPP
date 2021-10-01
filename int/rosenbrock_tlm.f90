@@ -197,8 +197,8 @@ SUBROUTINE RosenbrockTLM(N,Y,NTLM,Y_tlm,                      &
 !        For ICNTRL(4)=0) the default value of 100000 is used
 !
 !    ICNTRL(12) -> switch for TLM truncation error control
-!		ICNTRL(12) = 0: TLM error is not used
-!		ICNTRL(12) = 1: TLM error is computed and used
+!               ICNTRL(12) = 0: TLM error is not used
+!               ICNTRL(12) = 1: TLM error is computed and used
 !
 !    RCNTRL(1)  -> Hmin, lower bound for the integration step size
 !          It is strongly recommended to keep Hmin = ZERO 
@@ -754,7 +754,7 @@ Stage: DO istage = 1, ros_S
    Err = FWD_Err
    DO itlm = 1,NTLM
      TMP = ros_ErrorNorm(Y_tlm(1,itlm), Ynew_tlm(1,itlm),Yerr_tlm(1,itlm), &
-     		AbsTol_tlm(1,itlm), RelTol_tlm(1,itlm), VectorTol)
+                AbsTol_tlm(1,itlm), RelTol_tlm(1,itlm), VectorTol)
      Err = MAX(Err, TMP)
    END DO
 

@@ -1,6 +1,0 @@
-#MODEL      cell_cycle 
-#INTEGRATOR gillespie
-#LANGUAGE   Matlab
-#DRIVER     general_stochastic
-#STOCHASTIC on
-#STOICMAT   on
