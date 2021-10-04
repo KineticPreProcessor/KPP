@@ -29,5 +29,5 @@ ENV F90=$FC F9X=$FC F77=$FC
 RUN make && chmod +x /kpp/.ci-pipelines/ci-testing-script.sh 
 
 # Run Tests
-RUN /kpp/.ci-pipelines/ci-script.sh
+RUN /kpp/.ci-pipelines/ci-testing-script.sh
 

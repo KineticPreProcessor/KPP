@@ -27,6 +27,6 @@ steps:
     displayName: Build image
     inputs:
       command: build
-      # buildContext: $(Build.Repository.LocalPath)   # The path to the source code repo
+      buildContext: $(Build.Repository.LocalPath)   # The path to the source code repo
       Dockerfile: .ci-pipelines/Dockerfile
       arguments: --progress=plain
