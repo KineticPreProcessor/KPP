@@ -16,8 +16,8 @@ RUN apt-get update && apt-get install -y \
 COPY . .
 
 # use customized Makefile for ci testing (just switches compiler to gfortran)
-RUN rm ./examples/Makefile_saprc_f90 \
-    && cp .ci-pipelines/pipeline_Makefile_saprc_f90 ./examples/Makefile_saprc_f90
+RUN rm /kpp/examples/Makefile_saprc_f90 \
+    && cp /kpp/.ci-pipelines/pipeline_Makefile_saprc_f90 /kpp/examples/Makefile_saprc_f90
 
 # KPP environment variables
 ENV KPP_HOME=/kpp
@@ -25,8 +25,9 @@ ENV CC=gcc CXX=g++ FC=gfortran
 ENV F90=$FC F9X=$FC F77=$FC
 
 # Build kpp executable update ensure testing script is executable
-RUN make && chmod +x .ci-pipelines/ci-testing-script.sh 
+RUN make && chmod +x /kpp/.ci-pipelines/ci-testing-script.sh 
+RUN ls -lha /kpp
 
 # Run Tests
-RUN .ci-pipelines/ci-script.sh
+RUN /kpp/.ci-pipelines/ci-script.sh
 
