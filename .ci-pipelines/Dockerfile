@@ -6,7 +6,7 @@ FROM ubuntu:20.04
 LABEL maintainer="GEOS-Chem Support Team <geos-chem-support@as.harvard.edu>"
 WORKDIR /kpp
 
-
+# install software pre reqs
 RUN apt-get update && apt-get install -y \
     git gcc gfortran make flex bison
 
