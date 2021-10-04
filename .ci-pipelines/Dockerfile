@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
 # `docker build -f ./.ci-pipelines/Dockerfile -t kpp-build .` from top level of project
 # To exec into the container run: `docker run -it --entrypoint /bin/bash kpp-build`
 COPY . .
+RUN ls -lha /kpp
 
 # use customized Makefile for ci testing (just switches compiler to gfortran)
 RUN rm /kpp/examples/Makefile_saprc_f90 \
@@ -26,7 +27,6 @@ ENV F90=$FC F9X=$FC F77=$FC
 
 # Build kpp executable update ensure testing script is executable
 RUN make && chmod +x /kpp/.ci-pipelines/ci-testing-script.sh 
-RUN ls -lha /kpp
 
 # Run Tests
 RUN /kpp/.ci-pipelines/ci-script.sh
