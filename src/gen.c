@@ -35,7 +35,7 @@
 #include "gdata.h"
 #include "code.h"
 #include "scan.h"
- 
+
 #define MAX_MONITOR 8
 enum strutypes { PLAIN, LU };
 
@@ -45,17 +45,17 @@ int **LUstructJ;
 
 ICODE InlineCode[ INLINE_OPT ];
 
-int NSPEC, NVAR, NVARACT, NFIX, NREACT;
+int NSPEC, NVAR, NVARACT, NFIX, NREACT, NFLUX;
 int NVARST, NFIXST;
-/* int PI; */ 
+/* int PI; */
 int C_DEFAULT, C;
 int DC;
 int ARP, JVRP, NJVRP, CROW_JVRP, IROW_JVRP, ICOL_JVRP;
-int V, F, VAR, FIX;
+int V, F, VAR, FIX, FLUX;
 int RCONST, RCT;
 int Vdot, P_VAR, D_VAR;
-int KR, A, BV, BR, IV;
-int JV, UV, JUV, JTUV, JVS; 
+int KR, A, BV, BR, IV, RR;
+int JV, UV, JUV, JTUV, JVS;
 int JR, UR, JUR, JRS;
 int U1, U2, HU, HTU;
 int X, XX, NTMPB;
@@ -63,19 +63,26 @@ int D2A, NTMPD2A, NHESS, HESS, IHESS_I, IHESS_J, IHESS_K;
 int DDMTYPE;
 int STOICM, NSTOICM, IROW_STOICM, ICOL_STOICM, CCOL_STOICM, CNEQN;
 int IROW, ICOL, CROW, DIAG;
-int LU_IROW, LU_ICOL, LU_CROW, LU_DIAG, CNVAR;   
+int LU_IROW, LU_ICOL, LU_CROW, LU_DIAG, CNVAR;
 int LOOKAT, NLOOKAT, MONITOR, NMONITOR;
 int NMASS, SMASS;
-int SPC_NAMES, EQN_NAMES;
-int EQN_TAGS; 
+int SPC_NAMES, EQN_NAMES, FAM_NAMES;
+int EQN_TAGS;
 int NONZERO, LU_NONZERO;
 int TIME, SUN, TEMP;
 int RTOLS, TSTART, TEND, DT;
 int ATOL, RTOL, STEPMIN, STEPMAX, CFACTOR;
 int V_USER, CL;
 int NMLCV, NMLCF, SCT, PROPENSITY, VOLUME, IRCT;
-
+int FLUX_MAP;
+int FAM,NFAM;
 int Jac_NZ, LU_Jac_NZ, nzr;
+//===========================================================================
+// KPP 2.3.2_gc, Bob Yantosca (26 Mar 2021)
+// Define extra arrays and scalars
+//
+int MW, SR_MW, SR_TEMP, K300_OVER_TEMP, TEMP_OVER_K300, NUMDEN;
+//===========================================================================
 
 NODE *sum, *prod;
 int real;
@@ -92,23 +99,23 @@ int nnz_stoicm;
 char * ascii(int x)
 {
 static char s[40];
- 
+
   sprintf(s, "%d", x);
-  return s;  
+  return s;
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 char * ascid(double x)
 {
 static char s[40];
- 
+
   sprintf(s, "%12.6e", x);
   /* if (useDouble && ( (useLang==F77_LANG)||(useLang==F90_LANG) ) ) { */
-  if (useDouble && (useLang==F77_LANG)) 
+  if (useDouble && (useLang==F77_LANG))
     s[strlen(s)-4] = 'd';
-  if (useDouble && (useLang==F90_LANG)) 
+  if (useDouble && (useLang==F90_LANG))
     sprintf(s, "%s_dp",s);
-  return s;  
+  return s;
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -116,7 +123,7 @@ NODE * RConst( int n )
 {
   switch( kr[n].type ) {
     case NUMBER:    return Const( kr[n].val.f );
-    case PHOTO: 
+    case PHOTO:
     case EXPRESION: return Elm( RCT, n );
   }
   return 0;
@@ -131,11 +138,13 @@ int i,j;
 
   NSPEC   = DefConst( "NSPEC",   INT, "Number of chemical species" );
   NVAR    = DefConst( "NVAR",    INT, "Number of Variable species" );
+  NFLUX   = DefConst( "NFLUX",   INT, "Number of Reaction Flux species" );
   NVARACT = DefConst( "NVARACT", INT, "Number of Active species" );
   NFIX    = DefConst( "NFIX",    INT, "Number of Fixed species" );
   NREACT  = DefConst( "NREACT",  INT, "Number of reactions" );
   NVARST  = DefConst( "NVARST",  INT, "Starting of variables in conc. vect." );
   NFIXST  = DefConst( "NFIXST",  INT, "Starting of fixed in conc. vect." );
+  NFAM    = DefConst( "NFAM",    INT, "Number of Prod/Loss Families");
   NONZERO = DefConst( "NONZERO", INT, "Number of nonzero entries in Jacobian" );
   LU_NONZERO = DefConst( "LU_NONZERO", INT, "Number of nonzero entries in LU factoriz. of Jacobian" );
   CNVAR   = DefConst( "CNVAR",   INT, "(NVAR+1) Number of elements in compressed row format" );
@@ -145,22 +154,26 @@ int i,j;
 
   VAR = DefvElm( "VAR", real, -NVAR, "Concentrations of variable species (global)" );
   FIX = DefvElm( "FIX", real, -NFIX, "Concentrations of fixed species (global)" );
+  FLUX = DefvElm( "FLUX", real, -NFLUX, "Captured flux through reactions (global)" );
 
   V = DefvElm( "V", real, -NVAR, "Concentrations of variable species (local)" );
   F = DefvElm( "F", real, -NFIX, "Concentrations of fixed species (local)" );
 
   V_USER = DefvElm( "V_USER", real, -NVAR, "Concentration of variable species in USER's order" );
- 
+
+  FAM    = DefvElm( "FAM", real, -NFAM, "Accumulated user-defined prod/loss families." );
+
   RCONST = DefvElm( "RCONST", real, -NREACT, "Rate constants (global)" );
   RCT    = DefvElm( "RCT",    real, -NREACT, "Rate constants (local)" );
 
   Vdot = DefvElm( "Vdot", real, -NVAR, "Time derivative of variable species concentrations" );
+
   P_VAR = DefvElm( "P_VAR", real, -NVAR, "Production term" );
   D_VAR = DefvElm( "D_VAR", real, -NVAR, "Destruction term" );
 
 
   JVS   = DefvElm( "JVS", real, -LU_NONZERO, "sparse Jacobian of variables" );
-    
+
   JV    = DefmElm( "JV",  real, -NVAR, -NVAR, "full Jacobian of variables" );
 
   UV    = DefvElm( "UV",  real, -NVAR, "User vector for variables" );
@@ -173,20 +186,21 @@ int i,j;
   TIME  = DefElm( "TIME", real, "Current integration time");
   SUN   = DefElm( "SUN", real, "Sunlight intensity between [0,1]");
   TEMP  = DefElm( "TEMP", real, "Temperature");
-  
+
   RTOLS  = DefElm( "RTOLS", real, "(scalar) Relative tolerance");
   TSTART = DefElm( "TSTART", real, "Integration start time");
   TEND   = DefElm( "TEND", real, "Integration end time");
   DT     = DefElm( "DT", real, "Integration step");
-  
+
   A  = DefvElm( "A", real, -NREACT, "Rate for each equation" );
+  RR = DefvElm( "RR", real, -NREACT, "Flux for each equation" );
 
   ARP  = DefvElm( "ARP", real, -NREACT, "Reactant product in each equation" );
   NJVRP    = DefConst( "NJVRP",   INT, "Length of sparse Jacobian JVRP" );
   JVRP = DefvElm( "JVRP", real, -NJVRP, "d ARP(1:NREACT)/d VAR (1:NVAR)" );
   CROW_JVRP= DefvElm( "CROW_JVRP", INT, -CNEQN, "Beginning of rows in JVRP" );
-  ICOL_JVRP= DefvElm( "ICOL_JVRP", INT, -NJVRP, "Column indices in JVRP" );  
-  IROW_JVRP= DefvElm( "IROW_JVRP", INT, -NJVRP, "Row indices in JVRP" );  
+  ICOL_JVRP= DefvElm( "ICOL_JVRP", INT, -NJVRP, "Column indices in JVRP" );
+  IROW_JVRP= DefvElm( "IROW_JVRP", INT, -NJVRP, "Row indices in JVRP" );
 
   NTMPB  = DefConst( "NTMPB",   INT, "Length of Temporary Array B" );
   BV = DefvElm( "B", real, -NTMPB, "Temporary array" );
@@ -205,7 +219,7 @@ int i,j;
   HESS  = DefvElm( "HESS", real, -NHESS, "Hessian of Var (i.e. the 3-tensor d Jac / d Var)" );
   IHESS_I  = DefvElm( "IHESS_I", INT, -NHESS, "Index i of Hessian element d^2 f_i/dv_j.dv_k" );
   IHESS_J  = DefvElm( "IHESS_J", INT, -NHESS, "Index j of Hessian element d^2 f_i/dv_j.dv_k" );
-  IHESS_K  = DefvElm( "IHESS_K", INT, -NHESS, "Index k of Hessian element d^2 f_i/dv_j.dv_k" ); 
+  IHESS_K  = DefvElm( "IHESS_K", INT, -NHESS, "Index k of Hessian element d^2 f_i/dv_j.dv_k" );
   U1  = DefvElm( "U1",  real, -NVAR, "User vector" );
   U2  = DefvElm( "U2",  real, -NVAR, "User vector" );
   HU  = DefvElm( "HU", real, -NVAR, "Hessian times user vectors: (Hess x U2) * U1 = [d (Jac*U1)/d Var] * U2" );
@@ -246,6 +260,9 @@ int i,j;
   EQN_TAGS    = DefvElm( "EQN_TAGS", STRING, -NREACT, "Equation tags" );
   EQN_NAMES  = DefvElm( "EQN_NAMES", DOUBLESTRING, -NREACT, "Equation names" );
   SPC_NAMES  = DefvElm( "SPC_NAMES", STRING, -NSPEC, "Names of chemical species" );
+  FAM_NAMES  = DefvElm( "FAM_NAMES", STRING, -NFAM, "Names of chemical familes" );
+
+  FLUX_MAP   = DefvElm( "FLUX_MAP", INT, -NREACT, "Map-to-SPEC indeces for FLUX species" );
 
   CFACTOR  = DefElm( "CFACTOR", real, "Conversion factor for concentration units");
 
@@ -257,12 +274,30 @@ int i,j;
   VOLUME = DefElm( "Volume", real, "Volume of the reaction container" );
   IRCT  = DefElm( "IRCT", INT, "Index of chemical reaction" );
 
-  for ( i=0; i<EqnNr; i++ ) 
-    for ( j=0; j<SpcNr; j++ ) 
+//===========================================================================
+// KPP 2.3.2_gc, Bob Yantosca (26 Mar 2021)
+// Define extra arrays and scalars for gckpp_Global.F90
+//
+  MW = DefvElm( "MW",   real, -NSPEC,
+		"Species molecular weight [g/mole]" );
+  SR_MW = DefvElm( "SR_MW", real, -NSPEC,
+		   "Square root of species molecular weight [g/mole]" );
+  SR_TEMP = DefElm( "SR_TEMP", real,
+		    "Square root of Temperature [K**0.5]" );
+  K300_OVER_TEMP = DefElm( "K300_OVER_TEMP", real,
+			   "300.0 / Temperature [K]" );
+  TEMP_OVER_K300 = DefElm( "TEMP_OVER_K300", real,
+			   "Temperature [K] / 300.0");
+  NUMDEN = DefElm( "NUMDEN", real,
+		   "Air number density [#/cm3]");
+//===========================================================================
+
+  for ( i=0; i<EqnNr; i++ )
+    for ( j=0; j<SpcNr; j++ )
       structB[i][j] = ( Stoich_Left[j][i] != 0 ) ? 1 : 0;
-      
-  /* Constant values are useful to declare vectors of this size */ 
-  if (useDeclareValues) {   
+
+  /* Constant values are useful to declare vectors of this size */
+  if (useDeclareValues) {
     varTable[ NSPEC ]   -> value  = max(SpcNr,1);
     varTable[ NVAR  ]   -> value  = max(VarNr,1);
     varTable[ NVARACT ] -> value  = max(VarActiveNr,1);
@@ -274,17 +309,17 @@ int i,j;
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-int NonZero( int stru, int start, int end, 
+int NonZero( int stru, int start, int end,
              int *row, int *col, int *crow, int *diag )
 {
 int nElm;
 int i,j;
-  
+
   nElm = 0;
-  for (i = 0; i < end-start; i++) { 
+  for (i = 0; i < end-start; i++) {
     crow[i] = Index(nElm);
     for (j = 0; j < end-start; j++) {
-      if( (i == j) || ( (stru) ? LUstructJ[i+start][j+start] 
+      if( (i == j) || ( (stru) ? LUstructJ[i+start][j+start]
                                : structJ[i+start][j+start] ) ) {
         row[nElm] = Index(i);
 	col[nElm] = Index(j);
@@ -292,7 +327,7 @@ int i,j;
       }
       if( i == j ) {
         diag[i] = Index(nElm-1);
-      }  
+      }
     }
   }
   crow[i] = Index(nElm);
@@ -319,6 +354,7 @@ char *EQN_TAGS[MAX_EQN];
 char *bufeqn, *p;
 int dim;
 
+/*** NOTE: This is only for C and Matlab, not Fortran ***/
   if ( (useLang != C_LANG)&&(useLang != MATLAB_LANG) ) return;
 
   UseFile( driverFile );
@@ -326,11 +362,11 @@ int dim;
   NewLines(1);
 
   GlobalDeclare( C );
-  C_Inline("%s * %s = & %s[%d];", C_types[real], 
+  C_Inline("%s * %s = & %s[%d];", C_types[real],
             varTable[VAR]->name, varTable[C]->name, 0 );
-  C_Inline("%s * %s = & %s[%d];", C_types[real], 
+  C_Inline("%s * %s = & %s[%d];", C_types[real],
             varTable[FIX]->name, varTable[C]->name, VarNr );
-	     
+
 
   GlobalDeclare( RCONST );
   GlobalDeclare( TIME );
@@ -358,7 +394,7 @@ int dim;
     MATLAB_Inline("  %s_HessianSP;",rootFileName);
   if (useStoicmat )
     MATLAB_Inline("  %s_StoichiomSP;",rootFileName);
-  
+
   NewLines(1);
 
 }
@@ -377,15 +413,17 @@ int  *trans;
 char *strans[MAX_SPECIES];
 char *smass[MAX_ATOMS];
 char *seqn[MAX_EQN];
+char *sfam[MAX_FAMILIES];
 char *bufeqn, *p;
 int dim;
+int flxind[MAX_EQN];
 
 
   /* Allocate local data structures */
   dim    = SpcNr+2;
   crow   = AllocIntegerVector( dim, "crow in GenerateMonitorData");
   diag   = AllocIntegerVector( dim, "diag in GenerateMonitorData");
-  lookat = AllocIntegerVector( dim, "lookat in GenerateMonitorData"); 
+  lookat = AllocIntegerVector( dim, "lookat in GenerateMonitorData");
   moni   = AllocIntegerVector( dim, "moni in GenerateMonitorData");
   trans  = AllocIntegerVector( dim, "trans in GenerateMonitorData");
 
@@ -395,24 +433,36 @@ int dim;
   F77_Inline("%6sINCLUDE '%s_Parameters.h'", " ",rootFileName);
   F77_Inline("%6sINCLUDE '%s_Global.h'", " ",rootFileName);
   F77_Inline("%6sINTEGER i", " " );
-    
+
    /* InitDeclare( CFACTOR, 0, (void*)&cfactor ); */
-  
+
   NewLines(1);
 
   for (i = 0; i < SpcNr; i++) {
       snames[i] = SpeciesTable[Code[i]].name;
-  }  
+  }
   InitDeclare( SPC_NAMES, SpcNr, (void*)snames );
+
+  if (doFlux == 1) {
+    NewLines(1);
+    j = 0;
+    for (i = 0; i < SpcNr; i++) {
+      if ( SpeciesTable[ Code[i] ].flux ) {
+	flxind[j] = Index(i);
+	j++;
+      }
+    }
+    InitDeclare( FLUX_MAP, EqnNr, (void*)flxind );
+  }
 
   nlookat = 0;
   for (i = 0; i < SpcNr; i++)
     if ( SpeciesTable[Code[i]].lookat ) {
       lookat[nlookat] = Index(i);
-      nlookat++;  
-    } 
-  
-  if (useDeclareValues)  
+      nlookat++;
+    }
+
+  if (useDeclareValues)
         varTable[ NLOOKAT ]  -> value  = max(nlookat,1);
   InitDeclare( LOOKAT, nlookat, (void*)lookat );
 
@@ -421,15 +471,15 @@ int dim;
     if ( SpeciesTable[Code[i]].moni ) {
       moni[nmoni] = Index(i);
       nmoni++;
-    }  
+    }
 
   if( nmoni > MAX_MONITOR ) {
-    Warning( "%d species to monitorize. Too many, keeping %d.", 
+    Warning( "%d species to monitorize. Too many, keeping %d.",
              nmoni, MAX_MONITOR );
-    nmoni = MAX_MONITOR;         
+    nmoni = MAX_MONITOR;
   }
 
-  if (useDeclareValues)  
+  if (useDeclareValues)
         varTable[ NMONITOR ] -> value  = max(nmoni,1);
   InitDeclare( MONITOR, nmoni, (void*)moni );
 
@@ -438,53 +488,58 @@ int dim;
     if ( SpeciesTable[Code[i]].trans ) {
       trans[ntrans] = Index(i);
       strans[ntrans] = SpeciesTable[Code[i]].name;
-      ntrans++;  
-    } 
+      ntrans++;
+    }
 
   nmass = 0;
   for (i = 0; i < AtomNr; i++)
     if ( AtomTable[i].masscheck ) {
       smass[nmass] = AtomTable[i].name;
       nmass++;
-    }  
-  if (useDeclareValues)  
+    }
+  if (useDeclareValues)
         varTable[ NMASS ]    -> value  = max(nmass,1);
   InitDeclare( SMASS, nmass, (void*)smass );
 
   if ( (bufeqn = (char*)malloc(MAX_EQNLEN*EqnNr+2))==NULL ) {
-    FatalError(-30,"GenerateMonitorData: Cannot allocate bufeqn (%d chars)", 
+    FatalError(-30,"GenerateMonitorData: Cannot allocate bufeqn (%d chars)",
                     MAX_EQNLEN*EqnNr);
   }
 
-  p = bufeqn; 
+  p = bufeqn;
   for (i = 0; i < EqnNr; i++) {
     EqnString(i, p);
     seqn[i] = p;
     p += MAX_EQNLEN;
-  }  
+  }
   InitDeclare( EQN_NAMES, EqnNr, (void*)seqn );
 
   free( bufeqn );
 
   if (useEqntags==1) {
     for (i = 0; i < EqnNr; i++) {
-      seqn[i] = kr[i].label;  
-    }  
+      seqn[i] = kr[i].label;
+    }
     InitDeclare( EQN_TAGS, EqnNr, (void*)seqn );
   }
-  
+
+  for (i = 0; i < FamilyNr; i++) {
+    sfam[i] = FamilyTable[ i ].name;
+  }
+  InitDeclare( FAM_NAMES, FamilyNr, (void*)sfam );
+
   NewLines(1);
   WriteComment("INLINED global variables");
 
   switch( useLang ) {
-    case C_LANG:   bprintf( InlineCode[ C_DATA ].code ); 
+    case C_LANG:   bprintf( InlineCode[ C_DATA ].code );
                  break;
-    case F77_LANG: bprintf( InlineCode[ F77_DATA ].code ); 
+    case F77_LANG: bprintf( InlineCode[ F77_DATA ].code );
                  break;
-    case F90_LANG: bprintf( InlineCode[ F90_DATA ].code ); 
-                 break; 
-    case MATLAB_LANG: bprintf( InlineCode[ MATLAB_DATA ].code ); 
-                 break; 
+    case F90_LANG: bprintf( InlineCode[ F90_DATA ].code );
+                 break;
+    case MATLAB_LANG: bprintf( InlineCode[ MATLAB_DATA ].code );
+                 break;
   }
   FlushBuf();
 
@@ -518,25 +573,25 @@ int dim;
   icol = AllocIntegerVector( dim*dim, "icol in GenerateJacobianSparseData" );
   crow = AllocIntegerVector( dim,     "crow in GenerateJacobianSparseData" );
   diag = AllocIntegerVector( dim,     "diag in GenerateJacobianSparseData" );
-    
+
   UseFile( sparse_jacFile );
 
-  NewLines(1);  
+  NewLines(1);
   WriteComment("Sparse Jacobian Data");
-  NewLines(1);  
+  NewLines(1);
 
   F77_Inline("%6sBLOCK DATA JACOBIAN_SPARSE_DATA\n", " " );
   F77_Inline("%6sINCLUDE '%s_Sparse.h'", " ",rootFileName);
   F77_Inline("%6sINTEGER i"," ");
   /* F90_Inline("   USE %s_Sparse", rootFileName); */
 
- 
+
   Jac_NZ = NonZero( PLAIN, 0, VarNr, irow, icol, crow, diag );
   LU_Jac_NZ = NonZero( LU, 0, VarNr, irow, icol, crow, diag );
   if (useDeclareValues) {
      varTable[NONZERO] -> value = Jac_NZ;
      varTable[LU_NONZERO] -> value = LU_Jac_NZ;
-  }   
+  }
 
   switch (useJacobian) {
   case JAC_ROW:
@@ -555,7 +610,7 @@ int dim;
   }
   NewLines(1);
   F77_Inline( "%6sEND\n\n", " " );
-  
+
   /* Free local arrays */
   free(irow); free(icol); free(crow); free(diag);
 }
@@ -586,10 +641,9 @@ void GenerateJacobianSparseHeader()
     ExternDeclare( LU_CROW );
     ExternDeclare( LU_DIAG );
   }
-  
+
   NewLines(1);
 }
-
 
 
 
@@ -602,52 +656,84 @@ int l, m;
 int F_VAR, FSPLIT_VAR;
 
   if( VarNr == 0 ) return;
-  
-  if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
-       UseFile( functionFile ); 
 
-  F_VAR      = DefFnc( "Fun",      4, "time derivatives of variables - Agregate form");
+  if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
+       UseFile( functionFile );
+
+  F_VAR      = DefFnc( "Fun",      4, "time derivatives of variables - Aggregate form");
   FSPLIT_VAR = DefFnc( "Fun_SPLIT", 5, "time derivatives of variables - Split form");
 
-  if( useAggregate )
-    FunctionBegin( F_VAR, V, F, RCT, Vdot );
-  else
+  if( useAggregate ) {
+//===========================================================================
+// KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)
+// Manually declare Aout as an optional variable.  We cannot use
+// routine FunctionBegin, because this has no way of defining
+// optional Fortran90 arguments.  Therefore we will just
+// write this using C-language fprintf statements.
+//
+    fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+    fprintf(functionFile, "!\n");
+    fprintf(functionFile, "! Fun - time derivatives of variables - Aggregate form\n");
+    fprintf(functionFile, "!   Arguments :\n");
+    fprintf(functionFile, "!      V         - Concentrations of variable species (local)\n");
+    fprintf(functionFile, "!      F         - Concentrations of fixed species (local)\n");
+    fprintf(functionFile, "!      RCT       - Rate constants (local)\n");
+    fprintf(functionFile, "!      Vdot      - Time derivative of variable species concentrations\n");
+    fprintf(functionFile, "!      Aout      - Array to return rxn rates for diagnostics (OPTIONAL)\n");
+    fprintf(functionFile, "!\n");
+    fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
+    fprintf(functionFile, "SUBROUTINE Fun ( V, F, RCT, Vdot, Aout )\n\n");
+    fprintf(functionFile, "! V - Concentrations of variable species (local)\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: V(NVAR)\n");
+    fprintf(functionFile, "! F - Concentrations of fixed species (local)\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: F(NFIX)\n");
+    fprintf(functionFile, "! RCT - Rate constants (local)\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: RCT(NREACT)\n");
+    fprintf(functionFile, "! Vdot - Time derivative of variable species concentrations\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: Vdot(NVAR)\n");
+    fprintf(functionFile, "!### KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)\n");
+    fprintf(functionFile, "!### Aout - Array for returning KPP reaction rates for diagnostics\n");
+    fprintf(functionFile, "  REAL(kind=dp), OPTIONAL :: Aout(NREACT)\n");
+//===========================================================================
+  } else {
     FunctionBegin( FSPLIT_VAR, V, F, RCT, P_VAR, D_VAR );
+  }
 
   if ( (useLang==MATLAB_LANG)&&(!useAggregate) )
      printf("\nWarning: in the function definition move P_VAR to output vars\n");
 
-  
+
   if ( useLang!=F90_LANG ) { /* A is a module variable in F90 */
     NewLines(1);
     WriteComment("Local variables");
     Declare( A );
-  }  
+    WriteOMPThreadPrivate("A");
+  }
   NewLines(1);
   WriteComment("Computation of equation rates");
-  
+
   for(j=0; j<EqnNr; j++) {
     used = 0;
     if( useAggregate ) {
-      for (i = 0; i < VarNr; i++) 
-        if ( Stoich[i][j] != 0 ) { 
+      for (i = 0; i < VarNr; i++)
+        if ( Stoich[i][j] != 0 ) {
           used = 1;
           break;
         }
     } else {
-      for (i = 0; i < VarNr; i++) 
-        if ( Stoich_Right[i][j] != 0 ) { 
+      for (i = 0; i < VarNr; i++)
+        if ( Stoich_Right[i][j] != 0 ) {
           used = 1;
 	  break;
         }
-    }  
-    
-    if ( used ) {    
+    }
+
+    if ( used ) {
       prod = RConst( j );
-      for (i = 0; i < VarNr; i++) 
+      for (i = 0; i < VarNr; i++)
         for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
-          prod = Mul( prod, Elm( V, i ) ); 
-      for ( ; i < SpcNr; i++) 
+          prod = Mul( prod, Elm( V, i ) );
+      for ( ; i < SpcNr; i++)
         for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
           prod = Mul( prod, Elm( F, i - VarNr ) );
       Assign( Elm( A, j ), prod );
@@ -655,34 +741,58 @@ int F_VAR, FSPLIT_VAR;
   }
 
   if( useAggregate ) {
+//===========================================================================
+// KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)
+// Copy A to Aout to return reaction rates outside of KPP
+//
+    fprintf(functionFile,
+	    "\n\n!### KPP 2.3.2_gc, Bob Yantosca (11 Feb 2021)\n");
+    fprintf(functionFile, "\!### Use Aout to return reaction rates\n");
+    fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n\n");
+//===========================================================================
 
     NewLines(1);
     WriteComment("Aggregate function");
 
     for (i = 0; i < VarNr; i++) {
       sum = Const(0);
-      for (j = 0; j < EqnNr; j++) 
+      for (j = 0; j < EqnNr; j++)
         sum = Add( sum, Mul( Const( Stoich[i][j] ), Elm( A, j ) ) );
       Assign( Elm( Vdot, i ), sum );
-    }    
+    }
+    for (i = VarNr; i < VarNr; i++) {
+      sum = Const(0);
+      for (j = 0; j < EqnNr; j++)
+        sum = Add( sum, Mul( Const( Stoich[i][j] ), Elm( A, j ) ) );
+      Assign( Elm( Vdot, i ), sum );
+    }
 
   } else {
-    
+
     NewLines(1);
     WriteComment("Production function");
 
     for (i = 0; i < VarNr; i++) {
       sum = Const(0);
-      for (j = 0; j < EqnNr; j++) 
+      for (j = 0; j < EqnNr; j++)
         sum = Add( sum, Mul( Const( Stoich_Right[i][j] ), Elm( A, j ) ) );
       Assign( Elm( P_VAR, i ), sum );
     }
-    
+
     NewLines(1);
     WriteComment("Destruction function");
 
+    /* msl_20160421
     for (i = 0; i < VarNr; i++) {
-      sum = Const(0);       
+      sum = Const(0);
+      for (j = 0; j < EqnNr; j++)
+        sum = Add( sum, Mul( Const( Stoich_Left[i][j] ), Elm( A, j ) ) );
+      Assign( Elm( D_VAR, i ), sum );
+    }
+    */
+
+    for (i = 0; i < VarNr; i++) {
+      sum = Const(0);
       for(j=0; j<EqnNr; j++) {
         if ( Stoich_Left[i][j] == 0 ) continue;
         prod = Mul( RConst( j ), Const( Stoich_Left[i][j] ) );
@@ -690,15 +800,15 @@ int F_VAR, FSPLIT_VAR;
           m=(int)Stoich_Left[l][j] - (l==i);
           for (k = 1; k <= m; k++ )
             prod = Mul( prod, Elm( V, l ) );
-        }     
-        for ( ; l < SpcNr; l++) 
+        }
+        for ( ; l < SpcNr; l++)
           for (k = 1; k <= (int)Stoich_Left[l][j]; k++ )
-            prod = Mul( prod, Elm( F, l - VarNr  ) ); 
+            prod = Mul( prod, Elm( F, l - VarNr  ) );
         sum = Add( sum, prod );
       }
       Assign( Elm( D_VAR, i ), sum );
     }
-  }   
+  }
 
   if( useAggregate )
     MATLAB_Inline("\n   Vdot = Vdot(:);\n");
@@ -709,9 +819,61 @@ int F_VAR, FSPLIT_VAR;
     FunctionEnd( F_VAR );
   else
     FunctionEnd( FSPLIT_VAR );
-  
+
   FreeVariable( F_VAR );
   FreeVariable( FSPLIT_VAR );
+}
+
+
+
+
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+void GenerateFlux()
+{
+int i, j, k;
+int used;
+int l, m;
+int FLUX_VAR;
+
+  if( VarNr == 0 ) return;
+
+  /*  if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
+  /*     UseFile( functionFile ); */
+
+  FLUX_VAR = DefFnc( "Flux", 3, "calculate production & loss terms from reaction flux");
+
+  FunctionBegin( FLUX_VAR, RR, P_VAR, D_VAR );
+
+  /*if ( (useLang==MATLAB_LANG)&&(!useAggregate) )
+    printf("\nWarning: in the flux definition move P_VAR to output vars\n");*/
+
+  NewLines(1);
+  WriteComment("Production function");
+
+  for (i = 0; i < VarNr; i++) {
+    sum = Const(0);
+    for (j = 0; j < EqnNr; j++)
+      sum = Add( sum, Mul( Const( Stoich_Right[i][j] ), Elm( RR, j ) ) );
+    Assign( Elm( P_VAR, i ), sum );
+  }
+
+  NewLines(1);
+  WriteComment("Destruction function");
+
+  /* msl_20160421 */
+  for (i = 0; i < VarNr; i++) {
+    sum = Const(0);
+    for (j = 0; j < EqnNr; j++)
+      sum = Add( sum, Mul( Const( Stoich_Left[i][j] ), Elm( RR, j ) ) );
+    Assign( Elm( D_VAR, i ), sum );
+  }
+
+
+  /*MATLAB_Inline("\n   P_VAR = P_VAR(:);\n   D_VAR = D_VAR(:);\n");*/
+
+  FunctionEnd( FLUX_VAR );
+  FreeVariable( FLUX_VAR );
 }
 
 
@@ -726,9 +888,9 @@ int used;
 int F_VAR;
 
   if( VarNr == 0 ) return;
-  
+
   if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
-       UseFile( stochasticFile ); 
+       UseFile( stochasticFile );
 
   /* ~~~~~~~> 1. PROPENSITY FUNCTION  ~~~~~~~~~~~~ */
   F_VAR = DefFnc( "Propensity", 4, "Propensity function");
@@ -738,24 +900,24 @@ int F_VAR;
      printf("\nWarning: in the function definition move P_VAR to output vars\n");
 
   NewLines(1);
-  
+
   for(j=0; j<EqnNr; j++) {
     used = 0;
-    for (i = 0; i < VarNr; i++) 
-      if ( Stoich[i][j] != 0 ) { 
+    for (i = 0; i < VarNr; i++)
+      if ( Stoich[i][j] != 0 ) {
         used = 1;
         break;
       }
-    if ( used ) {    
+    if ( used ) {
       prod = Elm( SCT, j );
-      for (i = 0; i < VarNr; i++) 
+      for (i = 0; i < VarNr; i++)
         for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
 	  if (k==1)
              prod = Mul( prod, Elm( NMLCV, i ) );
 	  else
 	     prod = Mul( prod, Add( Elm( NMLCV, i ), Const(-k+1) ) );
-	     
-      for ( ; i < SpcNr; i++) 
+
+      for ( ; i < SpcNr; i++)
         for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
 	  if (k==1)
              prod = Mul( prod, Elm( NMLCF, i - VarNr ) );
@@ -779,16 +941,16 @@ int F_VAR;
   WriteComment("For p molecules of the same type:  SCT = SCT/(p!)");
 
   NewLines(1);
-  
+
   for(j=0; j<EqnNr; j++) {
       prod = Elm( RCT, j );
       m = 0;
-      for (i = 0; i < SpcNr; i++) 
+      for (i = 0; i < SpcNr; i++)
         m += (int)Stoich_Left[i][j];
       for ( i=2 ; i <= m; i++)
          prod = Mul( prod, Elm(VOLUME, 1) );
       n = 1;
-      for (i = 0; i < SpcNr; i++) 
+      for (i = 0; i < SpcNr; i++)
         for (k = 2; k <= (int)Stoich_Left[i][j]; k++ )
 	  n *= k;
       prod = Div( prod, Const( n ) );
@@ -797,19 +959,19 @@ int F_VAR;
 
   MATLAB_Inline("\n   SCT = SCT(:);\n");
   FunctionEnd( F_VAR );
-  FreeVariable( F_VAR );  
-  
+  FreeVariable( F_VAR );
+
   /* ~~~~~~~> 3. THE CHANGE IN NUMBER OF MOLECULES */
   if (useLang == MATLAB_LANG) {
     F_VAR = DefFnc( "MoleculeChange", 3, "Change in the number of molecules");
     FunctionBegin( F_VAR, IRCT, NMLCV, NMLCV );
-  } else {  
+  } else {
     F_VAR = DefFnc( "MoleculeChange", 2, "Change in the number of molecules");
     FunctionBegin( F_VAR, IRCT, NMLCV );
-  }  
+  }
 
   NewLines(1);
-  
+
   F90_Inline("\n SELECT CASE (IRCT)\n");
   C_Inline  ("\n switch (IRCT) { \n");
   MATLAB_Inline("\n switch (IRCT) \n");
@@ -817,14 +979,14 @@ int F_VAR;
       jnr = j+1;
       if (j==0)
         F77_Inline("\n%6sIF (IRCT.EQ.%d) THEN"," ",jnr);
-      else	
+      else
         F77_Inline("\n%6sELSEIF (IRCT.EQ.%d) THEN "," ",jnr);
       F90_Inline("\n  CASE (%d) ",jnr);
       C_Inline("\n  case %d: ",jnr);
       MATLAB_Inline("\n case %d, ",jnr);
       for (i = 0; i < VarNr; i++) {
         if ( Stoich_Left[i][j] || Stoich_Right[i][j] )
-          Assign( Elm( NMLCV, i ), Add(Elm( NMLCV, i ), 
+          Assign( Elm( NMLCV, i ), Add(Elm( NMLCV, i ),
 	       Const(Stoich_Right[i][j]-Stoich_Left[i][j])) );
       } /* for i */
       C_Inline("  break;",j);
@@ -835,8 +997,8 @@ int F_VAR;
   MATLAB_Inline("\n end\n");
 
   FunctionEnd( F_VAR );
-  FreeVariable( F_VAR );  
- 
+  FreeVariable( F_VAR );
+
 }
 
 
@@ -851,28 +1013,28 @@ int l, m;
 int F_STOIC;
 
   if( VarNr == 0 ) return;
-  
-  UseFile( stoichiomFile ); 
+
+  UseFile( stoichiomFile );
 
   F_STOIC = DefFnc( "ReactantProd",3, "Reactant Products in each equation");
 
   FunctionBegin( F_STOIC, V, F, ARP );
-  
+
   NewLines(1);
   WriteComment("Reactant Products in each equation are useful in the");
   WriteComment("    stoichiometric formulation of mass action law");
-  
+
   for(j=0; j<EqnNr; j++) {
 
       prod = Const( 1 );
-      for (i = 0; i < VarNr; i++) 
+      for (i = 0; i < VarNr; i++)
         for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
-          prod = Mul( prod, Elm( V, i ) ); 
-      for ( ; i < SpcNr; i++) 
+          prod = Mul( prod, Elm( V, i ) );
+      for ( ; i < SpcNr; i++)
         for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
           prod = Mul( prod, Elm( F, i - VarNr  ) );
       Assign( Elm( ARP, j ), prod );
-    
+
   } /* for j EqnNr */
 
   FunctionEnd(  F_STOIC );
@@ -892,7 +1054,7 @@ int crow_JVRP[MAX_EQN], icol_JVRP[MAX_EQN*MAX_SPECIES];
 int irow_JVRP[MAX_EQN*MAX_SPECIES];
 
   if( VarNr == 0 ) return;
-  
+
   if (useDeclareValues) {
     JVRP_NZ = -1;
     for ( i=0; i<EqnNr; i++ )
@@ -901,19 +1063,19 @@ int irow_JVRP[MAX_EQN*MAX_SPECIES];
     varTable[ NJVRP ]  -> value  = JVRP_NZ + 1;
   }
 
-  UseFile( stoichiomFile ); 
+  UseFile( stoichiomFile );
 
   F_STOIC = DefFnc( "JacReactantProd",3, "Jacobian of Reactant Products vector");
 
   FunctionBegin( F_STOIC, V, F, JVRP );
 
-  
+
   NewLines(1);
   WriteComment("Reactant Products in each equation are useful in the");
   WriteComment("   stoichiometric formulation of mass action law");
   WriteComment("Below we compute the Jacobian of the Reactant Products vector");
   WriteComment("   w.r.t. variable species: d ARP(1:NREACT) / d Var(1:NVAR)");
-          
+
   NewLines(1);
 
   JVRP_NZ = -1;
@@ -928,14 +1090,14 @@ int irow_JVRP[MAX_EQN*MAX_SPECIES];
 	if ( newrow == 0 ) { /* a new row begins here */
 	  crow_JVRP[i] = JVRP_NZ;
 	  newrow = 1;
-	}  
+	}
         prod = Const( Stoich_Left[j][i] ) ;
-        for (l = 0; l < VarNr; l++) { 
+        for (l = 0; l < VarNr; l++) {
           m = (int)Stoich_Left[l][i] - (l==j);
           for (k = 1; k <= m; k++ )
-            prod = Mul( prod, Elm( V, l ) ); 
-        }      
-        for ( ; l < SpcNr; l++) 
+            prod = Mul( prod, Elm( V, l ) );
+        }
+        for ( ; l < SpcNr; l++)
           for (k = 1; k <= (int)Stoich_Left[l][i]; k++ )
             prod = Mul( prod, Elm( F, l - VarNr ) );
 	/* Comment the B */
@@ -950,7 +1112,7 @@ int irow_JVRP[MAX_EQN*MAX_SPECIES];
   FreeVariable( F_STOIC );
 
 
-  UseFile( sparse_stoicmFile ); 
+  UseFile( sparse_stoicmFile );
   NewLines(1);
   WriteComment("Row-compressed sparse data for the Jacobian of reaction products JVRP");
   F77_Inline("%6sBLOCK DATA JVRP_SPARSE_DATA\n", " " );
@@ -958,13 +1120,13 @@ int irow_JVRP[MAX_EQN*MAX_SPECIES];
   F77_Inline("%6sINTEGER i", " ");
   /* F90_Inline("   USE %s_Sparse", rootFileName); */
   if( (useLang==F77_LANG)||(useLang==F90_LANG) ) {
-        for (k=0; k<JVRP_NZ+1; k++) { 
+        for (k=0; k<JVRP_NZ+1; k++) {
            irow_JVRP[k]++;
            icol_JVRP[k]++;
 	   }
-	for (k=0; k<EqnNr+1; k++) 
+	for (k=0; k<EqnNr+1; k++)
            crow_JVRP[k]++;
-  }  
+  }
   InitDeclare( CROW_JVRP, EqnNr+1, (void*)crow_JVRP );
   InitDeclare( ICOL_JVRP, JVRP_NZ + 1, (void*)icol_JVRP );
   InitDeclare( IROW_JVRP, JVRP_NZ + 1, (void*)irow_JVRP );
@@ -972,7 +1134,7 @@ int irow_JVRP[MAX_EQN*MAX_SPECIES];
   F77_Inline( "%6sEND\n\n", " " );
   NewLines(1);
 
-  
+
   UseFile( param_headerFile );
   CommonName = "GDATA";
   NewLines(1);
@@ -988,17 +1150,17 @@ void GenerateJac()
 int i,j,k,l,m;
 int nElm, nonzeros_B;
 int Jac_SP, Jac;
-  
+
   if( VarNr == 0 ) return;
   if (useJacobian == JAC_OFF) return;
 
   if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
        UseFile( jacobianFile );
-  
+
   Jac_SP  = DefFnc( "Jac_SP", 4,
                   "the Jacobian of Variables in sparse matrix representation");
   Jac     = DefFnc( "Jac", 4, "the Jacobian of Variables");
-  
+
   if( useJacSparse )
     FunctionBegin( Jac_SP, V, F, RCT, JVS );
   else
@@ -1011,19 +1173,19 @@ int Jac_SP, Jac;
       break;
     case JAC_LU_ROW:
       ExternDeclare(LU_IROW); ExternDeclare(LU_ICOL);
-      break;    
+      break;
     }
   }
-   
+
   /* Each nonzero entry of B now counts its rank */
   nonzeros_B = 0;
-  for ( i=0; i<EqnNr; i++ ) 
-    for ( j=0; j<SpcNr; j++ ) 
+  for ( i=0; i<EqnNr; i++ )
+    for ( j=0; j<SpcNr; j++ )
        if ( structB[i][j] != 0 ) {
 	 nonzeros_B++;
          structB[i][j] = nonzeros_B;
 	 }
-	 
+
   if ( (useLang==C_LANG)||(useLang==F77_LANG)||(useLang==F90_LANG) ) {
     NewLines(1);
     WriteComment("Local variables");
@@ -1031,19 +1193,19 @@ int Jac_SP, Jac;
     varTable[ NTMPB ] -> value = nonzeros_B;
     Declare( BV );
   }
-        
+
   NewLines(1);
 
   for ( i=0; i<EqnNr; i++ ) {
     for ( j=0; j<VarNr; j++ ) {
       if ( Stoich_Left[j][i] != 0 ) {
         prod = Mul( RConst( i ), Const( Stoich_Left[j][i] ) );
-        for (l = 0; l < VarNr; l++) { 
+        for (l = 0; l < VarNr; l++) {
           m = (int)Stoich_Left[l][i] - (l==j);
           for (k = 1; k <= m; k++ )
-            prod = Mul( prod, Elm( V, l ) ); 
-        }      
-        for ( ; l < SpcNr; l++) 
+            prod = Mul( prod, Elm( V, l ) );
+        }
+        for ( ; l < SpcNr; l++)
           for (k = 1; k <= (int)Stoich_Left[l][i]; k++ )
             prod = Mul( prod, Elm( F, l - VarNr ) );
 	/* Comment the B */
@@ -1055,7 +1217,7 @@ int Jac_SP, Jac;
 
   nElm = 0;
   NewLines(1);
-  WriteComment("Construct the Jacobian terms from B's"); 
+  WriteComment("Construct the Jacobian terms from B's");
 
   if ( useJacSparse ) {
   for (i = 0; i < VarNr; i++) {
@@ -1063,7 +1225,7 @@ int Jac_SP, Jac;
       if( LUstructJ[i][j] ) {
         sum = Const(0);
         for (k = 0; k < EqnNr; k++) {
-          if( Stoich[i][k]*structB[k][j] != 0 ) 
+          if( Stoich[i][k]*structB[k][j] != 0 )
             sum = Add( sum, Mul( Const( Stoich[i][k] ), Elm( BV, structB[k][j]-1 ) ) );
         }
 	/* Comment the B */
@@ -1078,21 +1240,21 @@ int Jac_SP, Jac;
         }
       }
     }
-  }  
+  }
   } else { /* full Jacobian */
   for (i = 0; i < VarNr; i++) {
     for (j = 0; j < VarNr; j++) {
       if( structJ[i][j] ) {
         sum = Const(0);
         for (k = 0; k < EqnNr; k++) {
-          if( Stoich[i][k]*structB[k][j] != 0 ) 
+          if( Stoich[i][k]*structB[k][j] != 0 )
             sum = Add( sum, Mul( Const( Stoich[i][k] ), Elm( BV, structB[k][j]-1 ) ) );
         }
         Assign( Elm( JV, i, j ), sum );
-      } 
+      }
     }
   }
-  }  
+  }
 
   if (useLang == MATLAB_LANG) {
     switch (useJacobian) {
@@ -1101,10 +1263,10 @@ int Jac_SP, Jac;
       break;
     case JAC_LU_ROW:
       MATLAB_Inline("\n   JVS = sparse(LU_IROW,LU_ICOL,JVS,%d,%d);\n",VarNr,VarNr);
-      break;    
+      break;
     }
   }
-  
+
   if( useJacSparse )
     FunctionEnd( Jac_SP );
   else
@@ -1112,8 +1274,8 @@ int Jac_SP, Jac;
 
   FreeVariable( Jac_SP );
   FreeVariable( Jac );
-  
-} 
+
+}
 
 
 
@@ -1132,33 +1294,33 @@ int *coeff_j, *coeff_i1, *coeff_i2;
 int Djv_isElm;
 
   if ( VarNr == 0 ) return;
-  
+
   if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
-      UseFile( hessianFile ); 
+      UseFile( hessianFile );
 
 /*  Calculate the number of nonzero terms of the form d^2 A(j)/ ( d v(i1) d v(i2) )*/
   nElm = 0;
-  for(j=0; j<EqnNr; j++) 
-    for (i1 = 0; i1 < VarNr; i1++) 
-      for (i2 = i1; i2 < VarNr; i2++) 
+  for(j=0; j<EqnNr; j++)
+    for (i1 = 0; i1 < VarNr; i1++)
+      for (i2 = i1; i2 < VarNr; i2++)
         if (i1==i2) {
-          if (Stoich_Left[i1][j]>=2) 
+          if (Stoich_Left[i1][j]>=2)
 	    nElm++;
 	} else {  /* i1 != i2 */
-          if ( (Stoich_Left[i1][j]>=1)&&(Stoich_Left[i2][j]>=1) ) 
+          if ( (Stoich_Left[i1][j]>=1)&&(Stoich_Left[i2][j]>=1) )
 	    nElm++;
-	}  
+	}
 
 /* Allocate temporary index arrays */
-  coeff_j  = AllocIntegerVector(nElm, "coeff_j  in GenerateHess");  
-  coeff_i1 = AllocIntegerVector(nElm, "coeff_i1 in GenerateHess");  
-  coeff_i2 = AllocIntegerVector(nElm, "coeff_i2 in GenerateHess");  
+  coeff_j  = AllocIntegerVector(nElm, "coeff_j  in GenerateHess");
+  coeff_i1 = AllocIntegerVector(nElm, "coeff_i1 in GenerateHess");
+  coeff_i2 = AllocIntegerVector(nElm, "coeff_i2 in GenerateHess");
 
 /*  Fill in temporary index arrays */
   nElm = 0;
-  for(j=0; j<EqnNr; j++) 
-    for (i1 = 0; i1 < VarNr; i1++) 
-      for (i2 = i1; i2 < VarNr; i2++) 
+  for(j=0; j<EqnNr; j++)
+    for (i1 = 0; i1 < VarNr; i1++)
+      for (i2 = i1; i2 < VarNr; i2++)
         if (i1==i2) {
           if (Stoich_Left[i1][j]>=2) {
 	    coeff_j[nElm] = j; coeff_i1[nElm] = i1; coeff_i2[nElm] = i2;
@@ -1169,29 +1331,29 @@ int Djv_isElm;
 	    coeff_j[nElm] = j; coeff_i1[nElm] = i1; coeff_i2[nElm] = i2;
 	    nElm++;
 	    }
-	}  
+	}
 /*  Number of nonzero terms of the form d^2 f(i)/ ( d v(i1) d v(i2) ) */
-    Hess_NZ = 0; 
-    for (i = 0; i < VarNr; i++)     
+    Hess_NZ = 0;
+    for (i = 0; i < VarNr; i++)
       for (i1 = 0; i1 < VarNr; i1++)
          for (i2 = i1; i2 < VarNr; i2++) {
-	    Djv_isElm = 0; 
-            for (j = 0; j < EqnNr; j++) 
-	      if ( Stoich[i][j] != 0 ) 
-                for (k = 0; k < nElm; k++) 
-	          if ( (coeff_j[k]==j) && (coeff_i1[k]==i1) 
-		                      && (coeff_i2[k]==i2) ) { 
-		    Djv_isElm = 1; 
+	    Djv_isElm = 0;
+            for (j = 0; j < EqnNr; j++)
+	      if ( Stoich[i][j] != 0 )
+                for (k = 0; k < nElm; k++)
+	          if ( (coeff_j[k]==j) && (coeff_i1[k]==i1)
+		                      && (coeff_i2[k]==i2) ) {
+		    Djv_isElm = 1;
 		  }
-	    if (Djv_isElm == 1) Hess_NZ++ ; 
-    }  /* for i, i1, i2 */ 
-  if (useDeclareValues)   
+	    if (Djv_isElm == 1) Hess_NZ++ ;
+    }  /* for i, i1, i2 */
+  if (useDeclareValues)
        varTable[ NHESS ] -> value = max( Hess_NZ, 1 );
 
 /* Allocate temporary index arrays */
-  iHess_i = AllocIntegerVector(Hess_NZ, "iHess_i in GenerateHess");  
-  iHess_j = AllocIntegerVector(Hess_NZ, "iHess_j in GenerateHess");  
-  iHess_k = AllocIntegerVector(Hess_NZ, "iHess_k in GenerateHess");  
+  iHess_i = AllocIntegerVector(Hess_NZ, "iHess_i in GenerateHess");
+  iHess_j = AllocIntegerVector(Hess_NZ, "iHess_j in GenerateHess");
+  iHess_k = AllocIntegerVector(Hess_NZ, "iHess_k in GenerateHess");
 
   F_Hess  = DefFnc( "Hessian", 4, "function for Hessian (Jac derivative w.r.t. variables)");
   FunctionBegin( F_Hess, V, F, RCT, HESS );
@@ -1216,55 +1378,55 @@ int Djv_isElm;
 
   NewLines(1);
   WriteComment("Computation of the second derivatives of equation rates");
-  
+
 /*  Generate d^2 A(j)/ ( d v(i1) d v(i2) )*/
   nElm = 0;
-  for(j=0; j<EqnNr; j++) 
-    for (i1 = 0; i1 < VarNr; i1++) 
+  for(j=0; j<EqnNr; j++)
+    for (i1 = 0; i1 < VarNr; i1++)
       for (i2 = i1; i2 < VarNr; i2++) {
-    
+
         if (i1==i2) {
-     
+
          if (Stoich_Left[i1][j]>=2) {
             prod = RConst( j );
-            for (i = 0; i < i1; i++) 
+            for (i = 0; i < i1; i++)
               for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
-                prod = Mul( prod, Elm( V, i ) ); 
-            prod = Mul( prod, Const( Stoich_Left[i1][j] ) );	      
-            prod = Mul( prod, Const( Stoich_Left[i1][j]-1 ) );	      
+                prod = Mul( prod, Elm( V, i ) );
+            prod = Mul( prod, Const( Stoich_Left[i1][j] ) );
+            prod = Mul( prod, Const( Stoich_Left[i1][j]-1 ) );
             for (k = 1; k <= (int)Stoich_Left[i1][j]-2; k++ )
-              prod = Mul( prod, Elm( V, i1 ) ); 
-            for (i = i1+1; i < VarNr; i++) 
+              prod = Mul( prod, Elm( V, i1 ) );
+            for (i = i1+1; i < VarNr; i++)
               for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
-                prod = Mul( prod, Elm( V, i ) ); 
-            for ( ; i < SpcNr; i++) 
+                prod = Mul( prod, Elm( V, i ) );
+            for ( ; i < SpcNr; i++)
               for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
-                prod = Mul( prod, Elm( F, i - VarNr ) );	      
+                prod = Mul( prod, Elm( F, i - VarNr ) );
 	    /* Comment the D2A */
 	    WriteComment("D2A(%d) = d^2 A(%d)/{dV(%d)dV(%d)}",Index(nElm),Index(j),Index(i1),Index(i2));
             Assign( Elm( D2A, nElm ), prod );
 	    nElm++;
 	  } /* if (Stoich_Left[i1][j]>=2) */
-         
+
 	 } else {  /* i1 != i2 */
             if ( (Stoich_Left[i1][j]>=1)&&(Stoich_Left[i2][j]>=1) ) {
                prod = RConst( j );
-               for (i = 0; i < i1; i++) 
+               for (i = 0; i < i1; i++)
                  for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
-                   prod = Mul( prod, Elm( V, i ) ); 
-               prod = Mul( prod, Const( Stoich_Left[i1][j] ) );	      
+                   prod = Mul( prod, Elm( V, i ) );
+               prod = Mul( prod, Const( Stoich_Left[i1][j] ) );
                for (k = 1; k <= (int)Stoich_Left[i1][j]-1; k++ )
-                 prod = Mul( prod, Elm( V, i1 ) ); 
-               for (i = i1+1; i < i2; i++) 
+                 prod = Mul( prod, Elm( V, i1 ) );
+               for (i = i1+1; i < i2; i++)
                  for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
-                   prod = Mul( prod, Elm( V, i ) ); 
-               prod = Mul( prod, Const( Stoich_Left[i2][j] ) );	      
+                   prod = Mul( prod, Elm( V, i ) );
+               prod = Mul( prod, Const( Stoich_Left[i2][j] ) );
                for (k = 1; k <= (int)Stoich_Left[i2][j]-1; k++ )
-                 prod = Mul( prod, Elm( V, i2 ) ); 
-               for (i = i2+1; i < VarNr; i++) 
+                 prod = Mul( prod, Elm( V, i2 ) );
+               for (i = i2+1; i < VarNr; i++)
                  for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
-                   prod = Mul( prod, Elm( V, i ) ); 
-               for ( ; i < SpcNr; i++) 
+                   prod = Mul( prod, Elm( V, i ) );
+               for ( ; i < SpcNr; i++)
                  for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
                    prod = Mul( prod, Elm( F, i - VarNr ) );
 	    /* Comment the D2A */
@@ -1272,7 +1434,7 @@ int Djv_isElm;
 	                         Index(nElm),Index(j),Index(i1),Index(i2));
             Assign( Elm( D2A, nElm ), prod );
 	    nElm++;
-            } /* if ( (Stoich_Left[i1][j]>=1)&&(Stoich_Left[i2][j]>=1) )  */	 
+            } /* if ( (Stoich_Left[i1][j]>=1)&&(Stoich_Left[i2][j]>=1) )  */
 	 }  /* if i1==i2 */
 
   } /* for j, i1, i2 */
@@ -1281,41 +1443,41 @@ int Djv_isElm;
     WriteComment("Computation of the Jacobian derivative");
 
 /*  Generate d^2 f(i)/ ( d v(i1) d v(i2) ) */
-    Hess_NZ = 0; 
-    for (i = 0; i < VarNr; i++)     
+    Hess_NZ = 0;
+    for (i = 0; i < VarNr; i++)
       for (i1 = 0; i1 < VarNr; i1++)
          for (i2 = i1; i2 < VarNr; i2++) {
             sum = Const(0);
-	    Djv_isElm = 0; 
-            for (j = 0; j < EqnNr; j++) 
-	      if ( Stoich[i][j] != 0 ) 
-                for (k = 0; k < nElm; k++) 
-	          if ( (coeff_j[k]==j) && (coeff_i1[k]==i1) 
-		                      && (coeff_i2[k]==i2) ) { 
-                    sum = Add( sum, 
-		            Mul( Const( Stoich[i][j] ), Elm( D2A, k ) ) ); 
-		    Djv_isElm = 1; 
+	    Djv_isElm = 0;
+            for (j = 0; j < EqnNr; j++)
+	      if ( Stoich[i][j] != 0 )
+                for (k = 0; k < nElm; k++)
+	          if ( (coeff_j[k]==j) && (coeff_i1[k]==i1)
+		                      && (coeff_i2[k]==i2) ) {
+                    sum = Add( sum,
+		            Mul( Const( Stoich[i][j] ), Elm( D2A, k ) ) );
+		    Djv_isElm = 1;
 		  }
 	    if (Djv_isElm == 1) {
 	       WriteComment("HESS(%d) = d^2 Vdot(%d)/{dV(%d)dV(%d)} = d^2 Vdot(%d)/{dV(%d)dV(%d)}",
-		       Index(Hess_NZ),Index(i),Index(i1),Index(i2),Index(i),Index(i2),Index(i1));         
+		       Index(Hess_NZ),Index(i),Index(i1),Index(i2),Index(i),Index(i2),Index(i1));
 	       Assign( Elm( HESS, Hess_NZ ), sum );
-               iHess_i[ Hess_NZ ] = i; 
-               iHess_j[ Hess_NZ ] = i1; 
-               iHess_k[ Hess_NZ ] = i2;   
-	       Hess_NZ++; 
+               iHess_i[ Hess_NZ ] = i;
+               iHess_j[ Hess_NZ ] = i1;
+               iHess_k[ Hess_NZ ] = i2;
+	       Hess_NZ++;
 	       }
-	    
-    }  /* for i, i1, i2 */ 
+
+    }  /* for i, i1, i2 */
 
 
 /* free temporary index arrays */
-  free(coeff_j);  free(coeff_i1);  free(coeff_i2);  
-  
+  free(coeff_j);  free(coeff_i1);  free(coeff_i2);
+
   MATLAB_Inline("\n   HESS = HESS(:);");
-  
+
   FunctionEnd( F_Hess );
-  
+
   FreeVariable( F_Hess );
 
 
@@ -1327,19 +1489,19 @@ int Djv_isElm;
       sum = Const(0);
         for (k=0; k<Hess_NZ; k++) {
           if (iHess_j[k]==i)
-             sum = Add( sum, 
-		   Mul( Elm( HESS, k ), 
-		   Mul( Elm( U1, iHess_i[k] ), Elm( U2, iHess_k[k] ) ) ) ); 
+             sum = Add( sum,
+		   Mul( Elm( HESS, k ),
+		   Mul( Elm( U1, iHess_i[k] ), Elm( U2, iHess_k[k] ) ) ) );
 	  else if (iHess_k[k]==i)
-             sum = Add( sum, 
-		   Mul( Elm( HESS, k ), 
-		   Mul( Elm( U1, iHess_i[k] ), Elm( U2, iHess_j[k] ) ) ) ); 
+             sum = Add( sum,
+		   Mul( Elm( HESS, k ),
+		   Mul( Elm( U1, iHess_i[k] ), Elm( U2, iHess_j[k] ) ) ) );
         }
       Assign( Elm( HTU, i ), sum );
   }
-  
+
   MATLAB_Inline("\n   HTU = HTU(:);");
-  
+
   FunctionEnd(  F_HessTR_VEC );
   FreeVariable( F_HessTR_VEC );
 
@@ -1355,32 +1517,32 @@ int Djv_isElm;
 	     j = iHess_j[m];
 	     k = iHess_k[m];
 	     if (j==k) {
-               sum = Add( sum, 
-		     Mul( Elm( HESS, m ), 
+               sum = Add( sum,
+		     Mul( Elm( HESS, m ),
 		     Mul( Elm( U1, k ), Elm( U2, k ) ) ) );
 	     }
 	     else {
                /* This is the optimized code. It can lead to problems when
 	                  splitting for continuation lines. Therefore we
 			  use the non-optimized code below the comment.
-	       sum = Add( sum, 
-		     Mul( Elm( HESS, m ), 
+	       sum = Add( sum,
+		     Mul( Elm( HESS, m ),
 		     Add( Mul( Elm( U1, j ), Elm( U2, k ) ),
 		          Mul( Elm( U1, k ), Elm( U2, j ) ) ) ) ); */
-               sum = Add( sum, 
-		     Mul( Elm( HESS, m ), 
+               sum = Add( sum,
+		     Mul( Elm( HESS, m ),
 		     Mul( Elm( U1, j ), Elm( U2, k ) )  ) );
-               sum = Add( sum, 
-		     Mul( Elm( HESS, m ), 
+               sum = Add( sum,
+		     Mul( Elm( HESS, m ),
 		          Mul( Elm( U1, k ), Elm( U2, j ) ) ) );
 	     }
-	  }   	    
+	  }
       }
       Assign( Elm( HU, i ), sum );
   }
-  
+
   MATLAB_Inline("\n   HU = HU(:);");
-  
+
   FunctionEnd(  F_Hess_VEC );
   FreeVariable( F_Hess_VEC );
 }
@@ -1393,12 +1555,12 @@ void GenerateHessianSparseData()
 {
 int k;
 
-    
+
   UseFile( sparse_hessFile );
 
   NewLines(1);
-  
-  
+
+
   WriteComment("Hessian Sparse Data");
   WriteComment("");
 
@@ -1409,23 +1571,23 @@ int k;
 
   if( (useLang==F77_LANG)||(useLang==F90_LANG)||(useLang==MATLAB_LANG) ) {
         for (k=0; k<Hess_NZ; k++) {
-           iHess_i[k]++; iHess_j[k]++; iHess_k[k]++; 
+           iHess_i[k]++; iHess_j[k]++; iHess_k[k]++;
 	}
   }
-  
+
   InitDeclare( IHESS_I, Hess_NZ, (void*)iHess_i );
   InitDeclare( IHESS_J, Hess_NZ, (void*)iHess_j );
   InitDeclare( IHESS_K, Hess_NZ, (void*)iHess_k );
 
   if( (useLang==F77_LANG)||(useLang==F90_LANG) ) {
         for (k=0; k<Hess_NZ; k++) {
-           iHess_i[k]--; iHess_j[k]--; iHess_k[k]--; 
+           iHess_i[k]--; iHess_j[k]--; iHess_k[k]--;
 	}
   }
-  
+
   NewLines(1);
   F77_Inline( "%6sEND\n\n", " " );
-  
+
 }
 
 
@@ -1444,7 +1606,7 @@ void GenerateHessianSparseHeader()
   ExternDeclare( IHESS_I );
   ExternDeclare( IHESS_J );
   ExternDeclare( IHESS_K );
-  
+
   NewLines(1);
 }
 
@@ -1473,47 +1635,47 @@ double *stoicm;
   for (j=0; j<EqnNr; j++)
     for (i=0; i<VarNr; i++)
       if ( Stoich[i][j] != 0.0 )
-         nnz_stoicm++;  
-  if ( (irow_stoicm=(int*)calloc(nnz_stoicm+2,sizeof(int)) ) == NULL ) 
-     FatalError(-30,"GenerateStoicmSparseData: Cannot allocate irow_stoicm"); 
-  if ( (ccol_stoicm=(int*)calloc(EqnNr+2,sizeof(int)) ) == NULL ) 
-     FatalError(-30,"GenerateStoicmSparseData: Cannot allocate ccol_stoicm"); 
-  if ( (icol_stoicm=(int*)calloc(nnz_stoicm+2,sizeof(int)) ) == NULL ) 
-     FatalError(-30,"GenerateStoicmSparseData: Cannot allocate icol_stoicm"); 
-  if ( (stoicm=(double*)calloc(nnz_stoicm+2,sizeof(double)) ) == NULL ) 
-     FatalError(-30,"GenerateStoicmSparseData: Cannot allocate stoicm"); 
+         nnz_stoicm++;
+  if ( (irow_stoicm=(int*)calloc(nnz_stoicm+2,sizeof(int)) ) == NULL )
+     FatalError(-30,"GenerateStoicmSparseData: Cannot allocate irow_stoicm");
+  if ( (ccol_stoicm=(int*)calloc(EqnNr+2,sizeof(int)) ) == NULL )
+     FatalError(-30,"GenerateStoicmSparseData: Cannot allocate ccol_stoicm");
+  if ( (icol_stoicm=(int*)calloc(nnz_stoicm+2,sizeof(int)) ) == NULL )
+     FatalError(-30,"GenerateStoicmSparseData: Cannot allocate icol_stoicm");
+  if ( (stoicm=(double*)calloc(nnz_stoicm+2,sizeof(double)) ) == NULL )
+     FatalError(-30,"GenerateStoicmSparseData: Cannot allocate stoicm");
 
   UseFile( sparse_stoicmFile );
-  
+
   nnz_stoicm = 0;
   for (j=0; j<EqnNr; j++) {
     ccol_stoicm[ j ] =  nnz_stoicm;
     for (i=0; i<VarNr; i++) {
       if ( Stoich[i][j] != 0 ) {
-	 irow_stoicm[ nnz_stoicm ] = i;	
-	 icol_stoicm[ nnz_stoicm ] = j;	
-	 stoicm[ nnz_stoicm ] = Stoich[i][j]; 
+	 irow_stoicm[ nnz_stoicm ] = i;
+	 icol_stoicm[ nnz_stoicm ] = j;
+	 stoicm[ nnz_stoicm ] = Stoich[i][j];
          nnz_stoicm++;
       }
     }
-  }  
+  }
   ccol_stoicm[ EqnNr ] =  nnz_stoicm;
 
   if( (useLang==F77_LANG)||(useLang==F90_LANG) ) {
         for (k=0; k<nnz_stoicm; k++) {
-           irow_stoicm[k]++; icol_stoicm[k]++; 
+           irow_stoicm[k]++; icol_stoicm[k]++;
 	}
         for (k=0; k<=EqnNr; k++) {
-           ccol_stoicm[k]++; 
+           ccol_stoicm[k]++;
 	}
   }
-  
+
 
   NewLines(1);
   WriteComment(" Stoichiometric Matrix in Compressed Column Sparse Format");
   NewLines(1);
   F77_Inline("%6sBLOCK DATA STOICM_MATRIX\n", " " );
-  F77_Inline("%6sINCLUDE '%s_Sparse.h'", " ", rootFileName);  
+  F77_Inline("%6sINCLUDE '%s_Sparse.h'", " ", rootFileName);
   F77_Inline("%6sINTEGER i", " ");
   /* F90_Inline("   USE %s_Sparse", rootFileName);  */
   InitDeclare( CCOL_STOICM, EqnNr+1, (void*)ccol_stoicm );
@@ -1524,11 +1686,11 @@ double *stoicm;
   F77_Inline( "%6sEND\n\n", " " );
 
 
-  UseFile( param_headerFile );  
+  UseFile( param_headerFile );
   CommonName = "GDATA";
   NewLines(1);
   DeclareConstant( NSTOICM, ascii( max( nnz_stoicm, 1 ) ) );
-   
+
 /* Free data structure vectors */
   free(irow_stoicm); free(ccol_stoicm); free(icol_stoicm); free(stoicm);
 }
@@ -1545,10 +1707,10 @@ void GenerateStoicmSparseHeader()
   ExternDeclare( STOICM );
   CommonName = "STOICM_DATA";
   ExternDeclare( IROW_STOICM );
-  ExternDeclare( CCOL_STOICM );  
+  ExternDeclare( CCOL_STOICM );
   ExternDeclare( ICOL_STOICM );
   NewLines(1);
-   
+
   NewLines(1);
   WriteComment(" ----------> Sparse Data for Jacobian of Reactant Products");
   NewLines(1);
@@ -1557,7 +1719,7 @@ void GenerateStoicmSparseHeader()
   ExternDeclare( IROW_JVRP );
   ExternDeclare( CROW_JVRP );
   NewLines(1);
-  
+
 }
 
 
@@ -1575,36 +1737,36 @@ int Jac_SP_VEC;
   if( VarNr == 0 ) return;
 
   UseFile( jacobianFile );
-  Jac_VEC = DefFnc( "Jac_Vec", 3, 
+  Jac_VEC = DefFnc( "Jac_Vec", 3,
        "function for sparse multiplication: square Jacobian times vector");
-  Jac_SP_VEC = DefFnc( "Jac_SP_Vec", 3, 
+  Jac_SP_VEC = DefFnc( "Jac_SP_Vec", 3,
         "function for sparse multiplication: sparse Jacobian times vector");
 
   if ( useJacSparse ) {
-    FunctionBegin( Jac_SP_VEC, JVS, UV, JUV ); 
-    nElm = 0; 
+    FunctionBegin( Jac_SP_VEC, JVS, UV, JUV );
+    nElm = 0;
     for( i = 0; i < VarNr; i++) {
       sum = Const(0);
       for( j = 0; j < VarNr; j++ )
         if( LUstructJ[i][j] ) {
           if( structJ[i][j] != 0 )
-            sum = Add( sum, Mul( Elm( JVS, nElm ), Elm( UV, j ) ) ); 
+            sum = Add( sum, Mul( Elm( JVS, nElm ), Elm( UV, j ) ) );
 	  nElm++;
 	  }
       Assign( Elm( JUV, i ), sum );
-    }  
+    }
     FunctionEnd( Jac_SP_VEC );
     }
 
   else {
-    FunctionBegin( Jac_VEC, JV, UV, JUV );  
+    FunctionBegin( Jac_VEC, JV, UV, JUV );
     for( i = 0; i < VarNr; i++) {
       sum = Const(0);
       for( j = 0; j < VarNr; j++ )
         if( structJ[i][j] != 0 )
-          sum = Add( sum, Mul( Elm( JV, i, j ), Elm( UV, j ) ) ); 
+          sum = Add( sum, Mul( Elm( JV, i, j ), Elm( UV, j ) ) );
       Assign( Elm( JUV, i ), sum );
-    }  
+    }
     FunctionEnd( Jac_VEC );
   }
 
@@ -1623,38 +1785,38 @@ int JacTR_SP_VEC;
 int **TmpStruct;
 
   if( useLang == MATLAB_LANG ) return;
-  
+
   if ( VarNr == 0 ) return;
 
   UseFile( jacobianFile );
 
-  JacTR_VEC = DefFnc( "JacTR_Vec", 3, 
+  JacTR_VEC = DefFnc( "JacTR_Vec", 3,
        "sparse multiplication: square Jacobian transposed times vector");
-  JacTR_SP_VEC = DefFnc( "JacTR_SP_Vec", 3, 
+  JacTR_SP_VEC = DefFnc( "JacTR_SP_Vec", 3,
         "sparse multiplication: sparse Jacobian transposed times vector");
 
   if ( useJacSparse ) {
-  
+
   /* The temporary array of structure */
   TmpStruct = AllocIntegerMatrix( VarNr, VarNr, "TmpStruct in GenerateJacTRVect" );
 
-    nElm = 0; 
-    for( i = 0; i < VarNr; i++) 
+    nElm = 0;
+    for( i = 0; i < VarNr; i++)
       for( j = 0; j < VarNr; j++ )
         if( LUstructJ[i][j] ) {
-	  TmpStruct[i][j] = nElm; 
+	  TmpStruct[i][j] = nElm;
 	  nElm++;
 	}
-  
-    FunctionBegin( JacTR_SP_VEC, JVS, UV, JTUV ); 
-    nElm = 0; 
+
+    FunctionBegin( JacTR_SP_VEC, JVS, UV, JTUV );
+    nElm = 0;
     for( i = 0; i < VarNr; i++) {
       sum = Const(0);
       for( j = 0; j < VarNr; j++ )
          if( structJ[j][i] != 0 )
-           sum = Add( sum, Mul( Elm( JVS, TmpStruct[j][i] ), Elm( UV, j ) ) ); 
+           sum = Add( sum, Mul( Elm( JVS, TmpStruct[j][i] ), Elm( UV, j ) ) );
       Assign( Elm( JTUV, i ), sum );
-    }  
+    }
     FunctionEnd( JacTR_SP_VEC );
 
   /* Free the temporary array of structure */
@@ -1663,14 +1825,14 @@ int **TmpStruct;
     } /* useJacSparse*/
 
   else {
-    FunctionBegin( JacTR_VEC, JV, UV, JTUV );  
+    FunctionBegin( JacTR_VEC, JV, UV, JTUV );
     for( i = 0; i < VarNr; i++) {
       sum = Const(0);
       for( j = 0; j < VarNr; j++ )
         if( structJ[j][i] != 0 )
-          sum = Add( sum, Mul( Elm( JV, j, i ), Elm( UV, j ) ) ); 
+          sum = Add( sum, Mul( Elm( JV, j, i ), Elm( UV, j ) ) );
       Assign( Elm( JTUV, i ), sum );
-    }  
+    }
     FunctionEnd( JacTR_VEC );
   }
 
@@ -1690,11 +1852,11 @@ int SUTIL;
 
   UseFile( linalgFile );
 
-  SUTIL = DefFnc( "SPARSE_UTIL", 0, "SPARSE utility functions");  
+  SUTIL = DefFnc( "SPARSE_UTIL", 0, "SPARSE utility functions");
   CommentFunctionBegin( SUTIL );
 
-  IncludeCode( "%s/util/sutil", Home );  
-  
+  IncludeCode( "%s/util/sutil", Home );
+
   CommentFunctionEnd( SUTIL );
   FreeVariable( SUTIL );
 }
@@ -1710,11 +1872,11 @@ int BLAS;
 
   UseFile( linalgFile );
 
-  BLAS = DefFnc( "BLAS_UTIL", 0, "BLAS-LIKE utility functions");  
+  BLAS = DefFnc( "BLAS_UTIL", 0, "BLAS-LIKE utility functions");
   CommentFunctionBegin( BLAS );
 
-  IncludeCode( "%s/util/blas", Home );  
-  
+  IncludeCode( "%s/util/blas", Home );
+
   CommentFunctionEnd( BLAS );
   FreeVariable( BLAS );
 }
@@ -1729,13 +1891,13 @@ void GenerateDFunDRcoeff()
   NewLines(1);
   WriteComment("Begin Derivative w.r.t. Rate Coefficients");
   NewLines(1);
-  
-  IncludeCode( "%s/util/dFun_dRcoeff", Home );  
+
+  IncludeCode( "%s/util/dFun_dRcoeff", Home );
 
   NewLines(1);
   WriteComment("End Derivative w.r.t. Rate Coefficients");
   NewLines(1);
-  
+
 }
 
 
@@ -1749,13 +1911,13 @@ void GenerateDJacDRcoeff()
   NewLines(1);
   WriteComment("Begin Jacobian Derivative w.r.t. Rate Coefficients");
   NewLines(1);
-  
-  IncludeCode( "%s/util/dJac_dRcoeff", Home );  
+
+  IncludeCode( "%s/util/dJac_dRcoeff", Home );
 
   NewLines(1);
   WriteComment("End Jacobian Derivative w.r.t. Rate Coefficients");
   NewLines(1);
-  
+
 }
 
 
@@ -1775,7 +1937,7 @@ int useLangOld;
 int dim;
 
   if( useLang == MATLAB_LANG ) return;
-  
+
   /* Allocate local arrays for dimension dim */
   dim  = VarNr+2;
   irow = AllocIntegerVector( dim*dim, "irow in GenerateSolve" );
@@ -1787,7 +1949,7 @@ int dim;
   useLang = C_LANG;
   nElm = NonZero( LU, 0, VarNr, irow, icol, crow, diag );
   useLang = useLangOld;
-  
+
   UseFile( linalgFile );
 
   SOLVE = DefFnc( "KppSolve", 2, "sparse back substitution");
@@ -1798,7 +1960,7 @@ int dim;
     iend = diag[i];
     if( ibgn <= iend ) {
       sum = Elm( X, i );
-      if ( ibgn < iend ) { 
+      if ( ibgn < iend ) {
         for( j = ibgn; j < iend; j++ )
           sum = Sub( sum, Mul( Elm( JVS, j ), Elm( X, icol[j] ) ) );
         Assign( Elm( X, i ), sum );
@@ -1808,7 +1970,7 @@ int dim;
 
   for( i = VarNr-1; i >=0; i--) {
     ibgn = diag[i] + 1;
-    iend = crow[i+1]; 
+    iend = crow[i+1];
     sum = Elm( X, i );
     for( j = ibgn; j < iend; j++ )
       sum = Sub( sum, Mul( Elm( JVS, j ), Elm( X, icol[j] ) ) );
@@ -1818,12 +1980,12 @@ int dim;
 
   FunctionEnd( SOLVE );
   FreeVariable( SOLVE );
-  
+
   /* Free Local Arrays */
-  free(irow); 
-  free(icol); 
-  free(crow); 
-  free(diag); 
+  free(irow);
+  free(icol);
+  free(crow);
+  free(diag);
 }
 
 
@@ -1845,33 +2007,33 @@ int **pos;
 int dim;
 
   if( useLang == MATLAB_LANG ) return;
-  
+
   /* Allocate local arrays for dimension dim */
   dim  = VarNr+2;
   irow = AllocIntegerVector( dim*dim, "irow in GenerateTRSolve" );
   icol = AllocIntegerVector( dim*dim, "icol in GenerateTRSolve" );
   crow = AllocIntegerVector( dim,     "crow in GenerateTRSolve" );
   diag = AllocIntegerVector( dim,     "diag in GenerateTRSolve" );
-  pos  = AllocIntegerMatrix( dim+1, dim+1, "pos in GenerateTRSolve");    
+  pos  = AllocIntegerMatrix( dim+1, dim+1, "pos in GenerateTRSolve");
 
   useLangOld = useLang;
   useLang = C_LANG;
   nElm = NonZero( LU, 0, VarNr, irow, icol, crow, diag );
   useLang = useLangOld;
-  
+
   UseFile( linalgFile );
 
   SOLVETR = DefFnc( "KppSolveTR", 3, "sparse, transposed back substitution");
   FunctionBegin( SOLVETR, JVS, X, XX );
   for( i = 0; i < VarNr; i++) {
-   for( j = 0; j < VarNr; j++) 
+   for( j = 0; j < VarNr; j++)
     pos[i][j]=-1;
-  }  
+  }
   for( i = 0; i < VarNr; i++) {
     ibgn = crow[i];
     iend = diag[i];
     if( ibgn <= iend ) {
-      if ( ibgn < iend ) { 
+      if ( ibgn < iend ) {
         for( j = ibgn; j < iend; j++ )
           pos[icol[j]][i]=j;
       }
@@ -1880,13 +2042,13 @@ int dim;
 
   for( i = VarNr-1; i >=0; i--) {
     ibgn = diag[i] + 1;
-    iend = crow[i+1]; 
+    iend = crow[i+1];
     for( j = ibgn; j < iend; j++ )
       pos[icol[j]][i]=j;
-    pos[i][i]=diag[i];  
+    pos[i][i]=diag[i];
   }
-  
-  for( i = 0; i<VarNr; i++) { 
+
+  for( i = 0; i<VarNr; i++) {
     sum = Elm( X, i );
     for (j=0; j<i; j++ ){
      if(pos[i][j] >= 0) {
@@ -1896,21 +2058,72 @@ int dim;
     sum=Div( sum, Elm(JVS, diag[i] ) );
     Assign( Elm( XX, i ), sum );
   }
-  for( i = VarNr-1; i >=0; i--) {  
+  for( i = VarNr-1; i >=0; i--) {
     sum = Elm( XX, i );
     for (j=i+1; j<VarNr; j++) {
-     if(pos[i][j] >= 0) { 
+     if(pos[i][j] >= 0) {
       sum=Sub( sum, Mul ( Elm(JVS,pos[i][j] ), Elm( XX, j ) ) );
      }
     }
-    Assign( Elm( XX, i ), sum );               
-   }         
+    Assign( Elm( XX, i ), sum );
+   }
 
   FunctionEnd( SOLVETR );
   FreeVariable( SOLVETR );
   /* Free Local Arrays */
-  free(irow); free(icol); free(crow); free(diag); 
-  FreeIntegerMatrix(pos, dim+1, dim+1);    
+  free(irow); free(icol); free(crow); free(diag);
+  FreeIntegerMatrix(pos, dim+1, dim+1);
+}
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+void str_replace(char *target, const char *needle, const char *replacement)
+{
+
+//===========================================================================
+// KPP 2.3.2_gc, Bob Yantosca (06 May 2021)
+// Add function to replace character in a string.  This is used
+// for replacing "~" with "%" in the inlined rate-law functions.
+// This overcomes the problem where "%" is interpreted as the
+// printf format specifier.  For more information, please see:
+//
+//   https://stackoverflow.com/questions/32413667/
+//    replace-all-occurrences-of-a-substring-in-a-string-in-c
+//
+// Note: This string replacement could also have been done with
+// Flex/Bison, but this is a much faster (and straightforward)
+// solution.
+//===========================================================================
+
+  char buffer[MAX_INLINE] = { 0 };
+  char *insert_point = &buffer[0];
+  const char *tmp = target;
+  size_t needle_len = strlen(needle);
+  size_t repl_len = strlen(replacement);
+
+  while (1) {
+    const char *p = strstr(tmp, needle);
+
+    // walked past last occurrence of needle; copy remaining part
+    if (p == NULL) {
+      strcpy(insert_point, tmp);
+      break;
+    }
+
+    // copy part before needle
+    memcpy(insert_point, tmp, p - tmp);
+    insert_point += p - tmp;
+
+    // copy replacement string
+    memcpy(insert_point, replacement, repl_len);
+    insert_point += repl_len;
+
+    // adjust pointers, move on
+    tmp = p + needle_len;
+  }
+
+  // write altered string back to target
+  strcpy(target, buffer);
 }
 
 
@@ -1920,27 +2133,52 @@ void GenerateRateLaws()
 
   UseFile( rateFile );
 
-  NewLines(1);
-  WriteComment("Begin Rate Law Functions from KPP_HOME/util/UserRateLaws");
-  NewLines(1);  
-  IncludeCode( "%s/util/UserRateLaws", Home );
-  NewLines(1);
-  WriteComment("End Rate Law Functions from KPP_HOME/util/UserRateLaws");
-  NewLines(1);
-    
+//===========================================================================
+// KPP 2.3.2_gc, Bob Yantosca (06 May 2021)
+// Do not print out default rate-law functions for GEOS-Chem,
+// as we only need the ones that are defined in gckpp.kpp
+//
+//  NewLines(1);
+//  WriteComment("Begin Rate Law Functions from KPP_HOME/util/UserRateLaws");
+//  NewLines(1);
+//  IncludeCode( "%s/util/UserRateLaws", Home );
+//  NewLines(1);
+//  WriteComment("End Rate Law Functions from KPP_HOME/util/UserRateLaws");
+//  NewLines(1);
+//===========================================================================
+
   NewLines(1);
   WriteComment("Begin INLINED Rate Law Functions");
   NewLines(1);
-  
+
   switch( useLang ) {
-    case C_LANG:  bprintf( InlineCode[ C_RATES ].code ); 
-                 break;
-    case F77_LANG: bprintf( InlineCode[ F77_RATES ].code ); 
-                 break;
-    case F90_LANG: bprintf( InlineCode[ F90_RATES ].code ); 
-                 break;
-    case MATLAB_LANG: bprintf( InlineCode[ MATLAB_RATES ].code ); 
-                 break;
+    case C_LANG:
+      bprintf( InlineCode[ C_RATES ].code );
+      break;
+    case F77_LANG:
+      bprintf( InlineCode[ F77_RATES ].code );
+      break;
+    case F90_LANG:
+//===========================================================================
+// KPP 2.3.2_gc, Bob Yantosca (06 May 2021)
+// Call function str_replace to replace "=>" with "%%%%".
+// This will render as "%%" going into bprintf, which will print
+// tot he gckpp_Rates.F90 file as "%".  This is a workaround in
+// order to have KPP be able to inline code with Fortran-90
+// derived types.
+//
+// KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
+// Also make sure the F90_RATES inline text is not null before printing.
+//
+      if ( strlen(InlineCode[ F90_RATES ].code) > 0 ) {
+	  str_replace( InlineCode[ F90_RATES ].code, "=>", "%%%%");
+	  bprintf( InlineCode[ F90_RATES ].code );
+	}
+//===========================================================================
+      break;
+    case MATLAB_LANG:
+      bprintf( InlineCode[ MATLAB_RATES ].code );
+      break;
   }
   FlushBuf();
 
@@ -1948,7 +2186,7 @@ void GenerateRateLaws()
   WriteComment("End INLINED Rate Law Functions");
   NewLines(1);
 
-  
+
 }
 
 
@@ -1959,12 +2197,12 @@ void GenerateUpdateSun()
 int UPDATE_SUN;
 
   UseFile( rateFile );
-    
-  UPDATE_SUN = DefFnc( "Update_SUN", 0, "update SUN light using TIME");  
+
+  UPDATE_SUN = DefFnc( "Update_SUN", 0, "update SUN light using TIME");
   CommentFunctionBegin( UPDATE_SUN );
 
   IncludeCode( "%s/util/UpdateSun", Home );
-  
+
   CommentFunctionEnd( UPDATE_SUN );
   FreeVariable( UPDATE_SUN );
 }
@@ -1978,28 +2216,28 @@ int UPDATE_RCONST;
   UseFile( rateFile );
 
   UPDATE_RCONST = DefFnc( "Update_RCONST", 0, "function to update rate constants");
-  
+
   FunctionBegin( UPDATE_RCONST );
   F77_Inline("      INCLUDE '%s_Global.h'", rootFileName);
   MATLAB_Inline("global SUN TEMP RCONST");
-  
+
   if ( (useLang==F77_LANG) )
       IncludeCode( "%s/util/UserRateLaws_FcnHeader", Home );
-      
+
   NewLines(1);
-  
+
   NewLines(1);
   WriteComment("Begin INLINED RCONST");
   NewLines(1);
 
   switch( useLang ) {
-    case C_LANG:  bprintf( InlineCode[ C_RCONST ].code ); 
+    case C_LANG:  bprintf( InlineCode[ C_RCONST ].code );
                  break;
-    case F77_LANG: bprintf( InlineCode[ F77_RCONST ].code ); 
+    case F77_LANG: bprintf( InlineCode[ F77_RCONST ].code );
                  break;
-    case F90_LANG: bprintf( InlineCode[ F90_RCONST ].code ); 
+    case F90_LANG: bprintf( InlineCode[ F90_RCONST ].code );
                  break;
-    case MATLAB_LANG: bprintf( InlineCode[ MATLAB_RCONST ].code ); 
+    case MATLAB_LANG: bprintf( InlineCode[ MATLAB_RCONST ].code );
                  break;
   }
   FlushBuf();
@@ -2010,9 +2248,9 @@ int UPDATE_RCONST;
 
   for( i = 0; i < EqnNr; i++) {
     if( kr[i].type == EXPRESION )
-      Assign( Elm( RCONST, i ), Elm( KR, kr[i].val.st ) );  
+      Assign( Elm( RCONST, i ), Elm( KR, kr[i].val.st ) );
     if( kr[i].type == PHOTO )
-      Assign( Elm( RCONST, i ), Elm( KR, kr[i].val.st ) );  
+      Assign( Elm( RCONST, i ), Elm( KR, kr[i].val.st ) );
     /* mz_rs_20050117+ */
     if ( kr[i].type == NUMBER ) {
       F90_Inline("! RCONST(%d) = constant rate coefficient", i+1);
@@ -2021,9 +2259,9 @@ int UPDATE_RCONST;
     }
     /* mz_rs_20050117- */
   }
-  
+
   MATLAB_Inline("   RCONST = RCONST(:);");
-  
+
   FunctionEnd( UPDATE_RCONST );
   FreeVariable( UPDATE_RCONST );
 }
@@ -2039,19 +2277,19 @@ int UPDATE_PHOTO;
   UseFile( rateFile );
 
   UPDATE_PHOTO = DefFnc( "Update_PHOTO", 0, "function to update photolytical rate constants");
-  
+
   FunctionBegin( UPDATE_PHOTO );
   F77_Inline("      INCLUDE '%s_Global.h'", rootFileName);
   F90_Inline("   USE %s_Global", rootFileName);
   MATLAB_Inline("global SUN TEMP RCONST");
-    
+
   NewLines(1);
-  
+
   for( i = 0; i < EqnNr; i++) {
     if( kr[i].type == PHOTO )
-      Assign( Elm( RCONST, i ), Elm( KR, kr[i].val.st ) );  
+      Assign( Elm( RCONST, i ), Elm( KR, kr[i].val.st ) );
   }
-  
+
   FunctionEnd( UPDATE_PHOTO );
   FreeVariable( UPDATE_PHOTO );
 }
@@ -2067,14 +2305,14 @@ int TIN, TOUT, INTEGRATE;
 
   TIN = DefElm( "TIN", real, "Start Time for Integration");
   TOUT = DefElm( "TOUT", real, "End Time for Integration");
-  INTEGRATE = DefFnc( "INTEGRATE", 2, "Integrator routine");  
+  INTEGRATE = DefFnc( "INTEGRATE", 2, "Integrator routine");
   CommentFunctionBegin( INTEGRATE, TIN, TOUT );
 
   if( strchr( integrator, '/' ) )
     IncludeCode( integrator );
-  else 
-    IncludeCode( "%s/int/%s", Home, integrator );  
-  
+  else
+    IncludeCode( "%s/int/%s", Home, integrator );
+
   CommentFunctionEnd( INTEGRATE );
   FreeVariable( INTEGRATE );
 }
@@ -2087,15 +2325,15 @@ void GenerateDriver()
 int MAIN;
 
   UseFile( driverFile );
-    
-  MAIN = DefFnc( "MAIN", 0, "Main program - driver routine");  
+
+  MAIN = DefFnc( "MAIN", 0, "Main program - driver routine");
   CommentFunctionBegin( MAIN );
 
   if( strchr( driver, '/' ) )
     IncludeCode( driver );
-  else 
-    IncludeCode( "%s/drv/%s", Home, driver );  
-  
+  else
+    IncludeCode( "%s/drv/%s", Home, driver );
+
   CommentFunctionEnd( MAIN );
   FreeVariable( MAIN );
 }
@@ -2112,15 +2350,15 @@ int UTIL;
   UseFile( utilFile );
   NewLines(1);
   WriteComment("User INLINED Utility Functions");
-  
+
   switch( useLang ) {
-    case C_LANG:  bprintf( InlineCode[ C_UTIL ].code ); 
+    case C_LANG:  bprintf( InlineCode[ C_UTIL ].code );
                  break;
-    case F77_LANG:  bprintf( InlineCode[ F77_UTIL ].code ); 
+    case F77_LANG:  bprintf( InlineCode[ F77_UTIL ].code );
                  break;
-    case F90_LANG:  bprintf( InlineCode[ F90_UTIL ].code ); 
+    case F90_LANG:  bprintf( InlineCode[ F90_UTIL ].code );
                  break;
-    case MATLAB_LANG:bprintf( InlineCode[ MATLAB_UTIL ].code ); 
+    case MATLAB_LANG:bprintf( InlineCode[ MATLAB_UTIL ].code );
                  break;
   }
   FlushBuf();
@@ -2130,15 +2368,15 @@ int UTIL;
   NewLines(1);
 
   WriteComment("Utility Functions from KPP_HOME/util/util");
-  UTIL = DefFnc( "UTIL", 0, "Utility functions");  
+  UTIL = DefFnc( "UTIL", 0, "Utility functions");
   CommentFunctionBegin( UTIL);
 
-  IncludeCode( "%s/util/util", Home );  
+  IncludeCode( "%s/util/util", Home );
 
   if ((useLang == F90_LANG) && (useEqntags==1)) {
-    IncludeCode( "%s/util/tag2num", Home );  
+    IncludeCode( "%s/util/tag2num", Home );
   }
-  
+
   WriteComment("End Utility Functions from KPP_HOME/util/util");
   CommentFunctionEnd( UTIL );
   FreeVariable( UTIL );
@@ -2151,7 +2389,7 @@ void GenerateParamHeader()
 {
 int spc;
 int i;
-char name[20];
+char name[ MAX_SPNAME ];
 int offs;
 int mxyz;
 
@@ -2159,22 +2397,24 @@ int j,dummy_species;
 
 /*  ---------->  First declaration of constants */
   UseFile( param_headerFile );
-  
+
   NewLines(1);
   DeclareConstant( NSPEC,   ascii( max(SpcNr, 1) ) );
   DeclareConstant( NVAR,    ascii( max(VarNr, 1) ) );
+  DeclareConstant( NFLUX,   ascii( max(plNr+1,  1)  ) );
+  DeclareConstant( NFAM,    ascii( max(FamilyNr,1)  ) );
   DeclareConstant( NVARACT, ascii( max(VarActiveNr, 1) ) );
   DeclareConstant( NFIX,    ascii( max(FixNr, 1) ) );
   DeclareConstant( NREACT,  ascii( max(EqnNr, 1) ) );
   DeclareConstant( NVARST,  ascii( VarStartNr ) );
-  DeclareConstant( NFIXST,  ascii( FixStartNr ) ); 
+  DeclareConstant( NFIXST,  ascii( FixStartNr ) );
   DeclareConstant( NONZERO, ascii( max(Jac_NZ, 1) ) );
   DeclareConstant( LU_NONZERO, ascii( max(LU_Jac_NZ, 1) ) );
   DeclareConstant( CNVAR,   ascii( VarNr+1 ) );
-  if ( useStoicmat ) { 
+  if ( useStoicmat ) {
         DeclareConstant( CNEQN,   ascii( EqnNr+1 ) );
-  }	
-  if ( useHessian ) { 
+  }
+  if ( useHessian ) {
         DeclareConstant( NHESS,   ascii( max(Hess_NZ, 1) ) );
   }
 
@@ -2194,7 +2434,20 @@ int j,dummy_species;
     DeclareConstant( spc, ascii( Index(i) ) );
     FreeVariable( spc );
   }
- 
+
+  /*if (doFlux == 1) {
+    NewLines(1);
+  WriteComment("Index declaration for flux accumulation species in C");
+  WriteComment("  C(ind_spc)");
+  NewLines(1);
+  for( i = 0; i < plNr; i++) {
+    sprintf( name, "ind_%s", SpeciesTable[ Code[i + VarNr] ].name );
+    spc = DefConst( name, INT, 0 );
+    DeclareConstant( spc, ascii( Index(i+VarNr) ) );
+    FreeVariable( spc );
+    }
+   }*/
+
   NewLines(1);
   WriteComment("Index declaration for fixed species in C");
   WriteComment("  C(ind_spc)");
@@ -2205,7 +2458,7 @@ int j,dummy_species;
     DeclareConstant( spc, ascii( Index(i+VarNr) ) );
     FreeVariable( spc );
   }
- 
+
   if (useDummyindex==1) {
     NewLines(1);
     WriteComment("Index declaration for dummy species");
@@ -2213,9 +2466,9 @@ int j,dummy_species;
     for( i = 0; i < MAX_SPECIES; i++) {
       if (SpeciesTable[i].type == 0) continue;
       dummy_species = 1;
-      for( j = 0; j < MAX_SPECIES; j++) 
+      for( j = 0; j < MAX_SPECIES; j++)
         if (Code[j] == i) dummy_species = 0;
-      if (dummy_species) {    
+      if (dummy_species) {
         sprintf( name, "ind_%s", SpeciesTable[i].name );
         spc = DefConst( name, INT, 0 );
         DeclareConstant( spc, ascii( 0 ) );
@@ -2241,62 +2494,113 @@ int j,dummy_species;
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateGlobalHeader()
 {
-int spc;
-int i;
-char name[20];
-int offs;
-int mxyz;
+  int spc;
+  int i;
+  char name[20];
+  int offs;
+  int mxyz;
+  int useFortran;
+
+
+//===========================================================================
+// KPP 2.3.2_gc, Bob Yantosca (26 Mar 2021)
+// Modify code to inline the F77/F90 THREADPRIVATE declarations
+// and also declare extra arrays and scalars
+//===========================================================================
+
+  /*** Define a flag to denote if we are using F90 or F77 ***/
+  if ( useLang == F90_LANG || useLang == F77_LANG ) { useFortran = 1; }
+  else                                              { useFortran = 0; }
 
   UseFile( global_dataFile );
-  
+
   CommonName = "GDATA";
 
+  /*** Write comment header ***/
   NewLines(1);
   WriteComment("Declaration of global variables");
+  if ( useFortran ) {
+    NewLines(1);
+    WriteComment("These quantities vary with lon/lat/lev location.");
+    WriteComment("They must be declared THREADPRIVATE for the parallel");
+    WriteComment("loop over all cells in the chemistry grid.");
+  }
   NewLines(1);
 
- /* ExternDeclare( C_DEFAULT ); */
-
+  /*** Declare C, concentration array ***/
   ExternDeclare( C );
-  
-  if( useLang == F77_LANG ) {
- 
-   Declare( VAR );
-   Declare( FIX );
-   WriteComment("VAR, FIX are chunks of array C");
-   F77_Inline("      EQUIVALENCE( %s(%d),%s(1) )", 
-            varTable[C]->name, 1, varTable[VAR]->name );
-   if ( FixNr > 0 ) { /*  mz_rs_20050121 */
-     F77_Inline("      EQUIVALENCE( %s(%d),%s(1) )", 
-       varTable[C]->name, VarNr+1, varTable[FIX]->name );
-   }
+  if ( useFortran ) { WriteOMPThreadPrivate("C"); }
+
+  /*** Declare VAR and FIX for F90 ***/
+  if ( useLang == F90_LANG ) {
+    ExternDeclare( VAR );
+    WriteOMPThreadPrivate("VAR");
+
+    ExternDeclare( FIX );
+    WriteOMPThreadPrivate("FIX");
   }
-  
-  if( useLang == F90_LANG ) { 
-     ExternDeclare( VAR );
-     ExternDeclare( FIX );
-     WriteComment("VAR, FIX are chunks of array C");
-     F90_Inline("      EQUIVALENCE( %s(%d),%s(1) )", 
-            varTable[C]->name, 1, varTable[VAR]->name );
-     if ( FixNr > 0 ) { /*  mz_rs_20050121 */
-       F90_Inline("      EQUIVALENCE( %s(%d),%s(1) )", 
-         varTable[C]->name, VarNr+1, varTable[FIX]->name );
-     }
+
+  /*** Declare VAR and fix for F77 ***/
+  if ( useLang == F77_LANG ) {
+    Declare( VAR );
+    WriteOMPThreadPrivate("VAR");
+    WriteComment("VAR, FIX are chunks of array C");
+    F77_Inline("!      EQUIVALENCE( %s(%d),%s(1) )",
+	       varTable[C]->name, 1, varTable[VAR]->name );
+
+    Declare( FIX );
+    WriteOMPThreadPrivate("FIX");
+    if ( FixNr > 0 ) {
+      F77_Inline("!      EQUIVALENCE( %s(%d),%s(1) )",
+		 varTable[C]->name, VarNr+1, varTable[FIX]->name );
+    }
   }
-  
-  if( useLang == MATLAB_LANG ) { 
-     ExternDeclare( VAR );
-     ExternDeclare( FIX );
+
+  /*** Declare VAR and FIX for MatLab ***/
+  if ( useLang == MATLAB_LANG ) {
+    ExternDeclare( VAR );
+    ExternDeclare( FIX );
   }
+
+  /*** Declare all other threadprivate variables ***/
+  ExternDeclare( RCONST );
+  if ( useFortran ) { WriteOMPThreadPrivate("RCONST"); }
+
+  ExternDeclare( TIME );
+  if ( useFortran ) { WriteOMPThreadPrivate("TIME"); }
+
+  ExternDeclare( TEMP );
+  if ( useFortran ) { WriteOMPThreadPrivate("TEMP"); }
+
+  ExternDeclare( SR_TEMP );
+  if ( useFortran ) { WriteOMPThreadPrivate("SR_TEMP"); }
+
+  ExternDeclare( TEMP_OVER_K300 );
+  if ( useFortran ) { WriteOMPThreadPrivate("TEMP_OVER_K300"); }
+
+  ExternDeclare( K300_OVER_TEMP );
+  if ( useFortran ) { WriteOMPThreadPrivate("K300_OVER_TEMP"); }
+
+  ExternDeclare( CFACTOR );
+  if ( useFortran ) { WriteOMPThreadPrivate("CFACTOR"); }
+
+  ExternDeclare( NUMDEN );
+  if ( useFortran ) { WriteOMPThreadPrivate("NUMDEN"); }
 
   C_Inline("  extern %s * %s;", C_types[real], varTable[VAR]->name );
   C_Inline("  extern %s * %s;", C_types[real], varTable[FIX]->name );
 
+  /*** Declare non-threadprivate variables ***/
+  NewLines(1);
+  if ( useFortran ) {
+    WriteComment("These variables do not vary with location, and can be");
+    WriteComment("assigned outside of the parallel loop over cells in the");
+    WriteComment("chemistry grid.  These do not need to be THREADPRIVATE.");
+    NewLines(1);
+  }
 
-  ExternDeclare( RCONST );
-  ExternDeclare( TIME );
-  ExternDeclare( SUN );
-  ExternDeclare( TEMP );
+  ExternDeclare( MW   );
+  ExternDeclare( SR_MW );
   ExternDeclare( RTOLS );
   ExternDeclare( TSTART );
   ExternDeclare( TEND );
@@ -2305,32 +2609,32 @@ int mxyz;
   ExternDeclare( RTOL );
   ExternDeclare( STEPMIN );
   ExternDeclare( STEPMAX );
-  ExternDeclare( CFACTOR );
   if (useStochastic)
       ExternDeclare( VOLUME );
-  
+
   CommonName = "INTGDATA";
-  if ( useHessian ) { 
+  if ( useHessian ) {
      ExternDeclare( DDMTYPE );
   }
-  
-  
-  if ( (useLang == C_LANG) || (useLang == F77_LANG) ) { 
+
+
+  if ( (useLang == C_LANG) || (useLang == F77_LANG) ) {
      CommonName = "INTGDATA";
      ExternDeclare( LOOKAT );
      ExternDeclare( MONITOR );
      CommonName = "CHARGDATA";
      ExternDeclare( SPC_NAMES );
      ExternDeclare( SMASS );
-     ExternDeclare( EQN_NAMES );  
+     ExternDeclare( EQN_NAMES );
      ExternDeclare( EQN_TAGS );
+     ExternDeclare( FAM_NAMES );
   }
 
   NewLines(1);
   WriteComment("INLINED global variable declarations");
-  
+
   switch( useLang ) {
-    case C_LANG:  bprintf( InlineCode[ C_GLOBAL ].code ); 
+    case C_LANG:  bprintf( InlineCode[ C_GLOBAL ].code );
                  break;
     case F77_LANG: bprintf( InlineCode[ F77_GLOBAL ].code );
                  break;
@@ -2353,7 +2657,7 @@ char buf[100];
 
   if( Reactive[j] )
     sprintf( buf, "%s (r)", SpeciesTable[ Code[j] ].name );
-  else  
+  else
     sprintf( buf, "%s (n)", SpeciesTable[ Code[j] ].name );
   WriteAll("%3d = %-10s", 1 + i, buf );
   FlushBuf();
@@ -2382,12 +2686,13 @@ char s[40];
         sprintf(s, "%g", mat[spc][eq]?mat[spc][eq]:(-mat[spc][eq]));
         /*  mz_rs_20050130- */
         /* remove trailing zeroes */
-        for (n= strlen(s) - 1; n >= 0; n--) 
-          if (s[n] != '0') break; 
-        s[n + 1]= '\0';
+        /* -- Commented out my MSL - Oct 26, 2016: Unable to manage integers ending in '0'*/
+        /*for (n= strlen(s) - 1; n >= 0; n--)
+          if (s[n] != '0') break; */
+        s[strlen(s)]= '\0';
         sprintf(s, "%s ", s);
       }
-     
+
       if( first ) {
         if( mat[spc][eq] > 0 ) sprintf(buf, "%s%s", buf, s);
                           else sprintf(buf, "%s- %s", buf, s);
@@ -2424,12 +2729,12 @@ char lhsbuf[MAX_EQNLEN], rhsbuf[MAX_EQNLEN];
                  l = EqnStr( i, rhsbuf, Stoich_Right);
                  rhs = (rhs > l) ? lhs : l;
                }
-	       
 
-  EqnStr( eq, lhsbuf, Stoich_Left);  	       
-  EqnStr( eq, rhsbuf, Stoich_Right);  
 
-  sprintf(buf, "%*s --> %-*s", lhs, lhsbuf, rhs, rhsbuf);  
+  EqnStr( eq, lhsbuf, Stoich_Left);
+  EqnStr( eq, rhsbuf, Stoich_Right);
+
+  sprintf(buf, "%*s --> %-*s", lhs, lhsbuf, rhs, rhsbuf);
   return strlen(buf);
 }
 
@@ -2451,19 +2756,19 @@ int dn;
      case JAC_FULL: WriteAll("JACOBIAN - FULL\n"); break;
      case JAC_LU_ROW: WriteAll("JACOBIAN - SPARSE W/ ACCOUNT FOR LU DECOMPOSITION FILL-IN\n"); break;
      case JAC_ROW: WriteAll("JACOBIAN - SPARSE\n"); break;
-  }		    
+  }
   if( useDouble )        WriteAll("DOUBLE   - ON\n");
 		    else WriteAll("DOUBLE   - OFF\n");
   if( useReorder )        WriteAll("REORDER  - ON\n");
 		    else WriteAll("REORDER  - OFF\n");
   NewLines(1);
-  
+
   WriteAll("### Parameters ----------------------------------------\n");
   NewLines(1);
 
   VarStartNr = Index(0);
   FixStartNr = Index(VarNr);
-  
+
   DeclareConstant( NSPEC,   ascii( SpcNr ) );
   DeclareConstant( NVAR,    ascii( max( VarNr, 1 ) ) );
   DeclareConstant( NVARACT, ascii( max( VarActiveNr, 1 ) ) );
@@ -2481,23 +2786,23 @@ int dn;
   dn = VarNr/3 + 1;
   for( i = 0; i < dn; i++ ) {
              if( i < VarNr ) WriteSpec( i, i );
-    i += dn; if( i < VarNr ) WriteSpec( i, i ); 
     i += dn; if( i < VarNr ) WriteSpec( i, i );
-    i -= 2*dn; WriteAll("\n"); 
+    i += dn; if( i < VarNr ) WriteSpec( i, i );
+    i -= 2*dn; WriteAll("\n");
   }
-    
-    
+
+
   NewLines(1);
   WriteAll("Fixed species\n");
 
   dn = FixNr/3 + 1;
   for( i = 0; i < dn; i++ ) {
              if( i < FixNr ) WriteSpec( i, i + VarNr );
-    i += dn; if( i < FixNr ) WriteSpec( i, i + VarNr ); 
     i += dn; if( i < FixNr ) WriteSpec( i, i + VarNr );
-    i -= 2*dn; WriteAll("\n"); 
+    i += dn; if( i < FixNr ) WriteSpec( i, i + VarNr );
+    i -= 2*dn; WriteAll("\n");
   }
-    
+
   NewLines(1);
   WriteAll("### Subroutines ---------------------------------------\n");
   NewLines(1);
@@ -2521,7 +2826,7 @@ int INITVAL;
   F77_Inline("      INCLUDE '%s_Global.h'", rootFileName);
   F90_Inline("  USE %s_Global\n", rootFileName);
   MATLAB_Inline("global CFACTOR VAR FIX NVAR NFIX", rootFileName);
-  
+
   I = DefElm( "i", INT, 0);
   X = DefElm( "x", real, 0);
   Declare( I );
@@ -2530,7 +2835,7 @@ int INITVAL;
   NewLines(1);
   WriteAssign( varTable[CFACTOR]->name , ascid( (double)cfactor ) );
   NewLines(1);
-  
+
   Assign( Elm( X ), Mul( Elm( IV, varDefault ), Elm( CFACTOR ) ) );
   C_Inline("  for( i = 0; i < NVAR; i++ )" );
   F77_Inline("      DO i = 1, NVAR" );
@@ -2562,18 +2867,18 @@ int INITVAL;
 
   for( i = 0; i < VarNr; i++) {
     if( *SpeciesTable[ Code[i] ].ival == 0 ) continue;
-    Assign( Elm( VAR, i ), Mul( 
+    Assign( Elm( VAR, i ), Mul(
               Elm( IV, SpeciesTable[ Code[i] ].ival ),
               Elm( CFACTOR ) ) );
-  }              
+  }
 
-  
+
   for( i = 0; i < FixNr; i++) {
     if( *SpeciesTable[ Code[i + VarNr] ].ival == 0 ) continue;
     Assign( Elm( FIX, i ), Mul(
               Elm( IV, SpeciesTable[ Code[i + VarNr] ].ival ),
-              Elm( CFACTOR ) ) ); 
-  }             
+              Elm( CFACTOR ) ) );
+  }
 
 /*  NewLines(1);
   C_Inline("  for( i = 0; i < NSPEC; i++ )" );
@@ -2589,13 +2894,13 @@ int INITVAL;
   for( i = 0; i < EqnNr; i++) {
     if ( kr[i].type == NUMBER )
        Assign( Elm( RCONST, i ), Const( kr[i].val.f ) );
-  }  
+  }
   WriteComment("END constant rate coefficients");
   /*  mz_rs_20050117- */
 
   NewLines(1);
   WriteComment("INLINED initializations");
-  
+
   switch( useLang ) {
     case C_LANG: bprintf( InlineCode[ C_INIT ].code );
                  break;
@@ -2632,24 +2937,24 @@ int Shuffle_user2kpp;
 
   Shuffle_user2kpp    = DefFnc( "Shuffle_user2kpp", 2, "function to copy concentrations from USER to KPP");
   FunctionBegin( Shuffle_user2kpp, V_USER, V );
-  
+
   k = 0;l = 0;
   for( i = 1; i < SpcNr; i++) {
-    if( ReverseCode[i] < 0 ) { 
-      if( SpeciesTable[i].type == VAR_SPC ) k++; 
+    if( ReverseCode[i] < 0 ) {
+      if( SpeciesTable[i].type == VAR_SPC ) k++;
       continue;
-    }  
+    }
     switch( SpeciesTable[i].type ) {
-      case VAR_SPC: 
+      case VAR_SPC:
                      if( k < initNr ) {
-                       Assign( Elm( V, ReverseCode[i] ), Elm( V_USER, k++ ) ); 
+                       Assign( Elm( V, ReverseCode[i] ), Elm( V_USER, k++ ) );
                        break;
-                     }  
+                     }
       case FIX_SPC:
-      case DUMMY_SPC:    
+      case DUMMY_SPC:
       default:       break;
     }
-  }  
+  }
 
   FunctionEnd( Shuffle_user2kpp );
   FreeVariable( Shuffle_user2kpp );
@@ -2667,23 +2972,23 @@ int Shuffle_kpp2user;
 
   Shuffle_kpp2user    = DefFnc( "Shuffle_kpp2user", 2, "function to restore concentrations from KPP to USER");
   FunctionBegin( Shuffle_kpp2user, V, V_USER );
-  
+
   k = 0; l = 0;
   for( i = 0; i < SpcNr; i++) {
-    if( ReverseCode[i] < 0 ) { 
-      if( SpeciesTable[i].type == VAR_SPC ) k++; 
+    if( ReverseCode[i] < 0 ) {
+      if( SpeciesTable[i].type == VAR_SPC ) k++;
       continue;
-    }  
+    }
     switch( SpeciesTable[i].type ) {
-      case VAR_SPC: 
+      case VAR_SPC:
                      if( k < initNr )
-                       Assign( Elm( V_USER, k++ ), Elm( V, ReverseCode[i] ) ); 
+                       Assign( Elm( V_USER, k++ ), Elm( V, ReverseCode[i] ) );
                      break;
-      case FIX_SPC:    
-      case DUMMY_SPC:    
+      case FIX_SPC:
+      case DUMMY_SPC:
       default:       break;
     }
-  }  
+  }
 
   FunctionEnd( Shuffle_kpp2user );
   FreeVariable( Shuffle_kpp2user );
@@ -2706,7 +3011,7 @@ int numass;
   for( atm = 0; atm < AtomNr; atm++ )
     if( AtomTable[atm].masscheck ) nmass++;
   if( nmass == 0 ) nmass = 1;
-  
+
   MASS  = DefvElm( "Mass", real, nmass, "value of mass balance" );
   GETMASS = DefFnc( "GetMass", 2, "compute total mass of selected atoms");
   FunctionBegin( GETMASS, CL, MASS);
@@ -2716,19 +3021,19 @@ int numass;
     if( AtomTable[atm].masscheck ) {
       sum = Const( 0 );
       for( spc = 0; spc < SpcNr; spc++ ) {
-        sp = &SpeciesTable[ Code[spc] ]; 
+        sp = &SpeciesTable[ Code[spc] ];
         for( i = 0; i < sp->nratoms; i++ ) {
           if( sp->atoms[i].code == atm ) {
-            sum = Add( sum, Mul( Const( sp->atoms[i].nr ), 
-                                 Elm( CL, spc ) ) ); 
+            sum = Add( sum, Mul( Const( sp->atoms[i].nr ),
+                                 Elm( CL, spc ) ) );
           }
-        }  
+        }
       }
       Assign( Elm( MASS, numass ), sum );
       numass++;
     }
-  } 
-  
+  }
+
   FunctionEnd( GETMASS );
   FreeVariable( GETMASS );
 }
@@ -2740,15 +3045,15 @@ char buf[100];
 
   if ( useLang == MATLAB_LANG ) return;
 
-  sprintf( buf, "Makefile_%s", rootFileName );  
+  sprintf( buf, "Makefile_%s", rootFileName );
   makeFile = fopen(buf, "w");
   if( makeFile == 0 ) {
     FatalError(3,"%s: Can't create file", buf );
-  } 
+  }
 
   UseFile( makeFile );
-  
-  IncludeCode( "%s/util/Makefile", Home );  
+
+  IncludeCode( "%s/util/Makefile", Home );
 
 }
 
@@ -2758,48 +3063,48 @@ void GenerateMex()
 char buf[100], suffix[5];
 
   if (useLang == MATLAB_LANG) return;
-  if (useMex == 0) return; 
+  if (useMex == 0) return;
 
   switch( useLang ) {
-    case F77_LANG: sprintf( suffix, "f"); 
-                 break; 
-    case F90_LANG: sprintf( suffix, "f90"); 
-                 break; 
-    case C_LANG:   sprintf( suffix, "c"); 
-                 break; 
-    default: printf("\nCannot create mex files for language %d\n", useLang); 
+    case F77_LANG: sprintf( suffix, "f");
+                 break;
+    case F90_LANG: sprintf( suffix, "f90");
+                 break;
+    case C_LANG:   sprintf( suffix, "c");
+                 break;
+    default: printf("\nCannot create mex files for language %d\n", useLang);
                  exit(1);
-                 break; 
+                 break;
   }
-  
-  sprintf( buf, "%s_mex_Fun.%s", rootFileName, suffix );  
+
+  sprintf( buf, "%s_mex_Fun.%s", rootFileName, suffix );
   mex_funFile = fopen(buf, "w");
   if( mex_funFile == 0 ) {
     FatalError(3,"%s: Can't create file", buf );
-  } 
+  }
   UseFile( mex_funFile );
-  IncludeCode( "%s/util/Mex_Fun", Home ); 
+  IncludeCode( "%s/util/Mex_Fun", Home );
 
-  if (useJacSparse) { 
-    sprintf( buf, "%s_mex_Jac_SP.%s", rootFileName, suffix );  
+  if (useJacSparse) {
+    sprintf( buf, "%s_mex_Jac_SP.%s", rootFileName, suffix );
     mex_jacFile = fopen(buf, "w");
     if( mex_jacFile == 0 ) {
       FatalError(3,"%s: Can't create file", buf );
-    } 
+    }
     UseFile( mex_jacFile );
-    IncludeCode( "%s/util/Mex_Jac_SP", Home );  
+    IncludeCode( "%s/util/Mex_Jac_SP", Home );
   }
 
-  if (useHessian) { 
-    sprintf( buf, "%s_mex_Hessian.%s", rootFileName, suffix );  
+  if (useHessian) {
+    sprintf( buf, "%s_mex_Hessian.%s", rootFileName, suffix );
     mex_hessFile = fopen(buf, "w");
     if( mex_hessFile == 0 ) {
       FatalError(3,"%s: Can't create file", buf );
-    } 
+    }
     UseFile( mex_hessFile );
-    IncludeCode( "%s/util/Mex_Hessian", Home );  
+    IncludeCode( "%s/util/Mex_Hessian", Home );
   }
-  
+
 }
 
 
@@ -2810,41 +3115,50 @@ char buf[200], suffix[5];
 
   if (useLang != MATLAB_LANG) return;
 
-  
-  sprintf( buf, "%s_Fun_Chem.m", rootFileName );  
-  mex_funFile = fopen(buf, "w");
-  if( mex_funFile == 0 ) {
-    FatalError(3,"%s: Can't create file", buf );
-  } 
-  UseFile( mex_funFile );
-  IncludeCode( "%s/util/Template_Fun_Chem", Home ); 
-  
-  sprintf( buf, "%s_Update_SUN.m", rootFileName );  
-  mex_funFile = fopen(buf, "w");
-  if( mex_funFile == 0 ) {
-    FatalError(3,"%s: Can't create file", buf );
-  } 
-  UseFile( mex_funFile );
-  IncludeCode( "%s/util/UpdateSun", Home ); 
 
-  if (useJacSparse) { 
-    sprintf( buf, "%s_Jac_Chem.m", rootFileName );  
+  sprintf( buf, "%s_Fun_Chem.m", rootFileName );
+  mex_funFile = fopen(buf, "w");
+  if( mex_funFile == 0 ) {
+    FatalError(3,"%s: Can't create file", buf );
+  }
+  UseFile( mex_funFile );
+  IncludeCode( "%s/util/Template_Fun_Chem", Home );
+
+  sprintf( buf, "%s_Update_SUN.m", rootFileName );
+  mex_funFile = fopen(buf, "w");
+  if( mex_funFile == 0 ) {
+    FatalError(3,"%s: Can't create file", buf );
+  }
+  UseFile( mex_funFile );
+  IncludeCode( "%s/util/UpdateSun", Home );
+
+  if (useJacSparse) {
+    sprintf( buf, "%s_Jac_Chem.m", rootFileName );
     mex_jacFile = fopen(buf, "w");
     if( mex_jacFile == 0 ) {
       FatalError(3,"%s: Can't create file", buf );
-    } 
+    }
     UseFile( mex_jacFile );
-    IncludeCode( "%s/util/Template_Jac_Chem", Home );  
+    IncludeCode( "%s/util/Template_Jac_Chem", Home );
   }
 
-  if (useHessian) { 
+  if (useHessian) {
   }
-  
+
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateF90Modules(char where)
 {
+
+//===========================================================================
+// KPP 2.3.0_gc, Bob Yantosca (11 Feb 2020)
+// NOTE: Use the .F90 suffix instead of .f90, because .F90 denotes
+// non-preprocessed source code, whereas .f90 denotes source code
+// with header files inlined.  This update was added into the
+// GC_updates branch for KPP version 2.3.0_gc.
+//===========================================================================
+
 char buf[200];
 
 if (useLang != F90_LANG) return;
@@ -2852,26 +3166,26 @@ if (useLang != F90_LANG) return;
 switch (where) {
 case 'h':
 
-  sprintf( buf, "%s_Precision.f90", rootFileName );  
+  sprintf( buf, "%s_Precision.F90", rootFileName );
   sparse_dataFile = fopen(buf, "w");
   if( sparse_dataFile == 0 ) {
     FatalError(3,"%s: Can't create file", buf );
-  } 
+  }
   UseFile( sparse_dataFile );
-  F90_Inline("\nMODULE %s_Precision\n", rootFileName );
-  F90_Inline("!");
-  F90_Inline("! Definition of different levels of accuracy");
-  F90_Inline("! for REAL variables using KIND parameterization");
-  F90_Inline("!");
-  F90_Inline("! KPP SP - Single precision kind");
-  F90_Inline("  INTEGER, PARAMETER :: sp = SELECTED_REAL_KIND(6,30)");
-  F90_Inline("! KPP DP - Double precision kind");
-  F90_Inline("  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(14,300)");
-  F90_Inline("! KPP QP - Quadruple precision kind");
-  F90_Inline("  INTEGER, PARAMETER :: qp = SELECTED_REAL_KIND(18,400)");
-  F90_Inline("\nEND MODULE %s_Precision\n\n", rootFileName );
+    F90_Inline("\nMODULE %s_Precision\n", rootFileName );
+    F90_Inline("!");
+    F90_Inline("! Definition of different levels of accuracy");
+    F90_Inline("! for REAL variables using KIND parameterization");
+    F90_Inline("!");
+    F90_Inline("! KPP SP - Single precision kind");
+    F90_Inline("  INTEGER, PARAMETER :: sp = SELECTED_REAL_KIND(6,30)");
+    F90_Inline("! KPP DP - Double precision kind");
+    F90_Inline("  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(14,300)");
+    F90_Inline("! KPP QP - Quadruple precision kind");
+    F90_Inline("  INTEGER, PARAMETER :: qp = SELECTED_REAL_KIND(18,400)");
+    F90_Inline("\nEND MODULE %s_Precision\n\n", rootFileName );
 
-  UseFile( initFile ); 
+  UseFile( initFile );
     F90_Inline("MODULE %s_Initialize\n", rootFileName );
     F90_Inline("  USE %s_Parameters, ONLY: dp, NVAR, NFIX", rootFileName);
     F90_Inline("  IMPLICIT NONE\n", rootFileName );
@@ -2889,8 +3203,8 @@ case 'h':
     else
       F90_Inline("  USE %s_Parameters, ONLY: dp, NSPEC, NVAR, NFIX, NREACT", rootFileName);
     F90_Inline("  PUBLIC\n  SAVE\n");
- 
-  UseFile( functionFile ); 
+
+  UseFile( functionFile );
     F90_Inline("MODULE %s_Function\n", rootFileName );
     if ( useDeclareValues )
       F90_Inline("  USE %s_Precision", rootFileName );
@@ -2898,6 +3212,7 @@ case 'h':
       F90_Inline("  USE %s_Parameters", rootFileName );
     F90_Inline("  IMPLICIT NONE\n", rootFileName );
     Declare( A ); /*  mz_rs_20050117 */
+    WriteOMPThreadPrivate(" A "); /* msl_20160419 */
     F90_Inline("\nCONTAINS\n\n");
 
   UseFile( rateFile );
@@ -2926,8 +3241,8 @@ case 'h':
     F90_Inline("MODULE %s_JacobianSP\n", rootFileName);
     F90_Inline("  PUBLIC\n  SAVE\n");
   }
- 
-  UseFile( jacobianFile ); 
+
+  UseFile( jacobianFile );
     F90_Inline("MODULE %s_Jacobian\n", rootFileName );
     if ( useDeclareValues )
       F90_Inline("  USE %s_Precision", rootFileName );
@@ -2937,14 +3252,14 @@ case 'h':
       F90_Inline("  USE %s_JacobianSP\n", rootFileName);
     F90_Inline("  IMPLICIT NONE", rootFileName );
     F90_Inline("\nCONTAINS\n\n");
-  
+
   if ( useStoicmat ) {
     UseFile(sparse_stoicmFile);
-    F90_Inline("MODULE %s_StoichiomSP\n", rootFileName); 
+    F90_Inline("MODULE %s_StoichiomSP\n", rootFileName);
     F90_Inline("  USE %s_Precision", rootFileName);
-    F90_Inline("  PUBLIC\n  SAVE\n"); 
+    F90_Inline("  PUBLIC\n  SAVE\n");
 
-    UseFile( stoichiomFile ); 
+    UseFile( stoichiomFile );
     F90_Inline("MODULE %s_Stoichiom\n", rootFileName);
     if ( useDeclareValues )
       F90_Inline("  USE %s_Precision", rootFileName );
@@ -2961,7 +3276,7 @@ case 'h':
     /* F90_Inline("  USE %s_Precision", rootFileName ); */ /* mz_rs_20050321 */
     F90_Inline("  PUBLIC\n  SAVE\n");
 
-    UseFile( hessianFile ); 
+    UseFile( hessianFile );
     F90_Inline("MODULE %s_Hessian\n", rootFileName);
     if ( useDeclareValues )
       F90_Inline("  USE %s_Precision", rootFileName );
@@ -2971,11 +3286,11 @@ case 'h':
     F90_Inline("  IMPLICIT NONE", rootFileName );
     F90_Inline("\nCONTAINS\n\n");
   }
-  
+
    UseFile( monitorFile );
      F90_Inline("MODULE %s_Monitor", rootFileName);
 
-   UseFile( linalgFile ); 
+   UseFile( linalgFile );
     F90_Inline("MODULE %s_LinearAlgebra\n", rootFileName);
     F90_Inline("  USE %s_Parameters", rootFileName );
     /* mz_rs_20050511+ if( useJacSparse ) added */
@@ -2989,20 +3304,22 @@ case 'h':
     F90_Inline("  IMPLICIT NONE", rootFileName );
     F90_Inline("\nCONTAINS\n\n");
 
-   UseFile( utilFile ); 
+   UseFile( utilFile );
     F90_Inline("MODULE %s_Util\n", rootFileName);
     F90_Inline("  USE %s_Parameters", rootFileName );
     F90_Inline("  IMPLICIT NONE", rootFileName );
     F90_Inline("\nCONTAINS\n\n");
-    
-    /* Here we define the model module which aggregates everything */ 
+
+    /* Here we define the model module which aggregates everything */
     /* put module rootFileName_Model into separate file */
     /* (reusing "sparse_dataFile" as done above for _Precision file) */
-    sprintf( buf, "%s_Model.f90", rootFileName );  
+
+
+    sprintf( buf, "%s_Model.F90", rootFileName );
     sparse_dataFile = fopen(buf, "w");
     if( sparse_dataFile == 0 ) {
       FatalError(3,"%s: Can't create file", buf );
-    } 
+    }
     UseFile( sparse_dataFile );
     F90_Inline("MODULE %s_Model\n", rootFileName);
     F90_Inline("!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -3022,7 +3339,7 @@ case 'h':
     if ( useHessian )
        F90_Inline("  USE %s_Hessian", rootFileName);
     if ( useStoicmat )
-       F90_Inline("  USE %s_Stoichiom", rootFileName); 
+       F90_Inline("  USE %s_Stoichiom", rootFileName);
     F90_Inline("  USE %s_LinearAlgebra", rootFileName);
     F90_Inline("  USE %s_Monitor", rootFileName);
     F90_Inline("  USE %s_Util", rootFileName);
@@ -3034,70 +3351,70 @@ case 'h':
     /* mz_rs_20050518- */
 
   break;
-  
+
 case 't':
 
   /*  mz_rs_20050117+ */
-  UseFile( initFile ); 
+  UseFile( initFile );
   F90_Inline("\nEND MODULE %s_Initialize\n", rootFileName );
   /*  mz_rs_20050117- */
 
   UseFile( param_headerFile );
   F90_Inline("\nEND MODULE %s_Parameters\n", rootFileName );
-  
+
   UseFile( global_dataFile );
   F90_Inline("\nEND MODULE %s_Global\n", rootFileName );
 
-  UseFile( functionFile ); 
+  UseFile( functionFile );
   F90_Inline("\nEND MODULE %s_Function\n", rootFileName );
 
   UseFile( rateFile );
   F90_Inline("\nEND MODULE %s_Rates\n", rootFileName );
-  
+
   if ( useStochastic ) {
     UseFile(stochasticFile);
     F90_Inline("\nEND MODULE %s_Stochastic\n", rootFileName);
   }
-  
+
   if ( useJacSparse ) {
     UseFile(sparse_jacFile);
     F90_Inline("\nEND MODULE %s_JacobianSP\n", rootFileName);
   }
 
-  UseFile( jacobianFile ); 
+  UseFile( jacobianFile );
   F90_Inline("\nEND MODULE %s_Jacobian\n", rootFileName );
-  
+
   if ( useStoicmat ) {
     UseFile(sparse_stoicmFile);
     F90_Inline("\nEND MODULE %s_StoichiomSP\n", rootFileName);
-    
-    UseFile( stoichiomFile ); 
+
+    UseFile( stoichiomFile );
     F90_Inline("\nEND MODULE %s_Stoichiom\n", rootFileName);
   }
-  
+
   if ( useHessian ) {
     UseFile(sparse_hessFile);
     F90_Inline("\nEND MODULE %s_HessianSP\n", rootFileName);
 
-    UseFile( hessianFile ); 
+    UseFile( hessianFile );
     F90_Inline("\nEND MODULE %s_Hessian\n", rootFileName );
-  }  
-  
+  }
+
    UseFile(monitorFile);
      F90_Inline("\nEND MODULE %s_Monitor", rootFileName);
 
-   UseFile( linalgFile ); 
+   UseFile( linalgFile );
     F90_Inline("\nEND MODULE %s_LinearAlgebra\n", rootFileName);
 
-   UseFile( utilFile ); 
+   UseFile( utilFile );
     F90_Inline("\nEND MODULE %s_Util\n", rootFileName);
-     
+
   break;
-  
+
 default:
   printf("\n Unrecognized option '%s' in GenerateF90Modules\n", where);
   break;
-}  
+}
 }
 
 
@@ -3109,62 +3426,68 @@ int n;
 
   VarStartNr = 0;
   FixStartNr = VarNr;
-  
+
   real = useDouble ? DOUBLE : REAL;
 
   n = MAX_OUTBUF;
-  for( i = 1; i < INLINE_OPT; i++ ) 
-    if( InlineCode[i].maxlen > n ) 
+  for( i = 1; i < INLINE_OPT; i++ )
+    if( InlineCode[i].maxlen > n )
       n = InlineCode[i].maxlen;
-    
+
   outBuf = (char*)malloc( n );
   outBuffer = outBuf;
 
   switch( useLang ) {
-    case F77_LANG: Use_F( rootFileName ); 
-                 break; 
+    case F77_LANG: Use_F( rootFileName );
+                 break;
     case F90_LANG: Use_F90( rootFileName );
-                 break; 
-    case C_LANG: Use_C( rootFileName ); 
-                 break; 
-    case MATLAB_LANG: Use_MATLAB( rootFileName ); 
-                 break; 
-    default: printf("\n Language no '%s' unknown\n",useLang );		 
+                 break;
+    case C_LANG: Use_C( rootFileName );
+                 break;
+    case MATLAB_LANG: Use_MATLAB( rootFileName );
+                 break;
+    default: printf("\n Language no '%s' unknown\n",useLang );
   }
   printf("\nKPP is initializing the code generation.");
   InitGen();
 
   if ( useLang == F90_LANG )
       GenerateF90Modules('h');
-      
+
   GenerateMap();
-  
+
 /*  if( (useLang == F77_LANG)||(useLang == F90_LANG)||(useLang == C_LANG) )
 {*/
     printf("\nKPP is generating the monitor data:");
     printf("\n    - %s_Monitor",rootFileName);
     GenerateMonitorData();
 /*  }*/
-  
+
   printf("\nKPP is generating the utility data:");
   printf("\n    - %s_Util",rootFileName);
   GenerateUtil();
-  
+
   printf("\nKPP is generating the global declarations:");
   printf("\n    - %s_Main",rootFileName);
   GenerateGData();
-  
 
-  printf("\nKPP is generating the ODE function:");
+
+  if ( doFlux == 1 ) {
+    printf("\nKPP is generating the ODE function with flux enabled:");
+  }
+  else {
+    printf("\nKPP is generating the ODE function:");
+  }
   printf("\n    - %s_Function",rootFileName);
-  GenerateFun();  
+  GenerateFun();
+  if (doFlux == 1) GenerateFlux();
 
   if ( useStochastic ) {
     printf("\nKPP is generating the Stochastic description:");
     printf("\n    - %s_Function",rootFileName);
-    GenerateStochastic();  
-  }  
-  
+    GenerateStochastic();
+  }
+
   if ( useJacobian ) {
     printf("\nKPP is generating the ODE Jacobian:");
     printf("\n    - %s_Jacobian\n    - %s_JacobianSP",rootFileName,rootFileName);
@@ -3179,77 +3502,86 @@ int n;
           GenerateSparseUtil();
           GenerateSolve();
           GenerateTRSolve();
-       }  
+       }
     }
  }
- 
+
  GenerateBlas();
 
-  if( useHessian ) { 
+  if( useHessian ) {
     printf("\nKPP is generating the Hessian:");
     printf("\n    - %s_Hessian\n    - %s_HessianSP",rootFileName,rootFileName);
-    GenerateHessian(); 
-    GenerateHessianSparseData();  
-  }   
-  
+    GenerateHessian();
+    GenerateHessianSparseData();
+  }
+
   printf("\nKPP is generating the utility functions:");
   printf("\n    - %s_Util",rootFileName);
-  
+
   GenerateInitialize();
 
   GenerateShuffle_user2kpp();
-  GenerateShuffle_kpp2user();  
+  GenerateShuffle_kpp2user();
 
   printf("\nKPP is generating the rate laws:");
-  printf("\n    - %s_Rates",rootFileName);  
-  
-  GenerateRateLaws();  
-  GenerateUpdateSun();  
-  GenerateUpdateRconst();  
-  GenerateUpdatePhoto();
-  GenerateGetMass(); 
+  printf("\n    - %s_Rates",rootFileName);
 
+  GenerateRateLaws();
+//===========================================================================
+// KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
+// Comment out the function call that pastes the UPDATE_SUN function into
+// the gckpp_Rates.F90 file.  This is not needed for GEOS-Chem and most
+// other external models, as photo rates are usually computed externally
+// and passed in.
+//
+//  GenerateUpdateSun();
+//===========================================================================
+  GenerateUpdateRconst();
+  GenerateUpdatePhoto();
+  GenerateGetMass();
+
+  /*  GenerateComputeFamilies(); Removed. MSL Oct. 30, 2017*/
 
   printf("\nKPP is generating the parameters:");
-  printf("\n    - %s_Parameters",rootFileName);  
+  printf("\n    - %s_Parameters",rootFileName);
 
   GenerateParamHeader();
-  
+
   printf("\nKPP is generating the global data:");
-  printf("\n    - %s_Global",rootFileName);  
+  printf("\n    - %s_Global",rootFileName);
 
   GenerateGlobalHeader();
-  
+
   if ( (useLang == F77_LANG)||(useLang == C_LANG)||(useLang == MATLAB_LANG) ) {
     printf("\nKPP is generating the sparsity data:");
     if( useJacSparse ) {
         GenerateJacobianSparseHeader();
-        printf("\n    - %s_JacobianSP",rootFileName); 
-	} 
-    if( useHessian ) {  
-        GenerateHessianSparseHeader(); 
-        printf("\n    - %s_HessianSP",rootFileName);  
+        printf("\n    - %s_JacobianSP",rootFileName);
+	}
+    if( useHessian ) {
+        GenerateHessianSparseHeader();
+        printf("\n    - %s_HessianSP",rootFileName);
 	}
     }
 
   if ( useStoicmat ) {
     printf("\nKPP is generating the stoichiometric description files:");
     printf("\n    - %s_Stoichiom\n    - %s_StoichiomSP",rootFileName,rootFileName);
-    GenerateReactantProd(); 
-    GenerateJacReactantProd(); 
-    GenerateStoicmSparseData(); 
+    GenerateReactantProd();
+    GenerateJacReactantProd();
+    GenerateStoicmSparseData();
     if ( (useLang == F77_LANG)||(useLang == C_LANG)||(useLang == MATLAB_LANG) )
-        GenerateStoicmSparseHeader(); 
+        GenerateStoicmSparseHeader();
     GenerateDFunDRcoeff();
     GenerateDJacDRcoeff();
-  }  
+  }
 
   printf("\nKPP is generating the driver from %s.f90:", driver);
   printf("\n    - %s_Main",rootFileName);
-  
+
   if ( (useLang == F77_LANG)||(useLang == F90_LANG)||(useLang == C_LANG) )
     GenerateIntegrator();
-  
+
   /* mz_rs_20050518+ no driver file if driver = none */
   if( strcmp( driver, "none" ) != 0 )
     GenerateDriver();
@@ -3257,16 +3589,16 @@ int n;
 
   if ( (useLang == F77_LANG)||(useLang == F90_LANG)||(useLang == C_LANG) )
       GenerateMakefile();
-  
+
   if ( useLang == F90_LANG )
       GenerateF90Modules('t');
-  
+
   if ( useLang == MATLAB_LANG )
       GenerateMatlabTemplates();
 
   if ( (useLang == F77_LANG)||(useLang == F90_LANG)||(useLang == C_LANG) )
       GenerateMex();
-  
+
   /*  mz_rs_20050117+ */
   if( initFile )          fclose( initFile );
   /*  mz_rs_20050117- */
@@ -3292,15 +3624,15 @@ int n;
   if( stoichiomFile )     fclose( stoichiomFile );
   if( utilFile )          fclose( utilFile );
   if( stochasticFile )    fclose( stochasticFile );
-    
+
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 int* AllocIntegerVector(int n, char* message)
 {
 int* vec;
-if ( ( vec=(int*)calloc(n,sizeof(int)) ) == NULL ) 
-   FatalError(-30,"%s: Cannot allocate vector.",message); 
+if ( ( vec=(int*)calloc(n,sizeof(int)) ) == NULL )
+   FatalError(-30,"%s: Cannot allocate vector.",message);
 return vec;
 }
 
@@ -3335,15 +3667,50 @@ free(mat);
 int Index( int i )
 {
         switch( useLang ) {
-           case C_LANG:  
+           case C_LANG:
 	     return i;
-           case F77_LANG: 
+           case F77_LANG:
 	     return i+1;
-           case F90_LANG: 
+           case F90_LANG:
 	     return i+1;
-           case MATLAB_LANG: 
+           case MATLAB_LANG:
 	     return i+1;
 	   default: printf("\n Unknown language no %d\n",useLang);
-	     exit(1);  
+	     exit(1);
         }
+}
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+void GenerateComputeFamilies()
+{
+  int i,j;
+  int ComputeFamilies;
+
+  UseFile( utilFile );
+
+  ComputeFamilies    = DefFnc( "ComputeFamilies", 2, "function to calculate user-defined Prod/Loss families");
+  FunctionBegin( ComputeFamilies, V, FAM );
+
+  NewLines(1);
+  WriteComment("Computation of prod/loss families");
+
+  for (i = 0; i < FamilyNr; i++)  {
+    sum = Const( 0 );
+    for(j=0; j<EqnNr; j++) {
+      switch( FamilyTable[ i ].type ) {
+      case(PROD_FAM):
+	if ( ( Prod_Coeff[ i ][ j ] - Loss_Coeff[ i ][ j ] ) > 0 ) {
+	  sum = Add( sum, Mul(Const(Prod_Coeff[ i ][ j ]-Loss_Coeff[ i ][ j ]),Elm( V, Index( *Prod_Spc[ j ]-1 ) ) ) );
+	}
+	break;
+      case(LOSS_FAM):
+	if ( ( Loss_Coeff[ i ][ j ] - Prod_Coeff[ i ][ j ] ) > 0 )
+	  sum = Add( sum, Mul(Const(Loss_Coeff[ i ][ j ]-Prod_Coeff[ i ][ j ]),Elm( V, Index( *Loss_Spc[ j ]-1 ) ) ) );
+	break;
+      }
+    }
+    Assign( Elm( FAM, i ), sum );
+  }
+
+  FunctionEnd( ComputeFamilies );
+  FreeVariable( ComputeFamilies );
 }

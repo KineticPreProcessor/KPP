@@ -36,7 +36,7 @@
 
 %s CMD_STATE INC_STATE MOD_STATE INT_STATE 
 %s PRM_STATE DSP_STATE SSP_STATE INI_STATE EQN_STATE EQNTAG_STATE 
-%s RATE_STATE LMP_STATE CR_IGNORE SC_IGNORE ATM_STATE LKT_STATE INL_STATE 
+%s RATE_STATE FAM_STATE LMP_STATE CR_IGNORE SC_IGNORE ATM_STATE LKT_STATE INL_STATE 
 %s MNI_STATE TPT_STATE USE_STATE
 %s COMMENT COMMENT2 EQN_ID
 %x INL_CODE
@@ -60,13 +60,13 @@
   char *yy_filename[ MAX_INCLUDE ];
   int yy_buf_level = 0;
   
-  char crtToken[100];
-  char nextToken[100];
+  char crtToken[ MAX_K ];
+  char nextToken[ MAX_K ];
   int crtTokType;
   int nextTokType;
   int crtLine;
-  char crtFile[100];
-  char crt_rate[100];
+  char crtFile[ MAX_K ];
+  char crt_rate[ MAX_K ];
 
   int oldnErr = 0;
 
@@ -116,6 +116,7 @@ REAL  	{NRS}?"."?{NR}
 UREAL  	{NR}?"."?{NR}
 FLOAT   {REAL}([eE]{NRS})?
 UFLOAT  {UREAL}([eE]{NRS})?
+STOICH  {LIT}[a-zA-Z_0-9]*[*]
 
 %%
 {SPACE}+                {
@@ -170,6 +171,25 @@ UFLOAT  {UREAL}([eE]{NRS})?
                         }
 <ATM_STATE>;            { RETURN( yytext[0] );
                         } 
+<EQN_STATE>{STOICH}     { strcpy( yylval.str, yytext );
+                          RETURN( EQNCOEF );
+                        }
+<FAM_STATE>[:]          { RETURN( FAMCOLON );
+                        }
+<FAM_STATE>{IDSPC}      { strcpy( yylval.str, yytext );
+                          RETURN( SPCSPC );
+                        }
+<FAM_STATE>{NR}         { strcpy( yylval.str, yytext );
+                          RETURN( SPCNR );
+                        }
+<FAM_STATE>[=]          { RETURN( SPCEQUAL );
+                        } 
+<FAM_STATE>[+]          { RETURN( SPCPLUS );
+                        } 
+<FAM_STATE>;            { RETURN( yytext[0] );
+                        } 
+<FAM_STATE>[^;#]        { ScanError("Invalid character '%c' in species definition", yytext[0] );
+                        }
 <DSP_STATE>{IDSPC}      { strcpy( yylval.str, yytext );
                           RETURN( SPCSPC );
                         }
@@ -313,6 +333,7 @@ UFLOAT  {UREAL}([eE]{NRS})?
                          { "SETFIX",     SSP_STATE, SETFIX }, 
                          { "INITVALUES", INI_STATE, INITVALUES }, 
                          { "EQUATIONS",  EQN_STATE, EQUATIONS }, 
+                         { "FAMILIES",   FAM_STATE, FAMILIES }, 
                          { "LUMP",       LMP_STATE, LUMP }, 
                          { "LOOKAT", 	 LKT_STATE, LOOKAT },
                          { "LOOKATALL",  INITIAL,   LOOKATALL },
@@ -336,6 +357,7 @@ UFLOAT  {UREAL}([eE]{NRS})?
                          { "RUN",        PRM_STATE, RUN },
                          { "USES",       USE_STATE, USES },
                          { "SPARSEDATA", PRM_STATE, SPARSEDATA },
+                         { "FLUX",       PRM_STATE, FLUX }, 
                          { 0, 0, 0 } 
                        };
 

@@ -176,6 +176,7 @@ extern void (*WriteElm)( NODE *n );
 extern void (*WriteSymbol)( int op );
 extern void (*WriteAssign)( char* ls, char* rs );
 extern void (*WriteComment)( char *fmt, ...  );
+extern void (*WriteOMPThreadPrivate)( char *fmt, ...  );
 extern void (*Declare)( int v );
 extern void (*ExternDeclare)( int v );
 extern void (*GlobalDeclare)( int v );

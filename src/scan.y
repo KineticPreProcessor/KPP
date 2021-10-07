@@ -75,8 +75,8 @@
 
 %token JACOBIAN DOUBLE FUNCTION DEFVAR DEFRAD DEFFIX SETVAR SETRAD SETFIX 
 %token HESSIAN STOICMAT STOCHASTIC DECLARE
-%token INITVALUES EQUATIONS LUMP INIEQUAL EQNEQUAL EQNCOLON 
-%token LMPCOLON LMPPLUS SPCPLUS SPCEQUAL ATOMDECL CHECK CHECKALL REORDER
+%token INITVALUES EQUATIONS FAMILIES LUMP INIEQUAL EQNEQUAL EQNCOLON 
+%token LMPCOLON LMPPLUS SPCPLUS SPCEQUAL FAMCOLON ATOMDECL CHECK CHECKALL REORDER
 %token MEX DUMMYINDEX EQNTAGS
 %token LOOKAT LOOKATALL TRANSPORT TRANSPORTALL MONITOR USES SPARSEDATA
 %token WRITE_ATM WRITE_SPC WRITE_MAT WRITE_OPT INITIALIZE XGRID YGRID ZGRID
@@ -90,6 +90,9 @@
 %token      TPTID USEID
 %type <str> TPTID USEID
 %type <str> rate eqntag
+%token FLUX
+%token      PLSPC
+%type <str> PLSPC
 
 %%
 
@@ -149,6 +152,8 @@ section	        : JACOBIAN PARAMETER
                   {}
                 | EQUATIONS equations
                   {}
+                | FAMILIES families
+                  {}
                 | LUMP lumps  
                   {}
                 | LOOKAT lookatlist  
@@ -200,6 +205,9 @@ section	        : JACOBIAN PARAMETER
                   {}
                 | SPARSEDATA PARAMETER
 		  { SparseData( $2 );
+                  }
+                | FLUX PARAMETER
+		  { CmdFlux( $2 );
                   }
                 ;  
 semicolon       : semicolon ';'
@@ -267,7 +275,30 @@ setspcspc	: SSPID
                       case SETFIX: SetSpcType( FIX_SPC, $1 ); break;
                     }
                   }
-                ;     
+                ;
+families        : families family semicolon
+                | family semicolon
+                | error semicolon
+                  { ParserErrorMessage(); }
+                ;
+family          : SPCSPC FAMCOLON members
+                  { DeclareFamily( $1 );
+                  }
+                  ;
+/*famname         : SPCSPC FAMCOLON
+  { DeclareFamily( $1 ); }*/
+                 ;
+members         : members SPCPLUS member
+                | member
+                ; 
+member          : SPCNR SPCSPC
+                  { AddMember( $2, $1 );
+                  }
+                | SPCSPC
+                  { AddMember( $1, "1" );
+		    /*		    FinalizeFamily();*/
+                  }
+                ;
 species         : species spc semicolon
                 | spc semicolon 
                 | error semicolon
@@ -343,7 +374,9 @@ lefths          : expresion EQNEQUAL
                   { eqState = RHS; }
                 ;   
 righths         : expresion EQNCOLON
-                  { eqState = RAT; }
+                   { ProcessTerm( eqState, "+", "1", "RR" ); /*Add a prod/loss species as last prod.*/ 
+		    eqState = RAT;
+		  }
                 ;
 expresion       : expresion EQNSIGN term
                   { ProcessTerm( eqState, $2, crt_coef, crt_term ); 

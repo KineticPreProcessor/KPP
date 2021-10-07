@@ -29,27 +29,28 @@
 
 ******************************************************************************/
 
-#define KPP_VERSION "2.2.3"
+#define KPP_VERSION "2.3.3_gc"  // Version number
 
 #ifndef _GDATA_H_
 #define _GDATA_H_
 
 #include <stdio.h>
 
-#define MAX_EQN         400
-#define MAX_SPECIES     500
-#define MAX_SPNAME       30
-#define MAX_IVAL         40
-/* MAX_EQNTAG = max length of equation ID in eqn file */
-#define MAX_EQNTAG       12
-/* MAX_K = max length of rate expression in eqn file */
-#define MAX_K           150
-#define MAX_ATOMS	 10
-#define MAX_ATNAME	 10
-#define MAX_ATNR	250 
-#define MAX_PATH        120
-#define MAX_FILES	 20
-#define MAX_EQNLEN      100
+#define MAX_EQN        1500     // Max number of equations
+#define MAX_SPECIES    1000     // Max number of species
+#define MAX_SPNAME       30     // Max char length of species name
+#define MAX_IVAL         40     // Max char length of species ID ?
+#define MAX_EQNTAG       12     // Max length of equation ID in eqn file
+#define MAX_K           200     // Max length of rate expression in eqn file
+#define MAX_ATOMS        10     // Max number of atoms
+#define MAX_ATNAME       10     // Max char length of atom name
+#define MAX_ATNR        250     // Max number of atom tables
+#define MAX_PATH        250     // Max char length of directory paths
+#define MAX_FILES        20     // Max number of files to open
+#define MAX_FAMILIES    300     // Max number of family definitions
+#define MAX_MEMBERS     150     // Max number of family members
+#define MAX_EQNLEN      200     // Max char length of equations
+
 
 #define NO_CODE 	-1
 #define max( x, y ) (x) > (y) ? (x) : (y)
@@ -60,18 +61,20 @@
 #define IntegName(x) FileName((x),"INTEG","int",".def")
 
 enum krtypes { NUMBER, EXPRESION, PHOTO };
-enum table_modes { F_TEXT, FC_TEXT, C_TEXT, S_TEXT }; 
+enum table_modes { F_TEXT, FC_TEXT, C_TEXT, S_TEXT };
 enum lang { NO_LANG, C_LANG, F77_LANG, F90_LANG, MATLAB_LANG };
-enum inl_code { F77_GLOBAL,    F77_INIT,    F77_DATA,    F77_UTIL,    F77_RATES,    F77_RCONST,
-	      F90_GLOBAL,    F90_INIT,    F90_DATA,    F90_UTIL,    F90_RATES,    F90_RCONST,
-              C_GLOBAL,      C_INIT,      C_DATA,      C_UTIL,      C_RATES,      C_RCONST,
-              MATLAB_GLOBAL, MATLAB_INIT, MATLAB_DATA, MATLAB_UTIL, MATLAB_RATES, MATLAB_RCONST,
-	      INLINE_OPT
-	      };
+enum inl_code {
+  F77_GLOBAL,  F77_INIT,    F77_DATA,     F77_UTIL,      F77_RATES,
+  F77_RCONST,  F90_GLOBAL,  F90_INIT,     F90_DATA,      F90_UTIL,
+  F90_RATES,   F90_RCONST,  C_GLOBAL,     C_INIT,        C_DATA,
+  C_UTIL,      C_RATES,     C_RCONST,     MATLAB_GLOBAL, MATLAB_INIT,
+  MATLAB_DATA, MATLAB_UTIL, MATLAB_RATES, MATLAB_RCONST,
+  INLINE_OPT
+};
 
-enum jacobian_format { JAC_OFF, JAC_FULL, JAC_LU_ROW, JAC_ROW };	      
+enum jacobian_format { JAC_OFF, JAC_FULL, JAC_LU_ROW, JAC_ROW };
 
-               	      
+
 typedef short int CODE;
 typedef float EQ_VECT[ MAX_EQN ];
 
@@ -83,7 +86,7 @@ typedef struct {
 
 typedef struct {
                  unsigned char code;
-                 unsigned char nr; 
+                 unsigned char nr;
                } ATOM;
 
 typedef struct {
@@ -94,8 +97,26 @@ typedef struct {
                  short int nratoms;
 		 char name[ MAX_SPNAME ];
                  char ival[ MAX_IVAL ];
-                 ATOM atoms[ MAX_ATOMS ]; 
+                 ATOM atoms[ MAX_ATOMS ];
+                 int flux; /* msl_290416 */
 	       } SPECIES_DEF;
+
+typedef struct {
+                 char name[ MAX_SPNAME ];
+                 char ival[ MAX_IVAL ];
+                 int code;
+                 unsigned char nr;
+                 float coeff;
+                 char  coeff_str;
+               } MEMBER;
+
+typedef struct {
+		 char type;
+                 short int nrmembers;
+		 char name[ MAX_SPNAME ];
+                 char ival[ MAX_IVAL ];
+                 MEMBER members[ MAX_MEMBERS ];
+	       } FAMILY_DEF;
 
 typedef struct {
 		 char type;
@@ -113,12 +134,14 @@ typedef struct {
 
 
 extern int SpeciesNr;
+extern int FamilyNr;
 extern int EqnNr;
 extern int SpcNr;
 extern int AtomNr;
 extern int VarNr;
 extern int VarActiveNr;
 extern int FixNr;
+extern int plNr;
 extern int VarStartNr;
 extern int FixStartNr;
 extern int Hess_NZ;
@@ -146,10 +169,11 @@ extern int useDummyindex;
 extern int useEqntags;
 extern int useLang;
 extern int useStochastic;
+extern int doFlux;
 
-/* if useValues=1 KPP replaces parameters like NVAR etc. 
+/* if useValues=1 KPP replaces parameters like NVAR etc.
        by their values in vector/matrix declarations */
-extern int useDeclareValues; 
+extern int useDeclareValues;
 
 extern char Home[ MAX_PATH ];
 extern char integrator[ MAX_PATH ];
@@ -161,13 +185,19 @@ extern char *rootFileName;
 
 extern ATOM_DEF AtomTable[ MAX_ATNR ];
 extern SPECIES_DEF SpeciesTable[ MAX_SPECIES ];
+extern FAMILY_DEF FamilyTable[ MAX_FAMILIES ];
 extern KREACT 	kr	 [ MAX_EQN ];
 extern CODE 	ReverseCode[ MAX_SPECIES ];
 extern CODE 	Code	 [ MAX_SPECIES ];
 extern float** 	Stoich_Left;
 extern float** 	Stoich;
 extern float**  Stoich_Right;
+extern float**  Prod_Coeff;
+extern float**  Loss_Coeff;
 extern int 	Reactive [ MAX_SPECIES ];
+
+extern CODE *Prod_Spc[ MAX_EQN ];
+extern CODE *Loss_Spc[ MAX_EQN ];
 
 extern int **structB;
 extern int **structJ;
@@ -198,6 +228,7 @@ void CmdIntegrator( char *cmd );
 void CmdDriver( char *cmd );
 void CmdRun( char *cmd );
 void CmdStochastic( char *cmd );
+void CmdFlux( char *cmd );
 
 void Generate();
 
@@ -209,4 +240,3 @@ void FreeIntegerMatrix ( int** mat, int m, int n );
 int Index( int i );
 
 #endif
-

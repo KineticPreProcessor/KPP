@@ -2488,8 +2488,6 @@ SUBROUTINE FunTemplate( T, Y, Ydot )
 
    Told = TIME
    TIME = T
-   CALL Update_SUN()
-   CALL Update_RCONST()
    CALL Fun( Y, FIX, RCONST, Ydot )
    TIME = Told
    
@@ -2519,8 +2517,6 @@ SUBROUTINE JacTemplate( T, Y, Jcb )
 
     Told = TIME
     TIME = T
-    CALL Update_SUN()
-    CALL Update_RCONST()
 #ifdef FULL_ALGEBRA    
     CALL Jac_SP(Y, FIX, RCONST, JV)
     DO j=1,NVAR
@@ -2556,8 +2552,6 @@ SUBROUTINE HessTemplate( T, Y, Hes )
 
     Told = TIME
     TIME = T   
-    CALL Update_SUN()
-    CALL Update_RCONST()
     CALL Hessian( Y, FIX, RCONST, Hes )
     TIME = Told
 

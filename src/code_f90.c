@@ -37,7 +37,7 @@
 
 #define MAX_LINE 120
 
-char *F90_types[] = { "",                   /* VOID */ 
+char *F90_types[] = { "",                   /* VOID */
                     "INTEGER",            /* INT */
                     "REAL(kind=sp)",      /* FLOAT */
                     "REAL(kind=dp)",      /* DOUBLE */
@@ -63,7 +63,7 @@ char maxj[20];
 		break;
     case VELM:  if( elm->val.idx.i >= 0 ) sprintf( maxi, "%d", elm->val.idx.i+1 );
                   else sprintf( maxi, "%s", varTable[ -elm->val.idx.i ]->name );
-                bprintf("%s(%s)", name, maxi ); 
+                bprintf("%s(%s)", name, maxi );
 		break;
     case MELM:  if( elm->val.idx.i >= 0 ) sprintf( maxi, "%d", elm->val.idx.i+1 );
                   else sprintf( maxi, "%s", varTable[ -elm->val.idx.i ]->name );
@@ -80,27 +80,27 @@ char maxj[20];
 void F90_WriteSymbol( int op )
 {
   switch( op ) {
-    case ADD:   bprintf("+"); 
+    case ADD:   bprintf("+");
                 AllowBreak();
     		break;
-    case SUB:   bprintf("-"); 
+    case SUB:   bprintf("-");
                 AllowBreak();
     		break;
-    case MUL:   bprintf("*"); 
+    case MUL:   bprintf("*");
                 AllowBreak();
     		break;
-    case DIV:   bprintf("/"); 
+    case DIV:   bprintf("/");
                 AllowBreak();
     		break;
     case POW:   bprintf("power");
-                break;		
+                break;
     case O_PAREN: bprintf("(");
                 AllowBreak();
-                break;            
+                break;
     case C_PAREN: bprintf(")");
-                break;            
+                break;
     case NONE:
-                break;            
+                break;
   }
 }
 
@@ -119,11 +119,11 @@ int crtident;
                                should work for every compiler*/
 int number_of_lines = 1, MAX_NO_OF_LINES = 36;
 
-/*  Operator Mapping: 0xaa = '*' | 0xab = '+' | 0xac = ',' 
-                      0xad = '-' | 0xae ='.' | 0xaf = '/' */		      
-/* char op_mult=0xaa, op_plus=0xab, op_minus=0xad, op_dot=0xae, op_div=0xaf; */		      
-char op_mult='*', op_plus='+', op_minus='-', op_dot='.', op_div='/';		      
-  
+/*  Operator Mapping: 0xaa = '*' | 0xab = '+' | 0xac = ','
+                      0xad = '-' | 0xae ='.' | 0xaf = '/' */
+/* char op_mult=0xaa, op_plus=0xab, op_minus=0xad, op_dot=0xae, op_div=0xaf; */
+char op_mult='*', op_plus='+', op_minus='-', op_dot='.', op_div='/';
+
   crtident = 2 + ident * 2;
   bprintf("%*s%s = ", crtident, "", ls);
   start = strlen( ls ) + 2;
@@ -133,11 +133,11 @@ char op_mult='*', op_plus='+', op_minus='-', op_dot='.', op_div='/';
   while( strlen(rs) > linelg ) {
     ifound = 0; jfound = 0;
     if ( number_of_lines >= MAX_NO_OF_LINES ) {
-     /* If a new line needs to be started. 
+     /* If a new line needs to be started.
           Note: the approach below will create erroneous code if the +/- is within a subexpression, e.g. for
           A*(B+C) one cannot start a new continuation line by splitting at the + sign */
      for( j=linelg; j>5; j-- ) /* split row here if +, -, or comma */
-       if ( ( rs[j] == op_plus )||( rs[j] == op_minus )||( rs[j]==',' ) ) { 
+       if ( ( rs[j] == op_plus )||( rs[j] == op_minus )||( rs[j]==',' ) ) {
         jfound = 1; i=j; break;
 	}
     }
@@ -150,29 +150,29 @@ char op_mult='*', op_plus='+', op_minus='-', op_dot='.', op_div='/';
        printf("\n Warning: double-check continuation lines for:\n   %s = %s\n",ls,rs);
        i = linelg;
      }
-    } 
+    }
     while ( rs[i-1] & 0x80 ) i--; /* put all operators on the next row */
     while ( rs[i] == ',' ) i++;   /* put commas on the current row */
-    
-    c = rs[i]; 
+
+    c = rs[i];
     rs[i] = 0;
-    
+
     if ( first ) { /* first line in a split row */
-      bprintf("%s", rs ); 
+      bprintf("%s", rs );
       linelg++;
       first = 0;
     } else {/* continuation line in a split row - but not last line*/
-      bprintf("&\n     %*s&%s", start, "", rs );		
+      bprintf("&\n     %*s&%s", start, "", rs );
       if ( jfound ) {
          bprintf("\n%*s%s = %s", crtident, "", ls, ls);
 	 number_of_lines = 1;
 	 }
-    }  
+    }
     rs[i] = c;
     rs += i;  /* jump to the first not-yet-written character */
     number_of_lines++;
   }
-  
+
   if ( number_of_lines > MAX_NO_OF_LINES ) {
      printf("\n Warning: %d continuation lines for %s = ...",number_of_lines,ls);
      }
@@ -197,10 +197,29 @@ char buf[ MAX_LINE ];
   va_end( args );
   /* remove trailing spaces */
   /* taken from http://www.cs.bath.ac.uk/~pjw/NOTES/ansi_c/ch10-idioms.pdf */
-  for (n= strlen(buf) - 1; n >= 0; n--) 
-    if (buf[n] != ' ') break; 
+  for (n= strlen(buf) - 1; n >= 0; n--)
+    if (buf[n] != ' ') break;
   buf[n + 1]= '\0';
   bprintf( "! %s\n", buf );
+  FlushBuf();
+}
+
+/*************************************************************************************************/
+void F90_WriteOMPThreadPrivate( char *fmt, ... )
+{
+Va_list args;
+int n;
+char buf[ MAX_LINE ];
+
+  Va_start( args, fmt );
+  vsprintf( buf, fmt, args );
+  va_end( args );
+  /* remove trailing spaces */
+  /* taken from http://www.cs.bath.ac.uk/~pjw/NOTES/ansi_c/ch10-idioms.pdf */
+  for (n= strlen(buf) - 1; n >= 0; n--)
+    if (buf[n] != ' ') break;
+  buf[n + 1]= '\0';
+  bprintf( "  !$OMP THREADPRIVATE( %s )\n", buf );
   FlushBuf();
 }
 
@@ -215,57 +234,57 @@ char maxj[20];
 
   var = varTable[ v ];
   baseType = F90_types[ var->baseType ];
-  
+
   *buf = 0;
 
   switch( var->type ) {
-    case ELM:   
+    case ELM:
                 sprintf( buf, "%s :: %s", baseType, var->name );
 		break;
-    case VELM:  
+    case VELM:
                 if( var->maxi > 0 ) sprintf( maxi, "%d", var->maxi );
-                /*  else sprintf( maxi, "%s", varTable[ -var->maxi ]->name); */ 
+                /*  else sprintf( maxi, "%s", varTable[ -var->maxi ]->name); */
                 /*sprintf( buf, "%s, DIMENSION(%s) :: %s", baseType, maxi, var->name );*/
                 if( var->maxi == 0 ) sprintf( maxi, "%d", 1 );
                 /*  else sprintf( maxi, "%s", varTable[ -var->maxi ]->name);  */
                 if ( var->maxi < 0 ) {
-		    if (varTable[ -var->maxi ]->value < 0) 
+		    if (varTable[ -var->maxi ]->value < 0)
 		      sprintf( maxi, "%s", varTable[ -var->maxi ]->name );
-		    else  
+		    else
 		      sprintf( maxi, "%d", (varTable[-var->maxi]->value)==0?
 		           1:varTable[-var->maxi]->value );
-		}  
+		}
                 sprintf( buf, "%s :: %s(%s)", baseType, var->name, maxi );
  		break;
-    case MELM:  
+    case MELM:
                 if( var->maxi > 0 ) sprintf( maxi, "%d", var->maxi );
-                else { 
+                else {
 		 if (varTable[ -var->maxi ]->value < 0)
 		    sprintf( maxi, "%s", varTable[ -var->maxi ]->name );
-		 else  
+		 else
 		    sprintf( maxi, "%d", (varTable[-var->maxi]->value)==0?
 		           1:varTable[-var->maxi]->value );
-	        }  
+	        }
                 /*  else sprintf( maxi, "%s", varTable[ -var->maxi ]->name);  */
-                /* if( (var->maxi == 0) || 
+                /* if( (var->maxi == 0) ||
                     ((var->maxi < 0) && (varTable[ -var->maxi ]->maxi == 0)) )
                   strcat( maxi, "+1"); */
                 if( var->maxj > 0 ) sprintf( maxj, "%d", var->maxj );
-                else { 
+                else {
 		 if (varTable[ -var->maxj ]->value < 0)
 		    sprintf( maxj, "%s", varTable[ -var->maxj ]->name );
-		 else  
+		 else
 		    sprintf( maxj, "%d", (varTable[-var->maxj]->value)==0?
 		           1:varTable[-var->maxj]->value );
-	        }  
+	        }
                 /*  else sprintf( maxj, "%s", varTable[ -var->maxj ]->name);  */
-                /*if( (var->maxj == 0) || 
+                /*if( (var->maxj == 0) ||
                     ((var->maxj < 0 ) && (varTable[ -var->maxj ]->maxi == 0)) )
                   strcat( maxj, "+1");*/
-                /*sprintf( buf, "%s, DIMENSION(%s,%s) :: %s",			
-                         baseType, maxi, maxj,var->name ); */ 
-                sprintf( buf, "%s :: %s(%s,%s)",			
-                         baseType, var->name, maxi, maxj );  
+                /*sprintf( buf, "%s, DIMENSION(%s,%s) :: %s",
+                         baseType, maxi, maxj,var->name ); */
+                sprintf( buf, "%s :: %s(%s,%s)",
+                         baseType, var->name, maxi, maxj );
 		break;
     default:
                 printf( "Can not declare type %d\n", var->type );
@@ -290,13 +309,13 @@ char maxi[20];
 char maxj[20];
 int maxCols = MAX_COLS;
 char dsbuf[200];
- 
+
  int i_from, i_to;
  int isplit;
  int splitsize;
  int maxi_mod;
  int maxi_div;
- 
+
  char mynumber[30];
 
   var = varTable[ v ];
@@ -309,11 +328,11 @@ char dsbuf[200];
   var -> maxi = max( n, 1 );
 
   baseType = F90_types[ var->baseType ];
-  
+
   *buf = 0;
 
-  switch( var->type ) {	
-    case ELM:   
+  switch( var->type ) {
+    case ELM:
 	    bprintf( "  %s :: %s = ", baseType, var->name );
 		switch ( var->baseType ) {
 		  case INT: bprintf( "%d", *ival ); break;
@@ -331,7 +350,7 @@ char dsbuf[200];
       case STRING:       maxCols = 3; break;
       case DOUBLESTRING: maxCols = 1; break;
       }
-      splitsize = 30 * maxCols; /* elements = lines * columns */ 
+      splitsize = 30 * maxCols; /* elements = lines * columns */
       maxi_mod = var->maxi % splitsize;
       maxi_div = var->maxi / splitsize;
       /* correction if var->maxi is a multiple of splitsize */
@@ -341,21 +360,21 @@ char dsbuf[200];
       }
       for ( isplit=0; isplit <= maxi_div; isplit++ ) {
         if( var->maxi > 0 ) sprintf( maxi, "%d", var->maxi );
-        else sprintf( maxi, "%s", varTable[ -var->maxi ]->name );  
-        if( (var->maxi == 0) || 
+        else sprintf( maxi, "%s", varTable[ -var->maxi ]->name );
+        if( (var->maxi == 0) ||
             ((var->maxi < 0) && (varTable[ -var->maxi ]->maxi == 0)) )
           strcat( maxi, "+1");
         bprintf( "  %s, " , baseType);
         if( n>0 ) bprintf( "PARAMETER, " ); /* if values are assigned now */
         if ( maxi_div==0 ) { /* define array in one piece */
-          bprintf( "DIMENSION(%s) :: %s", 
+          bprintf( "DIMENSION(%s) :: %s",
                    maxi, var->name) ;
         } else {/* define partial arrays */
           if ( isplit==maxi_div ) { /* last part has size maxi_mod */
-            bprintf( "DIMENSION(%d) :: %s_%d", 
+            bprintf( "DIMENSION(%d) :: %s_%d",
                      maxi_mod, var->name, isplit) ;
           } else { /* all other parts have size splitsize */
-            bprintf( "DIMENSION(%d) :: %s_%d", 
+            bprintf( "DIMENSION(%d) :: %s_%d",
                      splitsize, var->name, isplit) ;
           }
         }
@@ -390,7 +409,10 @@ char dsbuf[200];
           if( i < i_to-1 ) {
             bprintf( "," );
             if( (i+1) % maxCols == 0 ) {
-              bprintf( " &\n     " );
+              if (maxCols == 1 ) {
+		bprintf( " & ! index %d\n     ", i+1 ); }
+	      else {
+		bprintf( " & ! index %d - %d\n     ", i-maxCols+2, i+1 ); }
               nlines++;
             }
           }
@@ -402,7 +424,7 @@ char dsbuf[200];
 
       /* combine the partial arrays */
       if ( maxi_div != 0 ) {
-        bprintf( "  %s, PARAMETER, DIMENSION(%s) :: %s = (/&\n    ", 
+        bprintf( "  %s, PARAMETER, DIMENSION(%s) :: %s = (/&\n    ",
                  baseType, maxi, var->name) ;
         for ( isplit=0; isplit <= maxi_div; isplit++ ) {
           bprintf( "%s_%d", var->name, isplit) ;
@@ -417,19 +439,19 @@ char dsbuf[200];
       }
 
       break;
-				
+
     case MELM:  if( var->maxi > 0 ) sprintf( maxi, "%d", var->maxi );
-                  else sprintf( maxi, "%s", varTable[ -var->maxi ]->name );  
-                if( (var->maxi == 0) || 
+                  else sprintf( maxi, "%s", varTable[ -var->maxi ]->name );
+                if( (var->maxi == 0) ||
                     ((var->maxi < 0) && (varTable[ -var->maxi ]->maxi == 0)) )
                   strcat( maxi, "+1");
                 if( var->maxj > 0 ) sprintf( maxj, "%d", var->maxj );
-                  else sprintf( maxj, "%s", varTable[ -var->maxj ]->name );  
-                if( (var->maxj == 0) || 
+                  else sprintf( maxj, "%s", varTable[ -var->maxj ]->name );
+                if( (var->maxj == 0) ||
                     ((var->maxj < 0 ) && (varTable[ -var->maxj ]->maxi == 0)) )
                   strcat( maxj, "+1");
-                sprintf( buf, "%s, DIMENSION(%s,%s) :: %s\n",	/* changed here */		
-                         baseType, maxi, maxj,var->name );  
+                sprintf( buf, "%s, DIMENSION(%s,%s) :: %s\n",	/* changed here */
+                         baseType, maxi, maxj,var->name );
 		break;
     default:
                 printf( "Can not declare type %d", var->type );
@@ -442,7 +464,7 @@ char dsbuf[200];
 void F90_Declare( int v )
 {
   if( varTable[ v ]->comment ) {
-    F90_WriteComment( "%s - %s", 
+    F90_WriteComment( "%s - %s",
                     varTable[ v ]->name, varTable[ v ]->comment );
   }
   bprintf("  %s\n", F90_Decl(v) );
@@ -463,30 +485,30 @@ void F90_GlobalDeclare( int v )
 }
 
 /*************************************************************************************************/
-void F90_DeclareConstant( int v, char *val ) 
+void F90_DeclareConstant( int v, char *val )
 {
 VARIABLE *var;
 int ival;
 char dummy_val[100];           /* used just to avoid strange behaviour of
                                   sscanf when compiled with gcc */
-                                  
+
   strcpy(dummy_val,val);val = dummy_val;
 
   var = varTable[ v ];
-  
+
   if( sscanf(val, "%d", &ival) == 1 )
     if( ival == 0 ) var->maxi = 0;
                else var->maxi = 1;
   else
-    var->maxi = -1;       
-  
-  if( var->comment ) 
+    var->maxi = -1;
+
+  if( var->comment )
     F90_WriteComment( "%s - %s", var->name, var->comment );
 
   switch( var->type ) {
-    case CONST: bprintf("  %s, PARAMETER :: %s = %s \n",	
+    case CONST: bprintf("  %s, PARAMETER :: %s = %s \n",
                        F90_types[ var->baseType ], var->name, val );
-                break;       
+                break;
     default:
                 printf( "Invalid constant %d", var->type );
                 break;
@@ -497,21 +519,21 @@ char dummy_val[100];           /* used just to avoid strange behaviour of
 
 
 /*************************************************************************************************/
-void F90_WriteVecData( VARIABLE * var, int min, int max, int split )	
+void F90_WriteVecData( VARIABLE * var, int min, int max, int split )
 {
 char buf[80];
 char *p;
 
   if( split )
-    sprintf( buf, "%6sdata( %s(i), i = %d, %d ) / &\n%5s", 		
+    sprintf( buf, "%6sdata( %s(i), i = %d, %d ) / &\n%5s",
                 " ", var->name, min, max, " " );
   else
     sprintf( buf, "%6sdata %s / &\n%5s",
                     " ", var->name, " " );
-                                      
+
   FlushThisBuf( buf );
   bprintf( " / \n\n" );
-  FlushBuf();        
+  FlushBuf();
 }
 
 /*************************************************************************************************/
@@ -531,7 +553,7 @@ char dsbuf[55];
   ival = (int*) values;
   dval = (double*) values;
   cval = (char**) values;
-    
+
   nlines = 1;
   min = max = 1;
   split = 0;
@@ -541,7 +563,7 @@ char dsbuf[55];
     	       for( i = 0; i < n; i++ ) {
                  switch( var->baseType ) {
                    case INT: bprintf( "%3d",  ival[i] ); maxCols=12; break;
-                   case DOUBLE: 
+                   case DOUBLE:
                    case REAL:bprintf( "%5lg", dval[i] ); maxCols=8; break;
                    case STRING:bprintf( "'%s'", cval[i] ); maxCols=5; break;
                    case DOUBLESTRING:
@@ -550,28 +572,28 @@ char dsbuf[55];
                  }
                  if( ( (i+1) % 12 == 0 ) && ( nlines > MAX_LINES ) ) {
                      split = 1; nlines = 1;
-                     F90_WriteVecData( var, min, max, split );  
+                     F90_WriteVecData( var, min, max, split );
                      min = max + 1;
-                 } 
-                 else { 
+                 }
+                 else {
                    if( i < n-1 ) bprintf( "," );
-                   if( (i+1) % maxCols == 0 ) { 
+                   if( (i+1) % maxCols == 0 ) {
                      bprintf( "\n%5s", " " );
-                     nlines++;                 
-                   }  
-                 }  
+                     nlines++;
+                   }
+                 }
                  max ++;
                }
                F90_WriteVecData( var, min, max-1, split );
                break;
-                                                                 
+
     case ELM:  bprintf( "%6sdata %s / ", " ", var->name );
                switch( var->baseType ) {
                  case INT: bprintf( "%d",  *ival ); break;
-                 case DOUBLE: 
+                 case DOUBLE:
                  case REAL:bprintf( "%lg", *dval ); break;
                  case STRING:bprintf( "'%s'", *cval ); break;
-                 case DOUBLESTRING:		        
+                 case DOUBLESTRING:
 		        strncpy( dsbuf, *cval, 54 ); dsbuf[54]='\0';
 		        bprintf( "'%s'", dsbuf ); maxCols=1; break;
                         /* bprintf( "'%50s'", *cval ); break; */
@@ -594,7 +616,7 @@ VARIABLE * var;
   var = varTable[ v ];
   var->maxi = max( n, 1 );
 
-  NewLines(1);  
+  NewLines(1);
   F90_DeclareData( v, values, n );
 }
 
@@ -621,7 +643,7 @@ int narg;
   bprintf(")\n");
 
   FlushBuf();
-}                  
+}
 
 /*************************************************************************************************/
 void F90_FunctionPrototipe( int f, ... )
@@ -650,12 +672,12 @@ FILE *oldf;
 
   name = varTable[ f ]->name;
   narg = varTable[ f ]->maxi;
-    
+
   Va_start( args, f );
-  for( i = 0; i < narg; i++ ) 
+  for( i = 0; i < narg; i++ )
     vars[ i ] = va_arg( args, int );
   va_end( args );
-    
+
   CommentFncBegin( f, vars );
   F90_FunctionStart( f, vars );
   NewLines(1);
@@ -665,7 +687,7 @@ FILE *oldf;
 
   FlushBuf();
 
-  for( i = 0; i < narg; i++ ) 
+  for( i = 0; i < narg; i++ )
     F90_Declare( vars[ i ] );
 
   bprintf("\n");
@@ -691,23 +713,24 @@ va_list args;
 char buf[ 1000 ];
 
   if( useLang != F90_LANG ) return;
-  
+
   va_start( args, fmt );
   vsprintf( buf, fmt, args );
   va_end( args );
-  bprintf( "%s\n", buf ); 
-  
+  bprintf( "%s\n", buf );
+
   FlushBuf();
 
 }
 
 /*************************************************************************************************/
 void Use_F90()
-{ 
+{
   WriteElm 	    = F90_WriteElm;
-  WriteSymbol 	    = F90_WriteSymbol;  
+  WriteSymbol 	    = F90_WriteSymbol;
   WriteAssign 	    = F90_WriteAssign;
   WriteComment 	    = F90_WriteComment;
+  WriteOMPThreadPrivate   = F90_WriteOMPThreadPrivate;
   DeclareConstant   = F90_DeclareConstant;
   Declare           = F90_Declare;
   ExternDeclare     = F90_ExternDeclare;
@@ -719,49 +742,61 @@ void Use_F90()
   FunctionBegin     = F90_FunctionBegin;
   FunctionEnd       = F90_FunctionEnd;
 
-  OpenFile( &param_headerFile,   rootFileName, "_Parameters.f90", "Parameter Module File" );
+//===========================================================================
+// KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)
+// NOTE: Use the .F90 suffix instead of .f90, because .F90 denotes
+// non-preprocessed source code, whereas .f90 denotes source code
+// with header files inlined.  This update was added into the
+// GC_updates branch for KPP version 2.3.0_gc.
+//===========================================================================
+
+  OpenFile( &param_headerFile,   rootFileName,
+	    "_Parameters.F90", "Parameter Module File" );
   /*  mz_rs_20050117+ */
-  OpenFile( &initFile, rootFileName, "_Initialize.f90", "Initialization File" );
+  OpenFile( &initFile, rootFileName,
+	    "_Initialize.F90", "Initialization File" );
   /*  mz_rs_20050117- */
   /* mz_rs_20050518+ no driver file if driver = none */
   if( strcmp( driver, "none" ) != 0 )
-    OpenFile( &driverFile, rootFileName, "_Main.f90", "Main Program File" );
+    OpenFile( &driverFile, rootFileName,
+	      "_Main.F90", "Main Program File" );
   /* mz_rs_20050518- */
-  OpenFile( &integratorFile, rootFileName, "_Integrator.f90", 
+  OpenFile( &integratorFile, rootFileName, "_Integrator.F90",
                    "Numerical Integrator (Time-Stepping) File" );
-  OpenFile( &linalgFile, rootFileName, "_LinearAlgebra.f90", 
+  OpenFile( &linalgFile, rootFileName, "_LinearAlgebra.F90",
                    "Linear Algebra Data and Routines File" );
-  OpenFile( &functionFile, rootFileName, "_Function.f90", 
+  OpenFile( &functionFile, rootFileName, "_Function.F90",
                    "The ODE Function of Chemical Model File" );
-  OpenFile( &jacobianFile, rootFileName, "_Jacobian.f90", 
+  OpenFile( &jacobianFile, rootFileName, "_Jacobian.F90",
                    "The ODE Jacobian of Chemical Model File" );
-  OpenFile( &rateFile, rootFileName, "_Rates.f90", 
+  OpenFile( &rateFile, rootFileName, "_Rates.F90",
                    "The Reaction Rates File" );
   if ( useStochastic )
-    OpenFile( &stochasticFile, rootFileName, "_Stochastic.f90", 
+    OpenFile( &stochasticFile, rootFileName, "_Stochastic.F90",
                    "The Stochastic Chemical Model File" );
   if ( useStoicmat ) {
-     OpenFile( &stoichiomFile, rootFileName, "_Stoichiom.f90", 
+     OpenFile( &stoichiomFile, rootFileName, "_Stoichiom.F90",
                    "The Stoichiometric Chemical Model File" );
-     OpenFile( &sparse_stoicmFile, rootFileName, "_StoichiomSP.f90", 
+     OpenFile( &sparse_stoicmFile, rootFileName, "_StoichiomSP.F90",
                    "Sparse Stoichiometric Data Structures File" );
-  }		   
-  OpenFile( &utilFile, rootFileName, "_Util.f90", 
+  }
+  OpenFile( &utilFile, rootFileName, "_Util.F90",
                    "Auxiliary Routines File" );
   /* OpenFile( &sparse_dataFile, rootFileName, "_Sparse.f90",
                        "Sparse Data Module File" );*/
-  OpenFile( &global_dataFile, rootFileName, "_Global.f90", "Global Data Module File" );
+  OpenFile( &global_dataFile, rootFileName, "_Global.F90",
+	    "Global Data Module File" );
   if ( useJacSparse ) {
-     OpenFile( &sparse_jacFile, rootFileName, "_JacobianSP.f90",
-         "Sparse Jacobian Data Structures File" );  
+     OpenFile( &sparse_jacFile, rootFileName, "_JacobianSP.F90",
+         "Sparse Jacobian Data Structures File" );
   }
   if ( useHessian ) {
-     OpenFile( &hessianFile, rootFileName, "_Hessian.f90", "Hessian File" );
-     OpenFile( &sparse_hessFile, rootFileName, "_HessianSP.f90",
+     OpenFile( &hessianFile, rootFileName, "_Hessian.F90", "Hessian File" );
+     OpenFile( &sparse_hessFile, rootFileName, "_HessianSP.F90",
          "Sparse Hessian Data Structures File" );
-  }     
-  OpenFile( &mapFile, rootFileName, ".map", 
+  }
+  OpenFile( &mapFile, rootFileName, ".map",
                    "Map File with Human-Readable Information" );
-  OpenFile( &monitorFile, rootFileName, "_Monitor.f90", 
+  OpenFile( &monitorFile, rootFileName, "_Monitor.F90",
                    "Utility Data Module File" );
-} 
+}

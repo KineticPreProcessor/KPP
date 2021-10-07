@@ -1193,7 +1193,6 @@ Hloop: DO WHILE (ISING /= 0)
       USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
       USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
       USE KPP_ROOT_Function, ONLY: Fun
-      USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
       IMPLICIT NONE
 
       KPP_REAL :: T, Told
@@ -1201,8 +1200,6 @@ Hloop: DO WHILE (ISING /= 0)
       
       Told = TIME
       TIME = T
-      CALL Update_SUN()
-      CALL Update_RCONST()
       
       CALL Fun( Y, FIX, RCONST, P )
       
@@ -1219,7 +1216,6 @@ Hloop: DO WHILE (ISING /= 0)
       USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
       USE KPP_ROOT_Jacobian
       USE KPP_ROOT_Jacobian, ONLY: Jac_SP
-      USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
       IMPLICIT NONE
   
       KPP_REAL ::  T, Told
@@ -1233,8 +1229,6 @@ Hloop: DO WHILE (ISING /= 0)
  
       Told = TIME
       TIME = T
-      CALL Update_SUN()
-      CALL Update_RCONST()
 
 #ifdef FULL_ALGEBRA
       CALL Jac_SP(Y, FIX, RCONST, JS)

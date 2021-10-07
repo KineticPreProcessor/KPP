@@ -1821,7 +1821,6 @@ firej:IF (FirstStep.OR.Reject) THEN
     USE KPP_ROOT_Parameters
     USE KPP_ROOT_Global
     USE KPP_ROOT_Function, ONLY: Fun
-    USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
 
     IMPLICIT NONE
 
@@ -1830,9 +1829,6 @@ firej:IF (FirstStep.OR.Reject) THEN
 
     Told = TIME
     TIME = T
-    CALL Update_SUN()
-    CALL Update_RCONST()
-    CALL Update_PHOTO()
     TIME = Told
     
     CALL Fun(V, FIX, RCONST, FCT)
@@ -1848,7 +1844,6 @@ firej:IF (FirstStep.OR.Reject) THEN
     USE KPP_ROOT_Global
     USE KPP_ROOT_JacobianSP
     USE KPP_ROOT_Jacobian, ONLY: Jac_SP
-    USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
 
     IMPLICIT NONE
 
@@ -1862,9 +1857,6 @@ firej:IF (FirstStep.OR.Reject) THEN
 
     Told = TIME
     TIME = T
-    CALL Update_SUN()
-    CALL Update_RCONST()
-    CALL Update_PHOTO()
     TIME = Told
     
 #ifdef FULL_ALGEBRA    
