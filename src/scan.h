@@ -38,12 +38,13 @@
 #include "gdef.h"
 
 /*  mz_rs_20050518+ value increased */
-#define MAX_INLINE 10000
+#define MAX_INLINE 20000
 /* #define MAX_INLINE 4000 */
 /*  mz_rs_20050518- */
           
 enum eq_state { LHS, RHS, RAT };
-enum sptypes { DUMMY_SPC, VAR_SPC, RAD_SPC, FIX_SPC };
+enum sptypes { DUMMY_SPC, VAR_SPC, RAD_SPC, FIX_SPC, PL_SPC };
+enum famtypes { PROD_FAM, LOSS_FAM };
 enum atomcheck { NO_CHECK, DO_CHECK, CANCEL_CHECK };
 enum codetype { APPEND, REPLACE };
 
@@ -80,6 +81,9 @@ void FatalError( int status, char *fmt, ... );
 void DeclareAtom( char *atname );
 void SetAtomType( char *atname, int type );
 void AddAtom( char *atname, char *nr );
+void AddMember( char *atname, char *nr );
+void DeclareFamily( char* spname );
+void FinalizeFamily();
 void DeclareSpecies( int type, char* spname );
 void SetSpcType( int type, char *spname );
 void AssignInitialValue( char *spname , char *spval ); 

@@ -29,15 +29,15 @@
 
 ******************************************************************************/
 
-#define KPP_VERSION "2.2.3"
+#define KPP_VERSION "2.2.4"
 
 #ifndef _GDATA_H_
 #define _GDATA_H_
 
 #include <stdio.h>
 
-#define MAX_EQN         400
-#define MAX_SPECIES     500
+#define MAX_EQN         800
+#define MAX_SPECIES     800
 #define MAX_SPNAME       30
 #define MAX_IVAL         40
 /* MAX_EQNTAG = max length of equation ID in eqn file */
@@ -49,6 +49,8 @@
 #define MAX_ATNR	250 
 #define MAX_PATH        120
 #define MAX_FILES	 20
+#define MAX_FAMILIES	 50
+#define MAX_MEMBERS 	150
 #define MAX_EQNLEN      100
 
 #define NO_CODE 	-1
@@ -95,7 +97,25 @@ typedef struct {
 		 char name[ MAX_SPNAME ];
                  char ival[ MAX_IVAL ];
                  ATOM atoms[ MAX_ATOMS ]; 
+                 int flux; /* msl_290416 */
 	       } SPECIES_DEF;
+
+typedef struct {
+                 char name[ MAX_SPNAME ];
+                 char ival[ MAX_IVAL ];
+                 int code;
+                 unsigned char nr;
+                 float coeff;
+                 char  coeff_str;
+               } MEMBER;
+
+typedef struct {
+		 char type;
+                 short int nrmembers;
+		 char name[ MAX_SPNAME ];
+                 char ival[ MAX_IVAL ];
+                 MEMBER members[ MAX_MEMBERS ]; 
+	       } FAMILY_DEF;
 
 typedef struct {
 		 char type;
@@ -113,12 +133,14 @@ typedef struct {
 
 
 extern int SpeciesNr;
+extern int FamilyNr;
 extern int EqnNr;
 extern int SpcNr;
 extern int AtomNr;
 extern int VarNr;
 extern int VarActiveNr;
 extern int FixNr;
+extern int plNr; 
 extern int VarStartNr;
 extern int FixStartNr;
 extern int Hess_NZ;
@@ -146,6 +168,7 @@ extern int useDummyindex;
 extern int useEqntags;
 extern int useLang;
 extern int useStochastic;
+extern int doFlux;
 
 /* if useValues=1 KPP replaces parameters like NVAR etc. 
        by their values in vector/matrix declarations */
@@ -161,13 +184,19 @@ extern char *rootFileName;
 
 extern ATOM_DEF AtomTable[ MAX_ATNR ];
 extern SPECIES_DEF SpeciesTable[ MAX_SPECIES ];
+extern FAMILY_DEF FamilyTable[ MAX_FAMILIES ];
 extern KREACT 	kr	 [ MAX_EQN ];
 extern CODE 	ReverseCode[ MAX_SPECIES ];
 extern CODE 	Code	 [ MAX_SPECIES ];
 extern float** 	Stoich_Left;
 extern float** 	Stoich;
 extern float**  Stoich_Right;
+extern float**  Prod_Coeff;
+extern float**  Loss_Coeff;
 extern int 	Reactive [ MAX_SPECIES ];
+
+extern CODE *Prod_Spc[ MAX_EQN ];
+extern CODE *Loss_Spc[ MAX_EQN ];
 
 extern int **structB;
 extern int **structJ;
@@ -198,6 +227,7 @@ void CmdIntegrator( char *cmd );
 void CmdDriver( char *cmd );
 void CmdRun( char *cmd );
 void CmdStochastic( char *cmd );
+void CmdFlux( char *cmd );
 
 void Generate();
 

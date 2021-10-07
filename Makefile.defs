@@ -54,7 +54,7 @@ FLEX=flex
 #    On many systems this is either: 
 #    /usr/lib, /usr/lib64, /usr/local/util/lib/flex
 
-FLEX_LIB_DIR=/usr/lib
+FLEX_LIB_DIR=/usr/lib64
 
 # 4. Platform independent C compiler flags. By default "-O" is used which 
 #    turns on optimization. If you are experiencing problems you may try 

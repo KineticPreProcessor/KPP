@@ -200,6 +200,20 @@ char buf[ MAX_LINE ];
 }
 
 /*************************************************************************************************/
+void F77_WriteOMPThreadPrivate( char *fmt, ... )
+{
+Va_list args;
+char buf[ MAX_LINE ];
+
+  Va_start( args, fmt );
+  vsprintf( buf, fmt, args );
+  va_end( args );
+  bprintf( "C$OMP THREADPRIVATE( %s )\n", buf );
+
+  FlushBuf();
+}
+
+/*************************************************************************************************/
 char * F77_Decl( int v )
 {
 static char buf[120];
@@ -536,6 +550,7 @@ void Use_F()
   WriteSymbol 	    = F77_WriteSymbol;  
   WriteAssign 	    = F77_WriteAssign;
   WriteComment 	    = F77_WriteComment;
+  WriteOMPThreadPrivate   = F77_WriteOMPThreadPrivate;
   DeclareConstant   = F77_DeclareConstant;
   Declare           = F77_Declare;
   ExternDeclare     = F77_ExternDeclare;
