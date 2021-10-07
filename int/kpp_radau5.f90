@@ -1132,7 +1132,7 @@ firej:IF (FirstStep.OR.REJECT) THEN
     USE KPP_ROOT_Parameters
     USE KPP_ROOT_Global
     USE KPP_ROOT_Function, ONLY: Fun
-    USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
+    !USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
 
     IMPLICIT NONE
 
