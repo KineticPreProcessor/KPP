@@ -38,7 +38,7 @@
 #include "gdef.h"
 
 /*  mz_rs_20050518+ value increased */
-#define MAX_INLINE 20000
+#define MAX_INLINE 200000
 /* #define MAX_INLINE 4000 */
 /*  mz_rs_20050518- */
           
