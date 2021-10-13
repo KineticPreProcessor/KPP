@@ -2,6 +2,7 @@
 .DS_Store
 
 # generated output files
+*.log
 *.o
 src/y.tab.h
 src/y.tab.c

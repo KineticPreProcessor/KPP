@@ -42,6 +42,7 @@ void (*WriteElm)( NODE *n );
 void (*WriteSymbol)( int op );
 void (*WriteAssign)( char* lval, char* rval );
 void (*WriteComment)( char *fmt, ...  );
+void (*WriteOMPThreadPrivate)( char *fmt, ...  );
 void (*Declare)( int v );
 void (*ExternDeclare)( int v );
 void (*GlobalDeclare)( int v );

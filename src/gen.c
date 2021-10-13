@@ -45,16 +45,16 @@ int **LUstructJ;
 
 ICODE InlineCode[ INLINE_OPT ];
 
-int NSPEC, NVAR, NVARACT, NFIX, NREACT;
+int NSPEC, NVAR, NVARACT, NFIX, NREACT, NFLUX;
 int NVARST, NFIXST;
 /* int PI; */ 
 int C_DEFAULT, C;
 int DC;
 int ARP, JVRP, NJVRP, CROW_JVRP, IROW_JVRP, ICOL_JVRP;
-int V, F, VAR, FIX;
+int V, F, VAR, FIX, FLUX;
 int RCONST, RCT;
 int Vdot, P_VAR, D_VAR;
-int KR, A, BV, BR, IV;
+int KR, A, BV, BR, IV, RR;
 int JV, UV, JUV, JTUV, JVS; 
 int JR, UR, JUR, JRS;
 int U1, U2, HU, HTU;
@@ -66,7 +66,7 @@ int IROW, ICOL, CROW, DIAG;
 int LU_IROW, LU_ICOL, LU_CROW, LU_DIAG, CNVAR;   
 int LOOKAT, NLOOKAT, MONITOR, NMONITOR;
 int NMASS, SMASS;
-int SPC_NAMES, EQN_NAMES;
+int SPC_NAMES, EQN_NAMES, FAM_NAMES;
 int EQN_TAGS; 
 int NONZERO, LU_NONZERO;
 int TIME, SUN, TEMP;
@@ -74,6 +74,8 @@ int RTOLS, TSTART, TEND, DT;
 int ATOL, RTOL, STEPMIN, STEPMAX, CFACTOR;
 int V_USER, CL;
 int NMLCV, NMLCF, SCT, PROPENSITY, VOLUME, IRCT;
+int FLUX_MAP;
+int FAM,NFAM;
 
 int Jac_NZ, LU_Jac_NZ, nzr;
 
@@ -131,11 +133,13 @@ int i,j;
 
   NSPEC   = DefConst( "NSPEC",   INT, "Number of chemical species" );
   NVAR    = DefConst( "NVAR",    INT, "Number of Variable species" );
+  NFLUX   = DefConst( "NFLUX",   INT, "Number of Reaction Flux species" );
   NVARACT = DefConst( "NVARACT", INT, "Number of Active species" );
   NFIX    = DefConst( "NFIX",    INT, "Number of Fixed species" );
   NREACT  = DefConst( "NREACT",  INT, "Number of reactions" );
   NVARST  = DefConst( "NVARST",  INT, "Starting of variables in conc. vect." );
   NFIXST  = DefConst( "NFIXST",  INT, "Starting of fixed in conc. vect." );
+  NFAM    = DefConst( "NFAM",    INT, "Number of Prod/Loss Families");
   NONZERO = DefConst( "NONZERO", INT, "Number of nonzero entries in Jacobian" );
   LU_NONZERO = DefConst( "LU_NONZERO", INT, "Number of nonzero entries in LU factoriz. of Jacobian" );
   CNVAR   = DefConst( "CNVAR",   INT, "(NVAR+1) Number of elements in compressed row format" );
@@ -145,11 +149,14 @@ int i,j;
 
   VAR = DefvElm( "VAR", real, -NVAR, "Concentrations of variable species (global)" );
   FIX = DefvElm( "FIX", real, -NFIX, "Concentrations of fixed species (global)" );
+  FLUX = DefvElm( "FLUX", real, -NFLUX, "Captured flux through reactions (global)" );
 
   V = DefvElm( "V", real, -NVAR, "Concentrations of variable species (local)" );
   F = DefvElm( "F", real, -NFIX, "Concentrations of fixed species (local)" );
 
   V_USER = DefvElm( "V_USER", real, -NVAR, "Concentration of variable species in USER's order" );
+ 
+  FAM    = DefvElm( "FAM", real, -NFAM, "Accumulated user-defined prod/loss families." );
  
   RCONST = DefvElm( "RCONST", real, -NREACT, "Rate constants (global)" );
   RCT    = DefvElm( "RCT",    real, -NREACT, "Rate constants (local)" );
@@ -180,6 +187,7 @@ int i,j;
   DT     = DefElm( "DT", real, "Integration step");
   
   A  = DefvElm( "A", real, -NREACT, "Rate for each equation" );
+  RR = DefvElm( "RR", real, -NREACT, "Flux for each equation" );
 
   ARP  = DefvElm( "ARP", real, -NREACT, "Reactant product in each equation" );
   NJVRP    = DefConst( "NJVRP",   INT, "Length of sparse Jacobian JVRP" );
@@ -246,6 +254,9 @@ int i,j;
   EQN_TAGS    = DefvElm( "EQN_TAGS", STRING, -NREACT, "Equation tags" );
   EQN_NAMES  = DefvElm( "EQN_NAMES", DOUBLESTRING, -NREACT, "Equation names" );
   SPC_NAMES  = DefvElm( "SPC_NAMES", STRING, -NSPEC, "Names of chemical species" );
+  FAM_NAMES  = DefvElm( "FAM_NAMES", STRING, -NFAM, "Names of chemical familes" );
+
+  FLUX_MAP   = DefvElm( "FLUX_MAP", INT, -NREACT, "Map-to-SPEC indeces for FLUX species" );
 
   CFACTOR  = DefElm( "CFACTOR", real, "Conversion factor for concentration units");
 
@@ -377,8 +388,10 @@ int  *trans;
 char *strans[MAX_SPECIES];
 char *smass[MAX_ATOMS];
 char *seqn[MAX_EQN];
+char *sfam[MAX_FAMILIES];
 char *bufeqn, *p;
 int dim;
+int flxind[MAX_EQN];
 
 
   /* Allocate local data structures */
@@ -404,6 +417,18 @@ int dim;
       snames[i] = SpeciesTable[Code[i]].name;
   }  
   InitDeclare( SPC_NAMES, SpcNr, (void*)snames );
+
+  if (doFlux == 1) {
+    NewLines(1);
+    j = 0;
+    for (i = 0; i < SpcNr; i++) {
+      if ( SpeciesTable[ Code[i] ].flux ) {
+	flxind[j] = Index(i); 
+	j++;
+      }
+    }  
+    InitDeclare( FLUX_MAP, EqnNr, (void*)flxind );
+  }
 
   nlookat = 0;
   for (i = 0; i < SpcNr; i++)
@@ -473,6 +498,11 @@ int dim;
     InitDeclare( EQN_TAGS, EqnNr, (void*)seqn );
   }
   
+  for (i = 0; i < FamilyNr; i++) {
+    sfam[i] = FamilyTable[ i ].name;
+  }  
+  InitDeclare( FAM_NAMES, FamilyNr, (void*)sfam );
+
   NewLines(1);
   WriteComment("INLINED global variables");
 
@@ -592,7 +622,6 @@ void GenerateJacobianSparseHeader()
 
 
 
-
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateFun()
 {
@@ -622,6 +651,7 @@ int F_VAR, FSPLIT_VAR;
     NewLines(1);
     WriteComment("Local variables");
     Declare( A );
+    WriteOMPThreadPrivate("A");
   }  
   NewLines(1);
   WriteComment("Computation of equation rates");
@@ -665,6 +695,12 @@ int F_VAR, FSPLIT_VAR;
         sum = Add( sum, Mul( Const( Stoich[i][j] ), Elm( A, j ) ) );
       Assign( Elm( Vdot, i ), sum );
     }    
+    for (i = VarNr; i < VarNr; i++) {
+      sum = Const(0);
+      for (j = 0; j < EqnNr; j++) 
+        sum = Add( sum, Mul( Const( Stoich[i][j] ), Elm( A, j ) ) );
+      Assign( Elm( Vdot, i ), sum );
+    }    
 
   } else {
     
@@ -680,6 +716,15 @@ int F_VAR, FSPLIT_VAR;
     
     NewLines(1);
     WriteComment("Destruction function");
+
+    /* msl_20160421
+    for (i = 0; i < VarNr; i++) {
+      sum = Const(0);
+      for (j = 0; j < EqnNr; j++) 
+        sum = Add( sum, Mul( Const( Stoich_Left[i][j] ), Elm( A, j ) ) );
+      Assign( Elm( D_VAR, i ), sum );
+    }
+    */
 
     for (i = 0; i < VarNr; i++) {
       sum = Const(0);       
@@ -712,6 +757,58 @@ int F_VAR, FSPLIT_VAR;
   
   FreeVariable( F_VAR );
   FreeVariable( FSPLIT_VAR );
+}
+
+
+
+
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+void GenerateFlux()
+{
+int i, j, k;
+int used;
+int l, m;
+int FLUX_VAR;
+
+  if( VarNr == 0 ) return;
+  
+  /*  if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
+  /*     UseFile( functionFile ); */
+
+  FLUX_VAR = DefFnc( "Flux", 3, "calculate production & loss terms from reaction flux");
+
+  FunctionBegin( FLUX_VAR, RR, P_VAR, D_VAR );
+
+  /*if ( (useLang==MATLAB_LANG)&&(!useAggregate) )
+    printf("\nWarning: in the flux definition move P_VAR to output vars\n");*/
+
+  NewLines(1);
+  WriteComment("Production function");
+  
+  for (i = 0; i < VarNr; i++) {
+    sum = Const(0);
+    for (j = 0; j < EqnNr; j++) 
+      sum = Add( sum, Mul( Const( Stoich_Right[i][j] ), Elm( RR, j ) ) );
+    Assign( Elm( P_VAR, i ), sum );
+  }
+  
+  NewLines(1);
+  WriteComment("Destruction function");
+  
+  /* msl_20160421 */
+  for (i = 0; i < VarNr; i++) {
+    sum = Const(0);
+    for (j = 0; j < EqnNr; j++) 
+      sum = Add( sum, Mul( Const( Stoich_Left[i][j] ), Elm( RR, j ) ) );
+    Assign( Elm( D_VAR, i ), sum );
+  }
+
+  
+  /*MATLAB_Inline("\n   P_VAR = P_VAR(:);\n   D_VAR = D_VAR(:);\n");*/
+
+  FunctionEnd( FLUX_VAR );
+  FreeVariable( FLUX_VAR );
 }
 
 
@@ -2163,6 +2260,8 @@ int j,dummy_species;
   NewLines(1);
   DeclareConstant( NSPEC,   ascii( max(SpcNr, 1) ) );
   DeclareConstant( NVAR,    ascii( max(VarNr, 1) ) );
+  DeclareConstant( NFLUX,   ascii( max(plNr+1,  1)  ) );
+  DeclareConstant( NFAM,    ascii( max(FamilyNr,1)  ) );
   DeclareConstant( NVARACT, ascii( max(VarActiveNr, 1) ) );
   DeclareConstant( NFIX,    ascii( max(FixNr, 1) ) );
   DeclareConstant( NREACT,  ascii( max(EqnNr, 1) ) );
@@ -2195,6 +2294,19 @@ int j,dummy_species;
     FreeVariable( spc );
   }
  
+  /*if (doFlux == 1) {
+    NewLines(1);
+  WriteComment("Index declaration for flux accumulation species in C");
+  WriteComment("  C(ind_spc)");
+  NewLines(1);
+  for( i = 0; i < plNr; i++) {
+    sprintf( name, "ind_%s", SpeciesTable[ Code[i + VarNr] ].name );
+    spc = DefConst( name, INT, 0 );
+    DeclareConstant( spc, ascii( Index(i+VarNr) ) );
+    FreeVariable( spc );
+    }
+   }*/
+
   NewLines(1);
   WriteComment("Index declaration for fixed species in C");
   WriteComment("  C(ind_spc)");
@@ -2324,6 +2436,7 @@ int mxyz;
      ExternDeclare( SMASS );
      ExternDeclare( EQN_NAMES );  
      ExternDeclare( EQN_TAGS );
+     ExternDeclare( FAM_NAMES );  
   }
 
   NewLines(1);
@@ -2382,9 +2495,10 @@ char s[40];
         sprintf(s, "%g", mat[spc][eq]?mat[spc][eq]:(-mat[spc][eq]));
         /*  mz_rs_20050130- */
         /* remove trailing zeroes */
-        for (n= strlen(s) - 1; n >= 0; n--) 
-          if (s[n] != '0') break; 
-        s[n + 1]= '\0';
+        /* -- Commented out my MSL - Oct 26, 2016: Unable to manage integers ending in '0'*/
+        /*for (n= strlen(s) - 1; n >= 0; n--) 
+          if (s[n] != '0') break; */
+        s[strlen(s)]= '\0';
         sprintf(s, "%s ", s);
       }
      
@@ -2898,6 +3012,7 @@ case 'h':
       F90_Inline("  USE %s_Parameters", rootFileName );
     F90_Inline("  IMPLICIT NONE\n", rootFileName );
     Declare( A ); /*  mz_rs_20050117 */
+    WriteOMPThreadPrivate(" A "); /* msl_20160419 */
     F90_Inline("\nCONTAINS\n\n");
 
   UseFile( rateFile );
@@ -3155,9 +3270,15 @@ int n;
   GenerateGData();
   
 
-  printf("\nKPP is generating the ODE function:");
+  if ( doFlux == 1 ) {
+    printf("\nKPP is generating the ODE function with flux enabled:");
+  }
+  else {
+    printf("\nKPP is generating the ODE function:");
+  }
   printf("\n    - %s_Function",rootFileName);
-  GenerateFun();  
+  GenerateFun();
+  if (doFlux == 1) GenerateFlux();  
 
   if ( useStochastic ) {
     printf("\nKPP is generating the Stochastic description:");
@@ -3209,6 +3330,7 @@ int n;
   GenerateUpdatePhoto();
   GenerateGetMass(); 
 
+  GenerateComputeFamilies();
 
   printf("\nKPP is generating the parameters:");
   printf("\n    - %s_Parameters",rootFileName);  
@@ -3346,4 +3468,39 @@ int Index( int i )
 	   default: printf("\n Unknown language no %d\n",useLang);
 	     exit(1);  
         }
+}
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+void GenerateComputeFamilies()
+{
+  int i,j;
+  int ComputeFamilies;
+
+  UseFile( utilFile );
+
+  ComputeFamilies    = DefFnc( "ComputeFamilies", 2, "function to calculate user-defined Prod/Loss families");
+  FunctionBegin( ComputeFamilies, V, FAM );
+  
+  NewLines(1);
+  WriteComment("Computation of prod/loss families");
+  
+  for (i = 0; i < FamilyNr; i++)  {
+    sum = Const( 0 );
+    for(j=0; j<EqnNr; j++) {
+      switch( FamilyTable[ i ].type ) {
+      case(PROD_FAM):
+	if ( ( Prod_Coeff[ i ][ j ] - Loss_Coeff[ i ][ j ] ) > 0 ) {
+	  sum = Add( sum, Mul(Const(Prod_Coeff[ i ][ j ]-Loss_Coeff[ i ][ j ]),Elm( V, Index( *Prod_Spc[ j ]-1 ) ) ) );
+	}
+	break;
+      case(LOSS_FAM):
+	if ( ( Loss_Coeff[ i ][ j ] - Prod_Coeff[ i ][ j ] ) > 0 )
+	  sum = Add( sum, Mul(Const(Loss_Coeff[ i ][ j ]-Prod_Coeff[ i ][ j ]),Elm( V, Index( *Loss_Spc[ j ]-1 ) ) ) );
+	break;
+      }
+    }
+    Assign( Elm( FAM, i ), sum );
+  }
+
+  FunctionEnd( ComputeFamilies );
+  FreeVariable( ComputeFamilies );
 }
