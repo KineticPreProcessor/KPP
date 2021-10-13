@@ -588,17 +588,6 @@ int dim;
 
   /* Free local arrays */
   free(irow); free(icol); free(crow); free(diag);
-  F90_Inline("  LOGICAL, ALLOCATABLE :: DO_JVS(:)");
-  F90_Inline("  LOGICAL, ALLOCATABLE :: DO_SLV(:)");
-  F90_Inline("  LOGICAL, ALLOCATABLE :: DO_FUN(:)");
-  F90_Inline("  INTEGER, ALLOCATABLE :: cLU_IROW(:)  ! Compacted ROW indexes");
-  F90_Inline("  INTEGER, ALLOCATABLE :: cLU_ICOL(:)  ! Compacted COL indexes");
-  F90_Inline("  INTEGER, ALLOCATABLE :: cLU_CROW(:)  ! Compacted compressed row vector");
-  F90_Inline("  INTEGER, ALLOCATABLE :: cLU_DIAG(:)  ! Compacted DIAG indexes");
-  F90_Inline("  INTEGER, ALLOCATABLE :: JVS_MAP(:)   ! Map to JVS from compacted sparse data");
-  F90_Inline("  INTEGER, ALLOCATABLE :: SPC_MAP(:)   ! Map species (for Fun(), etc.)");
-  F90_Inline("  INTEGER :: rNVAR     ! Compacted number of variable species");
-  F90_Inline("  INTEGER :: cNONZERO  ! Compacted number of non-zero elements in cJVS");
 }
 
 
@@ -670,7 +659,6 @@ int F_VAR, FSPLIT_VAR;
     fprintf(functionFile, "!\n");
     fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
     fprintf(functionFile, "SUBROUTINE Fun ( V, F, RCT, Vdot, Aout )\n\n");
-    F90_Inline(" USE %s_JacobianSP, only : DO_FUN\n", rootFileName );
     fprintf(functionFile, "! V - Concentrations of variable species (local)\n");
     fprintf(functionFile, "  REAL(kind=dp) :: V(NVAR)\n");
     fprintf(functionFile, "! F - Concentrations of fixed species (local)\n");
@@ -844,6 +832,7 @@ int FLUX_VAR;
     sum = Const(0);
     for (j = 0; j < EqnNr; j++)
       sum = Add( sum, Mul( Const( Stoich_Right[i][j] ), Elm( RR, j ) ) );
+    F90_Inline("IF (.not. DO_FUN(%d)) &",i+1);
     Assign( Elm( P_VAR, i ), sum );
   }
 
@@ -855,6 +844,7 @@ int FLUX_VAR;
     sum = Const(0);
     for (j = 0; j < EqnNr; j++)
       sum = Add( sum, Mul( Const( Stoich_Left[i][j] ), Elm( RR, j ) ) );
+    F90_Inline("IF (DO_FUN(%d)) &",i+1);
     Assign( Elm( D_VAR, i ), sum );
   }
 
@@ -1145,7 +1135,7 @@ int Jac_SP, Jac;
 
   if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
        UseFile( jacobianFile );
-
+  
   Jac_SP  = DefFnc( "Jac_SP", 4,
                   "the Jacobian of Variables in sparse matrix representation");
   Jac     = DefFnc( "Jac", 4, "the Jacobian of Variables");
@@ -3066,7 +3056,7 @@ case 'h':
     if ( useDeclareValues )
       F90_Inline("  USE %s_Precision", rootFileName );
     else
-      F90_Inline("  USE %s_Parameters, ONLY: dp, NSPEC, NVAR, NFIX, NREACT", rootFileName);
+      F90_Inline("  USE %s_Parameters, ONLY: dp, NSPEC, NVAR, NFIX, NREACT, LU_NONZERO", rootFileName);
     F90_Inline("  PUBLIC\n  SAVE\n");
 
   UseFile( functionFile );
@@ -3074,6 +3064,7 @@ case 'h':
     if ( useDeclareValues )
       F90_Inline("  USE %s_Precision", rootFileName );
     else
+      F90_Inline("  USE %s_Global, only : DO_FUN", rootFileName );
       F90_Inline("  USE %s_Parameters", rootFileName );
     F90_Inline("  IMPLICIT NONE\n", rootFileName );
     Declare( A ); /*  mz_rs_20050117 */
@@ -3112,6 +3103,7 @@ case 'h':
     if ( useDeclareValues )
       F90_Inline("  USE %s_Precision", rootFileName );
     else
+      F90_Inline("  USE %s_Global, ONLY: DO_JVS", rootFileName);
       F90_Inline("  USE %s_Parameters", rootFileName );
     if ( useJacSparse )
       F90_Inline("  USE %s_JacobianSP\n", rootFileName);
@@ -3157,6 +3149,7 @@ case 'h':
 
    UseFile( linalgFile );
     F90_Inline("MODULE %s_LinearAlgebra\n", rootFileName);
+    F90_Inline("  USE %s_Global, ONLY: DO_SLV", rootFileName);
     F90_Inline("  USE %s_Parameters", rootFileName );
     /* mz_rs_20050511+ if( useJacSparse ) added */
     if ( useJacSparse )
@@ -3345,7 +3338,8 @@ int n;
   }
   printf("\n    - %s_Function",rootFileName);
   GenerateFun();
-  if (doFlux == 1) GenerateFlux();
+  /*if (doFlux == 1)<-- make GenerateFlux automatic until a REDUX toggle is inlcuded */
+  GenerateFlux();
 
   if ( useStochastic ) {
     printf("\nKPP is generating the Stochastic description:");

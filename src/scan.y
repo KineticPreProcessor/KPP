@@ -374,7 +374,7 @@ lefths          : expresion EQNEQUAL
                   { eqState = RHS; }
                 ;   
 righths         : expresion EQNCOLON
-                   { ProcessTerm( eqState, "+", "1", "RR" ); /*Add a prod/loss species as last prod.*/ 
+                  { ProcessTerm( eqState, "+", "1", "RR" ); /*Add a prod/loss species as last prod.*/ 
 		    eqState = RAT;
 		  }
                 ;
