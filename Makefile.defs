@@ -1,4 +1,4 @@
-# -*- sh -*-
+# -*- makefile-gmake -*-
 ##############################################################################
 #
 #  KPP - The Kinetic PreProcessor
@@ -58,29 +58,32 @@
 #    Typically: /usr/include on Linux
 #               /usr/include/sys on Mac OS X
 
-FLEX=flex
+# The defaults are:
+CC           = gcc 
+FLEX         = flex
+FLEX_LIB_DIR = /usr/lib
+CC_FLAGS     = -g -Wall
+INCLUDE_DIR  = /usr/include
+
+# If the default is not suitable, set the variables based on your system
+# and your machine:
+
 SYSTEM := $(shell uname)
-HOST := $(shell hostname)
-ifeq ($(SYSTEM),Linux)
-  CC=gcc 
-  INCLUDE_DIR = /usr/include
-  CC_FLAGS=-O -Wno-implicit-function-declaration
-  FLEX_LIB_DIR=/usr/lib
-endif
-ifeq ($(HOST),mycomputer)
-  CC=cc 
-  CC_FLAGS=-O
-  FLEX_LIB_DIR=/usr/lib64
+HOST   := $(shell hostname)
+
+# change settings for specific systems:
+# ifeq ($(SYSTEM),Linux)
+#   CC_FLAGS     = -O
+#   FLEX_LIB_DIR = /usr/lib64
+# endif
+
+# settings for "fluorine" from Rolf Sander:
+ifeq ($(HOST),fluorine)
+  # CC_FLAGS = -O -Wall
+  # CC_FLAGS = -O
+  CC_FLAGS   = -O -Wno-implicit-function-declaration
 endif
 
-# By default the above conditional logic will set the variables based on your system.
-# if they are configured incorrectly for your particular system
-# uncomment and edit the below assignments to override the defaults
-# Note: additional systems should be added on an as needed basis
-# CC=gcc 
-# FLEX=flex
-# FLEX_LIB_DIR=/usr/lib
-# CC_FLAGS= -g -Wall
-# FLEX=flex
+# Note: Additional systems should be added as needed.
 
 ##############################################################################
