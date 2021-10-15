@@ -5,10 +5,10 @@
 
 #COMPILER = G95
 #COMPILER = LAHEY
-COMPILER = INTEL
+#COMPILER = INTEL
 #COMPILER = PGF
 #COMPILER = HPUX
-#COMPILER = GFORTRAN
+COMPILER = GFORTRAN
 
 FC_G95     = g95
 FOPT_G95   = -cpp -O -pg -fbounds-check -fimplicit-none  -Wall -ftrace=full
