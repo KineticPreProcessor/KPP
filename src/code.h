@@ -51,7 +51,7 @@ enum types  { NONE, ADD, SUB, MUL, DIV, POW, CONST, ELM, VELM, MELM, EELM, FNC }
 extern int PRI[];
 
 enum signs { O_PAREN = 20, C_PAREN };
-enum base_types { VOID, INT, REAL, DOUBLE, STRING, DOUBLESTRING };
+enum base_types { VOID, INT, REAL, DOUBLE, STRING, DOUBLESTRING, LOGICAL };
 /*  mz_rs_20050117+ */
 extern FILE * initFile;
 /*  mz_rs_20050117- */

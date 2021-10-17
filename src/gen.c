@@ -77,6 +77,8 @@ int NMLCV, NMLCF, SCT, PROPENSITY, VOLUME, IRCT;
 int FLUX_MAP;
 int FAM,NFAM;
 int Jac_NZ, LU_Jac_NZ, nzr;
+int DO_SLV,DO_JVS,DO_FUN,cLU_IROW,cLU_ICOL,cLU_DIAG,cLU_CROW;
+int SPC_MAP,JVS_MAP,RNVAR,cNONZERO;
 
 NODE *sum, *prod;
 int real;
@@ -259,6 +261,19 @@ int i,j;
   FLUX_MAP   = DefvElm( "FLUX_MAP", INT, -NREACT, "Map-to-SPEC indeces for FLUX species" );
 
   CFACTOR  = DefElm( "CFACTOR", real, "Conversion factor for concentration units");
+  
+  /* Autoreduction structures */
+  DO_JVS   = DefvElm("DO_JVS", LOGICAL, -LU_NONZERO, "");
+  DO_SLV   = DefvElm("DO_SLV", LOGICAL, -NVAR+1    , "");
+  DO_FUN   = DefvElm("DO_FUN", LOGICAL, -NVAR      , "");
+  cLU_IROW = DefvElm("cLU_IROW", INT, -LU_NONZERO  , "");
+  cLU_ICOL = DefvElm("cLU_ICOL", INT, -LU_NONZERO  , "");
+  cLU_CROW = DefvElm("cLU_CROW", INT, -NVAR+1  , "");
+  cLU_DIAG = DefvElm("cLU_DIAG", INT, -NVAR+1  , "");
+  JVS_MAP  = DefvElm("JVS_MAP", INT, -LU_NONZERO, "");
+  SPC_MAP  = DefvElm("SPC_MAP", INT, -NVAR, "");
+  RNVAR    = DefElm("rNVAR", INT, "");
+  cNONZERO = DefElm("cNONZERO", INT, "");
 
   /* Elements of Stochastic simulation*/
   NMLCV = DefvElm( "NmlcV", INT, -NVAR, "No. molecules of variable species" );
@@ -356,6 +371,19 @@ int dim;
   GlobalDeclare( STEPMIN );
   GlobalDeclare( STEPMAX );
   GlobalDeclare( CFACTOR );
+  if (doAutoReduce) {
+    GlobalDeclare(DO_JVS);
+    GlobalDeclare(DO_SLV);
+    GlobalDeclare(DO_FUN);
+    GlobalDeclare(cLU_IROW);
+    GlobalDeclare(cLU_ICOL);
+    GlobalDeclare(cLU_CROW);
+    GlobalDeclare(cLU_DIAG);
+    GlobalDeclare(JVS_MAP);
+    GlobalDeclare(SPC_MAP);
+    GlobalDeclare(RNVAR);
+    GlobalDeclare(cNONZERO);
+  }
   if (useStochastic)
       GlobalDeclare( VOLUME );
 
