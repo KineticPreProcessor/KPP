@@ -358,6 +358,7 @@ STOICH  {LIT}[a-zA-Z_0-9]*[*]
                          { "USES",       USE_STATE, USES },
                          { "SPARSEDATA", PRM_STATE, SPARSEDATA },
                          { "FLUX",       PRM_STATE, FLUX }, 
+                         { "AUTOREDUCE", PRM_STATE, AUTOREDUCE },
                          { 0, 0, 0 } 
                        };
 

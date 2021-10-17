@@ -167,6 +167,7 @@ extern int useEqntags;
 extern int useLang;
 extern int useStochastic;
 extern int doFlux;
+extern int doAutoReduce;
 
 /* if useValues=1 KPP replaces parameters like NVAR etc.
        by their values in vector/matrix declarations */

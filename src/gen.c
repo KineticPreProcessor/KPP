@@ -734,7 +734,7 @@ int F_VAR, FSPLIT_VAR;
       sum = Const(0);
       for (j = 0; j < EqnNr; j++)
         sum = Add( sum, Mul( Const( Stoich[i][j] ), Elm( A, j ) ) );
-      F90_Inline("IF (DO_FUN(%d)) &",i+1);
+      if( doAutoReduce ) F90_Inline("IF (DO_FUN(%d)) &",i+1);
       Assign( Elm( Vdot, i ), sum );
     }
     for (i = VarNr; i < VarNr; i++) {
@@ -753,6 +753,7 @@ int F_VAR, FSPLIT_VAR;
       sum = Const(0);
       for (j = 0; j < EqnNr; j++)
         sum = Add( sum, Mul( Const( Stoich_Right[i][j] ), Elm( A, j ) ) );
+      if( doAutoReduce ) F90_Inline("IF (DO_FUN(%d)) &",i+1);
       Assign( Elm( P_VAR, i ), sum );
     }
 
@@ -783,6 +784,7 @@ int F_VAR, FSPLIT_VAR;
             prod = Mul( prod, Elm( F, l - VarNr  ) );
         sum = Add( sum, prod );
       }
+      if( doAutoReduce ) F90_Inline("IF (DO_FUN(%d)) &",i+1);
       Assign( Elm( D_VAR, i ), sum );
     }
   }
@@ -832,7 +834,7 @@ int FLUX_VAR;
     sum = Const(0);
     for (j = 0; j < EqnNr; j++)
       sum = Add( sum, Mul( Const( Stoich_Right[i][j] ), Elm( RR, j ) ) );
-    F90_Inline("IF (.not. DO_FUN(%d)) &",i+1);
+    if( doAutoReduce ) F90_Inline("IF (.not. DO_FUN(%d)) &",i+1);
     Assign( Elm( P_VAR, i ), sum );
   }
 
@@ -844,7 +846,7 @@ int FLUX_VAR;
     sum = Const(0);
     for (j = 0; j < EqnNr; j++)
       sum = Add( sum, Mul( Const( Stoich_Left[i][j] ), Elm( RR, j ) ) );
-    F90_Inline("IF (DO_FUN(%d)) &",i+1);
+    if( doAutoReduce ) F90_Inline("IF (DO_FUN(%d)) &",i+1);
     Assign( Elm( D_VAR, i ), sum );
   }
 
@@ -1208,7 +1210,7 @@ int Jac_SP, Jac;
             sum = Add( sum, Mul( Const( Stoich[i][k] ), Elm( BV, structB[k][j]-1 ) ) );
         }
 	/* Comment the B */
-	 F90_Inline("IF (DO_JVS(%d)) &",nElm+1);
+	 if( doAutoReduce ) F90_Inline("IF (DO_JVS(%d)) &",nElm+1);
 	 WriteComment("JVS(%d) = Jac_FULL(%d,%d)",
 	          Index(nElm),Index(i),Index(j));
          Assign( Elm( JVS, nElm ), sum );
@@ -1941,7 +1943,7 @@ int dim;
     if( ibgn <= iend ) {
       sum = Elm( X, i );
       if ( ibgn < iend ) {
-      F90_Inline("IF (DO_SLV(%d)) &",i+1);
+	if( doAutoReduce ) F90_Inline("IF (DO_SLV(%d)) &",i+1);
         for( j = ibgn; j < iend; j++ )
           sum = Sub( sum, Mul( Elm( JVS, j ), Elm( X, icol[j] ) ) );
 	Assign( Elm( X, i ), sum );
@@ -1953,7 +1955,7 @@ int dim;
     ibgn = diag[i] + 1;
     iend = crow[i+1];
     sum = Elm( X, i );
-    F90_Inline("IF (DO_SLV(%d)) &",i+1);
+    if( doAutoReduce ) F90_Inline("IF (DO_SLV(%d)) &",i+1);
     for( j = ibgn; j < iend; j++ )
       sum = Sub( sum, Mul( Elm( JVS, j ), Elm( X, icol[j] ) ) );
     sum = Div( sum, Elm( JVS, diag[i] ) );
@@ -3064,7 +3066,7 @@ case 'h':
     if ( useDeclareValues )
       F90_Inline("  USE %s_Precision", rootFileName );
     else
-      F90_Inline("  USE %s_Global, only : DO_FUN", rootFileName );
+      if( doAutoReduce ) F90_Inline("  USE %s_Global, only : DO_FUN", rootFileName );
       F90_Inline("  USE %s_Parameters", rootFileName );
     F90_Inline("  IMPLICIT NONE\n", rootFileName );
     Declare( A ); /*  mz_rs_20050117 */
@@ -3103,7 +3105,7 @@ case 'h':
     if ( useDeclareValues )
       F90_Inline("  USE %s_Precision", rootFileName );
     else
-      F90_Inline("  USE %s_Global, ONLY: DO_JVS", rootFileName);
+      if( doAutoReduce ) F90_Inline("  USE %s_Global, ONLY: DO_JVS", rootFileName);
       F90_Inline("  USE %s_Parameters", rootFileName );
     if ( useJacSparse )
       F90_Inline("  USE %s_JacobianSP\n", rootFileName);
@@ -3149,7 +3151,7 @@ case 'h':
 
    UseFile( linalgFile );
     F90_Inline("MODULE %s_LinearAlgebra\n", rootFileName);
-    F90_Inline("  USE %s_Global, ONLY: DO_SLV", rootFileName);
+    if( doAutoReduce ) F90_Inline("  USE %s_Global, ONLY: DO_SLV", rootFileName);
     F90_Inline("  USE %s_Parameters", rootFileName );
     /* mz_rs_20050511+ if( useJacSparse ) added */
     if ( useJacSparse )

@@ -90,7 +90,7 @@
 %token      TPTID USEID
 %type <str> TPTID USEID
 %type <str> rate eqntag
-%token FLUX
+%token FLUX AUTOREDUCE
 %token      PLSPC
 %type <str> PLSPC
 
@@ -208,6 +208,9 @@ section	        : JACOBIAN PARAMETER
                   }
                 | FLUX PARAMETER
 		  { CmdFlux( $2 );
+                  }
+                | AUTOREDUCE PARAMETER
+		  { CmdAutoReduce( $2 );
                   }
                 ;  
 semicolon       : semicolon ';'

@@ -112,6 +112,7 @@ int useEqntags     = 0;
 int useLang        = F77_LANG;
 int useStochastic  = 0;
 int doFlux         = 0;
+int doAutoReduce   = 0;
 /* if useValues=1 KPP replaces parameters like NVAR etc. 
        by their values in vector/matrix declarations */
 int useDeclareValues = 0; 
@@ -399,6 +400,20 @@ void CmdFlux( char *cmd )
     return;
   }
   ScanError("'%s': Unknown parameter for #FLUX [ON|OFF]", cmd );
+}
+
+/*msl Oct 17, 2021*/
+void CmdAutoReduce( char *cmd )
+{
+  if( EqNoCase( cmd, "OFF" ) ) {
+    doAutoReduce = 0;
+    return;
+  }
+  if( EqNoCase( cmd, "ON" ) ) {
+    doAutoReduce = 1;
+    return;
+  }
+  ScanError("'%s': Unknown parameter for #AUTOREDUCE [ON|OFF]", cmd );
 }
 
 int FindAtom( char *atname )
