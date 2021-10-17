@@ -84,7 +84,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    IF (PRESENT(RSTATUS_U)) RSTATUS_U(:) = RSTATUS(:)
    IF (PRESENT(IERR_U))    IERR_U       = IERR
 
-END SUBROUTINE INTEGRATE
+ END SUBROUTINE INTEGRATE
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
@@ -228,9 +228,9 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !~~~>  Local variables
    KPP_REAL :: Roundoff, FacMin, FacMax, FacRej, FacSafe
    KPP_REAL :: Hmin, Hmax, Hstart
-   KPP_REAL :: Texit
+   KPP_REAL :: Texit, Redux_Threshold
    INTEGER       :: i, UplimTol, Max_no_steps
-   LOGICAL       :: Autonomous, VectorTol
+   LOGICAL       :: Autonomous, VectorTol, Autoreduce
 !~~~>   Parameters
    KPP_REAL, PARAMETER :: ZERO = 0.0_dp, ONE  = 1.0_dp
    KPP_REAL, PARAMETER :: DeltaMin = 1.0E-5_dp
@@ -282,6 +282,10 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
       CALL ros_ErrorMsg(-1,Tstart,ZERO,IERR)
       RETURN
    END IF
+
+!~~~> Auto-reduction toggle
+   Autoreduce    = .false.
+   IF (ICNTRL(8) == 1) Autoreduce = .true.
 
 !~~~>  Unit roundoff (1+Roundoff>1)
    Roundoff = WLAMCH('E')
@@ -365,17 +369,36 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
         RETURN
       END IF
     END DO
-
-
-!~~~>  CALL Rosenbrock method
-   CALL ros_Integrator(Y, Tstart, Tend, Texit,   &
-        AbsTol, RelTol,                          &
-!  Integration parameters
-        Autonomous, VectorTol, Max_no_steps,     &
-        Roundoff, Hmin, Hmax, Hstart,            &
-        FacMin, FacMax, FacRej, FacSafe,         &
-!  Error indicator
-        IERR)
+!~~~> Auto-reduction threshold
+    Redux_threshold = 1.d2
+    IF (RCNTRL(8) > ZERO) THEN
+       Redux_Threshold = RCNTRL(8)
+    ELSEIF (RCNTRL(8) < ZERO) THEN
+       PRINT *, 'Auto-reduction Threshold < 0. Defaulting to ', Redux_Threshold
+    ENDIF
+!~~~>  CALL Auto-reducing Rosenbrock method
+    IF ( Autoreduce ) &
+         CALL ros_cIntegrator(Y, Tstart, Tend, Texit,   &
+         AbsTol, RelTol,                          &
+         !  Integration parameters
+         Autonomous, VectorTol, Max_no_steps,     &
+         Roundoff, Hmin, Hmax, Hstart,            &
+         FacMin, FacMax, FacRej, FacSafe,         &
+         ! Autorecuce threshold
+         redux_threshold,                         &
+         !  Error indicator
+         IERR)
+    
+!~~~>  CALL Normal Rosenbrock method
+    IF ( .not. Autoreduce ) &
+         CALL ros_Integrator(Y, Tstart, Tend, Texit,   &
+         AbsTol, RelTol,                          &
+         !  Integration parameters
+         Autonomous, VectorTol, Max_no_steps,     &
+         Roundoff, Hmin, Hmax, Hstart,            &
+         FacMin, FacMax, FacRej, FacSafe,         &
+         !  Error indicator
+         IERR)
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CONTAINS !  SUBROUTINES internal to Rosenbrock
@@ -475,6 +498,10 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
 
 
 !~~~>  Initial preparations
+   DO_SLV  = .true.
+   DO_FUN  = .true.
+   DO_JVS  = .true.
+
    T = Tstart
    RSTATUS(Nhexit) = ZERO
    H = MIN( MAX(ABS(Hmin),ABS(Hstart)) , ABS(Hmax) )
@@ -508,7 +535,7 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
    H = MIN(H,ABS(Tend-T))
 
 !~~~>   Compute the function at current time
-   CALL Funsplittemplate(T,Y,Fcn0)
+   CALL FunSplitTemplate(T,Y,Fcn0)
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 
 !~~~>  Compute the function derivative with respect to T
@@ -550,7 +577,7 @@ Stage: DO istage = 1, ros_S
             K(N*(j-1)+1),1,Ynew,1)
          END DO
          Tau = T + ros_Alpha(istage)*Direction*H
-         CALL Funsplittemplate(Tau,Ynew,Fcn)
+         CALL FunSplitTemplate(Tau,Ynew,Fcn)
          ISTATUS(Nfun) = ISTATUS(Nfun) + 1
        END IF ! if istage == 1 elseif ros_NewF(istage)
        !slim: CALL WCOPY(N,Fcn,1,K(ioffset+1),1)
@@ -625,6 +652,270 @@ Stage: DO istage = 1, ros_S
 
   END SUBROUTINE ros_Integrator
 
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ SUBROUTINE ros_cIntegrator (Y, Tstart, Tend, T,  &
+        AbsTol, RelTol,                          &
+!~~~> Integration parameters
+        Autonomous, VectorTol, Max_no_steps,     &
+        Roundoff, Hmin, Hmax, Hstart,            &
+        FacMin, FacMax, FacRej, FacSafe,         &
+!~~~> Autorecuce threshold
+        threshold,                               &
+!~~~> Error indicator
+        IERR )
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!   Template for the implementation of a generic Rosenbrock method
+!      defined by ros_S (no of stages)
+!      and its coefficients ros_{A,C,M,E,Alpha,Gamma}
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   
+   USE KPP_ROOT_Global,  ONLY : cNONZERO, rNVAR
+   use KPP_ROOT_Monitor, ONLY : SPC_NAMES
+
+  IMPLICIT NONE
+
+!~~~> Input: the initial condition at Tstart; Output: the solution at T
+   KPP_REAL, INTENT(INOUT) :: Y(N)
+!~~~> Input: integration interval
+   KPP_REAL, INTENT(IN) :: Tstart,Tend
+!~~~> Output: time at which the solution is returned (T=Tend if success)
+   KPP_REAL, INTENT(OUT) ::  T
+!~~~> Input: tolerances
+   KPP_REAL, INTENT(IN) ::  AbsTol(N), RelTol(N)
+!~~~> Input: integration parameters
+   LOGICAL, INTENT(IN) :: Autonomous, VectorTol
+   KPP_REAL, INTENT(IN) :: Hstart, Hmin, Hmax
+   INTEGER, INTENT(IN) :: Max_no_steps
+   KPP_REAL, INTENT(IN) :: Roundoff, FacMin, FacMax, FacRej, FacSafe
+!~~~> Autoreduction threshold
+   KPP_REAL, INTENT(IN) :: threshold
+!~~~> Output: Error indicator
+   INTEGER, INTENT(OUT) :: IERR
+! ~~~~ Local variables
+   KPP_REAL :: Ynew(N), Fcn0(N), Fcn(N), Prod(N), Loss(N)
+   KPP_REAL :: K(NVAR*ros_S), dFdT(N)
+#ifdef FULL_ALGEBRA    
+   KPP_REAL :: Jac0(N,N), Ghimj(N,N)
+#else
+   KPP_REAL :: Jac0(LU_NONZERO), Ghimj(LU_NONZERO)
+#endif
+   KPP_REAL :: H, Hnew, HC, HG, Fac, Tau
+   KPP_REAL :: Err, Yerr(N), Yerrsub(NVAR)
+   INTEGER :: Pivot(N), Direction, ioffset, j, istage
+   LOGICAL :: RejectLastH, RejectMoreH, Singular, Reduced
+!~~~>  Local parameters
+   KPP_REAL, PARAMETER :: ZERO = 0.0_dp, ONE  = 1.0_dp
+   KPP_REAL, PARAMETER :: DeltaMin = 1.0E-5_dp
+!~~~>  Locally called functions
+!    KPP_REAL WLAMCH
+!    EXTERNAL WLAMCH
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   REAL(dp) :: Atmp(LU_NONZERO) = 0._dp
+   REAL(dp) :: Btmp(NVAR) = 0._dp
+
+!~~~>  Initial preparations
+   DO_FUN  = .true.
+   Reduced = .false.
+   T = Tstart
+   RSTATUS(Nhexit) = ZERO
+   H = MIN( MAX(ABS(Hmin),ABS(Hstart)) , ABS(Hmax) )
+   IF (ABS(H) <= 10.0_dp*Roundoff) H = DeltaMin
+
+   IF (Tend  >=  Tstart) THEN
+     Direction = +1
+   ELSE
+     Direction = -1
+   END IF
+   H = Direction*H
+
+   RejectLastH=.FALSE.
+   RejectMoreH=.FALSE.
+
+!~~~> Time loop begins below
+
+TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
+       .OR. (Direction < 0).AND.((Tend-T)+Roundoff <= ZERO) )
+
+   IF ( ISTATUS(Nstp) > Max_no_steps ) THEN  ! Too many steps
+      CALL ros_ErrorMsg(-6,T,H,IERR)
+      RETURN
+   END IF
+   IF ( ((T+0.1_dp*H) == T).OR.(H <= Roundoff) ) THEN  ! Step size too small
+      CALL ros_ErrorMsg(-7,T,H,IERR)
+      RETURN
+   END IF
+
+!~~~>  Limit H if necessary to avoid going beyond Tend
+   H = MIN(H,ABS(Tend-T))
+
+!~~~>   Compute the function at current time
+   CALL FunSplitTemplate(T,Y,Fcn0,Prod,Loss) ! Reacts to DO_FUN()
+   ISTATUS(Nfun) = ISTATUS(Nfun) + 1
+   
+!~~~>  Parse species for reduced computation
+   if (.not. reduced) then
+      CALL Reduce( threshold, Fcn0 )
+      reduced = .true.
+   endif
+!~~~>  Compute the function derivative with respect to T
+   IF (.NOT.Autonomous) THEN
+      CALL ros_FunTimeDerivative ( T, Roundoff, Y, &
+                Fcn0, dFdT )
+   END IF
+
+!~~~>   Compute the Jacobian at current time
+   CALL JacTemplate(T,Y,Jac0) ! Reacts to DO_JVS()
+   ISTATUS(Njac) = ISTATUS(Njac) + 1
+
+!~~~>  Repeat step calculation until current step accepted
+UntilAccepted: DO
+
+   CALL ros_cPrepareMatrix(H,Direction,ros_Gamma(1), &
+          Jac0,Ghimj(1:cNONZERO),Pivot,Singular) ! Note, not Ghimj(LU_NONZERO), its sized Ghimj(cNONZERO)
+
+   IF (Singular) THEN ! More than 5 consecutive failed decompositions
+       CALL ros_ErrorMsg(-8,T,H,IERR)
+       RETURN
+   END IF
+
+!~~~>   Compute the stages
+Stage: DO istage = 1, ros_S
+
+      ! Current istage offset. Current istage vector is K(ioffset+1:ioffset+N)
+       ioffset = rNVAR*(istage-1)
+
+      ! For the 1st istage the function has been computed previously
+       IF ( istage == 1 ) THEN
+          !slim: CALL WCOPY(N,Fcn0,1,Fcn,1)
+          Fcn(1:N) = Fcn0(1:N)
+      ! istage>1 and a new function evaluation is needed at the current istage
+       ELSEIF ( ros_NewF(istage) ) THEN
+         !slim: CALL WCOPY(N,Y,1,Ynew,1)
+	 Ynew(1:N) = Y(1:N)
+         DO j = 1, istage-1
+! --- Option 1: This one seems slightly slower than option 2.
+            !Ysub = Ynew(SPC_MAP)
+            !CALL WAXPY(rNVAR,ros_A((istage-1)*(istage-2)/2+j), &
+            !     K(rNVAR*(j-1)+1),1,Ysub,1)
+            !Ynew(SPC_MAP) = Ysub
+! --- Option 2: This one seems slightly faster than option 1.
+!               See cWAXPY below.
+            CALL cWAXPY(rNVAR,ros_A((istage-1)*(istage-2)/2+j), &
+                 K(rNVAR*(j-1)+1),1,Ynew,1,NVAR,SPC_MAP)
+! --- --- ---
+         END DO
+         Tau = T + ros_Alpha(istage)*Direction*H
+         CALL FunSplitTemplate(Tau,Ynew,Fcn)
+         ISTATUS(Nfun) = ISTATUS(Nfun) + 1
+       END IF ! if istage == 1 elseif ros_NewF(istage)
+       !slim: CALL WCOPY(N,Fcn,1,K(ioffset+1),1)
+       K(ioffset+1:ioffset+rNVAR) = Fcn(SPC_MAP(1:rNVAR))
+       DO j = 1, istage-1
+         HC = ros_C((istage-1)*(istage-2)/2+j)/(Direction*H)
+         CALL WAXPY(rNVAR,HC,K(rNVAR*(j-1)+1),1,K(ioffset+1),1)
+      END DO
+      IF ((.NOT. Autonomous).AND.(ros_Gamma(istage).NE.ZERO)) THEN
+         HG = Direction*H*ros_Gamma(istage)
+         CALL WAXPY(rNVAR,HG,dFdT,1,K(ioffset+1),1)
+      END IF
+      CALL ros_cSolve(Ghimj, Pivot, K(ioffset+1), Atmp, Btmp, JVS_MAP, SPC_MAP)
+       
+   END DO Stage
+
+
+!~~~>  Compute the new solution
+   !slim: CALL WCOPY(N,Y,1,Ynew,1)
+   Ynew(1:N) = Y(1:N)
+
+! --- Option 1: This one seems slightly slower than option 2.
+   !Ysub = Ynew(SPC_MAP)
+   !DO j=1,ros_S
+   !      CALL WAXPY(rNVAR,ros_M(j),K(rNVAR*(j-1)+1),1,Ysub,1)
+   !END DO
+   !Ynew(SPC_MAP) = Ysub
+
+! --- Option 2: This one seems slightly faster than option 1.
+   DO j=1,ros_S
+         CALL cWAXPY(rNVAR,ros_M(j),K(rNVAR*(j-1)+1),1,Ynew,1,NVAR,SPC_MAP)
+   END DO
+! --- --- ---
+
+!~~~>  Compute the error estimation
+   !slim: CALL WSCAL(N,ZERO,Yerr,1)
+   Yerr(1:N) = ZERO
+   DO i = 1,rNVAR
+   Yerrsub(i) = Yerr(SPC_MAP(i))
+   ENDDO
+
+   DO j=1,ros_S
+        CALL WAXPY(rNVAR,ros_E(j),K(rNVAR*(j-1)+1),1,Yerrsub,1)
+   END DO
+   DO i = 1,rNVAR
+   Yerr(SPC_MAP(i)) = Yerrsub(i)
+   ENDDO
+   Err = ros_ErrorNorm ( Y, Ynew, Yerr, AbsTol, RelTol, VectorTol )
+
+!~~~> New step size is bounded by FacMin <= Hnew/H <= FacMax
+   Fac  = MIN(FacMax,MAX(FacMin,FacSafe/Err**(ONE/ros_ELO)))
+   Hnew = H*Fac
+
+!~~~>  Check the error magnitude and adjust step size
+   ISTATUS(Nstp) = ISTATUS(Nstp) + 1
+   IF ( (Err <= ONE).OR.(H <= Hmin) ) THEN  !~~~> Accept step
+      ISTATUS(Nacc) = ISTATUS(Nacc) + 1
+      !slim: CALL WCOPY(N,Ynew,1,Y,1)
+      Y(1:N) = Ynew(1:N)
+      T = T + Direction*H
+      Hnew = MAX(Hmin,MIN(Hnew,Hmax))
+      IF (RejectLastH) THEN  ! No step size increase after a rejected step
+         Hnew = MIN(Hnew,H)
+      END IF
+      RSTATUS(Nhexit) = H
+      RSTATUS(Nhnew)  = Hnew
+      RSTATUS(Ntexit) = T
+      RejectLastH = .FALSE.
+      RejectMoreH = .FALSE.
+      H = Hnew
+      EXIT UntilAccepted ! EXIT THE LOOP: WHILE STEP NOT ACCEPTED
+   ELSE           !~~~> Reject step
+      IF (RejectMoreH) THEN
+         Hnew = H*FacRej
+      END IF
+      RejectMoreH = RejectLastH
+      RejectLastH = .TRUE.
+      H = Hnew
+      IF (ISTATUS(Nacc) >= 1)  ISTATUS(Nrej) = ISTATUS(Nrej) + 1
+   END IF ! Err <= 1
+
+   END DO UntilAccepted
+   
+   END DO TimeLoop
+
+   ! 1st order calculation for removed species per Shen et al. (2020) Eq. 4
+   ! -- currently, DO_FUN() selects
+   ! -- DO_FUN loops over 1,NVAR. Only needs to loop over NVAR-rNVAR
+   !    but the structure doesn't exist. Maybe worth considering 
+   !    for efficiency purposes.
+   DO i=1,NVAR
+      IF (.not. DO_FUN(i)) &
+           call autoreduce_1stOrder(i,Y(i),Prod(i),Tstart,Tend)
+   ENDDO
+
+!~~~> Succesful exit
+   IERR = 1  !~~~> The integration was successful
+
+ END SUBROUTINE ros_cIntegrator
+
+ SUBROUTINE AutoReduce_1stOrder(i,Y,P,Ti,Tf)
+   USE KPP_ROOT_GLOBAL, ONLY : RCONST
+   KPP_REAL, INTENT(INOUT) :: Y
+   KPP_REAL, INTENT(IN)    :: P,Ti,Tf
+   INTEGER, INTENT(IN)          :: i
+
+   IF (RCONST(i) .eq. 0.d0) return
+   Y = (P/RCONST(i))+(Y-(P/RCONST(i)))*exp(-RCONST(i)*(Tf-Ti))
+ END SUBROUTINE AutoReduce_1stOrder
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   KPP_REAL FUNCTION ros_ErrorNorm ( Y, Ynew, Yerr, &
@@ -677,13 +968,159 @@ Stage: DO istage = 1, ros_S
    KPP_REAL, PARAMETER :: ONE = 1.0_dp, DeltaMin = 1.0E-6_dp
 
    Delta = SQRT(Roundoff)*MAX(DeltaMin,ABS(T))
-   CALL Funsplittemplate(T+Delta,Y,dFdT)
+   CALL FunSplitTemplate(T+Delta,Y,dFdT)
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
    CALL WAXPY(N,(-ONE),Fcn0,1,dFdT,1)
    CALL WSCAL(N,(ONE/Delta),dFdT,1)
 
   END SUBROUTINE ros_FunTimeDerivative
 
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  SUBROUTINE ros_cPrepareMatrix ( H, Direction, gam, &
+             Jac0, Ghimj, Pivot, Singular )
+! --- --- --- --- --- --- --- --- --- --- --- --- ---
+!  Prepares the LHS matrix for stage calculations
+!  1.  Construct Ghimj = 1/(H*ham) - Jac0
+!      "(Gamma H) Inverse Minus Jacobian"
+!  2.  Repeat LU decomposition of Ghimj until successful.
+!       -half the step size if LU decomposition fails and retry
+!       -exit after 5 consecutive fails
+! --- --- --- --- --- --- --- --- --- --- --- --- ---
+   IMPLICIT NONE
+
+!~~~> Input arguments
+#ifdef FULL_ALGEBRA    
+   KPP_REAL, INTENT(IN) ::  Jac0(N,N)
+#else
+   KPP_REAL, INTENT(IN) ::  Jac0(LU_NONZERO)
+#endif   
+   KPP_REAL, INTENT(IN) ::  gam
+   INTEGER, INTENT(IN) ::  Direction
+!~~~> Output arguments
+#ifdef FULL_ALGEBRA    
+   KPP_REAL, INTENT(OUT) :: Ghimj(N,N)
+#else
+   KPP_REAL, INTENT(OUT) :: Ghimj(cNONZERO)
+#endif   
+   LOGICAL, INTENT(OUT) ::  Singular
+   INTEGER, INTENT(OUT) ::  Pivot(N)
+!~~~> Inout arguments
+   KPP_REAL, INTENT(INOUT) :: H   ! step size is decreased when LU fails
+!~~~> Local variables
+   INTEGER  :: i, ISING, Nconsecutive
+   KPP_REAL :: ghinv
+   KPP_REAL, PARAMETER :: ONE  = 1.0_dp, HALF = 0.5_dp
+
+   Nconsecutive = 0
+   Singular = .TRUE.
+
+   DO WHILE (Singular)
+
+!~~~>    Construct Ghimj = 1/(H*gam) - Jac0
+#ifdef FULL_ALGEBRA    
+     !slim: CALL WCOPY(N*N,Jac0,1,Ghimj,1)
+     !slim: CALL WSCAL(N*N,(-ONE),Ghimj,1)
+     Ghimj = -Jac0
+     ghinv = ONE/(Direction*H*gam)
+     DO i=1,rNVAR
+       Ghimj(i,i) = Ghimj(i,i)+ghinv
+     END DO
+#else
+     !slim: CALL WCOPY(LU_NONZERO,Jac0,1,Ghimj,1)
+     !slim: CALL WSCAL(LU_NONZERO,(-ONE),Ghimj,1)
+     Ghimj(1:cNONZERO) = -Jac0(JVS_MAP(1:cNONZERO))
+     ghinv = ONE/(Direction*H*gam)
+     DO i=1,rNVAR
+       Ghimj(cLU_DIAG(i)) = Ghimj(cLU_DIAG(i))+ghinv
+     END DO
+#endif   
+!~~~>    Compute LU decomposition
+     CALL ros_cDecomp( Ghimj, Pivot, ISING )
+     IF (ISING == 0) THEN
+!~~~>    If successful done
+        Singular = .FALSE.
+     ELSE ! ISING .ne. 0
+!~~~>    If unsuccessful half the step size; if 5 consecutive fails then return
+        ISTATUS(Nsng) = ISTATUS(Nsng) + 1
+        Nconsecutive = Nconsecutive+1
+        Singular = .TRUE.
+        PRINT*,'Warning: LU Decomposition returned ISING = ',ISING
+        IF (Nconsecutive <= 5) THEN ! Less than 5 consecutive failed decompositions
+           H = H*HALF
+        ELSE  ! More than 5 consecutive failed decompositions
+           RETURN
+        END IF  ! Nconsecutive
+      END IF    ! ISING
+
+   END DO ! WHILE Singular
+
+ END SUBROUTINE ros_cPrepareMatrix
+
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  SUBROUTINE ros_cDecomp( A, Pivot, ISING )
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!  Template for the LU decomposition
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   IMPLICIT NONE
+!~~~> Inout variables
+#ifdef FULL_ALGEBRA    
+   KPP_REAL, INTENT(INOUT) :: A(N,N)
+#else   
+   KPP_REAL, INTENT(INOUT) :: A(cNONZERO)
+#endif
+!~~~> Output variables
+   INTEGER, INTENT(OUT) :: Pivot(N), ISING
+
+#ifdef FULL_ALGEBRA    
+   CALL  DGETRF( N, N, A, N, Pivot, ISING )
+#else   
+   CALL cKppDecomp ( A, ISING )
+   Pivot(1) = 1
+#endif
+   ISTATUS(Ndec) = ISTATUS(Ndec) + 1
+
+ END SUBROUTINE ros_cDecomp
+ 
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  SUBROUTINE ros_cSolve( A, Pivot, b, Atmp, Btmp, map1, map2 )
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!  Template for the forward/backward substitution (using pre-computed LU decomposition)
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   IMPLICIT NONE
+!~~~> Input variables
+#ifdef FULL_ALGEBRA    
+   KPP_REAL, INTENT(IN) :: A(N,N)
+   INTEGER :: ISING
+#else   
+   KPP_REAL, INTENT(IN) :: A(cNONZERO)
+#endif
+   INTEGER, INTENT(IN) :: Pivot(N)
+!~~~> InOut variables
+   KPP_REAL, INTENT(INOUT) :: b(rNVAR)
+   INTEGER, INTENT(IN)          :: map1(cNONZERO), map2(rNVAR)
+   KPP_REAL                :: btmp(N), Atmp(LU_NONZERO)
+
+#ifdef FULL_ALGEBRA    
+   CALL  DGETRS( 'N', N , 1, A, N, Pivot, b, N, ISING )
+   IF ( Info < 0 ) THEN
+      PRINT*,"Error in DGETRS. ISING=",ISING
+   END IF  
+#else   
+
+   Atmp(map1) = A
+   btmp(map2) = b
+!   call cWCOPY(cNONZERO,LU_NONZERO,A,1,Atmp,1,map1)
+!   call cWCOPY(rNVAR,NVAR,B,1,Btmp,1,map2)
+   CALL KppSolve( Atmp, btmp )
+   b = btmp(map2)
+#endif
+
+   ISTATUS(Nsol) = ISTATUS(Nsol) + 1
+
+  END SUBROUTINE ros_cSolve
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE ros_PrepareMatrix ( H, Direction, gam, &
@@ -791,7 +1228,6 @@ Stage: DO istage = 1, ros_S
    ISTATUS(Ndec) = ISTATUS(Ndec) + 1
 
   END SUBROUTINE ros_Decomp
-
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE ros_Solve( A, Pivot, b )
@@ -1288,6 +1724,7 @@ SUBROUTINE JacTemplate( T, Y, Jcb )
  USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
  USE KPP_ROOT_Jacobian, ONLY: Jac_SP, LU_IROW, LU_ICOL
  USE KPP_ROOT_LinearAlgebra
+
 !~~~> Input variables
     KPP_REAL :: T, Y(NVAR)
 !~~~> Output variables
@@ -1321,8 +1758,181 @@ SUBROUTINE JacTemplate( T, Y, Jcb )
 
 END SUBROUTINE JacTemplate
 
-END MODULE KPP_ROOT_Integrator
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SUBROUTINE cKppDecomp( JVS, IER )
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!        Sparse LU factorization
+! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+  USE KPP_ROOT_Parameters
+  USE KPP_ROOT_JacobianSP
+
+      INTEGER  :: IER
+      KPP_REAL :: JVS(cNONZERO), W(rNVAR), a
+      INTEGER  :: k, kk, j, jj
+
+      a = 0. ! mz_rs_20050606
+      IER = 0
+      DO k=1,rNVAR
+        ! mz_rs_20050606: don't check if real value == 0
+        ! IF ( JVS( LU_DIAG(k) ) .EQ. 0. ) THEN
+        IF ( ABS(JVS(cLU_DIAG(k))) < TINY(a) ) THEN
+            IER = k
+            RETURN
+        END IF
+        DO kk = cLU_CROW(k), cLU_CROW(k+1)-1
+              W( cLU_ICOL(kk) ) = JVS(kk)
+        END DO
+        DO kk = cLU_CROW(k), cLU_DIAG(k)-1
+            j = cLU_ICOL(kk)
+            a = -W(j) / JVS( cLU_DIAG(j) )
+            W(j) = -a
+            DO jj = cLU_DIAG(j)+1, cLU_CROW(j+1)-1
+               W( cLU_ICOL(jj) ) = W( cLU_ICOL(jj) ) + a*JVS(jj)
+            END DO
+         END DO
+         DO kk = cLU_CROW(k), cLU_CROW(k+1)-1
+            JVS(kk) = W( cLU_ICOL(kk) )
+         END DO
+      END DO
+      
+END SUBROUTINE cKppDecomp
+
+!--------------------------------------------------------------
+SUBROUTINE cWAXPY(N,Alpha,X,incX,Y,incY,fN,indx)
+!--------------------------------------------------------------
+!     constant times a vector plus a vector: y <- y + Alpha*x
+!     only for incX=incY=1
+!     after BLAS
+!     replace this by the function from the optimized BLAS implementation:
+!         CALL SAXPY(N,Alpha,X,1,Y,1) or  CALL DAXPY(N,Alpha,X,1,Y,1)
+!
+!     Revision:
+!     -- Aug. 27, 2021: Added fN and indx as arguments to permit 
+!        subsetting Y as required to preserve the length of Y 
+!        and minimze array copying.
+!--------------------------------------------------------------
+
+  INTEGER  :: i,incX,incY,M,MP1,N,fN,indx(N)
+  KPP_REAL :: X(N),Y(fN),Alpha
+  KPP_REAL, PARAMETER :: ZERO = 0.0_dp
+  
+  IF (Alpha .EQ. ZERO) RETURN
+  IF (N .LE. 0) RETURN
+  
+  M = MOD(N,4)
+  IF( M .NE. 0 ) THEN
+     DO i = 1,M
+        Y(indx(i)) = Y(indx(i)) + Alpha*X(i)
+     END DO
+     IF( N .LT. 4 ) RETURN
+  END IF
+  MP1 = M + 1
+  DO i = MP1,N,4
+     Y(indx(i))     = Y(indx(i)) + Alpha*X(i)
+     Y(indx(i + 1)) = Y(indx(i + 1)) + Alpha*X(i + 1)
+     Y(indx(i + 2)) = Y(indx(i + 2)) + Alpha*X(i + 2)
+     Y(indx(i + 3)) = Y(indx(i + 3)) + Alpha*X(i + 3)
+  END DO
+  
+END SUBROUTINE cWAXPY
+
+!--------------------------------------------------------------
+      SUBROUTINE cWCOPY(N,NN,X,incX,Y,incY,indx)
+!--------------------------------------------------------------
+!     copies a vector, x, to a vector, y:  y <- x
+!     only for incX=incY=1
+!     after BLAS
+!     replace this by the function from the optimized BLAS implementation:
+!         CALL  SCOPY(N,X,1,Y,1)   or   CALL  DCOPY(N,X,1,Y,1)
+!--------------------------------------------------------------
+!     USE KPP_ROOT_Precision
+      
+      INTEGER  :: i,incX,incY,M,MP1,N,NN,indx(NN)
+      KPP_REAL :: X(N),Y(NN)
+
+      IF (N.LE.0) RETURN
+
+      M = MOD(N,8)
+      IF( M .NE. 0 ) THEN
+        DO i = 1,M
+          Y(indx(i)) = X(i)
+        END DO
+        IF( N .LT. 8 ) RETURN
+      END IF    
+      MP1 = M+1
+      DO i = MP1,N,8
+        Y(indx(i)) = X(i)
+        Y(indx(i + 1)) = X(i + 1)
+        Y(indx(i + 2)) = X(i + 2)
+        Y(indx(i + 3)) = X(i + 3)
+        Y(indx(i + 4)) = X(i + 4)
+        Y(indx(i + 5)) = X(i + 5)
+        Y(indx(i + 6)) = X(i + 6)
+        Y(indx(i + 7)) = X(i + 7)
+      END DO
+
+      END SUBROUTINE cWCOPY
+
+      SUBROUTINE REDUCE(threshold,dcdt)
+        
+        USE KPP_ROOT_JacobianSP
+
+        REAL(dp), INTENT(IN) :: dcdt(NVAR), threshold
+        INTEGER              :: iSPC_MAP(NVAR)
+        INTEGER              :: i, ii, iii, idx, nrmv, s
+
+        iSPC_MAP = 0
+        
+        NRMV = 0
+        S    = 1
+        do i=1,NVAR
+           if (abs(dcdt(i)).le.threshold) then
+              NRMV=NRMV+1
+              DO_SLV(i) = .false.
+              DO_FUN(i) = .false.
+              cycle
+           endif
+           SPC_MAP(S)  = i
+           iSPC_MAP(i) = S
+           S=S+1
+        ENDDO
+        rNVAR    = NVAR-NRMV ! Number of active species in the reduced mechanism
+        
+        II  = 1
+        III = 1
+        idx = 0
+        DO i = 1,LU_NONZERO
+           IF ((DO_SLV(LU_IROW(i))).and.(DO_SLV(LU_ICOL(i)))) THEN
+              idx=idx+1
+              cLU_IROW(idx) = iSPC_MAP(LU_IROW(i))
+              cLU_ICOL(idx) = iSPC_MAP(LU_ICOL(i))
+              JVS_MAP(idx)  = i
+              
+              IF (idx.gt.1) THEN
+                 IF (cLU_IROW(idx).ne.cLU_IROW(idx-1)) THEN
+                    II=II+1
+                    cLU_CROW(II) = idx
+                 ENDIF
+                 IF (cLU_IROW(idx).eq.cLU_ICOL(idx)) THEN
+                    III=III+1
+                    cLU_DIAG(III) = idx
+                 ENDIF
+              ENDIF
+              cycle
+           ENDIF
+           DO_JVS(i) = .false.
+        ENDDO
+        
+        cNONZERO = idx
+        
+        cLU_CROW(1)       = 1 ! 1st index = 1
+        cLU_DIAG(1)       = 1 ! 1st index = 1
+        cLU_CROW(rNVAR+1) = cNONZERO+1
+        cLU_DIAG(rNVAR+1) = cLU_DIAG(rNVAR)+1
+      END SUBROUTINE REDUCE
+      
+END MODULE KPP_ROOT_Integrator
 
 
 
