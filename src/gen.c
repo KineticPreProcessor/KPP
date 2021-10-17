@@ -371,19 +371,6 @@ int dim;
   GlobalDeclare( STEPMIN );
   GlobalDeclare( STEPMAX );
   GlobalDeclare( CFACTOR );
-  if (doAutoReduce) {
-    GlobalDeclare(DO_JVS);
-    GlobalDeclare(DO_SLV);
-    GlobalDeclare(DO_FUN);
-    GlobalDeclare(cLU_IROW);
-    GlobalDeclare(cLU_ICOL);
-    GlobalDeclare(cLU_CROW);
-    GlobalDeclare(cLU_DIAG);
-    GlobalDeclare(JVS_MAP);
-    GlobalDeclare(SPC_MAP);
-    GlobalDeclare(RNVAR);
-    GlobalDeclare(cNONZERO);
-  }
   if (useStochastic)
       GlobalDeclare( VOLUME );
 
@@ -2494,6 +2481,19 @@ int mxyz;
   ExternDeclare( STEPMIN );
   ExternDeclare( STEPMAX );
   ExternDeclare( CFACTOR );
+/*  if (doAutoReduce) {*/
+    ExternDeclare(DO_JVS);
+    ExternDeclare(DO_SLV);
+    ExternDeclare(DO_FUN);
+    ExternDeclare(cLU_IROW);
+    ExternDeclare(cLU_ICOL);
+    ExternDeclare(cLU_CROW);
+    ExternDeclare(cLU_DIAG);
+    ExternDeclare(JVS_MAP);
+    ExternDeclare(SPC_MAP);
+    ExternDeclare(RNVAR);
+    ExternDeclare(cNONZERO);
+/*  }*/
   if (useStochastic)
       ExternDeclare( VOLUME );
 
