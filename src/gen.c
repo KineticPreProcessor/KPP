@@ -45,7 +45,7 @@ int **LUstructJ;
 
 ICODE InlineCode[ INLINE_OPT ];
 
-int NSPEC, NVAR, NVARACT, NFIX, NREACT, NFLUX;
+int NSPEC, NVAR, NVARP1, NVARACT, NFIX, NREACT, NFLUX;
 int NVARST, NFIXST;
 /* int PI; */
 int C_DEFAULT, C;
@@ -263,13 +263,14 @@ int i,j;
   CFACTOR  = DefElm( "CFACTOR", real, "Conversion factor for concentration units");
   
   /* Autoreduction structures */
+  NVARP1       = DefConst( "NVAR+1",  INT, "Number of Variable species + 1" );
   DO_JVS   = DefvElm("DO_JVS", LOGICAL, -LU_NONZERO, "");
-  DO_SLV   = DefvElm("DO_SLV", LOGICAL, -NVAR+1    , "");
+  DO_SLV   = DefvElm("DO_SLV", LOGICAL, -NVARP1    , "");
   DO_FUN   = DefvElm("DO_FUN", LOGICAL, -NVAR      , "");
   cLU_IROW = DefvElm("cLU_IROW", INT, -LU_NONZERO  , "");
   cLU_ICOL = DefvElm("cLU_ICOL", INT, -LU_NONZERO  , "");
-  cLU_CROW = DefvElm("cLU_CROW", INT, -NVAR+1  , "");
-  cLU_DIAG = DefvElm("cLU_DIAG", INT, -NVAR+1  , "");
+  cLU_CROW = DefvElm("cLU_CROW", INT, -NVARP1  , "");
+  cLU_DIAG = DefvElm("cLU_DIAG", INT, -NVARP1  , "");
   JVS_MAP  = DefvElm("JVS_MAP", INT, -LU_NONZERO, "");
   SPC_MAP  = DefvElm("SPC_MAP", INT, -NVAR, "");
   RNVAR    = DefElm("rNVAR", INT, "");
@@ -371,19 +372,6 @@ int dim;
   GlobalDeclare( STEPMIN );
   GlobalDeclare( STEPMAX );
   GlobalDeclare( CFACTOR );
-  if (doAutoReduce) {
-    GlobalDeclare(DO_JVS);
-    GlobalDeclare(DO_SLV);
-    GlobalDeclare(DO_FUN);
-    GlobalDeclare(cLU_IROW);
-    GlobalDeclare(cLU_ICOL);
-    GlobalDeclare(cLU_CROW);
-    GlobalDeclare(cLU_DIAG);
-    GlobalDeclare(JVS_MAP);
-    GlobalDeclare(SPC_MAP);
-    GlobalDeclare(RNVAR);
-    GlobalDeclare(cNONZERO);
-  }
   if (useStochastic)
       GlobalDeclare( VOLUME );
 
@@ -2494,6 +2482,19 @@ int mxyz;
   ExternDeclare( STEPMIN );
   ExternDeclare( STEPMAX );
   ExternDeclare( CFACTOR );
+/*  if (doAutoReduce) {*/
+    ExternDeclare(DO_JVS);
+    ExternDeclare(DO_SLV);
+    ExternDeclare(DO_FUN);
+    ExternDeclare(cLU_IROW);
+    ExternDeclare(cLU_ICOL);
+    ExternDeclare(cLU_CROW);
+    ExternDeclare(cLU_DIAG);
+    ExternDeclare(JVS_MAP);
+    ExternDeclare(SPC_MAP);
+    ExternDeclare(RNVAR);
+    ExternDeclare(cNONZERO);
+/*  }*/
   if (useStochastic)
       ExternDeclare( VOLUME );
 
