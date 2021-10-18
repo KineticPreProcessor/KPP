@@ -912,15 +912,14 @@ Stage: DO istage = 1, ros_S
 
  END SUBROUTINE ros_cIntegrator
 
- SUBROUTINE AutoReduce_1stOrder(i,Y,P,L,Ti,Tf)
+ SUBROUTINE AutoReduce_1stOrder(i,Y,P,k,Ti,Tf)
    REAL(kind=dp), INTENT(INOUT) :: Y
-   REAL(kind=dp), INTENT(IN)    :: P,L,Ti,Tf
+   REAL(kind=dp), INTENT(IN)    :: P,k,Ti,Tf
    INTEGER, INTENT(IN)          :: i
-   REAL(kind=dp)                :: k, term
+   REAL(kind=dp)                :: term
 
-   if (L .le. 1.d-30) return
+   if (k .le. 1.d-30) return
    if (Y .le. 1.d-30) return
-   k    = L/Y
    term = P/k
    Y = term+(Y-term)*exp(-k*(Tf-Ti))
  END SUBROUTINE AutoReduce_1stOrder
