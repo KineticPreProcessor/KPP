@@ -29,3 +29,6 @@ kpp
 *_StoichiomSP*
 *_Util*
 Makefile_*
+lex.yy.c
+y.tab.c
+y.tab.h

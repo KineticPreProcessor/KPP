@@ -1,12 +1,7 @@
-*.~*
-.#*
-#*
-*.dat
 *.exe
 *.map
 *.mod
 *.o
-kpp
 *_Function*
 *_Global*
 *_Hessian*
