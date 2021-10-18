@@ -692,7 +692,7 @@ Stage: DO istage = 1, ros_S
 !~~~> Output: Error indicator
    INTEGER, INTENT(OUT) :: IERR
 ! ~~~~ Local variables
-   KPP_REAL :: Ynew(N), Fcn0(N), Fcn(N), Prod(N), Loss(N)
+   KPP_REAL :: Ynew(N), Fcn0(N), Fcn(N), Prod(N), Prd0(N), Loss(N)
    KPP_REAL :: K(NVAR*ros_S), dFdT(N)
 #ifdef FULL_ALGEBRA    
    KPP_REAL :: Jac0(N,N), Ghimj(N,N)
@@ -755,7 +755,8 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
    
 !~~~>  Parse species for reduced computation
    if (.not. reduced) then
-      CALL Reduce( threshold, Fcn0 )
+      Prd0 = Prod ! Save Prod vector from 1st pass thru TimeLoop
+      CALL Reduce( threshold, Fcn0 ) !<- using Fcn0 assumes we're on 1st pass thru TimeLoop
       reduced = .true.
    endif
 !~~~>  Compute the function derivative with respect to T
@@ -899,7 +900,7 @@ Stage: DO istage = 1, ros_S
    !    for efficiency purposes.
    DO i=1,NVAR
       IF (.not. DO_FUN(i)) &
-           call autoreduce_1stOrder(i,Y(i),Prod(i),Tstart,Tend)
+           call autoreduce_1stOrder(i,Y(i),Prd0(i),Tstart,Tend)
    ENDDO
 
 !~~~> Succesful exit
