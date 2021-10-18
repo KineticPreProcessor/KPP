@@ -692,7 +692,7 @@ Stage: DO istage = 1, ros_S
 !~~~> Output: Error indicator
    INTEGER, INTENT(OUT) :: IERR
 ! ~~~~ Local variables
-   KPP_REAL :: Ynew(N), Fcn0(N), Fcn(N), Prod(N), Prd0(N), Loss(N)
+   KPP_REAL :: Ynew(N), Fcn0(N), Fcn(N), Prod(N), Prd0(N), Loss(N), Los0(N)
    KPP_REAL :: K(NVAR*ros_S), dFdT(N)
 #ifdef FULL_ALGEBRA    
    KPP_REAL :: Jac0(N,N), Ghimj(N,N)
@@ -715,8 +715,11 @@ Stage: DO istage = 1, ros_S
    REAL(dp) :: Btmp(NVAR) = 0._dp
 
 !~~~>  Initial preparations
+   DO_SLV  = .true.
    DO_FUN  = .true.
+   DO_JVS  = .true.
    Reduced = .false.
+
    T = Tstart
    RSTATUS(Nhexit) = ZERO
    H = MIN( MAX(ABS(Hmin),ABS(Hstart)) , ABS(Hmax) )
@@ -755,8 +758,9 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
    
 !~~~>  Parse species for reduced computation
    if (.not. reduced) then
-      Prd0 = Prod ! Save Prod vector from 1st pass thru TimeLoop
-      CALL Reduce( threshold, Fcn0 ) !<- using Fcn0 assumes we're on 1st pass thru TimeLoop
+      Prd0 = Prod ! Save the initial Prod vector for 1st order approx
+      Los0 = Loss ! Save the initial Loss vector for 1st order approx
+      CALL Reduce( threshold, Prd0, Los0 )
       reduced = .true.
    endif
 !~~~>  Compute the function derivative with respect to T
@@ -898,9 +902,9 @@ Stage: DO istage = 1, ros_S
    ! -- DO_FUN loops over 1,NVAR. Only needs to loop over NVAR-rNVAR
    !    but the structure doesn't exist. Maybe worth considering 
    !    for efficiency purposes.
-   DO i=1,NVAR
+   DO i=1,N
       IF (.not. DO_FUN(i)) &
-           call autoreduce_1stOrder(i,Y(i),Prd0(i),Tstart,Tend)
+           call autoreduce_1stOrder(i,Y(i),Prd0(i),Los0(i),Tstart,Tend)
    ENDDO
 
 !~~~> Succesful exit
@@ -908,14 +912,17 @@ Stage: DO istage = 1, ros_S
 
  END SUBROUTINE ros_cIntegrator
 
- SUBROUTINE AutoReduce_1stOrder(i,Y,P,Ti,Tf)
-   USE KPP_ROOT_GLOBAL, ONLY : RCONST
-   KPP_REAL, INTENT(INOUT) :: Y
-   KPP_REAL, INTENT(IN)    :: P,Ti,Tf
+ SUBROUTINE AutoReduce_1stOrder(i,Y,P,L,Ti,Tf)
+   REAL(kind=dp), INTENT(INOUT) :: Y
+   REAL(kind=dp), INTENT(IN)    :: P,L,Ti,Tf
    INTEGER, INTENT(IN)          :: i
+   REAL(kind=dp)                :: k, term
 
-   IF (RCONST(i) .eq. 0.d0) return
-   Y = (P/RCONST(i))+(Y-(P/RCONST(i)))*exp(-RCONST(i)*(Tf-Ti))
+   if (L .le. 1.d-30) return
+   if (Y .le. 1.d-30) return
+   k    = L/Y
+   term = P/k
+   Y = term+(Y-term)*exp(-k*(Tf-Ti))
  END SUBROUTINE AutoReduce_1stOrder
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1875,11 +1882,11 @@ END SUBROUTINE cWAXPY
 
       END SUBROUTINE cWCOPY
 
-      SUBROUTINE REDUCE(threshold,dcdt)
+      SUBROUTINE REDUCE(threshold,P,L)
         
         USE KPP_ROOT_JacobianSP
 
-        REAL(dp), INTENT(IN) :: dcdt(NVAR), threshold
+        REAL(dp), INTENT(IN) :: P(NVAR), L(NVAR), threshold
         INTEGER              :: iSPC_MAP(NVAR)
         INTEGER              :: i, ii, iii, idx, nrmv, s
 
@@ -1888,7 +1895,8 @@ END SUBROUTINE cWAXPY
         NRMV = 0
         S    = 1
         do i=1,NVAR
-           if (abs(dcdt(i)).le.threshold) then
+           if (abs(L(i)).lt.threshold .and. abs(P(i)).lt.threshold) then
+!           if (abs(dcdt(i)).le.threshold) then
               NRMV=NRMV+1
               DO_SLV(i) = .false.
               DO_FUN(i) = .false.
