@@ -1,3 +1,4 @@
+
 /******************************************************************************
 
   KPP - The Kinetic PreProcessor
@@ -2494,6 +2495,8 @@ int mxyz;
     ExternDeclare(SPC_MAP);
     ExternDeclare(RNVAR);
     ExternDeclare(cNONZERO);
+    /* hplin 10/19/21 */
+    WriteOMPThreadPrivate(" DO_JVS, DO_SLV, DO_FUN, cLU_IROW, cLU_ICOL, cLU_CROW, cLU_DIAG, JVS_MAP, SPC_MAP, rNVAR, cNONZERO "); /* msl_20160419 */
 /*  }*/
   if (useStochastic)
       ExternDeclare( VOLUME );
