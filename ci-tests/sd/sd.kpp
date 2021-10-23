@@ -1,1 +1,6 @@
-../../examples/sd.kpp
+#MODEL      small_strato
+#INTEGRATOR sdirk
+#LANGUAGE   Fortran90
+#DRIVER     general
+#HESSIAN    on
+#STOICMAT   on

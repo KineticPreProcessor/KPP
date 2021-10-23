@@ -1,1 +1,8 @@
-../../int/runge_kutta.def
+ 
+#FUNCTION AGGREGATE
+#JACOBIAN SPARSE_LU_ROW
+
+#DOUBLE ON 
+#INTFILE runge_kutta
+
+
