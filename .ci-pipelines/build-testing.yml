@@ -13,7 +13,8 @@ trigger:
       - dev*
       - patch*
       - bugfix*
-      - tmp_MECCA_ci*
+      - MECCA
+      - MECCA_ci_test
 pr:
   branches:
     include:

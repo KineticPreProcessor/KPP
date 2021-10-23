@@ -9,3 +9,6 @@ src/lex.yy.c
 
 # executables
 bin/
+
+# backup files
+*~
