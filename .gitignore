@@ -8,4 +8,7 @@ src/y.tab.c
 src/lex.yy.c
 
 # executables
-bin/
+bin/kpp
+
+# backup files
+*~
