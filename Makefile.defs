@@ -98,9 +98,10 @@ endif
 
 # Note: Additional systems should be added as needed.
 
-# Exit if we can't find libfl.a (Flex library file)
-ifeq ($(wildcard $(FLEX_LIB_DIR)/*.a),)
- $(error "Could not find the Flex library at $(FLEX_LIB_DIR)!")
-endif
+# Disable this till further notice (bmy, 11/1/21)
+## Exit if we can't find libfl.a (Flex library file)
+#ifeq ($(wildcard $(FLEX_LIB_DIR)/*.a),)
+# $(error "Could not find the Flex library at $(FLEX_LIB_DIR)!")
+#endif
 
 ##############################################################################
