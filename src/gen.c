@@ -90,6 +90,9 @@ char * CommonName;
 int Hess_NZ, *iHess_i, *iHess_j, *iHess_k;
 int nnz_stoicm;
 
+// Prototypes
+void GenerateComputeFamilies(void);
+
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 char * ascii(int x)
 {

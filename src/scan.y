@@ -37,7 +37,11 @@
 %{
   #include <stdio.h>
   #include <stdlib.h>
-  #include <malloc.h>
+  #ifdef MACOS
+   #include <malloc/malloc.h>
+  #else
+   #include <malloc.h>
+  #endif
   #include <string.h>
   #include <unistd.h>
   #include "scan.h"

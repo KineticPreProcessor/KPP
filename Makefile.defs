@@ -32,9 +32,9 @@
 
 # In order to compile KPP you have to provide the following information:
 
-# 1. The name of the compiler you want to use. Normally this 
+# 1. The name of the compiler you want to use. Normally this
 #    is either GNU C compiler (gcc) or the native compiler (cc)
-#    You can use the complete pathname if the compiler is not in $PATH 
+#    You can use the complete pathname if the compiler is not in $PATH
 #    Note that for SUN machines is better to use gcc.
 #    For GNU C compiler use:
 #      CC=gcc
@@ -47,11 +47,11 @@
 #    directory is not included in your path use the complete pathname.
 #
 # 3. The complete pathname of the FLEX library (libfl.a).
-#    On many systems this is either: 
+#    On many systems this is either:
 #    /usr/lib, /usr/lib64, /usr/local/util/lib/flex
 #
-# 4. Platform independent C compiler flags. By default "-O" is used which 
-#    turns on optimization. If you are experiencing problems you may try 
+# 4. Platform independent C compiler flags. By default "-O" is used which
+#    turns on optimization. If you are experiencing problems you may try
 #    "-g" to include debuging informations.
 #
 # 5. Path to include additional directories
@@ -59,7 +59,7 @@
 #               /usr/include/sys on Mac OS X
 
 # The defaults are:
-CC           = gcc 
+CC           = gcc
 FLEX         = flex
 FLEX_LIB_DIR = /usr/lib
 CC_FLAGS     = -g -Wall
@@ -72,10 +72,22 @@ SYSTEM := $(shell uname)
 HOST   := $(shell hostname)
 
 # change settings for specific systems:
+
+# Settings for Linux (uncomment if necessary)
 # ifeq ($(SYSTEM),Linux)
 #   CC_FLAGS     = -O
 #   FLEX_LIB_DIR = /usr/lib64
 # endif
+
+# Settings for MacOS
+# NOTE: IF you have installed flex with HomeBrew, then the
+# libfl.a library file will not be installed to /usr/lib
+# but to /usr/local/Cellar/flex/X.Y.Z/lib.
+#  --  Bob Yantosca (01 Nov 2021)
+ifeq ($(SYSTEM),Darwin)
+  CC_FLAGS     += -DMACOS -O -Wno-implicit-function-declaration
+  FLEX_LIB_DIR := /usr/local/Cellar/flex/2.6.4_2/lib
+endif
 
 # settings for "fluorine" from Rolf Sander:
 ifeq ($(HOST),fluorine)
@@ -85,5 +97,10 @@ ifeq ($(HOST),fluorine)
 endif
 
 # Note: Additional systems should be added as needed.
+
+# Exit if we can't find libfl.a (Flex library file)
+ifeq ($(wildcard $(FLEX_LIB_DIR)/*.a),)
+ $(error "Could not find the Flex library at $(FLEX_LIB_DIR)!")
+endif
 
 ##############################################################################
