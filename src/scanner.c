@@ -411,6 +411,12 @@ void CmdAutoReduce( char *cmd )
   }
   if( EqNoCase( cmd, "ON" ) ) {
     doAutoReduce = 1;
+
+    /* hplin 10/18/21. the first pass it will say none, then the correct integrator. match both */
+    if(strcmp(integrator, "rosenbrock_autoreduce") != 0 && strcmp(integrator, "none") != 0) {
+      ScanError("If #AUTOREDUCE on, #INTEGRATOR must be rosenbrock_autoreduce.");
+    }
+
     return;
   }
   ScanError("'%s': Unknown parameter for #AUTOREDUCE [ON|OFF]", cmd );
