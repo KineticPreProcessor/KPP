@@ -390,7 +390,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
          IERR)
     
 !~~~>  CALL Normal Rosenbrock method
-    IF ( .not. Autoreduce ) &
+    IF ( .not. Autoreduce .or. IERR .eq. -99 ) &
          CALL ros_Integrator(Y, Tstart, Tend, Texit,   &
          AbsTol, RelTol,                          &
          !  Integration parameters
@@ -711,9 +711,6 @@ Stage: DO istage = 1, ros_S
 !    EXTERNAL WLAMCH
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   REAL(dp) :: Atmp(LU_NONZERO) = 0._dp
-   REAL(dp) :: Btmp(NVAR) = 0._dp
-
 !~~~>  Initial preparations
    DO_SLV  = .true.
    DO_FUN  = .true.
@@ -760,8 +757,9 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
    if (.not. reduced) then
       Prd0 = Prod ! Save the initial Prod vector for 1st order approx
       Los0 = Loss ! Save the initial Loss vector for 1st order approx
-      CALL Reduce( threshold, Prd0, Los0 )
+      CALL Reduce( threshold, Prd0, Los0*Y, IERR )
       reduced = .true.
+      if (IERR .eq. -99) return
    endif
 !~~~>  Compute the function derivative with respect to T
    IF (.NOT.Autonomous) THEN
@@ -824,7 +822,7 @@ Stage: DO istage = 1, ros_S
          HG = Direction*H*ros_Gamma(istage)
          CALL WAXPY(rNVAR,HG,dFdT,1,K(ioffset+1),1)
       END IF
-      CALL ros_cSolve(Ghimj, Pivot, K(ioffset+1), Atmp, Btmp, JVS_MAP, SPC_MAP)
+      CALL ros_cSolve(Ghimj(1:cNONZERO), Pivot, K(ioffset+1), JVS_MAP, SPC_MAP)
        
    END DO Stage
 
@@ -1092,7 +1090,7 @@ Stage: DO istage = 1, ros_S
  
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE ros_cSolve( A, Pivot, b, Atmp, Btmp, map1, map2 )
+  SUBROUTINE ros_cSolve( A, Pivot, b, map1, map2 )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the forward/backward substitution (using pre-computed LU decomposition)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1107,7 +1105,7 @@ Stage: DO istage = 1, ros_S
    INTEGER, INTENT(IN) :: Pivot(N)
 !~~~> InOut variables
    KPP_REAL, INTENT(INOUT) :: b(rNVAR)
-   INTEGER, INTENT(IN)          :: map1(cNONZERO), map2(rNVAR)
+   INTEGER, INTENT(IN)          :: map1(LU_NONZERO), map2(NVAR)
    KPP_REAL                :: btmp(N), Atmp(LU_NONZERO)
 
 #ifdef FULL_ALGEBRA    
@@ -1117,12 +1115,14 @@ Stage: DO istage = 1, ros_S
    END IF  
 #else   
 
-   Atmp(map1) = A
-   btmp(map2) = b
+   Atmp = 0.d0
+   Btmp = 0.d0
+   Atmp(map1(1:cNONZERO)) = A
+   btmp(map2(1:rNVAR))    = b
 !   call cWCOPY(cNONZERO,LU_NONZERO,A,1,Atmp,1,map1)
 !   call cWCOPY(rNVAR,NVAR,B,1,Btmp,1,map2)
    CALL KppSolve( Atmp, btmp )
-   b = btmp(map2)
+   b = btmp(map2(1:rNVAR))
 #endif
 
    ISTATUS(Nsol) = ISTATUS(Nsol) + 1
@@ -1710,6 +1710,8 @@ SUBROUTINE FunSplitTemplate( T, Y, Ydot, P_VAR, D_VAR )
 !~~~> Local variables
    KPP_REAL :: Told, P(NVAR), D(NVAR)
 
+   P    = 0.d0
+   D    = 0.d0
    Told = TIME
    TIME = T
    CALL Fun_SPLIT( Y, FIX, RCONST, P, D )
@@ -1881,18 +1883,25 @@ END SUBROUTINE cWAXPY
 
       END SUBROUTINE cWCOPY
 
-      SUBROUTINE REDUCE(threshold,P,L)
+      SUBROUTINE REDUCE(threshold,P,L,IERR)
         
         USE KPP_ROOT_JacobianSP
 
         REAL(dp), INTENT(IN) :: P(NVAR), L(NVAR), threshold
         INTEGER              :: iSPC_MAP(NVAR)
         INTEGER              :: i, ii, iii, idx, nrmv, s
+        INTEGER              :: IERR
 
         iSPC_MAP = 0
         
         NRMV = 0
         S    = 1
+
+        if (maxval(P) .lt. threshold .and. maxval(L) .lt. threshold) then
+           IERR = -99
+           return
+        endif
+
         do i=1,NVAR
            if (abs(L(i)).lt.threshold .and. abs(P(i)).lt.threshold) then
 !           if (abs(dcdt(i)).le.threshold) then
@@ -1906,6 +1915,11 @@ END SUBROUTINE cWAXPY
            S=S+1
         ENDDO
         rNVAR    = NVAR-NRMV ! Number of active species in the reduced mechanism
+        if (real(rNVAR)/real(NVAR) .lt. 0.1) then
+           IERR = -99
+!           write(*,*) 'Reverting... -99'
+           return
+        endif
         
         II  = 1
         III = 1
