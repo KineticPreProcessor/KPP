@@ -374,7 +374,8 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
     IF (RCNTRL(8) > ZERO) THEN
        Redux_Threshold = RCNTRL(8)
     ELSEIF (RCNTRL(8) < ZERO) THEN
-       PRINT *, 'Auto-reduction Threshold < 0. Defaulting to ', Redux_Threshold
+       Autoreduce = .false.
+!       PRINT *, 'Auto-reduction Threshold < 0. Defaulting to ', Redux_Threshold
     ENDIF
 !~~~>  CALL Auto-reducing Rosenbrock method
     IF ( Autoreduce ) &
@@ -759,7 +760,13 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
       Los0 = Loss ! Save the initial Loss vector for 1st order approx
       CALL Reduce( threshold, Prd0, Los0*Y, IERR )
       reduced = .true.
-      if (IERR .eq. -99) return
+      if (IERR .eq. -98) then ! rNVAR is zero, do only 1st order approx and exit (success)
+         DO i=1,N
+            call autoreduce_1stOrder(i,Y(i),Prd0(i),Los0(i),Tstart,Tend)
+         ENDDO
+         IERR = 1 ! Success
+         return
+      endif
    endif
 !~~~>  Compute the function derivative with respect to T
    IF (.NOT.Autonomous) THEN
@@ -1891,20 +1898,24 @@ END SUBROUTINE cWAXPY
         INTEGER              :: iSPC_MAP(NVAR)
         INTEGER              :: i, ii, iii, idx, nrmv, s
         INTEGER              :: IERR
+        LOGICAL              :: SKIP
 
         iSPC_MAP = 0
         
         NRMV = 0
         S    = 1
 
-        if (maxval(P) .lt. threshold .and. maxval(L) .lt. threshold) then
-           IERR = -99
+        ! If all species will be deactivated, just to 1st order approx
+        if (maxval(P) .lt. threshold .and. maxval(L) .lt. threshold .and. .not. keepActive) then
+           IERR = -98
            return
         endif
 
         do i=1,NVAR
-           if (abs(L(i)).lt.threshold .and. abs(P(i)).lt.threshold) then
-!           if (abs(dcdt(i)).le.threshold) then
+           SKIP = .false. ! Assume not kept active.
+           if (keepactive .and. keepSpcActive(i)) SKIP = .true. ! Keep this species active
+           if (abs(L(i)).lt.threshold .and. abs(P(i)).lt.threshold .and. .not. SKIP) then ! per Shen et al., 2020
+!           if (abs(dcdt(i)).le.threshold) then ! per Santillana et al., 2010)
               NRMV=NRMV+1
               DO_SLV(i) = .false.
               DO_FUN(i) = .false.
@@ -1915,12 +1926,7 @@ END SUBROUTINE cWAXPY
            S=S+1
         ENDDO
         rNVAR    = NVAR-NRMV ! Number of active species in the reduced mechanism
-        if (real(rNVAR)/real(NVAR) .lt. 0.1) then
-           IERR = -99
-!           write(*,*) 'Reverting... -99'
-           return
-        endif
-        
+
         II  = 1
         III = 1
         idx = 0

@@ -79,7 +79,7 @@ int FLUX_MAP;
 int FAM,NFAM;
 int Jac_NZ, LU_Jac_NZ, nzr;
 int DO_SLV,DO_JVS,DO_FUN,cLU_IROW,cLU_ICOL,cLU_DIAG,cLU_CROW;
-int SPC_MAP,JVS_MAP,RNVAR,cNONZERO;
+int SPC_MAP,JVS_MAP,RNVAR,cNONZERO,keepActive,keepSpcActive;
 
 NODE *sum, *prod;
 int real;
@@ -264,18 +264,20 @@ int i,j;
   CFACTOR  = DefElm( "CFACTOR", real, "Conversion factor for concentration units");
   
   /* Autoreduction structures */
-  NVARP1       = DefConst( "NVAR+1",  INT, "Number of Variable species + 1" );
-  DO_JVS   = DefvElm("DO_JVS", LOGICAL, -LU_NONZERO, "");
-  DO_SLV   = DefvElm("DO_SLV", LOGICAL, -NVARP1    , "");
-  DO_FUN   = DefvElm("DO_FUN", LOGICAL, -NVAR      , "");
-  cLU_IROW = DefvElm("cLU_IROW", INT, -LU_NONZERO  , "");
-  cLU_ICOL = DefvElm("cLU_ICOL", INT, -LU_NONZERO  , "");
-  cLU_CROW = DefvElm("cLU_CROW", INT, -NVARP1  , "");
-  cLU_DIAG = DefvElm("cLU_DIAG", INT, -NVARP1  , "");
-  JVS_MAP  = DefvElm("JVS_MAP", INT, -LU_NONZERO, "");
-  SPC_MAP  = DefvElm("SPC_MAP", INT, -NVAR, "");
-  RNVAR    = DefElm("rNVAR", INT, "");
-  cNONZERO = DefElm("cNONZERO", INT, "");
+  NVARP1        = DefConst( "NVAR+1",  INT, "Number of Variable species + 1" );
+  DO_JVS        = DefvElm("DO_JVS", LOGICAL, -LU_NONZERO, "");
+  DO_SLV        = DefvElm("DO_SLV", LOGICAL, -NVARP1    , "");
+  DO_FUN        = DefvElm("DO_FUN", LOGICAL, -NVAR      , "");
+  cLU_IROW      = DefvElm("cLU_IROW", INT, -LU_NONZERO  , "");
+  cLU_ICOL      = DefvElm("cLU_ICOL", INT, -LU_NONZERO  , "");
+  cLU_CROW      = DefvElm("cLU_CROW", INT, -NVARP1  , "");
+  cLU_DIAG      = DefvElm("cLU_DIAG", INT, -NVARP1  , "");
+  JVS_MAP       = DefvElm("JVS_MAP", INT, -LU_NONZERO, "");
+  SPC_MAP       = DefvElm("SPC_MAP", INT, -NVAR, "");
+  RNVAR         = DefElm("rNVAR", INT, "");
+  cNONZERO      = DefElm("cNONZERO", INT, "");
+  keepSpcActive = DefvElm("KEEPSPCACTIVE", LOGICAL, -NVAR, "");
+  keepActive    = DefElm("KEEPACTIVE", LOGICAL,"");
 
   /* Elements of Stochastic simulation*/
   NMLCV = DefvElm( "NmlcV", INT, -NVAR, "No. molecules of variable species" );
@@ -2483,7 +2485,7 @@ int mxyz;
   ExternDeclare( STEPMIN );
   ExternDeclare( STEPMAX );
   ExternDeclare( CFACTOR );
-/*  if (doAutoReduce) {*/
+  if (doAutoReduce) {
     ExternDeclare(DO_JVS);
     ExternDeclare(DO_SLV);
     ExternDeclare(DO_FUN);
@@ -2495,9 +2497,12 @@ int mxyz;
     ExternDeclare(SPC_MAP);
     ExternDeclare(RNVAR);
     ExternDeclare(cNONZERO);
+    ExternDeclare(keepSpcActive);
+    ExternDeclare(keepActive);
     /* hplin 10/19/21 */
-    WriteOMPThreadPrivate(" DO_JVS, DO_SLV, DO_FUN, cLU_IROW, cLU_ICOL, cLU_CROW, cLU_DIAG, JVS_MAP, SPC_MAP, rNVAR, cNONZERO "); /* msl_20160419 */
-/*  }*/
+    WriteOMPThreadPrivate(" DO_JVS, DO_SLV, DO_FUN, cLU_IROW, cLU_ICOL, cLU_CROW");
+    WriteOMPThreadPrivate(" cLU_DIAG, JVS_MAP, SPC_MAP, rNVAR, cNONZERO, KEEPACTIVE "); /* msl_20160419 */
+  }
   if (useStochastic)
       ExternDeclare( VOLUME );
 
