@@ -691,7 +691,35 @@ int F_VAR, FSPLIT_VAR;
     fprintf(functionFile, "  REAL(kind=dp), OPTIONAL :: Aout(NREACT)\n");
     /*---end---*/
   } else {
-    FunctionBegin( FSPLIT_VAR, V, F, RCT, P_VAR, D_VAR );
+  /* KPP-autoreduce, include Aout for diagnostic in split form as well (Haipeng Lin, 02 Dec 2021) */
+    /*---begin---*/
+    fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+    fprintf(functionFile, "!\n");
+    fprintf(functionFile, "! Fun_SPLIT - Fun_SPLIT - time derivatives of variables - Split form\n");
+    fprintf(functionFile, "!   Arguments :\n");
+    fprintf(functionFile, "!      V         - Concentrations of variable species (local)\n");
+    fprintf(functionFile, "!      F         - Concentrations of fixed species (local)\n");
+    fprintf(functionFile, "!      RCT       - Rate constants (local)\n");
+    fprintf(functionFile, "!      P_VAR     - Production term\n");
+    fprintf(functionFile, "!      D_VAR     - Destruction term\n");
+    fprintf(functionFile, "!      Aout      - Array to return rxn rates for diagnostics (OPTIONAL)\n");
+    fprintf(functionFile, "!\n");
+    fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
+    fprintf(functionFile, "SUBROUTINE Fun_SPLIT ( V, F, RCT, P_VAR, D_VAR, Aout )\n\n");
+    fprintf(functionFile, "! V - Concentrations of variable species (local)\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: V(NVAR)\n");
+    fprintf(functionFile, "! F - Concentrations of fixed species (local)\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: F(NFIX)\n");
+    fprintf(functionFile, "! RCT - Rate constants (local)\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: RCT(NREACT)\n");
+    fprintf(functionFile, "! P_VAR - Production term\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: P_VAR(NVAR)\n");
+    fprintf(functionFile, "! D_VAR - Destruction term\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: D_VAR(NVAR)\n");
+    fprintf(functionFile, "!### Aout - Array for returning KPP reaction rates for diagnostics\n");
+    fprintf(functionFile, "  REAL(kind=dp), OPTIONAL :: Aout(NREACT)\n");
+    /*---end---*/
+    /* FunctionBegin( FSPLIT_VAR, V, F, RCT, P_VAR, D_VAR ); */
   }
  
   if ( (useLang==MATLAB_LANG)&&(!useAggregate) )
@@ -764,6 +792,13 @@ int F_VAR, FSPLIT_VAR;
     }
 
   } else {
+
+    /* hplin 12/2/21 also add Aout */
+    /*---begin---*/
+    fprintf(functionFile, "\n\n!### KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)\n");
+    fprintf(functionFile, "!### Use Aout to return reaction rates\n");
+    fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n\n");
+    /*---end---*/
 
     NewLines(1);
     WriteComment("Production function");
