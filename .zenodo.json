@@ -1,0 +1,20 @@
+{
+    "access_right": "open",
+    "creators": [
+	{
+	    "name": "The International GEOS-Chem User Community"
+	}
+    ],
+    "description": "The Kinetic Pre-Processor (KPP), with modifications for GEOS-Chem",
+    "keywords": [
+	"atmospheric-chemistry",
+	"atmospheric-composition",
+	"atmospheric-modeling",
+	"chemistry-solver",
+	"climate-modeling",
+	"fortran-90",
+	"geos-chem"
+    ],
+    "license": "mit-license",
+    "upload_type": "software"
+}

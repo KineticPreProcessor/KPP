@@ -3,19 +3,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.2_gc]
+
+### Added
+
+- Workaround for F90 derived-type objects in inlined code (i.e. properly parse State_Het%xArea, etc).
+- Write global variables NUMDEN, MW, SR_MW, SR_TEMP, TEMP_OVER_K300, K300_OVER_TEMP to gckpp_Global.F90
+- Documentation for ReadTheDocs (in the docs folder)
+- Github issue templates
+
+### Changed
+
+- MAX_INLINE (max # of inlined code lines to read) is now 200000
+- Version number in gdata.h is now 2.3.2
+- README.md now contains the ReadTheDocs badge
+- README.md now points to kpp.readthedocs.io for documentation
+
+### Removed
+
+- Comment out the Update_Sun() functions in update_sun.F90, update_sun.F
+- Default rate law functions are no longer written to gckpp_Rates.F90
+
 ## [2.3.1_gc]
 
 ### Added
 
 - Documentation for ReadTheDocs (in the docs folder)
-- Github issue templates	
+- Github issue templates
 
 ### Changed
 
 - Version number in gdata.h is now 2.3.1
 - README.md now contains the ReadTheDocs badge
 - README.md now points to kpp.readthedocs.io for documentation
-	
+
 ## [2.3.0_gc]
 
 ### Added

@@ -230,7 +230,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
    KPP_REAL :: Hmin, Hmax, Hstart
    KPP_REAL :: Texit
    INTEGER       :: i, UplimTol, Max_no_steps
-   LOGICAL       :: Autonomous, VectorTol
+   LOGICAL       :: Autonomous, VectorTol, Do_Update_Rates
 !~~~>   Parameters
    KPP_REAL, PARAMETER :: ZERO = 0.0_dp, ONE  = 1.0_dp
    KPP_REAL, PARAMETER :: DeltaMin = 1.0E-5_dp
@@ -241,6 +241,9 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 
 !~~~>  Autonomous or time dependent ODE. Default is time dependent.
    Autonomous = .NOT.(ICNTRL(1) == 0)
+
+!~~~>  Update rates within the integration step
+   Do_Update_Rates = ( ICNTRL(15) == 1 )
 
 !~~~>  For Scalar tolerances (ICNTRL(2).NE.0)  the code uses AbsTol(1) and RelTol(1)
 !   For Vector tolerances (ICNTRL(2) == 0) the code uses AbsTol(1:N) and RelTol(1:N)
@@ -374,6 +377,11 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
         Autonomous, VectorTol, Max_no_steps,     &
         Roundoff, Hmin, Hmax, Hstart,            &
         FacMin, FacMax, FacRej, FacSafe,         &
+!============================================================================
+! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
+! Pass Do_Update_Rates, which is needed for routine FunTemplate.
+        Do_Update_Rates,                         & 
+!============================================================================
 !  Error indicator
         IERR)
 
@@ -381,11 +389,11 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 CONTAINS !  SUBROUTINES internal to Rosenbrock
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  SUBROUTINE ros_ErrorMsg(Code,T,H,IERR)
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !    Handles all error messages
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   
    KPP_REAL, INTENT(IN) :: T, H
    INTEGER, INTENT(IN)  :: Code
@@ -428,6 +436,7 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
         Autonomous, VectorTol, Max_no_steps,     &
         Roundoff, Hmin, Hmax, Hstart,            &
         FacMin, FacMax, FacRej, FacSafe,         &
+        Do_Update_Rates,                         &
 !~~~> Error indicator
         IERR )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -447,7 +456,7 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
 !~~~> Input: tolerances
    KPP_REAL, INTENT(IN) ::  AbsTol(N), RelTol(N)
 !~~~> Input: integration parameters
-   LOGICAL, INTENT(IN) :: Autonomous, VectorTol
+   LOGICAL, INTENT(IN) :: Autonomous, VectorTol, Do_Update_Rates
    KPP_REAL, INTENT(IN) :: Hstart, Hmin, Hmax
    INTEGER, INTENT(IN) :: Max_no_steps
    KPP_REAL, INTENT(IN) :: Roundoff, FacMin, FacMax, FacRej, FacSafe
@@ -508,13 +517,24 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
    H = MIN(H,ABS(Tend-T))
 
 !~~~>   Compute the function at current time
-   CALL FunTemplate(T,Y,Fcn0)
+   CALL FunTemplate( T, Y,            &
+!============================================================================
+! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
+! Pass Do_Update_Rates, which is needed for routine FunTemplate.
+                     Do_Update_Rates, &
+!============================================================================
+                     Fcn0 )
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 
 !~~~>  Compute the function derivative with respect to T
    IF (.NOT.Autonomous) THEN
-      CALL ros_FunTimeDerivative ( T, Roundoff, Y, &
-                Fcn0, dFdT )
+      CALL ros_FunTimeDerivative( T, Roundoff, Y,  &
+!============================================================================
+! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
+! Pass Do_Update_Rates, which is needed for routine FunTemplate.
+                                  Do_Update_Rates, &
+!============================================================================
+                                  Fcn0, dFdT )
    END IF
 
 !~~~>   Compute the Jacobian at current time
@@ -550,7 +570,13 @@ Stage: DO istage = 1, ros_S
             K(N*(j-1)+1),1,Ynew,1)
          END DO
          Tau = T + ros_Alpha(istage)*Direction*H
-         CALL FunTemplate(Tau,Ynew,Fcn)
+         CALL FunTemplate( Tau, Ynew,       &
+!============================================================================
+! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
+! Pass Do_Update_Rates, which is needed for routine FunTemplate.
+                           Do_Update_Rates, &
+!============================================================================
+                           Fcn )
          ISTATUS(Nfun) = ISTATUS(Nfun) + 1
        END IF ! if istage == 1 elseif ros_NewF(istage)
        !slim: CALL WCOPY(N,Fcn,1,K(ioffset+1),1)
@@ -661,8 +687,12 @@ Stage: DO istage = 1, ros_S
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE ros_FunTimeDerivative ( T, Roundoff, Y, &
-                Fcn0, dFdT )
+  SUBROUTINE ros_FunTimeDerivative ( T, Roundoff, Y,   &
+!============================================================================
+! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
+                                     Do_Update_Rates,  &
+!============================================================================
+                                     Fcn0, dFdT )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~> The time partial derivative of the function by finite differences
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -670,6 +700,7 @@ Stage: DO istage = 1, ros_S
 
 !~~~> Input arguments
    KPP_REAL, INTENT(IN) :: T, Roundoff, Y(N), Fcn0(N)
+   LOGICAL,  INTENT(IN) :: Do_Update_Rates
 !~~~> Output arguments
    KPP_REAL, INTENT(OUT) :: dFdT(N)
 !~~~> Local variables
@@ -677,7 +708,12 @@ Stage: DO istage = 1, ros_S
    KPP_REAL, PARAMETER :: ONE = 1.0_dp, DeltaMin = 1.0E-6_dp
 
    Delta = SQRT(Roundoff)*MAX(DeltaMin,ABS(T))
-   CALL FunTemplate(T+Delta,Y,dFdT)
+   CALL FunTemplate( T+Delta, Y,       &
+!============================================================================
+! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
+                     Do_Update_Rates,  &
+!============================================================================
+                     dFdT )
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
    CALL WAXPY(N,(-ONE),Fcn0,1,dFdT,1)
    CALL WSCAL(N,(ONE/Delta),dFdT,1)
@@ -685,7 +721,7 @@ Stage: DO istage = 1, ros_S
   END SUBROUTINE ros_FunTimeDerivative
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE ros_PrepareMatrix ( H, Direction, gam, &
              Jac0, Ghimj, Pivot, Singular )
 ! --- --- --- --- --- --- --- --- --- --- --- --- ---
@@ -767,11 +803,11 @@ Stage: DO istage = 1, ros_S
   END SUBROUTINE ros_PrepareMatrix
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE ros_Decomp( A, Pivot, ISING )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the LU decomposition
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    IMPLICIT NONE
 !~~~> Inout variables
 #ifdef FULL_ALGEBRA    
@@ -793,11 +829,12 @@ Stage: DO istage = 1, ros_S
   END SUBROUTINE ros_Decomp
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE ros_Solve( A, Pivot, b )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-!  Template for the forward/backward substitution (using pre-computed LU decomposition)
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!  Template for the forward/backward substitution 
+!  (using pre-computed LU decomposition)
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    IMPLICIT NONE
 !~~~> Input variables
 #ifdef FULL_ALGEBRA    
@@ -825,11 +862,11 @@ Stage: DO istage = 1, ros_S
 
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Ros2
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ! --- AN L-STABLE METHOD, 2 stages, order 2
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
    DOUBLE PRECISION g
@@ -873,11 +910,11 @@ Stage: DO istage = 1, ros_S
  END SUBROUTINE Ros2
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Ros3
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ! --- AN L-STABLE METHOD, 3 stages, order 3, 2 function evaluations
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
    rosMethod = RS3
@@ -927,12 +964,12 @@ Stage: DO istage = 1, ros_S
 
   END SUBROUTINE Ros3
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Ros4
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !     L-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 4 STAGES
 !     L-STABLE EMBEDDED ROSENBROCK METHOD OF ORDER 3
 !
@@ -940,7 +977,7 @@ Stage: DO istage = 1, ros_S
 !      EQUATIONS II. STIFF AND DIFFERENTIAL-ALGEBRAIC PROBLEMS.
 !      SPRINGER SERIES IN COMPUTATIONAL MATHEMATICS,
 !      SPRINGER-VERLAG (1990)
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
 
@@ -1002,11 +1039,11 @@ Stage: DO istage = 1, ros_S
 
   END SUBROUTINE Ros4
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Rodas3
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ! --- A STIFFLY-STABLE METHOD, 4 stages, order 3
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
 
@@ -1069,16 +1106,16 @@ Stage: DO istage = 1, ros_S
 
   END SUBROUTINE Rodas3
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Rodas4
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !     STIFFLY-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 6 STAGES
 !
 !      E. HAIRER AND G. WANNER, SOLVING ORDINARY DIFFERENTIAL
 !      EQUATIONS II. STIFF AND DIFFERENTIAL-ALGEBRAIC PROBLEMS.
 !      SPRINGER SERIES IN COMPUTATIONAL MATHEMATICS,
 !      SPRINGER-VERLAG (1996)
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
 
@@ -1172,9 +1209,9 @@ Stage: DO istage = 1, ros_S
     ros_ELO = 4.0_dp
 
   END SUBROUTINE Rodas4
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Rang3
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ! STIFFLY-STABLE W METHOD OF ORDER 3, WITH 4 STAGES
 !
 ! J. RANG and L. ANGERMANN
@@ -1184,7 +1221,7 @@ Stage: DO istage = 1, ros_S
 ! BIT Numerical Mathematics (2005) 45: 761-787
 !  DOI: 10.1007/s10543-005-0035-y
 ! Table 4.1-4.2
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
 
@@ -1241,26 +1278,37 @@ Stage: DO istage = 1, ros_S
     ros_ELO = 3.0_dp
 
   END SUBROUTINE Rang3
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !   End of the set of internal Rosenbrock subroutines
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 END SUBROUTINE Rosenbrock
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBROUTINE FunTemplate( T, Y, Ydot )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SUBROUTINE FunTemplate( T, Y,            &
+!============================================================================
+! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
+                        Do_Update_Rates, &
+!============================================================================
+                        Ydot )
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the ODE function call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
  USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
  USE KPP_ROOT_Function, ONLY: Fun
+!============================================================================
+! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
+ USE KPP_ROOT_Rates, ONLY : Update_Rconst
+!============================================================================
+
 !~~~> Input variables
    KPP_REAL :: T, Y(NVAR)
+   LOGICAL  :: Do_Update_Rates
 !~~~> Output variables
    KPP_REAL :: Ydot(NVAR)
 !~~~> Local variables
@@ -1268,18 +1316,30 @@ SUBROUTINE FunTemplate( T, Y, Ydot )
 
    Told = TIME
    TIME = T
+
+!============================================================================
+! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
+! Following https://github.com/geoschem/KPP/issues/5, we have restored
+! the option to update the reaction rates from within the integrator
+! step.  This is toggled with option ICNTRL(15) == 1, which gets
+! assigned to logical flag Do_Update_Rates in routine Ros_Integrator 
+! and passed here.  For GEOS-Chem and other models, we typically update 
+! the reaction rates outside of KPP for computational expediency.
+   IF ( Do_Update_Rates ) CALL Update_Rconst()
+!============================================================================
+
    CALL Fun( Y, FIX, RCONST, Ydot )
    TIME = Told
 
 END SUBROUTINE FunTemplate
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SUBROUTINE JacTemplate( T, Y, Jcb )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the ODE Jacobian call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
  USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
  USE KPP_ROOT_Jacobian, ONLY: Jac_SP, LU_IROW, LU_ICOL

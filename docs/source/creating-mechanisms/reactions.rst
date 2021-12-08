@@ -65,11 +65,19 @@ For many reactions, the calculation of k follows the Arrhenius law:
 
 .. code-block:: none
 
-   k = a0 + ( 300 / TEMP )**b0 + EXP( c0 / TEMP )
+   k = a0 * ( 300 / TEMP )**b0 * EXP( c0 / TEMP )
 
-For example, the JPL chemical data evaluation (Feb 2017) specifies that
-the reaction O3 + NO produces NO2 and O2, and its Arrhenius parameters
-are A = 3.0x10^-12 and E/R = c0 = 1500.
+.. important:: In relation to Arrhenius parameters that you may find
+	       in scientific literature, ``a0`` represents the
+	       ``A`` term and ``c0`` represents ``-E/R`` (not
+	       ``E/R``, which is usually listed). 
+
+For example, the  
+`JPL chemical data evaluation <https://jpldataeval.jpl.nasa.gov>`__),
+(Feb 2017) specifies that the reaction O3 + NO produces NO2 and O2, and its
+Arrhenius parameters are ``A`` = 3.0x10^-12 and ``E/R`` = 1500.   To
+use the Arrhenius formulation above, we must specify ``a0 = 3.0e-12``
+and ``c0 = -1500``.
 
 To specify a two-body reaction whose rate follows the Arrhenius law, you
 can use the :code:`GCARR` rate-law function, which is defined in
