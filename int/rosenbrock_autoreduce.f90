@@ -773,7 +773,7 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
    if ( reduced ) then
 !      if (any(abs(Loss(RMV(1:rNVAR))*Y(RMV(1:rNVAR))).gt.threshold .or. abs(Prod(RMV(1:rNVAR))).gt.threshold))then
 !      tRMV = RMV
-      DO i=1,NVAR-rNVAR
+      DO i=1,NVAR!-rNVAR
          SPC = RMV(i)
          if (SPC .eq. 0) cycle ! Species is already appended
          if (abs(Loss(SPC)*Y(SPC)).gt.threshold .or. abs(Prod(SPC)).gt.threshold) then
