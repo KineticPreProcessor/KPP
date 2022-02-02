@@ -78,7 +78,7 @@ int NMLCV, NMLCF, SCT, PROPENSITY, VOLUME, IRCT;
 int FAM,NFAM;
 int Jac_NZ, LU_Jac_NZ, nzr;
 int DO_SLV,DO_JVS,DO_FUN,cLU_IROW,cLU_ICOL,cLU_DIAG,cLU_CROW;
-int SPC_MAP,JVS_MAP,RNVAR,cNONZERO,keepActive,keepSpcActive;
+int SPC_MAP,iSPC_MAP,RMV,JVS_MAP,RNVAR,cNONZERO,keepActive,keepSpcActive;
 
 NODE *sum, *prod;
 int real;
@@ -273,6 +273,8 @@ int i,j;
   cLU_DIAG      = DefvElm("cLU_DIAG", INT, -NVARP1  , "");
   JVS_MAP       = DefvElm("JVS_MAP", INT, -LU_NONZERO, "");
   SPC_MAP       = DefvElm("SPC_MAP", INT, -NVAR, "");
+  iSPC_MAP      = DefvElm("iSPC_MAP", INT, -NVAR, "");
+  RMV           = DefvElm("RMV", INT, -NVAR, "");
   RNVAR         = DefElm("rNVAR", INT, "");
   cNONZERO      = DefElm("cNONZERO", INT, "");
   keepSpcActive = DefvElm("KEEPSPCACTIVE", LOGICAL, -NVAR, "");
@@ -2494,13 +2496,15 @@ int mxyz;
     ExternDeclare(cLU_DIAG);
     ExternDeclare(JVS_MAP);
     ExternDeclare(SPC_MAP);
+    ExternDeclare(iSPC_MAP);
+    ExternDeclare(RMV);
     ExternDeclare(RNVAR);
     ExternDeclare(cNONZERO);
     ExternDeclare(keepSpcActive);
     ExternDeclare(keepActive);
     /* hplin 10/19/21 */
     WriteOMPThreadPrivate(" DO_JVS, DO_SLV, DO_FUN, cLU_IROW, cLU_ICOL, cLU_CROW");
-    WriteOMPThreadPrivate(" cLU_DIAG, JVS_MAP, SPC_MAP, rNVAR, cNONZERO, KEEPACTIVE "); /* msl_20160419 */
+    WriteOMPThreadPrivate(" cLU_DIAG, JVS_MAP, SPC_MAP, iSPC_MAP, RMV, rNVAR, cNONZERO, KEEPACTIVE "); /* msl_20160419 */
   }
   if (useStochastic)
       ExternDeclare( VOLUME );
@@ -3371,9 +3375,9 @@ int n;
   /*if ( doFlux == 1 ) {
     printf("\nKPP is generating the ODE function with flux enabled:");
   }
-  else {
+  else {*/
     printf("\nKPP is generating the ODE function:");
-  }
+  /*}*/
   printf("\n    - %s_Function",rootFileName);
   GenerateFun();
   /*if (doFlux == 1)<-- make GenerateFlux automatic until a REDUX toggle is inlcuded */

@@ -707,6 +707,7 @@ Stage: DO istage = 1, ros_S
 !~~~>  Local parameters
    KPP_REAL, PARAMETER :: ZERO = 0.0_dp, ONE  = 1.0_dp
    KPP_REAL, PARAMETER :: DeltaMin = 1.0E-5_dp
+   INTEGER :: SPC!, RLOC, tRMV(N)
 !~~~>  Locally called functions
 !    KPP_REAL WLAMCH
 !    EXTERNAL WLAMCH
@@ -768,6 +769,25 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
          return
       endif
    endif
+!>>> IF reduced, check Prod/Loss for append() condition
+   if ( reduced ) then
+!      if (any(abs(Loss(RMV(1:rNVAR))*Y(RMV(1:rNVAR))).gt.threshold .or. abs(Prod(RMV(1:rNVAR))).gt.threshold))then
+!      tRMV = RMV
+      DO i=1,NVAR-rNVAR
+         SPC = RMV(i)
+         if (SPC .eq. 0) cycle ! Species is already appended
+         if (abs(Loss(SPC)*Y(SPC)).gt.threshold .or. abs(Prod(SPC)).gt.threshold) then
+            CALL APPEND(SPC)
+            RMV(i) = 0
+!            ! Collapse the RMV() vector            
+!            RLOC                      = findloc(RMV,SPC,1) ! Set the location of species IDX to 0
+!            tRMV(RLOC:NVAR-1)         = RMV(RLOC+1:NVAR)
+         endif
+      ENDDO
+!      RMV = tRMV
+!      endif
+   endif
+!>>>
 !~~~>  Compute the function derivative with respect to T
    IF (.NOT.Autonomous) THEN
       CALL ros_FunTimeDerivative ( T, Roundoff, Y, &
@@ -908,7 +928,7 @@ Stage: DO istage = 1, ros_S
    !    but the structure doesn't exist. Maybe worth considering 
    !    for efficiency purposes.
    DO i=1,N
-      IF (.not. DO_FUN(i)) &
+      IF (.not. DO_SLV(i)) &
            call autoreduce_1stOrder(i,Y(i),Prd0(i),Los0(i),Tstart,Tend)
    ENDDO
 
@@ -1895,7 +1915,7 @@ END SUBROUTINE cWAXPY
         USE KPP_ROOT_JacobianSP
 
         REAL(dp), INTENT(IN) :: P(NVAR), L(NVAR), threshold
-        INTEGER              :: iSPC_MAP(NVAR)
+!        INTEGER              :: iSPC_MAP(NVAR)
         INTEGER              :: i, ii, iii, idx, nrmv, s
         INTEGER              :: IERR
         LOGICAL              :: SKIP
@@ -1917,8 +1937,9 @@ END SUBROUTINE cWAXPY
            if (abs(L(i)).lt.threshold .and. abs(P(i)).lt.threshold .and. .not. SKIP) then ! per Shen et al., 2020
 !           if (abs(dcdt(i)).le.threshold) then ! per Santillana et al., 2010)
               NRMV=NRMV+1
+              RMV(NRMV) = i
               DO_SLV(i) = .false.
-              DO_FUN(i) = .false.
+              !DO_FUN(i) = .false.
               cycle
            endif
            SPC_MAP(S)  = i
@@ -1932,7 +1953,7 @@ END SUBROUTINE cWAXPY
         idx = 0
         DO i = 1,LU_NONZERO
            IF ((DO_SLV(LU_IROW(i))).and.(DO_SLV(LU_ICOL(i)))) THEN
-              idx=idx+1
+              idx=idx+1 ! counter for the number of non-zero elements in the reduced Jacobian
               cLU_IROW(idx) = iSPC_MAP(LU_IROW(i))
               cLU_ICOL(idx) = iSPC_MAP(LU_ICOL(i))
               JVS_MAP(idx)  = i
@@ -1959,6 +1980,44 @@ END SUBROUTINE cWAXPY
         cLU_CROW(rNVAR+1) = cNONZERO+1
         cLU_DIAG(rNVAR+1) = cLU_DIAG(rNVAR)+1
       END SUBROUTINE REDUCE
+      
+      SUBROUTINE APPEND(IDX)
+        USE gckpp_JacobianSP
+        ! Reactivate a deactivated species
+        INTEGER, INTENT(IN) :: IDX ! Index of deactivated KPP species to append
+        INTEGER :: I
+        ! set the do_* logicals
+        DO_SLV(IDX) = .true.
+        DO_FUN(IDX) = .true.
+        ! increment rNVAR
+        rNVAR    = rNVAR+1 
+        ! append SPC_MAP & iSPC_MAP
+        SPC_MAP(rNVAR) = IDX ! From AR to full species
+        iSPC_MAP(IDX)  = rNVAR ! From full to AR species
+        ! -- the following requires scanning LU_NONZERO elements
+        DO I = 1, LU_NONZERO
+           IF (LU_IROW(i).eq.IDX .and. DO_SLV(LU_ICOL(i))) THEN ! TERM IS ACTIVE
+              cNONZERO = cNONZERO+1 ! Add a non-zero term
+              ! append cLU_IROW
+              ! append cLU_ICOL
+              ! append JVS_MAP
+              cLU_IROW(cNONZERO) = iSPC_MAP(LU_IROW(I))
+              cLU_ICOL(cNONZERO) = iSPC_MAP(LU_ICOL(I))
+              JVS_MAP(cNONZERO)  = I
+              DO_JVS(I)          = .true.
+              ! append cLU_CROW
+              ! append cLU_DIAG
+              IF (cLU_IROW(cNONZERO).ne.cLU_IROW(cNONZERO-1)) THEN
+                 cLU_CROW(rNVAR) = cNONZERO
+              ENDIF
+              IF (cLU_IROW(cNONZERO).eq.cLU_ICOL(cNONZERO)) THEN
+                 cLU_DIAG(rNVAR) = cNONZERO
+              ENDIF
+           ENDIF
+        ENDDO
+        cLU_CROW(rNVAR+1) = cNONZERO+1
+        cLU_DIAG(rNVAR+1) = cLU_DIAG(rNVAR)+1
+      END SUBROUTINE APPEND
       
 END MODULE KPP_ROOT_Integrator
 
