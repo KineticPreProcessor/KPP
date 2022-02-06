@@ -108,10 +108,10 @@ FILE *oldf;
       printf("\n\nKPP Warning (internal): trying to UseFile NULL file pointer!\n");
     }
     oldf = currentFile;
-    currentFile = file; 
+    currentFile = file;
     return oldf;
 }
-  
+
 void OpenFile( FILE **fpp, char *name, char * ext, char * identity )
 {
 char bufname[200];
@@ -120,14 +120,14 @@ time_t t;
 int blength;
 
   time( &t );
-  sprintf( bufname, "%s%s", name, ext );  
+  sprintf( bufname, "%s%s", name, ext );
   if( *fpp ) fclose( *fpp );
   *fpp = fopen( bufname, "w" );
-  if ( *fpp == 0 ) 
+  if ( *fpp == 0 )
     FatalError(3,"%s: Can't create file", bufname );
- 
+
   UseFile( *fpp );
-  
+
   WriteDelim();
   WriteComment("");
   WriteComment("%s",identity);
@@ -144,23 +144,24 @@ int blength;
   WriteComment("       R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany");
   WriteComment("");
   WriteComment("%-20s : %s", "File", bufname );
-  strcpy( buf, (char*)ctime( &t ) ); 
+  strcpy( buf, (char*)ctime( &t ) );
   buf[ (int)strlen(buf) - 1 ] = 0;
-/*
-  ###########################################################################
-  ###  Do not write out changeable parameters such as file creation time  ###
-  ###  and working directory.  These will cause Git to interpret changed  ###
-  ###  files as new files that need to be committed.                      ###
-  ###     -- KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)                     ###
-  ###########################################################################
-  WriteComment("%-20s : %s", "Time", buf );
-  WriteComment("%-20s : %s", "Working directory", getcwd(buf, 200) );
-*/
+
+//===========================================================================
+// KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)
+// Do not write out changeable parameters such as file creation time
+// and working directory.  These will cause Git to interpret changed
+// files as new files that need to be committed.
+//
+//  WriteComment("%-20s : %s", "Time", buf );
+//  WriteComment("%-20s : %s", "Working directory", getcwd(buf, 200) );
+//===========================================================================
+
   WriteComment("%-20s : %s", "Equation file", eqFileName );
   WriteComment("%-20s : %s", "Output root filename", rootFileName );
   WriteComment("");
   WriteDelim();
-  NewLines(1);  
+  NewLines(1);
 /* Include Headers in .c  Files, except Makefile */
   blength = strlen(bufname);
   if ( (bufname[blength-2]=='.')&&(bufname[blength-1]=='c') ) {
@@ -172,7 +173,7 @@ int blength;
     C_Inline("#include \"%s_Global.h\"", rootFileName);
     if( useJacSparse )
        C_Inline("#include \"%s_Sparse.h\"", rootFileName);
-    }   
+    }
   NewLines(2);
 }
 
@@ -189,7 +190,7 @@ Va_list args;
   Va_start( args, fmt );
   vsprintf( outBuffer, fmt, args );
   va_end( args );
-  outBuffer += strlen( outBuffer ); 
+  outBuffer += strlen( outBuffer );
 }
 
 void FlushBuf()
@@ -218,19 +219,19 @@ void WriteDelim()
 {
 /*
   WriteComment("****************************************************************");
-*/ 
+*/
   WriteComment("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 }
 
 void NewLines( int n )
 {
-  for( ; n > 0; n-- ) 
+  for( ; n > 0; n-- )
     bprintf("\n");
 
-  FlushBuf();  
+  FlushBuf();
 }
 
-void IncludeFile( char * fname ) 
+void IncludeFile( char * fname )
 {
 FILE *fp;
 #define MAX_LINE 200
@@ -242,13 +243,13 @@ char line[ MAX_LINE ];
     FatalError(3,"%s: Can't read file", fname );
 
   FlushBuf();
-  
+
   while( !feof(fp) ) {
     *line = '\0';
     fgets( line, MAX_LINE, fp );
     fputs( line, currentFile );
   }
-  
+
   fclose( fp );
 }
 
@@ -264,7 +265,7 @@ FILE * fp;
   vsprintf( buf, fmt, args );
   va_end( args );
 
-  switch( useLang ) { 
+  switch( useLang ) {
     case F77_LANG: sprintf( buf, "%s.f", buf );
                  break;
     case F90_LANG: sprintf( buf, "%s.f90", buf );
@@ -273,42 +274,42 @@ FILE * fp;
                  break;
     case MATLAB_LANG: sprintf( buf, "%s.m", buf );
                  break;
-    default: printf("\n Language '%d' not implemented!\n",useLang); 
+    default: printf("\n Language '%d' not implemented!\n",useLang);
                  exit(1);
   }
   fp = fopen( buf, "r" );
   if ( fp == 0 )
     FatalError(3,"%s: Can't read file", buf );
   fclose(fp);
-    
+
   strcpy( cmd, "sed " );
-  
-  sprintf( cmd, "%s -e 's/KPP_ROOT/%s/g'", cmd, rootFileName );  
-  sprintf( cmd, "%s -e 's/KPP_NVAR/%d/g'", cmd, VarNr );  
-  sprintf( cmd, "%s -e 's/KPP_NFIX/%d/g'", cmd, FixNr );  
-  sprintf( cmd, "%s -e 's/KPP_NSPEC/%d/g'", cmd,SpcNr );  
-  sprintf( cmd, "%s -e 's/KPP_NREACT/%d/g'", cmd, EqnNr );  
-  sprintf( cmd, "%s -e 's/KPP_NONZERO/%d/g'", cmd, Jac_NZ );  
-  sprintf( cmd, "%s -e 's/KPP_LU_NONZERO/%d/g'", cmd, LU_Jac_NZ );  
-  sprintf( cmd, "%s -e 's/KPP_NHESS/%d/g'", cmd, Hess_NZ );  
-  
-  switch( useLang ) { 
-    case F77_LANG: 
-                 sprintf( cmd, "%s -e 's/KPP_REAL/%s/g'", cmd, F77_types[real] );  
+
+  sprintf( cmd, "%s -e 's/KPP_ROOT/%s/g'", cmd, rootFileName );
+  sprintf( cmd, "%s -e 's/KPP_NVAR/%d/g'", cmd, VarNr );
+  sprintf( cmd, "%s -e 's/KPP_NFIX/%d/g'", cmd, FixNr );
+  sprintf( cmd, "%s -e 's/KPP_NSPEC/%d/g'", cmd,SpcNr );
+  sprintf( cmd, "%s -e 's/KPP_NREACT/%d/g'", cmd, EqnNr );
+  sprintf( cmd, "%s -e 's/KPP_NONZERO/%d/g'", cmd, Jac_NZ );
+  sprintf( cmd, "%s -e 's/KPP_LU_NONZERO/%d/g'", cmd, LU_Jac_NZ );
+  sprintf( cmd, "%s -e 's/KPP_NHESS/%d/g'", cmd, Hess_NZ );
+
+  switch( useLang ) {
+    case F77_LANG:
+                 sprintf( cmd, "%s -e 's/KPP_REAL/%s/g'", cmd, F77_types[real] );
                  break;
-    case F90_LANG: 
-                 sprintf( cmd, "%s -e 's/KPP_REAL/%s/g'", cmd, F90_types[real] );  
+    case F90_LANG:
+                 sprintf( cmd, "%s -e 's/KPP_REAL/%s/g'", cmd, F90_types[real] );
                  break;
-    case C_LANG: 
-                 sprintf( cmd, "%s -e 's/KPP_REAL/%s/g'", cmd, C_types[real] );  
-                 break;  		             
-    case MATLAB_LANG: 
-                 break;  		             
-    default: printf("\n Language '%d' not implemented!\n",useLang); 
+    case C_LANG:
+                 sprintf( cmd, "%s -e 's/KPP_REAL/%s/g'", cmd, C_types[real] );
+                 break;
+    case MATLAB_LANG:
+                 break;
+    default: printf("\n Language '%d' not implemented!\n",useLang);
                  exit(1);
-  }           
-      
-  sprintf( cmd, "%s %s > %s", cmd, buf, tmpfile );  
+  }
+
+  sprintf( cmd, "%s %s > %s", cmd, buf, tmpfile );
 
   system( cmd );
   IncludeFile( tmpfile );
@@ -319,7 +320,7 @@ FILE * fp;
 void MapFunctionComment( int f, int *vars )
 {
 FILE *oldf;
- 
+
   oldf = UseFile( mapFile );
   FunctionStart( f, vars );
   /*NewLines(1);
@@ -333,10 +334,10 @@ int DefineVariable( char * name, int t, int bt, int maxi, int maxj, char * comme
 int i;
 VARIABLE * var;
 
-  for( i = 0; i < MAX_VAR; i++ ) 
+  for( i = 0; i < MAX_VAR; i++ )
     if( varTable[ i ] == 0 ) break;
-  
-  if( varTable[ i ] != 0 ) { 
+
+  if( varTable[ i ] != 0 ) {
     printf("\nVariable Table overflow");
     return -1;
   }
@@ -349,19 +350,19 @@ VARIABLE * var;
   var->maxj = maxj;
   var->value = -1;
   var->comment = comment;
-  
+
   varTable[ i ] = var;
-  return i;   
+  return i;
 }
 
 void FreeVariable( int n )
 {
-  if( varTable[ n ] ) { 
+  if( varTable[ n ] ) {
     free( varTable[ n ] );
     varTable[ n ] = 0;
-  } 
+  }
 }
- 
+
 NODE * Elm( int v, ... )
 {
 Va_list args;
@@ -371,7 +372,7 @@ VARIABLE *var;
 int i, j;
 float val;
 char *expr;
-  
+
   var = varTable[ v ];
   n   = (NODE*)    malloc( sizeof(NODE) );
   elm = (ELEMENT*) malloc( sizeof(ELEMENT) );
@@ -381,20 +382,20 @@ char *expr;
   n->type = var->type;
   n->elm = elm;
   elm->var = v;
-    
+
   Va_start( args, v );
   switch( var->type ) {
     case CONST: switch( var->baseType ) {
                   case REAL: elm->val.cnst = (float)va_arg( args, double );
                              break;
-                  case INT:  elm->val.cnst = (float)va_arg( args, int );            
+                  case INT:  elm->val.cnst = (float)va_arg( args, int );
                 }
                 if( elm->val.cnst < 0 ) {
                   elm->val.cnst = -elm->val.cnst;
                   n->sign = -1;
                 }
                 break;
-    case ELM:   
+    case ELM:
                 break;
     case VELM:  elm->val.idx.i = va_arg( args, int );
                 break;
@@ -403,9 +404,9 @@ char *expr;
                 break;
     case EELM:  elm->val.expr = va_arg( args, char* );
                 break;
-  } 
+  }
   va_end( args );
-  
+
   return n;
 }
 
@@ -413,14 +414,14 @@ int IsConst( NODE *n, float val )
 {
   return ( ( n ) &&
            ( n->type == CONST ) &&
-           ( n->elm->val.cnst == val ) 
+           ( n->elm->val.cnst == val )
          );
 }
 
 NODE * BinaryOp( int op, NODE *n1, NODE *n2 )
 {
 NODE *n;
-  
+
   n   = (NODE*)    malloc( sizeof(NODE) );
   n->left = n1;
   n->right = n2;
@@ -434,59 +435,59 @@ NODE * Add( NODE *n1, NODE *n2 )
 {
   if( n1 == 0 ) return n2;
   if( n2 == 0 ) return n1;
-  
+
   if( IsConst( n1, 0 ) ) {
     FreeNode( n1 );
-    return n2;   
+    return n2;
   }
   if( IsConst( n2, 0 ) ) {
     FreeNode( n2 );
     return n1;
   }
-  return BinaryOp( ADD, n1, n2 );                                  
+  return BinaryOp( ADD, n1, n2 );
 }
 
 NODE * Sub( NODE *n1, NODE *n2 )
 {
   if( n1 == 0 ) return BinaryOp( SUB, 0, n2 );
   if( n2 == 0 ) return n1;
-  
+
   if( IsConst( n1, 0 ) ) {
     FreeNode( n1 );
-    return  BinaryOp( SUB, 0, n2 );   
+    return  BinaryOp( SUB, 0, n2 );
   }
   if( IsConst( n2, 0 ) ) {
     FreeNode( n2 );
     return n1;
   }
-  return BinaryOp( SUB, n1, n2 );                                  
+  return BinaryOp( SUB, n1, n2 );
 }
 
 NODE * Mul( NODE *n1, NODE *n2 )
 {
   if( n1 == 0 ) return n2;
   if( n2 == 0 ) return n1;
-  
-  if( IsConst( n1, 1 ) ) { 
+
+  if( IsConst( n1, 1 ) ) {
     n2->sign *= n1->sign;
     FreeNode( n1 );
-    return n2;   
+    return n2;
   }
   if( IsConst( n2, 1 ) ) {
     n2->sign *= n1->sign;
     FreeNode( n2 );
     return n1;
   }
-  if( IsConst( n1, 0 ) ) { 
+  if( IsConst( n1, 0 ) ) {
     FreeNode( n2 );
-    return n1;   
+    return n1;
   }
   if( IsConst( n2, 0 ) ) {
     FreeNode( n1 );
     return n2;
   }
-  
-  return BinaryOp( MUL, n1, n2 );                                  
+
+  return BinaryOp( MUL, n1, n2 );
 }
 
 NODE * Div( NODE *n1, NODE *n2 )
@@ -499,15 +500,15 @@ NODE * Div( NODE *n1, NODE *n2 )
     FreeNode( n2 );
     return n1;
   }
-                  
-  return BinaryOp( DIV, n1, n2 );    
+
+  return BinaryOp( DIV, n1, n2 );
 }
 
 NODE * Pow( NODE *n1, NODE *n2 )
 {
   if( n1 == 0 ) return n2;
   if( n2 == 0 ) return n1;
-  return BinaryOp( POW, n1, n2 );    
+  return BinaryOp( POW, n1, n2 );
 }
 
 void FreeNode( NODE * n )
@@ -558,7 +559,7 @@ NODE * NodeCopy( NODE *n1 )
 {
 NODE *n;
 ELEMENT *elm;
-  
+
   n   = (NODE*)    malloc( sizeof(NODE) );
   elm = (ELEMENT*) malloc( sizeof(ELEMENT) );
   *n = *n1;
@@ -586,7 +587,7 @@ NODE *cn;
   if( substENABLED == 0 ) {
     WriteElm( n );
     return;
-  }   
+  }
   cn = LookUpSubst( n );
   if( cn == 0 ) {
     WriteElm( n );
@@ -596,7 +597,7 @@ NODE *cn;
     } else {
       cn->type += SUBST;
       WriteSymbol( O_PAREN );
-      WriteNode( cn->right );       
+      WriteNode( cn->right );
       WriteSymbol( C_PAREN );
       cn->type -= SUBST;
     }
@@ -621,15 +622,15 @@ int needParen = 0;
   if( needParen ) WriteSymbol( C_PAREN );
 
   switch( n->type ) {
-    case ADD:  
-    case SUB:   
-    case MUL:   
-    case DIV:   
+    case ADD:
+    case SUB:
+    case MUL:
+    case DIV:
     case POW:   crtop = n->type;
                 break;
-    case NONE:  printf("ERROR - null element"); 
+    case NONE:  printf("ERROR - null element");
     		break;
-    case CONST: 
+    case CONST:
     case ELM:
     case VELM:
     case MELM:
@@ -666,12 +667,12 @@ int needParen = 0;
 
   if( ( n->right ) &&
       ( PRI[ n->right->type ] <= PRI[ n->type ] ) )
-      needParen = 1; 
+      needParen = 1;
 
   if( needParen ) {
     WriteOp( crtop );
     WriteSymbol( O_PAREN );
-  }  
+  }
   lastop = ExpandNode( n->right, n->type );
   if( needParen ) WriteSymbol( C_PAREN );
   return lastop;
@@ -695,8 +696,8 @@ char *olds;
 
   WriteAssign( ls, rs );
 
-  free( rs );  
-  free( ls );  
+  free( rs );
+  free( ls );
   FreeNode( lval );
   FreeNode( rval );
 }
@@ -704,12 +705,12 @@ char *olds;
 NODE * LookUpSubst( NODE *n )
 {
 NODE *cn;
- 
+
   cn = substList;
   while( cn != 0 ) {
-    if( NodeCmp( n, cn ) ) 
+    if( NodeCmp( n, cn ) )
       return cn;
-    cn = cn->left;  
+    cn = cn->left;
   }
   return 0;
 }
@@ -738,7 +739,7 @@ NODE *cn;
   pn = 0;
   cn = substList;
   while( cn != 0 ) {
-    if( NodeCmp( n, cn ) ) 
+    if( NodeCmp( n, cn ) )
       break;
     pn = cn;
     cn = cn->left;
@@ -748,9 +749,9 @@ NODE *cn;
   FreeNode( cn->right );
   if( pn )
     pn->left = cn->left;
-  else 
-    substList = cn->left;  
-  
+  else
+    substList = cn->left;
+
   cn->right = 0;
   cn->left = 0;
   FreeNode( cn );
@@ -765,7 +766,7 @@ NODE *n;
   while( n != 0 ) {
     printf("Subst: ");
     WriteElm( n );
-    printf( " --> " );    
+    printf( " --> " );
     WriteNode( n->right );
     printf("\n");
     n = n->left;
@@ -786,12 +787,12 @@ int i;
 
   WriteDelim();
   WriteComment("");
-  WriteComment("%s - %s", var->name, var->comment );   
+  WriteComment("%s - %s", var->name, var->comment );
   WriteComment("  Arguments :");
   for( i = 0; i < narg; i++ ) {
     var = varTable[vars[i]];
-    WriteComment("     %-10s- %s", var->name, var->comment ); 
-  }  
+    WriteComment("     %-10s- %s", var->name, var->comment );
+  }
   WriteComment("");
   WriteDelim();
   NewLines(1);
@@ -808,8 +809,8 @@ int narg;
   name = varTable[ f ]->name;
   narg = varTable[ f ]->maxi;
 
-  Va_start( args, f );  
-  for( i = 0; i < narg; i++ ) 
+  Va_start( args, f );
+  for( i = 0; i < narg; i++ )
     vars[i] = va_arg( args, int );
   va_end( args );
 
@@ -819,8 +820,7 @@ int narg;
 
 void CommentFunctionEnd( int f )
 {
-  WriteComment("End of %s function", varTable[ f ]->name );   
+  WriteComment("End of %s function", varTable[ f ]->name );
   WriteDelim();
   NewLines(2);
 }
-
