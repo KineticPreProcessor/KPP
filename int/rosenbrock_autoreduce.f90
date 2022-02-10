@@ -718,6 +718,7 @@ Stage: DO istage = 1, ros_S
    DO_FUN  = .true.
    DO_JVS  = .true.
    Reduced = .false.
+   RMV     = 0
 
    T = Tstart
    RSTATUS(Nhexit) = ZERO
