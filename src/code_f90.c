@@ -220,7 +220,7 @@ char buf[ MAX_LINE ];
   for (n= strlen(buf) - 1; n >= 0; n--)
     if (buf[n] != ' ') break;
   buf[n + 1]= '\0';
-  bprintf( "!$OMP THREADPRIVATE( %s )\n", buf );
+  bprintf( "  !$OMP THREADPRIVATE( %s )\n", buf );
   FlushBuf();
 }
 
@@ -743,21 +743,24 @@ void Use_F90()
   FunctionBegin     = F90_FunctionBegin;
   FunctionEnd       = F90_FunctionEnd;
 
-/*#########################################################################
-  ###  KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)                         ###
-  ###  NOTE: Use the .F90 suffix instead of .f90, because .F90 denotes  ###
-  ###  non-preprocessed source code, whereas .f90 denotes source code   ###
-  ###  with header files inlined.  This update was added into the       ###
-  ###  GC_updates branch for KPP version 2.3.0_gc.                      ###
-  #########################################################################*/
+//===========================================================================
+// KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)
+// NOTE: Use the .F90 suffix instead of .f90, because .F90 denotes
+// non-preprocessed source code, whereas .f90 denotes source code
+// with header files inlined.  This update was added into the
+// GC_updates branch for KPP version 2.3.0_gc.
+//===========================================================================
 
-  OpenFile( &param_headerFile,   rootFileName, "_Parameters.F90", "Parameter Module File" );
+  OpenFile( &param_headerFile,   rootFileName,
+	    "_Parameters.F90", "Parameter Module File" );
   /*  mz_rs_20050117+ */
-  OpenFile( &initFile, rootFileName, "_Initialize.F90", "Initialization File" );
+  OpenFile( &initFile, rootFileName,
+	    "_Initialize.F90", "Initialization File" );
   /*  mz_rs_20050117- */
   /* mz_rs_20050518+ no driver file if driver = none */
   if( strcmp( driver, "none" ) != 0 )
-    OpenFile( &driverFile, rootFileName, "_Main.F90", "Main Program File" );
+    OpenFile( &driverFile, rootFileName,
+	      "_Main.F90", "Main Program File" );
   /* mz_rs_20050518- */
   OpenFile( &integratorFile, rootFileName, "_Integrator.F90",
                    "Numerical Integrator (Time-Stepping) File" );
@@ -782,7 +785,9 @@ void Use_F90()
                    "Auxiliary Routines File" );
   /* OpenFile( &sparse_dataFile, rootFileName, "_Sparse.f90",
                        "Sparse Data Module File" );*/
-  OpenFile( &global_dataFile, rootFileName, "_Global.F90", "Global Data Module File" );
+  OpenFile( &global_dataFile, rootFileName, "_Global.F90",
+	    "Global Data Module File" );
+  
   if ( useJacSparse ) {
      OpenFile( &sparse_jacFile, rootFileName, "_JacobianSP.F90",
          "Sparse Jacobian Data Structures File" );
