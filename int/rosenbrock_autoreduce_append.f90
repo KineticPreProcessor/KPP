@@ -707,7 +707,7 @@ Stage: DO istage = 1, ros_S
 !~~~>  Local parameters
    KPP_REAL, PARAMETER :: ZERO = 0.0_dp, ONE  = 1.0_dp
    KPP_REAL, PARAMETER :: DeltaMin = 1.0E-5_dp
-   INTEGER :: SPC
+   INTEGER :: SPC!, RLOC, tRMV(N)
 !~~~>  Locally called functions
 !    KPP_REAL WLAMCH
 !    EXTERNAL WLAMCH
@@ -718,6 +718,7 @@ Stage: DO istage = 1, ros_S
    DO_FUN  = .true.
    DO_JVS  = .true.
    Reduced = .false.
+   RMV     = 0
 
    T = Tstart
    RSTATUS(Nhexit) = ZERO
@@ -768,6 +769,18 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
          IERR = 1 ! Success
          return
       endif
+   endif
+!~~~> IF reduced, check Prod/Loss for append() condition
+   ! This could be made more efficient
+   if ( reduced ) then
+      DO i=1,NVAR
+         SPC = RMV(i)
+         if (SPC .eq. 0) cycle ! Species is already appended
+         if (abs(Loss(SPC)*Y(SPC)).gt.threshold .or. abs(Prod(SPC)).gt.threshold) then
+            CALL APPEND(SPC)
+            RMV(i) = 0
+         endif
+      ENDDO
    endif
 
 !~~~>  Compute the function derivative with respect to T
@@ -1962,6 +1975,44 @@ END SUBROUTINE cWAXPY
         cLU_CROW(rNVAR+1) = cNONZERO+1
         cLU_DIAG(rNVAR+1) = cLU_DIAG(rNVAR)+1
       END SUBROUTINE REDUCE
+      
+      SUBROUTINE APPEND(IDX)
+        USE gckpp_JacobianSP
+        ! Reactivate a deactivated species
+        INTEGER, INTENT(IN) :: IDX ! Index of deactivated KPP species to append
+        INTEGER :: I
+        ! set the do_* logicals
+        DO_SLV(IDX) = .true.
+        DO_FUN(IDX) = .true.
+        ! increment rNVAR
+        rNVAR    = rNVAR+1 
+        ! append SPC_MAP & iSPC_MAP
+        SPC_MAP(rNVAR) = IDX ! From AR to full species
+        iSPC_MAP(IDX)  = rNVAR ! From full to AR species
+        ! -- the following requires scanning LU_NONZERO elements
+        DO I = 1, LU_NONZERO
+           IF (LU_IROW(i).eq.IDX .and. DO_SLV(LU_ICOL(i))) THEN ! TERM IS ACTIVE
+              cNONZERO = cNONZERO+1 ! Add a non-zero term
+              ! append cLU_IROW
+              ! append cLU_ICOL
+              ! append JVS_MAP
+              cLU_IROW(cNONZERO) = iSPC_MAP(LU_IROW(I))
+              cLU_ICOL(cNONZERO) = iSPC_MAP(LU_ICOL(I))
+              JVS_MAP(cNONZERO)  = I
+              DO_JVS(I)          = .true.
+              ! append cLU_CROW
+              ! append cLU_DIAG
+              IF (cLU_IROW(cNONZERO).ne.cLU_IROW(cNONZERO-1)) THEN
+                 cLU_CROW(rNVAR) = cNONZERO
+              ENDIF
+              IF (cLU_IROW(cNONZERO).eq.cLU_ICOL(cNONZERO)) THEN
+                 cLU_DIAG(rNVAR) = cNONZERO
+              ENDIF
+           ENDIF
+        ENDDO
+        cLU_CROW(rNVAR+1) = cNONZERO+1
+        cLU_DIAG(rNVAR+1) = cLU_DIAG(rNVAR)+1
+      END SUBROUTINE APPEND
       
 END MODULE KPP_ROOT_Integrator
 
