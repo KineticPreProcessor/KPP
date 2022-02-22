@@ -768,6 +768,7 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
          IERR = 1 ! Success
          return
       endif
+      if (IERR .eq. -99) return
    endif
 
 !~~~>  Compute the function derivative with respect to T
@@ -1929,6 +1930,13 @@ END SUBROUTINE cWAXPY
            S=S+1
         ENDDO
         rNVAR    = NVAR-NRMV ! Number of active species in the reduced mechanism
+
+        ! Problem size cut-off. If problem is greater than some fraction of the 
+        ! full, just solve the full (via error value) -- MSL
+        if (dble(rNVAR)/dble(NVAR) .ge. 1.1) then ! Set to 1.1 to deactive it. The results can't be > 1
+           IERR = -99
+           return
+        endif
 
         II  = 1
         III = 1
