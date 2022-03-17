@@ -1,6 +1,6 @@
 *.~*
+*~
 .#*
-#*
 *.dat
 *.exe
 *.map
@@ -29,3 +29,9 @@ kpp
 *_StoichiomSP*
 *_Util*
 Makefile_*
+
+# LaTeX and BibTeX files:
+*.aux
+*.bbl
+*.blg
+*.toc

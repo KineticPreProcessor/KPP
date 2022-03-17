@@ -1,4 +1,5 @@
-\def\filedate{2005/07/15}\let\thedate\filedate % packages may change \filedate
+\def\myfiledate{2022-03-17} % "\myfiledate" because packages may change \filedate
+\def\thiskppversion{2.2.3}
 
 \documentclass[twoside]{article}
 \usepackage[obeyspaces]{url}
@@ -32,7 +33,7 @@
 \newcommand{\hhline}{\noalign{\vspace{1mm}}\hline\noalign{\vspace{1mm}}}
 \newcommand{\hhlines}{\noalign{\vspace{1mm}}\hline\hline\noalign{\vspace{1mm}}}
 \newcommand{\kpproot}{{\sc root}}
-\newcommand{\todo}[1]{{\uppercase{\bf ((#1))}}}
+\newcommand{\todo}[1]{{{\color{red}\uppercase{\bf ((TODO: #1))}}}}
 
 \def\mypageheader{Sandu \& Sander: KPP User Manual}
 \markboth{\mypageheader}{\mypageheader}
@@ -43,32 +44,30 @@
 \vspace*{-2cm}
 \begin{center}
   {\includegraphics[width=0.7\textwidth]{Figures/kpp-logo}}\\[9mm]
-  {\Huge\bf KPP-2.1 User's Manual}\\[9mm]
-  {\huge\em The Kinetic PreProcessor KPP}\\[3mm]
+  {\Huge\bf KPP-\thiskppversion\ User's Manual}\\[9mm]
+  {\huge\em The Kinetic PreProcessor KPP.}\\[5mm]
   {\huge\em An Environment for the}\\[3mm]
   {\huge\em Simulation of Chemical Kinetic Systems}\\[9mm]
-  {\huge\bf Adrian Sandu$^\dagger$ \& Rolf Sander$^\ddagger$}\\[9mm]
+  {\huge\bf Adrian Sandu$^1$ \& Rolf Sander$^2$\\[3mm]\todo{update list of authors}}\\[9mm]
   \Large
-  $^\dagger$ Department of Computer Science\\
+  $^1$ Department of Computer Science\\
   Virginia Polytechnic Institute and State University\\
   Blacksburg, Virginia 24060, USA\\
   \url{sandu@cs.vt.edu}\\[5mm]
-  $^\ddagger$ Air Chemistry Department\\
+  $^2$ Air Chemistry Department\\
   Max-Planck Institute of Chemistry\\
   PO Box 3060, 55020 Mainz, Germany\\
-  \url{sander@mpch-mainz.mpg.de}
+  \url{rolf.sander@mpic.de}
+
+  \vfill
+
+  {\large This manual is available at:
+    \url{https://github.com/KineticPreProcessor/KPP/blob/main/doc/kpp_UserManual.pdf}}
 
 \end{center}
 
-\vfill
-
-{\large This manual is part of the electronic supplement of our article
-  ``Technical note: Simulating chemical systems in Fortran90 and Matlab
-  with the Kinetic PreProcessor KPP-2.1'' in Atmos.\ Chem.\ Phys.\ 
-  (2005), available at: \url{http://www.atmos-chem-phys.org}}
-
 \begin{center}
-  Date: \thedate
+  Date: \myfiledate
 \end{center}
 
 \newpage\twocolumn
@@ -95,7 +94,7 @@ only have to define the \verb|$KPP_HOME| environment variable.
   edit the file \verb|$HOME/.cshrc| and add:
 \begin{verbatim}
 setenv KPP_HOME $HOME/kpp
-setenv PATH $PATH:$KPP_HOME/bin
+setenv PATH ${PATH}:$KPP_HOME/bin
 \end{verbatim} %$
   If you use the bash shell, edit \code{$HOME/.bashrc} and add: %$
 \begin{verbatim}
@@ -106,12 +105,13 @@ export PATH=$PATH:$KPP_HOME/bin
   make sure these changes are in effect.
 \item Make sure that \code{sed} is installed on your machine. Type
   ``\code{which sed}'' to test this.
-\item Make sure that \code{yacc} is installed on your machine. Type
-  ``\code{which yacc}'' to test this.
-\item Make sure that the lexical analizer \code{flex} is installed on
-  your machine. Type ``\code{flex --version}'' to test this. Note down
-  the exact path name where the flex library is installed. The library
-  is called: \code{libfl.a} or \code{libfl.sh}.
+\item Make sure that \code{bison} is installed on your machine. Type
+  ``\code{which bison}'' to test this.
+\item Make sure that the fast lexical analyzer generator \code{flex} is
+  installed on your machine. Type ``\code{flex --version}'' to test
+  this. Enter the path where the flex library (\code{libfl.a} or
+  \code{libfl.sh}) is located into \code{Makefile.defs}, e.g.\
+  \code{FLEX_LIB_DIR=/usr/lib}.
 \item Change to the KPP directory:
 \begin{verbatim}
 cd $KPP_HOME
@@ -125,8 +125,8 @@ To delete the KPP executable as well, type:
 \begin{verbatim}
 make distclean
 \end{verbatim}
-\item Edit \code{Makefile.defs} and follow the instructions included to
-  specify the compiler, the location of the flex library, etc.
+\item If necessary, edit \code{Makefile.defs} and enter the name of your
+  C compiler. The default setting is \code{gcc}.
 \item Create the kpp executable with:
 \begin{verbatim}
 make
@@ -442,7 +442,7 @@ value. Instead, it can be a valid expression in the target language. If
 there are several \code{#EQUATIONS} sections in the input, their
 contents will be concatenated. 
 
-A minus sign in an equation shows that a secies is consumed in a
+A minus sign in an equation shows that a species is consumed in a
 reaction but it does not affect the reaction rate. For example, the
 oxidation of methane can be written as:
 %
@@ -450,6 +450,9 @@ oxidation of methane can be written as:
 CH4 + OH = CH3OO + H2O - O2 : k_CH4_OH;
 \end{verbatim}
 %
+However, it should be noted that using negative products may lead to
+numerical instabilities.
+
 Often, the stoichiometric factors are integers. However, it is also
 possible to have non-integer yields, which is very useful to
 parameterize organic reactions that branch into several side reactions:
@@ -459,12 +462,26 @@ CH4 + O1D = .75 CH3O2 + .75 OH + .25 HCHO
             + .4 H + .05 H2 : k_CH4_O1D;
 \end{verbatim}
 %
-One restriction is that the list of products must not be empty. If you
-have such a reaction (e.g.\ the dry deposition of atmospheric species to
-the surface), you can define a \code{DUMMY} species as the product:
+\todo{check if the following description of prod and hv is correct}
+
+KPP provides two pre-defined dummy species: \code{hv} and \code{PROD}.
+Using dummy species does not affect the numerics of the integrators. It
+only serves to improve the readability of the equations. For photolysis
+reactions, \code{hv} can be specified as one of the reagents to indicate
+that light ($h\nu$) is needed for this reaction, e.g.:
 %
 \begin{verbatim}
-O3 = DUMMY : v_d_O3;
+  NO2 + hv = NO + O : J_NO2;
+\end{verbatim}
+%
+When the products of a reaction are not known oder not important, the
+dummy species \code{PROD} should be used as a product. This is necessary
+because the KPP syntax does not allow an empty list of products. For
+example, the dry deposition of atmospheric ozone to the surface can be
+written as:
+%
+\begin{verbatim}
+O3 = PROD : v_d_O3;
 \end{verbatim}
 %
 The same equation must not occur twice in the \code{#EQUATIONS} section.
@@ -616,6 +633,7 @@ included in the transport calculations.
 name & see Sect.\\
 \hhline
 \code{#CHECKALL}     & \ref{sec:command-shorthand}\\
+\code{#DECLARE}      & \ref{sec:command-declare}\\
 \code{#DOUBLE}       & \ref{sec:command-double}\\
 \code{#DRIVER}       & \ref{sec:command-driver}\\
 \code{#DUMMYINDEX}   & \ref{sec:command-dummyindex}\\
@@ -645,12 +663,25 @@ available in KPP is shown in Table~\ref{tab:commands}. Details about
 each command are given in the following subsections.
 
 %-----------------------------------------------------------------------------
+\subsubsection{Referencing constants ({\tt\#DECLARE})}
+\label{sec:command-declare}
+%-----------------------------------------------------------------------------
+
+\todo{check if this section is okay}
+
+The \code{#DECLARE} command determines how constants like \verb|dp|,
+\verb|NSPEC|, \verb|NVAR|, \verb|NFIX|, and \verb|NREACT| are inserted
+into the KPP-generated code. \code{SYMBOL} (the default) means that they
+are referenced by their names (e.g.\ ``C(NSPEC)''), whereas \code{VALUE}
+means that their values are inserted (e.g.\ ``C(7)'').
+
+%-----------------------------------------------------------------------------
 \subsubsection{Precision control ({\tt\#DOUBLE})}
 \label{sec:command-double}
 %-----------------------------------------------------------------------------
 
 The \code{#DOUBLE} command selects single or double precision
-arithmetique. \code{ON} (the default) means use double precision,
+arithmetic. \code{ON} (the default) means use double precision,
 \code{OFF} means use single precision (see
 Sect.~\ref{sec:output-precision}).
 
@@ -847,8 +878,7 @@ in the KPP language. The model definition file points to a species file
 and an equation file. The species file includes further the atom
 definition file. All default values regarding the model are
 automatically selected. For convenience, the best integrator and driver
-for the given model are
-also automatically selected. %$
+for the given model are also automatically selected. %$
 
 The \code{#MODEL} command is optional, and intended for using a
 predefined model. Users who supply their own reaction mechanism do not
@@ -909,7 +939,7 @@ more lines of code follow, written in the target language (Fortran90,
 Fortran77, C, or Matlab) as specified by the {\it inline\_type}. The
 inlined code ends with \code{#ENDINLINE}. The code is inserted into the
 KPP output at a position which is also determined by {\it inline\_type}
-as explained in Table \ref{tab:inlining}. If two inline commands with
+as explained in Table~\ref{tab:inlining}. If two inline commands with
 the same inline type are declared, then the contents of the second is
 appended to the first one. In this manual, we show the inline types for
 Fortran90. The inline types for the other languages are produced by
@@ -1079,14 +1109,14 @@ Placeholder & Replaced by & Example\\
 \end{center}
 \end{table*}
 
-The auxiliary files (listed in Table \ref{tab:aux}) are templates for
+The auxiliary files (listed in Table~\ref{tab:aux}) are templates for
 integrators, drivers, and utilities. They are inserted into the KPP
 output after being run through the substitution preprocessor. This
-preprocessor replaces several placeholders (listed in Table
-\ref{tab:substitution}) in the template files with their particular
-values in the model at hand. Usually, only \code{KPP_ROOT} and
-\code{KPP_REAL} are needed because the other values can also be obtained
-via the variables listed in Tab.~\ref{tab:parameters}.
+preprocessor replaces several placeholders (listed in
+Table~\ref{tab:substitution}) in the template files with their
+particular values in the model at hand. Usually, only \code{KPP_ROOT}
+and \code{KPP_REAL} are needed because the other values can also be
+obtained via the variables listed in Tab.~\ref{tab:parameters}.
 
 \code{KPP_REAL} is replaced by the appropriate single or double
 precision declaration type. Depending on the target language KPP will
@@ -1247,13 +1277,13 @@ The code generated by KPP is organized in a set of separate files. Each
 has a time stamp and a complete description of how it was generated at
 the begining of the file. The files associated with \kpproot\ are named
 with a corresponding prefix ``\kpproot\code{_}''. The list of files and
-a short description is shown in Table \ref{tab:generated_files}. All
+a short description is shown in Table~\ref{tab:generated_files}. All
 subroutines and functions, global parameters, variables, and sparsity
 data structures are encapsulated in modules. There is exactly one module
 in each file, and the name of the module is identical to the file name
 but without the suffix \code{.f90}. Fig.~\ref{fig:use_diagr} shows how
 these modules are related to each other. A concise list of the main
-subroutines generated by KPP is shown in Table \ref{tab:functions}. The
+subroutines generated by KPP is shown in Table~\ref{tab:functions}. The
 generated code is consistent with the Fortran90 standard. It will not
 exceed the maximum number of 39 continuation lines. If KPP cannot
 properly split an expression to keep the number of continuation lines
@@ -1296,7 +1326,9 @@ starts.
 The file \kpproot{\tt\_Integrator.f90} contains the subroutine
 \code{INTEGRATE} which is called every time step during the integration.
 The integrator that was chosen with \code{#INTEGRATOR} is also included
-in \kpproot{\tt\_Integrator.f90}.
+in \kpproot{\tt\_Integrator.f90}. In case of an unsuccessful
+integration, the module \kpproot\code{_Integrator} provides a short
+error message in the public variable \code{IERR_NAME}.
 
 %-----------------------------------------------------------------------------
 \subsubsection{\kpproot{\tt\_Monitor.f90}}
@@ -1364,7 +1396,7 @@ The user defined rate law functions are also placed here.
 \label{sec:output-parameters}
 %-----------------------------------------------------------------------------
 
-The global parameters (Table \ref{tab:parameters}) are defined and
+The global parameters (Table~\ref{tab:parameters}) are defined and
 initialized in \kpproot\code{_Parameters.f90}.
 
 KPP orders the variable species such that the sparsity pattern of the
@@ -1387,7 +1419,7 @@ KPP defines a complete set of simulation parameters, including the numbers
 of variable and fixed species, the number of chemical reactions, the
 number of nonzero entries in the sparse Jacobian and in the sparse
 Hessian, etc. Some important simulation parameters generated by KPP are
-presented in Table \ref{tab:parameters}.
+presented in Table~\ref{tab:parameters}.
 
 \begin{table}
 \caption{\label{tab:parameters} List of important simulation parameters
@@ -1418,9 +1450,9 @@ Parameter & Represents & Value\\
 \label{sec:output-global}
 %-----------------------------------------------------------------------------
 
-The global variables (Table \ref{tab:global}) are declared in
-\kpproot\code{_Global.f90}. Global variables are presented in Table
-\ref{tab:global}.
+The global variables (Table~\ref{tab:global}) are declared in
+\kpproot\code{_Global.f90}. Global variables are presented in
+Table~\ref{tab:global}.
 
 \begin{table}
 \caption{\label{tab:global} List of important global variables}
@@ -1437,7 +1469,6 @@ Global variable & Represents\\
 \code{TIME}              & Current integration time\\
 \code{SUN}               & Sun intensity between 0 and 1\\
 \code{TEMP}              & Temperature\\
-\code{RTOLS}             & Relative tolerance (scalar)\\
 \code{TSTART,TEND}       & Simulation start/end time\\
 \code{DT}                & Simulation step\\
 \code{ATOL(NSPEC)}       & Absolute tolerances\\
@@ -1469,16 +1500,39 @@ FIX(1:NFIX) = C(NVAR+1:NSPEC)
 \label{sec:output-ode-fun}
 %-----------------------------------------------------------------------------
 
-The code for the ODE function is in \kpproot\code{_Function.f90}. The
-chemical reaction mechanism represents a set of ordinary differential
-equations (ODEs) of dimension \code{NVAR}. The concentrations of fixed
-species are parameters in the derivative function. The subroutine
-\code{Fun} computes first the vector \code{A} of reaction rates and then
-the vector \code{Vdot} of variable species time derivatives. The input
-arguments \code{V}, \code{F}, and \code{RCT} are the concentrations of
-variable species, fixed species, and the rate coefficients,
-respectively. Below is the Fortran90 code generated by KPP for the ODE
-function of our \code{small_strato} example.
+The chemical ODE system for our example is:
+%
+\def\dd{{\mathrm{d}}}
+\begin{eqnarray*}
+  \frac{\dd\, [\chem{O(^1D)}]}{\dd t} & = & k_{5}\, [\chem{O_3}] - k_{6}\,
+  [\chem{O(^1D)}]\, [\chem{M}] - k_{7}\, [\chem{O(^1D)}]\, [\chem{O_3}]\\
+  \frac{\dd\, [\chem{O}]}{\dd t} & = & 2\, k_{1}\, [\chem{O_2}] - k_{2}\,
+  [\chem{O}]\, [\chem{O_2}] + k_{3}\, [\chem{O_3}]\\
+  & & - k_{4}\, [\chem{O}]\, [\chem{O_3}]+ k_{6}\, [\chem{O(^1D)}]\,
+  [\chem{M}]\\
+  & & - k_{9}\, [\chem{O}]\, [\chem{NO_2}] + k_{10}\, [\chem{NO_2}]\\
+  \frac{\dd\, [\chem{O_3}]}{\dd t} & = & k_{2}\, [\chem{O}]\, [\chem{O_2}] -
+  k_{3}\, [\chem{O_3}] - k_{4}\, [\chem{O}]\, [\chem{O_3}] - k_{5}\,
+  [\chem{O_3}]\\
+  & & - k_{7}\, [\chem{O(^1D)}]\, [\chem{O_3}] - k_{8}\, [\chem{O_3}]\, 
+  [\chem{NO}]\\
+  \frac{\dd\, [\chem{NO}]}{\dd t} & = & - k_{8}\, [\chem{O_3}]\, [\chem{NO}] +
+  k_{9}\, [\chem{O}]\, [\chem{NO_2}] + k_{10}\, [\chem{NO_2}]\\
+  \frac{\dd\, [\chem{NO_2}]}{\dd t} & = & k_{8}\, [\chem{O_3}]\, [\chem{NO}] -
+  k_{9}\, [\chem{O}]\, [\chem{NO_2}] - k_{10}\, [\chem{NO_2}]
+\end{eqnarray*}
+%
+where square brackets denote concentrations of the species. The code for
+the ODE function is in \kpproot\code{_Function.f90}. The chemical
+reaction mechanism represents a set of ordinary differential equations
+(ODEs) of dimension \code{NVAR}. The concentrations of fixed species are
+parameters in the derivative function. The subroutine \code{Fun}
+computes first the vector \code{A} of reaction rates and then the vector
+\code{Vdot} of variable species time derivatives. The input arguments
+\code{V}, \code{F}, and \code{RCT} are the concentrations of variable
+species, fixed species, and the rate coefficients, respectively. Below
+is the Fortran90 code generated by KPP for the ODE function of our
+\code{small_strato} example.
 %
 \begin{verbatim}
 SUBROUTINE Fun (V, F, RCT, Vdot )
@@ -1515,29 +1569,60 @@ END SUBROUTINE Fun
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.8\columnwidth]{Figures/small_jac}
-  \caption{The sparsity pattern of the Jacobian for the {\tt small\_strato}
-    example.}
+  \caption{The sparsity pattern of the Jacobian for the {\tt
+      small\_strato} example. All non-zero elements are marked with a
+    bullet. Note that even though {\tt J(3,5)=0}, it is also included
+    here because of the fill-in. \todo{Adrian, is this explanation of
+      J(3,5) correct?}}
   \label{fig:jac}
 \end{figure}
 
-The sparse data structures for the Jacobian are declared and initialized
-in \kpproot\code{_JacobianSP.f90}. The code for the ODE Jacobian and
-sparse multiplications is in \kpproot\code{_Jacobian.f90}. The Jacobian
-of the ODE function is automatically constructed by KPP. KPP generates
-the Jacobian subroutine \code{Jac} or \code{Jac_SP} where the latter is
-generated when the sparse format is required. Using the variable species
-\code{V}, the fixed species \code{F}, and the rate coefficients
-\code{RCT} as input, the subroutine calculates the Jacobian \code{JVS}.
-The default data structures for the sparse compressed on rows Jacobian
-representation are shown in Table \ref{tab:sparse-jac} (for the case
-where the LU fill-in is accounted for). \code{JVS} stores the
-\code{LU_NONZERO} elements of the Jacobian in row order. Each row
-\code{I} starts at position \code{LU_CROW(I)}, and
-\code{LU_CROW(NVAR+1)=LU_NONZERO+1}. The location of the \code{I}-th
-diagonal element is \code{LU_DIAG(I)}. The sparse element \code{JVS(K)}
-is the Jacobian entry in row \code{LU_IROW(K)} and column
-\code{LU_ICOL(K)}. For the \code{small_strato} example KPP generates the
-following Jacobian sparse data structure:
+The Jacobian matrix for our example contains 18 non-zero elements:
+
+\begin{eqnarray*}
+  \mathbf{J}(1,1) & = & - k_{6}\, [\chem{M}] - k_{7}\, [\chem{O_3}]\\
+  \mathbf{J}(1,3) & = & k_{5} - k_{7}\, [\chem{O(^1D)}]\\
+  \mathbf{J}(2,1) & = & k_{6}\, [\chem{M}]\\
+  \mathbf{J}(2,2) & = & - k_{2}\, [\chem{O_2}] - k_{4}\, [\chem{O_3}] 
+                        - k_{9}\, [\chem{NO_2}]\\
+  \mathbf{J}(2,3) & = & k_{3} - k_{4}\, [\chem{O}]\\
+  \mathbf{J}(2,5) & = & - k_{9}\, [\chem{O}] + k_{10}\\
+  \mathbf{J}(3,1) & = & - k_{7}\, [\chem{O_3}]\\
+  \mathbf{J}(3,2) & = & k_{2}\, [\chem{O_2}] - k_{4}\, [\chem{O_3}]\\
+  \mathbf{J}(3,3) & = & - k_{3} - k_{4}\, [\chem{O}] - k_{5} - k_{7}\, 
+                        [\chem{O(^1D)}] - k_{8}\, [\chem{NO}]\\
+  \mathbf{J}(3,4) & = & - k_{8}\, [\chem{O_3}]\\
+  \mathbf{J}(4,2) & = & k_{9}\, [\chem{NO_2}]\\
+  \mathbf{J}(4,3) & = & - k_{8}\, [\chem{NO}]\\
+  \mathbf{J}(4,4) & = & - k_{8}\, [\chem{O_3}]\\
+  \mathbf{J}(4,5) & = & k_{9}\, [\chem{O}] + k_{10}\\
+  \mathbf{J}(5,2) & = & - k_{9}\, [\chem{NO_2}]\\
+  \mathbf{J}(5,3) & = & k_{8}\, [\chem{NO}]\\
+  \mathbf{J}(5,4) & = & k_{8}\, [\chem{O_3}]\\
+  \mathbf{J}(5,5) & = & - k_{9}\, [\chem{O}] - k_{10}\\
+\end{eqnarray*}
+
+It defines how the temporal change of each chemical species depends on
+all other species. For example, $\mathbf{J}(5,2)$ shows that \chem{NO_2}
+(species number 5) is affected by \chem{O} (species number 2) via
+reaction number R9. The sparse data structures for the Jacobian are
+declared and initialized in \kpproot\code{_JacobianSP.f90}. The code for
+the ODE Jacobian and sparse multiplications is in
+\kpproot\code{_Jacobian.f90}. The Jacobian of the ODE function is
+automatically constructed by KPP. KPP generates the Jacobian subroutine
+\code{Jac} or \code{Jac_SP} where the latter is generated when the
+sparse format is required. Using the variable species \code{V}, the
+fixed species \code{F}, and the rate coefficients \code{RCT} as input,
+the subroutine calculates the Jacobian \code{JVS}. The default data
+structures for the sparse compressed on rows Jacobian representation are
+shown in Table~\ref{tab:sparse-jac} (for the case where the LU fill-in
+is accounted for). \code{JVS} stores the \code{LU_NONZERO} elements of
+the Jacobian in row order. Each row \code{I} starts at position
+\code{LU_CROW(I)}, and \code{LU_CROW(NVAR+1)=LU_NONZERO+1}. The location
+of the \code{I}-th diagonal element is \code{LU_DIAG(I)}. The sparse
+element \code{JVS(K)} is the Jacobian entry in row \code{LU_IROW(K)} and
+column \code{LU_ICOL(K)}. For the \code{small_strato} example KPP
+generates the following Jacobian sparse data structure:
 %
 \begin{verbatim}
 LU_ICOL = (/ 1,3,1,2,3,5,1,2,3,4, &
@@ -1608,9 +1693,9 @@ computes the number of nonzero Hessian entries and saves it in the
 variable \code{NHESS}. The Hessian itself is represented in coordinate
 sparse format. The real vector \code{HESS} holds the values, and the
 integer vectors \code{IHESS_I}, \code{IHESS_J}, and \code{IHESS_K} hold
-the indices of nonzero entries as illustrated in Table
-\ref{tab:sparse-hess}. Since the time derivative function is smooth,
-these Hessian matrices are symmetric,
+the indices of nonzero entries as illustrated in
+Table~\ref{tab:sparse-hess}. Since the time derivative function is
+smooth, these Hessian matrices are symmetric,
 \code{HESS}$_{i,j,k}$=\code{HESS}$_{i,k,j}$. KPP stores only those
 entries \code{HESS}$_{i,j,k}$ with $j \le k$. The sparsity coordinate
 vectors \code{IHESS_I}, \code{IHESS_J}, and \code{IHESS_K} are computed
@@ -1692,7 +1777,7 @@ in \kpproot\code{_StoichiomSP.f90}.
 The stoichiometric matrix is constant sparse. For our example the matrix
 has \code{NSTOICM=}22 nonzero entries out of 50 entries. KPP produces
 the stoichiometric matrix in sparse, column-compressed format, as shown
-in Table \ref{tab:sparse-stoicm}. Elements are stored in columnwise
+in Table~\ref{tab:sparse-stoicm}. Elements are stored in columnwise
 order in the one-dimensional vector of values \code{STOICM}. Their row
 and column indices are stored in \code{IROW_STOICM} and
 \code{ICOL_STOICM} respectively. The vector \code{CCOL_STOICM} contains
@@ -1727,7 +1812,7 @@ computes the Jacobian of reactant products vector, i.e.:
 \end{equation}
 %
 The matrix \code{JVRP} is sparse and is computed and stored in row
-compressed sparse format, as shown in Table \ref{tab:sparse-jvrp}. The
+compressed sparse format, as shown in Table~\ref{tab:sparse-jvrp}. The
 parameter \code{NJVRP} holds the number of nonzero elements. For our
 example:
 %
@@ -1817,7 +1902,7 @@ implemented (the template file name is \code{general_stochastic}).
 The utility and input/output functions are in \kpproot\code{_Util.f90}.
 In addition to the chemical system description routines discussed above,
 KPP generates several utility routines, some of which are summarized in
-Table \ref{tab:functions}.
+Table~\ref{tab:functions}.
 
 The subroutines \code{InitSaveData}, \code{SaveData}, and
 \code{CloseSaveData} can be used to print the concentration of the
@@ -1869,33 +1954,33 @@ The driver file \kpproot\code{.c} contains the main (driver) and
 numerical integrator functions, as well as declarations and
 initializations of global variables. The generated C code includes three
 header files which are \code{#include}-d in other files as appropriate.
-The global parameters (Table \ref{tab:parameters}) are \code{#define}-d
+The global parameters (Table~\ref{tab:parameters}) are \code{#define}-d
 in the header file \kpproot\code{_Parameters.h}. The global variables
-(Table \ref{tab:global}) are extern-declared in
+(Table~\ref{tab:global}) are extern-declared in
 \kpproot\code{_Global.h}, and declared in the driver file
 \kpproot\code{.c}. The header file \kpproot\code{_Sparse.h} contains
-extern declarations of sparse data structures for the Jacobian (Table
-\ref{tab:sparse-jac}), Hessian (Table \ref{tab:sparse-hess}),
-stoichiometric matrix (Table \ref{tab:sparse-stoicm}), and the Jacobian
-of reaction products (Table \ref{tab:sparse-jvrp}). The actual
+extern declarations of sparse data structures for the Jacobian
+(Table~\ref{tab:sparse-jac}), Hessian (Table~\ref{tab:sparse-hess}),
+stoichiometric matrix (Table~\ref{tab:sparse-stoicm}), and the Jacobian
+of reaction products (Table~\ref{tab:sparse-jvrp}). The actual
 declarations of each data structures is done in the corresponding files.
 
 The code for the ODE function (Sect.~\ref{sec:output-ode-fun}) is in
 \kpproot\code{_Function.c}. The code for the ODE Jacobian and sparse
 multiplications (Sect.~\ref{sec:output-ode-jac}) is in
 \kpproot\code{_Jacobian.c}, and the declaration and initialization of
-the Jacobian sparse data structures (Table \ref{tab:sparse-jac}) is in
-the file \kpproot\code{_JacobianSP.c}. Similarly, the Hessian
-function and associated sparse multiplications (Section
-\ref{sec:output-ode-hess}) are in \kpproot\code{_Hessian.c}, and the
-declaration and initialization of Hessian sparse data structures (Table
-\ref{tab:sparse-hess}) in \kpproot\code{_HessianSP.c}.
+the Jacobian sparse data structures (Table~\ref{tab:sparse-jac}) is in
+the file \kpproot\code{_JacobianSP.c}. Similarly, the Hessian function
+and associated sparse multiplications
+(Section~\ref{sec:output-ode-hess}) are in \kpproot\code{_Hessian.c},
+and the declaration and initialization of Hessian sparse data structures
+(Table \ref{tab:sparse-hess}) in \kpproot\code{_HessianSP.c}.
 
 The file \kpproot\code{_Stoichiom.c} contains the functions for reactant
 products and its Jacobian, and derivatives with respect to rate
 coefficients (Sect.~\ref{sec:output-stoichiom}). The declaration and
 initialization of the stoichiometric matrix and the associated sparse
-data structures (Tables \ref{tab:sparse-stoicm} and
+data structures (Tables~\ref{tab:sparse-stoicm} and
 \ref{tab:sparse-jvrp}) is done in \kpproot\code{_StoichiomSP.c}.
 
 Sparse linear algebra routines (Sect.~\ref{sec:output-la}) are in
@@ -1922,19 +2007,19 @@ code. The driver file \kpproot\code{.f} contains the main (driver) and
 numerical integrator functions.
 
 The generated Fortran77 code includes three header files. The global
-parameters (Table \ref{tab:parameters}) are defined as parameters and
+parameters (Table~\ref{tab:parameters}) are defined as parameters and
 initialized in the header file \kpproot\code{_Parameters.h}. The global
-variables (Table \ref{tab:global}) are declared in
+variables (Table~\ref{tab:global}) are declared in
 \kpproot\code{_Global.h} as common block variables. There are global
 common blocks for real (\code{GDATA}), integer (\code{INTGDATA}), and
 character (\code{CHARGDATA}) global data. They can be accessed from
 within each program unit that includes the global header file.
 
 The header file \kpproot\code{_Sparse.h} contains common block
-declarations of sparse data structures for the Jacobian (Table
-\ref{tab:sparse-jac}), Hessian (Table \ref{tab:sparse-hess}),
-stoichiometric matrix (Table \ref{tab:sparse-stoicm}), and the Jacobian
-of reaction products (Table \ref{tab:sparse-jvrp}). These sparse data
+declarations of sparse data structures for the Jacobian
+(Table~\ref{tab:sparse-jac}), Hessian (Table~\ref{tab:sparse-hess}),
+stoichiometric matrix (Table~\ref{tab:sparse-stoicm}), and the Jacobian
+of reaction products (Table~\ref{tab:sparse-jvrp}). These sparse data
 structures are initialized in four named block data statements:
 \code{JACOBIAN_SPARSE_DATA} (in \kpproot\code{_HessianSP.f}),
 \code{HESSIAN_SPARSE_DATA} (in \kpproot\code{_HessianSP.f}),
@@ -1952,7 +2037,7 @@ The file \kpproot\code{_Stoichiom.f} contains the functions for reactant
 products and its Jacobian, and derivatives with respect to rate
 coefficients (Sect.~\ref{sec:output-stoichiom}). The declaration and
 initialization of the stoichiometric matrix and the associated sparse
-data structures (Tables \ref{tab:sparse-stoicm} and
+data structures (Tables~\ref{tab:sparse-stoicm} and
 \ref{tab:sparse-jvrp}) is done in the \code{STOICM_MATRIX} block data
 statement.
 
@@ -2000,22 +2085,21 @@ The Matlab syntax for calling each function is
 [HESS] = Hessian(V, F, RCT);
 \end{verbatim}
 %
-The global parameters (Table \ref{tab:parameters}) are defined as Matlab
+The global parameters (Table~\ref{tab:parameters}) are defined as Matlab
 \code{global} variables and initialized in the file
-\kpproot\code{_parameter_defs.m}. The variables of Table
-\ref{tab:global} are declared as Matlab \code{global} variables in the
-file \kpproot\code{_Global_defs.m}. They can be accessed from within
+\kpproot\code{_parameter_defs.m}. The variables of
+Table~\ref{tab:global} are declared as Matlab \code{global} variables in
+the file \kpproot\code{_Global_defs.m}. They can be accessed from within
 each Matlab function by using \code{global} declarations of the
 variables of interest.
 
-The sparse data structures for the Jacobian (Table
-\ref{tab:sparse-jac}), the Hessian (Table \ref{tab:sparse-hess}), the
-stoichiometric matrix (Table \ref{tab:sparse-stoicm}), and the Jacobian
-of reaction products (Table \ref{tab:sparse-jvrp}) are declared as
-Matlab \code{global} variables in the file
+The sparse data structures for the Jacobian
+(Table~\ref{tab:sparse-jac}), the Hessian (Table~\ref{tab:sparse-hess}),
+the stoichiometric matrix (Table~\ref{tab:sparse-stoicm}), and the
+Jacobian of reaction products (Table~\ref{tab:sparse-jvrp}) are declared
+as Matlab \code{global} variables in the file
 \kpproot\code{_Sparse_defs.m}. They are initialized in separate m-files,
-namely \kpproot\code{_JacobianSP.m}
-\kpproot\code{_HessianSP.m}, and
+namely \kpproot\code{_JacobianSP.m} \kpproot\code{_HessianSP.m}, and
 \kpproot\code{_StoichiomSP.m} respectively.
 
 Two wrappers (\kpproot\code{_Fun_Chem.m} and
@@ -2130,14 +2214,14 @@ File & Description\\
 \code{gdata.h}       & header file\\
 \code{gdef.h}        & header file\\
 \code{gen.c}         & generic code generation functions\\
-\code{lex.yy.c}      & flex/yacc-generated file\\
-\code{scan.h}        & input for flex/yacc\\
-\code{scan.l}        & input for flex/yacc\\
-\code{scan.y}        & input for flex/yacc\\
+\code{lex.yy.c}      & flex/bison-generated file\\
+\code{scan.h}        & input for flex and bison\\
+\code{scan.l}        & input for flex\\
+\code{scan.y}        & input for bison\\
 \code{scanner.c}     & evaluate parsed input\\
 \code{scanutil.c}    & evaluate parsed input\\
-\code{y.tab.c}       & flex/yacc-generated file\\
-\code{y.tab.h}       & flex/yacc-generated header file\\
+\code{y.tab.c}       & flex/bison-generated file\\
+\code{y.tab.h}       & flex/bison-generated header file\\
 \hhline
 \end{tabular}
 \end{center}
@@ -2235,7 +2319,7 @@ summarized in Table~\ref{tab:environment}.
 
 This module is responsible for reading the kinetic description files and
 extracting the information necessary in the code generation phase. We
-make use of the flex and yacc generic tools in implementing our own
+make use of the flex and bison generic tools in implementing our own
 scanner and parser. Using these tools this module gathers information
 from the input files and fills in the following data structures in
 memory:
@@ -2307,11 +2391,12 @@ improve readability of the generated code.
 
 \begin{table*}
 \begin{center}
-\caption{Symbols used in the decription of the numerical methods implemented in KPP}
+\caption{Symbols used in the decription of the numerical methods
+  implemented in KPP}
 \label{tab:symbols}
 \begin{tabular}{cp{11cm}}
 \hhline
-Symbol & \multicolumn{1}{c}{Description}\\
+Symbol & Description\\
 \hhline
 $s$                & Number of stages\\
 $t^n$              & Discrete time moment\\
@@ -2325,10 +2410,10 @@ $J(\cdot,\cdot)$   & The Jacobian $J(t,y)=\partial f(t,y)/\partial y$\\
 $J_t(\cdot,\cdot)$ & Partial time derivative of Jacobian $J_t(t,y)=\partial J(t,y)/\partial t$\\
 $A$                & The system matrix\\
 $H(\cdot,\cdot)$   & The Hessian $H(t,y)=\partial^2 f(t,y)/\partial y^2$\\
-$T_i$              & Internal stage time moment for Runge Kutta and Rosenbrock methods\\
-$Y_i$              & Internal stage solution for Runge Kutta and Rosenbrock methods\\
+$T_i$              & Internal stage time moment for Runge-Kutta and Rosenbrock methods\\
+$Y_i$              & Internal stage solution for Runge-Kutta and Rosenbrock methods\\
 $k_i$, $\ell_i$, $u_i$, $v_i$
-                   & Internal stage vectors for Runge Kutta and Rosenbrock
+                   & Internal stage vectors for Runge-Kutta and Rosenbrock
                      methods, their tangent linear and adjoint models\\
 $\alpha_i$, $\alpha_{ij}$, $a_{ij}$, $b_i$, $c_i$, $c_{ij}$, $e_i$, $m_i$
                    & Method coefficients\\
@@ -2343,13 +2428,13 @@ selected to be very efficient in the low to medium accuracy regime
 numerical integrators preserve the linear invariants (i.e., mass) of the
 chemical system.
 
-KPP implements several Rosenbrock methods: Ros--1 and Ros--2
-\citep{Verwer99}, Ros--3 \citep{BENCHMARK-2}, Rodas--3
-\citep{BENCHMARK-2}, Ros--4 \citep{k:HW2}, and Rodas--4 \citep{k:HW2}.
-For each of them KPP implements the tangent linear model (direct
-decoupled sensitivity) and the adjoint models. The implementations
-distinguish between sensitivities with respect to initial values and
-sensitivities with respect to parameters for efficiency.
+KPP implements several Rosenbrock methods: ROS--2 \citep{Verwer99},
+ROS--3 \citep{BENCHMARK-2}, RODAS--3 \citep{BENCHMARK-2}, ROS--4
+\citep{k:HW2}, and RODAS--4 \citep{k:HW2}. For each of them KPP
+implements the tangent linear model (direct decoupled sensitivity) and
+the adjoint models. The implementations distinguish between
+sensitivities with respect to initial values and sensitivities with
+respect to parameters for efficiency.
 
 Note that KPP produces the building blocks for the simulation and also
 for the sensitivity calculations. It also provides application
@@ -2357,27 +2442,115 @@ programming templates. Some minimal programming may be required from the
 users in order to construct their own application from the KPP building
 blocks.
 
+\begin{table*}
+\begin{center}
+  \caption{Optional integer ({\tt ICNTRL\_U} and real {\tt RCNTRL\_U})
+    input parameters of subroutine {\tt INTEGRATE}. Setting any elements
+    to zero will activate their default values. Array elements not
+    listed here are either not used or integrator-specific options.
+    Details can be found in the comment lines of the individual
+    integrator files {\tt \$KPP\_HOME/int/*.f90}. \todo{check if this is
+      consistent for all integrators}}
+\label{tab:control}
+\begin{tabular}{lp{11cm}}
+\hhline
+Variable & Description\\
+\hhline
+\code{ICNTRL_U(1)}  & = 1: $F = F(y)$, i.e.\ independent of t (autonomous)\\
+                    & = 0: $F = F(t,y)$, i.e.\ depends on t (non-autonomous)\\
+                    & (only available for some of the integrators)\\
+\code{ICNTRL_U(2)}  & The absolute (\code{ATOL}) and relative
+                      (\code{RTOL}) tolerances can be expressed by either
+                      a scalar or individually for each species in a
+                      vector:\\
+                    & 0: \code{NVAR}-dimensional vector\\
+                    & 1: scalar\\
+\code{ICNTRL_U(3)}  & Selection of a specific method (only available
+                      for some of the integrators).\\
+\code{ICNTRL_U(4)}  & Maximum number of integration steps.\\
+\code{ICNTRL_U(5)}  & Maximum number of Newton iterations (only
+                      available for some of the integrators).\\
+\code{ICNTRL_U(6)}  & Starting values of Newton iterations:\\
+                    & 0: interpolated\\
+                    & 1: zero\\
+                    & (only available for some of the integrators)\\
+\hhline
+
+\code{RCNTRL_U(1)}  & \code{Hmin}, the lower bound of the integration step size.
+                      It is not recommended to change the default value
+                      of zero.\\
+\code{RCNTRL_U(2)}  & \code{Hmax}, the upper bound of the integration
+                      step size.\\
+\code{RCNTRL_U(3)}  & \code{Hstart}, the starting value of the integration
+                      step size.\\
+\code{RCNTRL_U(4)}  & \code{FacMin}, lower bound on step decrease factor.\\
+\code{RCNTRL_U(5)}  & \code{FacMax}, upper bound on step increase factor.\\
+\code{RCNTRL_U(6)}  & \code{FacRej}, step decrease factor after multiple
+                      rejections.\\
+\code{RCNTRL_U(7)}  & \code{FacSafe}, the factor by which the new step is
+                      slightly smaller than the predicted value.\\
+\code{RCNTRL_U(8)}  & \code{ThetaMin}. If the Newton convergence rate is smaller
+                      than \code{ThetaMin}, the Jacobian is not recomputed
+                      (only available for some of the integrators).\\
+\code{RCNTRL_U(9)}  & \code{NewtonTol}, the stopping criterion for
+                      Newton's method (only available for some of the
+                      integrators).\\
+\code{RCNTRL_U(10)} & \code{Qmin} (only available for some of the
+                      integrators).\\
+\code{RCNTRL_U(11)} & \code{Qmax}. If \code{Qmin} $<$
+                      \code{Hnew}/\code{Hold} $<$ \code{Qmax}, then the
+                      step size is kept constant and the LU factorization is
+                      reused (only available for some of the integrators).\\
+\hhline
+\end{tabular}
+\end{center}
+\end{table*}
+
+\begin{table*}
+\begin{center}
+  \caption{Optional integer ({\tt ISTATUS\_U} and real {\tt RSTATUS\_U})
+    output parameters of subroutine {\tt INTEGRATE}. Array elements not
+    listed here are either not used or integrator-specific options.
+    Details can be found in the comment lines of the individual
+    integrator files {\tt \$KPP\_HOME/int/*.f90}. \todo{check if this is
+      consistent for all integrators}}
+\label{tab:status}
+\begin{tabular}{lp{11cm}}
+\hhline
+Variable & Description\\
+\hhline
+\code{ISTATUS_U(1)} & Number of function calls.\\
+\code{ISTATUS_U(2)} & Number of Jacobian calls.\\
+\code{ISTATUS_U(3)} & Number of steps.\\
+\code{ISTATUS_U(4)} & Number of accepted steps.\\
+\code{ISTATUS_U(5)} & Number of rejected steps (except at very beginning).\\
+\code{ISTATUS_U(6)} & Number of LU decompositions.\\
+\code{ISTATUS_U(7)} & Number of forward/backward substitutions.\\
+\code{ISTATUS_U(8)} & Number of singular matrix decompositions.\\
+\hhline
+\code{RSTATUS_U(1)} & \code{Texit}, the time corresponding to the
+                    computed \code{Y} upon return.\\
+\code{RSTATUS_U(2)} & \code{Hexit}, the last accepted step before exit.\\
+\code{RSTATUS_U(3)} & \code{Hnew}, the last predicted step (not yet taken).
+                    For multiple restarts, use \code{Hnew} as
+                    \code{Hstart} in the subsequent run.\\
+\hhline
+\end{tabular}
+\end{center}
+\end{table*}
+
 In order to offer more control over the integrator, the KPP-generated
 subroutine \code{INTEGRATE} provides the optional input parameters
 \code{ICNTRL_U} and \code{RCNTRL_U}. Each of them is an array of 20
-elements that allow the fine-tuning of the integrator, e.g.\ by setting
-a particular integrator method, tolerances, minimum and maximum step
-sizes, and more. The exact meaning of the elements depends on the
-integrator and may change in the future. Please read the comment lines
-in the individual integrator files \verb|$KPP_HOME/int/*.f90|.
-
-Similarly, to obtain more information about the integration, the
-subroutine \code{INTEGRATE} provides the optional output parameters
-\code{ISTATUS_U} and \code{RSTATUS_U}. They are both arrays of 20
-elements and contain the length of the last time step, the number of
-accepted and rejected steps, the number of miscellaneous function calls,
-and more. Again, for the exact meaning, the reader is refered to the
-comment lines in the individual integrator files
-\verb|$KPP_HOME/int/*.f90|.
+elements that allow the fine-tuning of the integrator, as shown in
+Table~\ref{tab:control}. Similarly, to obtain more information about the
+integration, the subroutine \code{INTEGRATE} provides the optional
+output parameters \code{ISTATUS_U} and \code{RSTATUS_U}. They are both
+arrays of 20 elements, as shown in Table~\ref{tab:status}.
 
 In the following sections we introduce the numerical methods
 implemented in KPP. The symbols used in the formulas are
-explained in Table \ref{tab:symbols}.
+explained in Table~\ref{tab:symbols}.
 
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 \subsection{Rosenbrock Methods}
@@ -2408,8 +2581,8 @@ properties. $A$ is the system matrix (in the linear systems to be solved
 during implicit integration, or in the Newton's method used to solve the
 nonlinear systems). It is the scaled identity matrix minus the Jacobian.
 
-The coefficients of the methods implemented in KPP are shown in Table
-\ref{tab:Rosenbrock}.
+The coefficients of the methods implemented in KPP are shown in
+Table~\ref{tab:Rosenbrock}.
 
 \begin{table*}
 \begin{center}
@@ -2422,7 +2595,7 @@ The coefficients of the methods implemented in KPP are shown in Table
 \multicolumn{1}{c}{name}   & ($s$)  & calls    &       & properties & 
 \multicolumn{1}{c}{coefficients}\\
 \hhline
-Ros--2 & 2 & 2 & 2(1) & L-stable &
+ROS--2 & 2 & 2 & 2(1) & L-stable &
   $\gamma = 1 + 1/\sqrt{2}$,
   $a_{2,1} = 1/\gamma$,
   $c_{2,1} = -2/\gamma$,
@@ -2434,7 +2607,7 @@ Ros--2 & 2 & 2 & 2(1) & L-stable &
   $\alpha_2 = 1$,
   $\gamma_1 = \gamma$,
   $\gamma_2 = -\gamma$\\
-Ros--3 & 3 & 2 & 3(2) & L-stable & 
+ROS--3 & 3 & 2 & 3(2) & L-stable & 
   $a_{2,1} = 1$,
   $a_{3,1} = 1$,
   $a_{3,2} = 0$,
@@ -2453,7 +2626,7 @@ Ros--3 & 3 & 2 & 3(2) & L-stable &
   $\gamma_1 = 0.436$,
   $\gamma_2 = 0.243$,
   $\gamma_3 = 2.185$\\
-Ros--4 & 4 & 3 & 4(3) & L-stable & 
+ROS--4 & 4 & 3 & 4(3) & L-stable & 
   $a_{2,1} = 2$,
   $a_{3,1} = 1.868$,
   $a_{3,2} = 0.234$,
@@ -2482,7 +2655,7 @@ Ros--4 & 4 & 3 & 4(3) & L-stable &
   $\gamma_2 = -1.769$,
   $\gamma_3 = 0.759$,
   $\gamma_4 = -0.104$\\
-Rodas--3 & 4 & 3 & 3(2) & Stiffly\par accurate & 
+RODAS--3 & 4 & 3 & 3(2) & Stiffly\par accurate & 
   $a_{2,1} = 0$,
   $a_{3,1} = 2$,
   $a_{3,2} = 0$,
@@ -2511,7 +2684,7 @@ Rodas--3 & 4 & 3 & 3(2) & Stiffly\par accurate &
   $\gamma_2 = 1.5$,
   $\gamma_3 = 0$,
   $\gamma_4 = 0$\\
-Rodas--4 & 6 & 5 & 4(3) & Stiffly\par accurate &
+RODAS--4 & 6 & 5 & 4(3) & Stiffly\par accurate &
   $\alpha_1 = 0$,
   $\alpha_2 = 0.386$,
   $\alpha_3 = 0.210$,
@@ -2573,27 +2746,41 @@ Rodas--4 & 6 & 5 & 4(3) & Stiffly\par accurate &
 
 \begin{table*}
 \begin{center}
-\caption{Runge-Kutta methods implemented in KPP}
+\caption{Runge-Kutta methods implemented in KPP \todo{check
+  this table and explain why we have both sdirk and kpp\_sdirk4} }
 \label{tab:Runge-Kutta}
 \begin{tabular}{lp{2.5cm}p{10cm}}
-\hhline
-\multicolumn{1}{c}{Method} & File(s) & Description\\
-\hhline
-Radau5 & {\tt atm\_radau5.f}, {\tt kpp\_radau5.f90} &
-This Runge Kutta method of order 5 based on Radau-IIA quadrature
-\citep{k:HW2} is stiffly accurate.  The KPP implementation follows the
-original implementation of \citet{k:HW2}. While Radau5 is relatively
-expensive (when compared to the Rosenbrock methods), it is more robust
-and is useful to obtain accurate reference solutions.\\
-SDIRK4 & {\tt kpp\_sdirk.f}, {\tt kpp\_sdirk.f90} &
-The implementation is based on the implementation of \citet{k:HW2}.
-SDIRK4 is an L-stable, singly-diagonally-implicit Runge Kutta method of
-order 4.\\
-SEULEX & {\tt kpp\_seulex.f}, {\tt kpp\_seulex.f90} &
-SEULEX is a variable order stiff extrapolation code able to produce highly
-accurate solutions. The KPP implementation is based on the implementation
-of \citet{k:HW2}.\\
-\hhline
+  \hhline
+  \multicolumn{1}{c}{Method} & File(s) & Description\\
+  \hhline
+  Runge-Kutta & {\tt runge\_kutta.f90} &
+  Fully implicit 3-stage Runge-Kutta methods.
+  Several variants are available:\\
+  & & RADAU-2A:   order 5\\
+  & & RADAU-1A:   order 5\\
+  & & Lobatto-3C: order 4\\
+  & & Gauss:      order 6\\
+  RADAU5 & {\tt atm\_radau5.f}, {\tt kpp\_radau5.f90} &
+  This Runge-Kutta method of order 5 based on RADAU-IIA quadrature
+  \citep[Section IV.10]{k:HW2} is stiffly accurate. The KPP implementation
+  follows the original implementation of \citet{k:HW2}. While RADAU5 is
+  relatively expensive (when compared to the Rosenbrock methods), it is
+  more robust and is useful to obtain accurate reference solutions.\\
+  SDIRK & {\tt sdirk.f}, {\tt sdirk.f90} &
+  SDIRK is an L-stable, singly-diagonally-implicit Runge-Kutta method.
+  The implementation is based on \citet{k:HW2}.
+  Several variants are available:\\
+  & & Sdirk 2a, 2b: 2 stages, order 2\\
+  & & Sdirk 3a:     3 stages, order 2, and\\
+  & & Sdirk 4a, 4b: 5 stages, order 4\\
+  SDIRK4 & {\tt kpp\_sdirk4.f}, {\tt kpp\_sdirk4.f90} &
+  SDIRK4 is an L-stable, singly-diagonally-implicit Runge-Kutta method of
+  order 4. The implementation is based on \citet{k:HW2}.\\
+  SEULEX & {\tt kpp\_seulex.f}, {\tt kpp\_seulex.f90} &
+  SEULEX is a variable order stiff extrapolation code able to produce highly
+  accurate solutions. The KPP implementation is based on the implementation
+  of \citet{k:HW2}.\\
+  \hhline
 \end{tabular}
 \end{center}
 \end{table*}
@@ -2633,8 +2820,8 @@ The method requires a single $n \times n$ LU decomposition
 per step to obtain both the concentrations and the sensitivities.
 
 KPP contains tangent linear models (for direct decoupled sensitivity
-analysis) for each of the Rosenbrock methods (Ros--1, Ros--2, Ros--3,
-Ros--4, Rodas--3, and Rodas--4). The implementations distinguish between
+analysis) for each of the Rosenbrock methods (ROS--2, ROS--3, ROS--4,
+RODAS--3, and RODAS--4). The implementations distinguish between
 sensitivities with respect to initial values and sensitivities with
 respect to parameters for efficiency.
 
@@ -2664,9 +2851,9 @@ k_i\right)^T
 && + h J^T_t(t^n,y^n) \cdot \sum_{i=1}^s \gamma_i u_i+  \sum_{i=1}^s v_i
 \end{eqnarray}
 %
-KPP contains adjoint models  (for  direct decoupled sensitivity analysis)
-for each of the Rosenbrock methods (Ros--1, Ros--2, Ros--3, Ros--4,
-Rodas--3, and Rodas--4).
+KPP contains adjoint models (for direct decoupled sensitivity analysis)
+for each of the Rosenbrock methods (ROS--2, ROS--3, ROS--4, RODAS--3,
+and RODAS--4).
 
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 \subsection{Runge-Kutta methods}
@@ -2687,24 +2874,17 @@ k_i &=& f\left( \, T_i, \, Y_i \,\right)~,
 where the coefficients $a_{ij}$, $b_i$ and $c_i$ are prescribed for the
 desired accuracy and stability properties. The stage derivative values
 $k_i$ are defined implicitly, and require solving a (set of) nonlinear
-system(s). Newton-type methods solve coupled linear systems  of dimension
+system(s). Newton-type methods solve coupled linear systems of dimension
 (at most) $n \times s$.
 
-KPP numerical library implements a Radau5, a Runge Kutta method of order
-5 based on Radau-IIA quadrature \citep[Section IV.10]{k:HW2}. This
-numerical method is stiffly accurate. The KPP implementation follows the
-original implementation of \citet{k:HW2}. While Radau5 is relatively
-expensive (when compared to the Rosenbrock methods), it is more robust
-and is useful to obtain highly accurate reference solutions.
-
-The Runge-Kutta methods implemented in KPP are summarized in Table
-\ref{tab:Runge-Kutta}.
+The Runge-Kutta methods implemented in KPP are summarized in
+Table~\ref{tab:Runge-Kutta}.
 
 %-----------------------------------------------------------------------------
 \subsubsection{Tangent Linear Model}
 %-----------------------------------------------------------------------------
 
-The tangent linear method associated with the Runge Kutta method is
+The tangent linear method associated with the Runge-Kutta method is
 %
 \begin{eqnarray}
 \label{eqn:RK-TLM}
@@ -2722,8 +2902,6 @@ The system (\ref{eqn:RK-TLM}) is linear and does not require an iterative
 procedure. However, even for a SDIRK method  ($a_{ij}=0$ for $i>j$ and
 $a_{ii}=\gamma$) each stage requires the LU factorization of a different
 matrix.
-
-No Runge Kutta tangent linear model is currently implemented in KPP.
 
 %-----------------------------------------------------------------------------
 \subsubsection{Discrete Adjoint Model}
@@ -2750,8 +2928,6 @@ a_{ji}}{b_i} u_j \right)\\ %~, \quad i = 1 \cdots s\\
 \nonumber
 \lambda^{n} &=& \lambda^{n+1} +\sum_{j=1}^s b_j \, u_j~.
 \end{eqnarray}
-%
-No Runge Kutta adjoint model is currently implemented in KPP.
 
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 \subsection{Backward Differentiation Formulas}
@@ -2770,42 +2946,73 @@ where the coefficients $\alpha_i$ and $\beta$ are chosen such that the
 method has order of consistency $k$.
 
 The KPP library contains two off-the-shelf, highly popular
-implementations of BDF methods, described in Table \ref{tab:BDF}.
+implementations of BDF methods, described in Table~\ref{tab:BDF}.
 
 \begin{table*}
-\begin{center}
-\caption{BDF methods implemented in KPP}
-\label{tab:BDF}
-\begin{tabular}{lp{2cm}p{10cm}}
-\hhline
-\multicolumn{1}{c}{Method} & File(s) & Description \\
-\hhline
-LSODE & {\tt kpp\_lsode.f90} & LSODE, the Livermore ODE solver
-\citep{LSODE}, implements  backward differentiation formula (BDF) methods
-for stiff problems. LSODE has been translated to Fortran90 for the
-incorporation into the KPP library.\\
-LSODES &{\tt atm\_lsodes.f}&
-LSODES \citep{LSODE}, the sparse version of the Livermore ODE solver
-LSODE, is modified to interface directly with the KPP generated code \\
-VODE & {\tt kpp\_dvode.f} &  VODE \citep{VODE} uses another formulation of backward
-differentiation formulas. The version of VODE present in the KPP library
-uses directly the KPP sparse linear algebra routines. \\
-ODESSA &{\tt atm\_odessa.f}&  The BDF-based direct-decoupled sensitivity
-integrator Odessa \citep{k:Leis86a} has been modified to use the KPP
-sparse linear algebra routines.\\
-\hhline
-\end{tabular}
-\end{center}
+  \begin{center}
+    \caption{BDF methods implemented in KPP}
+    \label{tab:BDF}
+    \begin{tabular}{lp{2cm}p{10cm}}
+      \hhline
+      \multicolumn{1}{c}{Method} & File(s) & Description \\
+      \hhline
+      LSODE & {\tt kpp\_lsode.f90} &
+      LSODE, the Livermore ODE solver \citep{LSODE}, implements
+      backward differentiation formula (BDF) methods for stiff problems.
+      LSODE has been translated to Fortran90 for the incorporation into
+      the KPP library.\\
+      LSODES &{\tt atm\_lsodes.f}&
+      LSODES \citep{LSODE}, the sparse version of the Livermore ODE solver
+      LSODE, is modified to interface directly with the KPP generated code\\
+      VODE & {\tt kpp\_dvode.f} &
+      VODE \citep{VODE} uses another formulation of backward
+      differentiation formulas. The version of VODE present in the KPP
+      library uses directly the KPP sparse linear algebra routines.\\
+      ODESSA &{\tt atm\_odessa.f}&
+      The BDF-based direct-decoupled sensitivity integrator Odessa
+      \citep{k:Leis86a} has been modified to use the KPP sparse linear
+      algebra routines.\\
+      \hhline
+    \end{tabular}
+  \end{center}
 \end{table*}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Revision history}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Differences between KPP-2.1 and Previous Versions}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Only the major new features are listed here. For a detailed description
+of the changes, read the file \verb|$KPP_HOME/CHANGELOG|.
 
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-\subsection{New features of KPP-2.1}
+\subsection{KPP-\thiskppversion}
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+%-----------------------------------------------------------------------------
+\subsubsection{New features of KPP-\thiskppversion}
+%-----------------------------------------------------------------------------
+
+\begin{itemize}
+\item A new function called \verb|k_3rd_iupac| is available, calculating
+  third-order rate coefficients using the formula used by IUPAC
+  \citep{1610}.
+\item While previous versions of KPP were using \verb|yacc| (yet another
+  compiler compiler), the current version has been modified to be
+  compatible with the parser generator \verb|bison|, which is the
+  successor of yacc.
+\item The new Runge-Kutta integrators \verb|kpp_sdirk4|,
+  \verb|runge_kutta|, and \verb|sdirk| were added.
+\item The new KPP command \verb|#DECLARE| was added (see
+  Sect.~\ref{sec:command-declare}).
+\end{itemize}
+
+%+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsection{KPP-2.1}
+%+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+%-----------------------------------------------------------------------------
+\subsubsection{New features of KPP-2.1}
+%-----------------------------------------------------------------------------
 
 This user manual describes recently added features of KPP as well as
 those which have been available for a longer period. Here we give an
@@ -2829,12 +3036,14 @@ overview about the recent changes:
 \item Lines starting with ``\code{//}'' are comment lines.
 \end{itemize}
 
-%+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-\subsection{Upgrading KPP input files from previous versions to KPP-2.1}
-%+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+%-----------------------------------------------------------------------------
+\subsubsection{Upgrading KPP input files from previous versions to
+  KPP-\thiskppversion}
+%-----------------------------------------------------------------------------
 
-KPP users who want to upgrade from previous versions to KPP-2.1 need to
-make a few modifications to their input files.
+KPP users who want to upgrade from previous versions to
+KPP-\thiskppversion\ need to make a few modifications to their input
+files.
 
 \begin{itemize}
 \item To select the target language, change the previous command name
@@ -2871,7 +3080,9 @@ CALL initialize
 \section{Acknowledgements}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Parts of this user manual are based on the thesis of \citet{1693}.
+Parts of this user manual are based on the thesis of \citet{1693}. We
+thank Jason Lander for his suggestions how to migrate from \code{yacc}
+to \code{bison}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % References
@@ -2908,6 +3119,7 @@ Following is the BNF-like specification of the language:
                    & \code{#TRANSPORT} {\it species\_list}\\[3mm]
 
 {\it command} ::=  & \code{#CHECKALL}                                                    & $|$\\
+                   & \code{#DECLARE} \verb![ SYMBOL | VALUE ]!                           & $|$\\
                    & \code{#DOUBLE} \verb![ ON | OFF ]!                                  & $|$\\
                    & \code{#DRIVER} {\it driver\_name}                                   & $|$\\
                    & \code{#DUMMYINDEX} \verb![ ON | OFF ]!                              & $|$\\
@@ -2936,29 +3148,32 @@ Following is the BNF-like specification of the language:
 \begin{tabular}{lll}
 
 {\it atom\_count} ::=               & {\it integer} {\it atom\_name} & $|$\\
-                                    &               {\it atom\_name}\\[2mm]
+                                    &               {\it atom\_name}\\[1.5mm]
 
 {\it atom\_definition\_list} ::=    & {\it atom\_definition} & $|$\\
-                                    & {\it atom\_definition} {\it atom\_definition\_list}\\[2mm]
+                                    & {\it atom\_definition} {\it atom\_definition\_list}\\[1.5mm]
 
 {\it atom\_list} ::=                & {\it atom\_name}; & $|$\\
-                                    & {\it atom\_name}; {\it atom\_list}\\[2mm]
+                                    & {\it atom\_name}; {\it atom\_list}\\[1.5mm]
 
 {\it equation} ::=                  & $<${\it equation\_tag}$>$ {\it expression} = {\it expression} : {\it rate}; & $|$\\
-                                    &                           {\it expression} = {\it expression} : {\it rate};\\[2mm]
+                                    &                           {\it expression} = {\it expression} : {\it rate};\\[1.5mm]
 
 {\it equation\_list} ::=            & {\it equation} & $|$\\
-                                    & {\it equation} {\it equation\_list}\\[2mm]
+                                    & {\it equation} {\it equation\_list}\\[1.5mm]
+
+{\it equation\_tag} ::=             & Alphanumeric expression, also including the underscore.\\
+                                    & In \code{scan.l}, it is defined as ``\code{[a-zA-Z_0-9]+}''.\\[1.5mm] 
 
 {\it expression} ::=                & {\it term} & $|$\\
                                     & {\it term} $+$ {\it expression} & $|$\\
-                                    & {\it term} $-$ {\it expression}\\[2mm]
+                                    & {\it term} $-$ {\it expression}\\[1.5mm]
 
 {\it initvalues\_assignment} ::=    & {\it species\_name\_plus} = {\it program\_expression}; & $|$\\
-                                    & \code{CFACTOR} = {\it program\_expression};\\[2mm]
+                                    & \code{CFACTOR} = {\it program\_expression};\\[1.5mm]
 
 {\it initvalues\_list} ::=          & {\it initvalues\_assignment} & $|$\\
-                                    & {\it initvalues\_assignment} {\it initvalues\_list}\\[2mm]
+                                    & {\it initvalues\_assignment} {\it initvalues\_list}\\[1.5mm]
 
 {\it inline\_type} ::=              & \code{F90_RATES} $|$ \code{F90_RCONST} $|$ \code{F90_GLOBAL} $|$
                                       \code{F90_INIT} $|$ \code{F90_DATA} $|$ \code{F90_UTIL}& $|$\\
@@ -2967,41 +3182,45 @@ Following is the BNF-like specification of the language:
                                     & \code{C_RATES} $|$ \code{C_RCONST} $|$ \code{C_GLOBAL} $|$
                                       \code{C_INIT} $|$ \code{C_DATA} $|$ \code{C_UTIL} & $|$\\
                                     & \code{MATLAB_RATES} $|$ \code{MATLAB_RCONST} $|$ \code{MATLAB_GLOBAL} & $|$\\
-                                    & \code{MATLAB_INIT} $|$ \code{MATLAB_DATA} $|$ \code{MATLAB_UTIL}\\[2mm]
+                                    & \code{MATLAB_INIT} $|$ \code{MATLAB_DATA} $|$ \code{MATLAB_UTIL}\\[1.5mm]
 
-{\it lump} ::=                      & {\it lump\_sum} : {\it species\_name};\\[2mm]
+{\it lump} ::=                      & {\it lump\_sum} : {\it species\_name};\\[1.5mm]
 
 {\it lump\_list} ::=                & {\it lump} & $|$\\
-                                    & {\it lump} {\it lump\_list}\\[2mm]
+                                    & {\it lump} {\it lump\_list}\\[1.5mm]
 
 {\it lump\_sum} ::=                 & {\it species\_name} & $|$\\
-                                    & {\it species\_name} $+$ {\it lump\_sum}\\[2mm]
+                                    & {\it species\_name} $+$ {\it lump\_sum}\\[1.5mm]
 
 {\it rate} ::=                      & {\it number} & $|$\\
-                                    & {\it program\_expression}\\[2mm]
+                                    & {\it program\_expression}\\[1.5mm]
 
 {\it species\_composition} ::=      & {\it atom\_count} & $|$\\
                                     & {\it atom\_count} $+$ {\it species\_composition} & $|$\\
-                                    & \code{IGNORE}\\[2mm]
+                                    & \code{IGNORE}\\[1.5mm]
 
-{\it species\_definition} ::=       & {\it species\_name} = {\it species\_composition};\\[2mm]
+{\it species\_definition} ::=       & {\it species\_name} = {\it species\_composition};\\[1.5mm]
 
 {\it species\_definition\_list} ::= & {\it species\_definition} & $|$\\
-                                    & {\it species\_definition} {\it species\_definition\_list}\\[2mm]
+                                    & {\it species\_definition} {\it species\_definition\_list}\\[1.5mm]
 
 {\it species\_list} ::=             & {\it species\_name}; & $|$\\
-                                    & {\it species\_name}; {\it species\_list}\\[2mm]
+                                    & {\it species\_name}; {\it species\_list}\\[1.5mm]
 
 {\it species\_list\_plus} ::=       & {\it species\_name\_plus}; & $|$\\
-                                    & {\it species\_name\_plus}; {\it species\_list\_plus}\\[2mm]
+                                    & {\it species\_name\_plus}; {\it species\_list\_plus}\\[1.5mm]
+
+{\it species\_name} ::=             & Alphanumeric expression, also including the underscore, starting with a letter.\\
+                                    & In \code{scan.l}, it is defined as ``\code{[a-zA-Z_][a-zA-Z_0-9]*}''. Its maximum length is 15.\\[1.5mm]
 
 {\it species\_name\_plus} ::=       & {\it species\_name} & $|$\\
                                     & \code{VAR_SPEC} & $|$\\
                                     & \code{FIX_SPEC} & $|$\\
-                                    & \code{ALL_SPEC}\\[2mm]
+                                    & \code{ALL_SPEC}\\[1.5mm]
 
 {\it term} ::=                      & {\it number} {\it species\_name} & $|$\\
                                     &              {\it species\_name} & $|$\\
+                                    & \code{PROD} & $|$\\
                                     & \code{hv}
 
 \end{tabular}
