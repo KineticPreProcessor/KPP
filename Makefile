@@ -29,8 +29,7 @@
 #
 #######################################################################################
 
-SYSTEM := $(shell uname)
-include Makefile.defs.$(SYSTEM)
+include Makefile.defs
 
 all: setup kpp
 
@@ -45,7 +44,18 @@ clean:
 	@rm -f *~ */*~
 
 distclean: clean
+	@cd src;make maintainer-clean;cd ..
 	@rm -f bin/kpp
 
-maintainer-clean: distclean
-	@cd src;make maintainer-clean;cd ..
+# list the configuration:
+.PHONY: list
+list:
+	@echo "------------------------------------------------"
+	@echo "SYSTEM       = $(SYSTEM)"
+	@echo "HOST         = $(HOST)"
+	@echo "CC           = $(CC)"
+	@echo "CC_FLAGS     = $(CC_FLAGS)"
+	@echo "INCLUDE_DIR  = $(INCLUDE_DIR)"
+	@echo "FLEX         = $(FLEX)"
+	@echo "FLEX_LIB_DIR = $(FLEX_LIB_DIR)"
+	@echo "------------------------------------------------"
