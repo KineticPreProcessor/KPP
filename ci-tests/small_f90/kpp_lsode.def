@@ -1,7 +1,1 @@
-#FUNCTION AGGREGATE
-#JACOBIAN SPARSE_LU_ROW
-#DOUBLE ON 
-#INTFILE kpp_lsode
-
-
-
+../../int/kpp_lsode.def

@@ -1,6 +1,1 @@
-#MODEL      small_strato
-#INTEGRATOR runge_kutta
-#LANGUAGE   Fortran90
-#DRIVER     general
-#HESSIAN    on
-#STOICMAT   on
+../../examples/rk.kpp
