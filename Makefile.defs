@@ -1,4 +1,4 @@
-# -*- sh -*-
+# -*- makefile-gmake -*-
 ##############################################################################
 #
 #  KPP - The Kinetic PreProcessor
@@ -32,36 +32,76 @@
 
 # In order to compile KPP you have to provide the following information:
 
-# 1. The name of the compiler you want to use. Normaly this 
+# 1. The name of the compiler you want to use. Normally this
 #    is either GNU C compiler (gcc) or the native compiler (cc)
-#    You can use the complete pathname if the compiler is not in $PATH 
+#    You can use the complete pathname if the compiler is not in $PATH
 #    Note that for SUN machines is better to use gcc.
 #    For GNU C compiler use:
 #      CC=gcc
 #    For the native compiler use:
 #      CC=cc
-
-CC=gcc 
-
+#
 # 2. The name of your lexical analizer. KPP requires FLEX to be used.
 #    FLEX is a public domain lexical analizer and you can download it from
 #    http://www.gnu.org/software/flex/ or any other mirror site. If flex
 #    directory is not included in your path use the complete pathname.
-
-FLEX=flex
-
+#
 # 3. The complete pathname of the FLEX library (libfl.a).
-#    On many systems this is either: 
+#    On many systems this is either:
 #    /usr/lib, /usr/lib64, /usr/local/util/lib/flex
-
-FLEX_LIB_DIR=/usr/lib
-
-# 4. Platform independent C compiler flags. By default "-O" is used which 
-#    turns on optimization. If you are experiencing problems you may try 
+#
+# 4. Platform independent C compiler flags. By default "-O" is used which
+#    turns on optimization. If you are experiencing problems you may try
 #    "-g" to include debuging informations.
-#    "-Wall" = all warnings
+#
+# 5. Path to include additional directories
+#    Typically: /usr/include on Linux
+#               /usr/include/sys on Mac OS X
 
-CC_FLAGS=-O
-# CC_FLAGS= -g -Wall
+# The defaults are:
+CC           = gcc
+FLEX         = flex
+FLEX_LIB_DIR = /usr/lib
+CC_FLAGS     = -g -Wall
+INCLUDE_DIR  = /usr/include
+
+# If the default is not suitable, set the variables based on your system
+# and your machine:
+
+SYSTEM := $(shell uname)
+HOST   := $(shell hostname)
+
+# change settings for specific systems:
+
+# Settings for Linux (uncomment if necessary)
+# ifeq ($(SYSTEM),Linux)
+#   CC_FLAGS     = -O
+#   FLEX_LIB_DIR = /usr/lib64
+# endif
+
+# Settings for MacOS
+# NOTE: IF you have installed flex with HomeBrew, then the
+# libfl.a library file will not be installed to /usr/lib
+# but to /usr/local/Cellar/flex/X.Y.Z/lib.
+#  --  Bob Yantosca (01 Nov 2021)
+ifeq ($(SYSTEM),Darwin)
+  CC_FLAGS     += -DMACOS -O -Wno-implicit-function-declaration
+  FLEX_LIB_DIR := /usr/local/Cellar/flex/2.6.4_2/lib
+endif
+
+# settings for "fluorine" from Rolf Sander:
+ifeq ($(HOST),fluorine)
+  # CC_FLAGS = -O -Wall
+  # CC_FLAGS = -O
+  CC_FLAGS   = -O -Wno-implicit-function-declaration
+endif
+
+# Note: Additional systems should be added as needed.
+
+# Disable this till further notice (bmy, 11/1/21)
+## Exit if we can't find libfl.a (Flex library file)
+#ifeq ($(wildcard $(FLEX_LIB_DIR)/*.a),)
+# $(error "Could not find the Flex library at $(FLEX_LIB_DIR)!")
+#endif
 
 ##############################################################################
