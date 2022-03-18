@@ -6,6 +6,7 @@
 *.map
 *.mod
 *.o
+*.m
 kpp
 *_Function*
 *_Global*
