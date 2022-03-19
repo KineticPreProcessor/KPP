@@ -18,7 +18,7 @@
 
 # results from ci-tests:
 /ci-tests/**/*.m
-*results*
+/ci-tests/**/*results*
 
 # keep empty directory for executables, but not its contents:
 /bin/*

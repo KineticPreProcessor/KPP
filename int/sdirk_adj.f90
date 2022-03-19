@@ -571,12 +571,12 @@ stages:DO istage = 1, rkS
 NewtonLoop:DO NewtonIter = 1, NewtonMaxit
 
 !~~~>   Prepare the loop-dependent part of the right-hand side
- 	    CALL WADD(N,Y,Z(1,istage),TMP)         	! TMP <- Y + Zi
-            CALL FUN_CHEM(T+rkC(istage)*H,TMP,RHS)	! RHS <- Fun(Y+Zi)
+            CALL WADD(N,Y,Z(1,istage),TMP)              ! TMP <- Y + Zi
+            CALL FUN_CHEM(T+rkC(istage)*H,TMP,RHS)      ! RHS <- Fun(Y+Zi)
             ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 !            RHS(1:N) = G(1:N) - Z(1:N,istage) + (H*rkGamma)*RHS(1:N)
-	    CALL WSCAL(N, H*rkGamma, RHS, 1)
-	    CALL WAXPY (N, -ONE, Z(1,istage), 1, RHS, 1)
+            CALL WSCAL(N, H*rkGamma, RHS, 1)
+            CALL WAXPY (N, -ONE, Z(1,istage), 1, RHS, 1)
             CALL WAXPY (N, ONE, G,1, RHS,1)
 
 !~~~>   Solve the linear system

@@ -55,8 +55,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    RSTATUS(:) = 0.0_dp
 
     !~~~> fine-tune the integrator:
-   ICNTRL(1) = 0	! 0 - non-autonomous, 1 - autonomous
-   ICNTRL(2) = 0	! 0 - vector tolerances, 1 - scalars
+   ICNTRL(1) = 0        ! 0 - non-autonomous, 1 - autonomous
+   ICNTRL(2) = 0        ! 0 - vector tolerances, 1 - scalars
 
    ! If optional parameters are given, and if they are >0, 
    ! then they overwrite default settings. 
@@ -539,11 +539,11 @@ Stage: DO istage = 1, ros_S
       ! For the 1st istage the function has been computed previously
        IF ( istage == 1 ) THEN
          !slim: CALL WCOPY(N,Fcn0,1,Fcn,1)
-	 Fcn(1:N) = Fcn0(1:N)
+         Fcn(1:N) = Fcn0(1:N)
       ! istage>1 and a new function evaluation is needed at the current istage
        ELSEIF ( ros_NewF(istage) ) THEN
          !slim: CALL WCOPY(N,Y,1,Ynew,1)
-	 Ynew(1:N) = Y(1:N)
+         Ynew(1:N) = Y(1:N)
          DO j = 1, istage-1
            CALL WAXPY(N,ros_A((istage-1)*(istage-2)/2+j), &
             K(N*(j-1)+1),1,Ynew,1)

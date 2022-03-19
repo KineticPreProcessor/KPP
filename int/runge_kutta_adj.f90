@@ -214,10 +214,10 @@ CONTAINS
 !         = 4 : simplified continuous adjoint ( with method ICNTRL(6) )
 !
 !    ICNTRL(10) -> switch for error estimation strategy
-!		ICNTRL(10) = 0: one additional stage at c=0, 
-!				see Hairer (default)
-!		ICNTRL(10) = 1: two additional stages at c=0 
-!				and SDIRK at c=1, stiffly accurate
+!               ICNTRL(10) = 0: one additional stage at c=0, 
+!                               see Hairer (default)
+!               ICNTRL(10) = 1: two additional stages at c=0 
+!                               and SDIRK at c=1, stiffly accurate
 !
 !    ICNTRL(11) -> switch for step size strategy
 !              ICNTRL(11)=1:  mod. predictive controller (Gustafsson, default)
@@ -311,14 +311,14 @@ CONTAINS
       ! Runge-Kutta method parameters
       INTEGER, PARAMETER :: R2A=1, R1A=2, L3C=3, GAU=4, L3A=5
       KPP_REAL :: rkT(3,3), rkTinv(3,3), rkTinvAinv(3,3), rkAinvT(3,3), &
-                       rkA(3,3), rkB(3),  rkC(3), rkD(0:3), rkE(0:3), 	   &
-		       rkBgam(0:4), rkBhat(0:4), rkTheta(0:3),             &
+                       rkA(3,3), rkB(3),  rkC(3), rkD(0:3), rkE(0:3),   &
+                       rkBgam(0:4), rkBhat(0:4), rkTheta(0:3),          &
                        rkGamma,  rkAlpha, rkBeta, rkELO
       ! ADJ method parameters
-      INTEGER, PARAMETER :: KPP_ROOT_none = 1, KPP_ROOT_discrete = 2,     	   &
+      INTEGER, PARAMETER :: KPP_ROOT_none = 1, KPP_ROOT_discrete = 2, &
                             KPP_ROOT_continuous = 3, KPP_ROOT_simple_continuous = 4
       INTEGER :: AdjointSolve                      
-      INTEGER, PARAMETER :: Solve_direct = 1, Solve_fixed = 2,     	   &
+      INTEGER, PARAMETER :: Solve_direct = 1, Solve_fixed = 2, &
                             Solve_adaptive = 3
       INTEGER, PARAMETER :: bufsize = 10000
       INTEGER :: stack_ptr = 0 ! last written entry
@@ -1043,13 +1043,13 @@ NewtonLoop:DO  NewtonIter = 1, NewtonMaxit
             ! Check error in Newton iterations
             NewtonDone = (NewtonRate*NewtonIncrement <= NewtonTol)
             IF (NewtonDone) THEN
-	      NewIt = NewtonIter
-	      EXIT NewtonLoop
-	    END IF  
-   	    IF (NewtonIter == NewtonMaxit) THEN
-		PRINT*, 'Slow or no convergence in Newton Iteration: Max no. of', &
-		 	'Newton iterations reached'
-	    END IF
+              NewIt = NewtonIter
+              EXIT NewtonLoop
+            END IF  
+            IF (NewtonIter == NewtonMaxit) THEN
+                PRINT*, 'Slow or no convergence in Newton Iteration: Max no. of', &
+                        'Newton iterations reached'
+            END IF
 
       END DO NewtonLoop
 
@@ -1057,7 +1057,7 @@ NewtonLoop:DO  NewtonIter = 1, NewtonMaxit
       IF (.NOT.NewtonDone) THEN
            !CALL RK_ErrorMsg(-12,T,H,IERR);
            H = Fac*H; Reject=.TRUE.; SkipJac = .TRUE.;  SkipLU = .FALSE.
-	   ISTATUS(irej) = ISTATUS(irej) + 1
+           ISTATUS(irej) = ISTATUS(irej) + 1
            CYCLE Tloop
       END IF
 
@@ -1087,11 +1087,11 @@ NewtonLoop:DO  NewtonIter = 1, NewtonMaxit
 SDNewtonLoop:DO NewtonIter = 1, NewtonMaxit
 
 !~~~>   Prepare the loop-dependent part of the right-hand side
-	    CALL WADD(N,Y,Z4,TMP)         ! TMP <- Y + Z4
-	    CALL FUN_CHEM(T+H,TMP,DZ4) 	  ! DZ4 <- Fun(Y+Z4)         
+            CALL WADD(N,Y,Z4,TMP)         ! TMP <- Y + Z4
+            CALL FUN_CHEM(T+H,TMP,DZ4)    ! DZ4 <- Fun(Y+Z4)         
             ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 !            DZ4(1:N) = (G(1:N)-Z4(1:N))*(rkGamma/H) + DZ4(1:N)
-	    CALL WAXPY (N, -ONE*rkGamma/H, Z4, 1, DZ4, 1)
+            CALL WAXPY (N, -ONE*rkGamma/H, Z4, 1, DZ4, 1)
             CALL WAXPY (N, rkGamma/H, G,1, DZ4,1)
 
 !~~~>   Solve the linear system
@@ -1148,11 +1148,11 @@ SDNewtonLoop:DO NewtonIter = 1, NewtonMaxit
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       IF (SdirkError) THEN
 !         DZ4(1:N) =  rkD(1)*Z1 + rkD(2)*Z2 + rkD(3)*Z3 - Z4    
-	 CALL Set2Zero(N, DZ4)
-	 IF (rkD(1) /= ZERO) CALL WAXPY(N, rkD(1), Z1, 1, DZ4, 1)
-	 IF (rkD(2) /= ZERO) CALL WAXPY(N, rkD(2), Z2, 1, DZ4, 1)
-	 IF (rkD(3) /= ZERO) CALL WAXPY(N, rkD(3), Z3, 1, DZ4, 1)
-	 CALL WAXPY(N, -ONE, Z4, 1, DZ4, 1)
+         CALL Set2Zero(N, DZ4)
+         IF (rkD(1) /= ZERO) CALL WAXPY(N, rkD(1), Z1, 1, DZ4, 1)
+         IF (rkD(2) /= ZERO) CALL WAXPY(N, rkD(2), Z2, 1, DZ4, 1)
+         IF (rkD(3) /= ZERO) CALL WAXPY(N, rkD(3), Z3, 1, DZ4, 1)
+         CALL WAXPY(N, -ONE, Z4, 1, DZ4, 1)
          Err = RK_ErrorNorm(N,SCAL,DZ4)    
       ELSE
          CALL  RK_ErrorEstimate(N,H,Y,T, &
@@ -1175,7 +1175,7 @@ accept:IF (Err < ONE) THEN !~~~> STEP IS ACCEPTED
             Zstage(1:N)       = Z1(1:N) 
             Zstage(N+1:2*N)   = Z2(1:N)
             Zstage(2*N+1:3*N) = Z3(1:N)
-	    ! Push old Y - Y at the beginning of the stage
+            ! Push old Y - Y at the beginning of the stage
             CALL rk_DPush(T, H, Y, Zstage, NewIt, E1, E2)
          END IF
 
@@ -1213,7 +1213,7 @@ accept:IF (Err < ONE) THEN !~~~> STEP IS ACCEPTED
             Hratio=Hnew/H
             ! Reuse the LU decomposition
             SkipLU = (Theta<=ThetaMin) .AND. (Hratio>=Qmin) .AND. (Hratio<=Qmax)
-	    SkipLU = .false.
+            SkipLU = .false.
             IF (.NOT.SkipLU) H=Hnew
          END IF
          ! If convergence is fast enough, do not update Jacobian
@@ -1347,7 +1347,7 @@ TimeLoop:DO WHILE ( stack_ptr > 0 )
          END DO  
        END DO
        DO i=1,3*N
-	  Jbig(i,i) = Jbig(i,i) + ONE
+          Jbig(i,i) = Jbig(i,i) + ONE
        END DO
        CALL DGETRF(3*N,3*N,Jbig,3*N,IPbig,ISING) 
        ! CALL WGEFA(3*N,Jbig,IPbig,ISING) 
@@ -1374,18 +1374,18 @@ TimeLoop:DO WHILE ( stack_ptr > 0 )
 !  Use full big algebra:    
       Jbig(1:3*N,1:3*N) = 0.0d0
       DO i=1,LU_NONZERO
-	  Jbig(LU_irow(i),LU_icol(i))         = -H*rkA(1,1)*Jac1(i)
-	  Jbig(LU_irow(i),N+LU_icol(i))       = -H*rkA(1,2)*Jac2(i)
-	  Jbig(LU_irow(i),2*N+LU_icol(i))     = -H*rkA(1,3)*Jac3(i)
-	  Jbig(N+LU_irow(i),LU_icol(i))       = -H*rkA(2,1)*Jac1(i)
-	  Jbig(N+LU_irow(i),N+LU_icol(i))     = -H*rkA(2,2)*Jac2(i)
-	  Jbig(N+LU_irow(i),2*N+LU_icol(i))   = -H*rkA(2,3)*Jac3(i)
-	  Jbig(2*N+LU_irow(i),LU_icol(i))     = -H*rkA(3,1)*Jac1(i)
-	  Jbig(2*N+LU_irow(i),N+LU_icol(i))   = -H*rkA(3,2)*Jac2(i)
-	  Jbig(2*N+LU_irow(i),2*N+LU_icol(i)) = -H*rkA(3,3)*Jac3(i)
+          Jbig(LU_irow(i),LU_icol(i))         = -H*rkA(1,1)*Jac1(i)
+          Jbig(LU_irow(i),N+LU_icol(i))       = -H*rkA(1,2)*Jac2(i)
+          Jbig(LU_irow(i),2*N+LU_icol(i))     = -H*rkA(1,3)*Jac3(i)
+          Jbig(N+LU_irow(i),LU_icol(i))       = -H*rkA(2,1)*Jac1(i)
+          Jbig(N+LU_irow(i),N+LU_icol(i))     = -H*rkA(2,2)*Jac2(i)
+          Jbig(N+LU_irow(i),2*N+LU_icol(i))   = -H*rkA(2,3)*Jac3(i)
+          Jbig(2*N+LU_irow(i),LU_icol(i))     = -H*rkA(3,1)*Jac1(i)
+          Jbig(2*N+LU_irow(i),N+LU_icol(i))   = -H*rkA(3,2)*Jac2(i)
+          Jbig(2*N+LU_irow(i),2*N+LU_icol(i)) = -H*rkA(3,3)*Jac3(i)
       END DO
       DO i=1, 3*N
-	 Jbig(i,i) = ONE + Jbig(i,i)
+         Jbig(i,i) = ONE + Jbig(i,i)
       END DO
       ! CALL DGETRF(3*N,3*N,Jbig,3*N,IPbig,ISING) 
       CALL WGEFA(3*N,Jbig,IPbig,ISING) 
@@ -1410,9 +1410,9 @@ Adj:DO iadj = 1, NADJ
       !~~~>  Initializations for Newton iteration
       NewtonDone = .FALSE.
       !~~~>    Right Hand Side - part G for all Newton iterations
-      CALL RK_PrepareRHS_G(N,H,Jac1,Jac2,Jac3,Lambda(1,iadj), 	      &
-      			G1, G2, G3)
-			
+      CALL RK_PrepareRHS_G(N,H,Jac1,Jac2,Jac3,Lambda(1,iadj),         &
+                        G1, G2, G3)
+                        
       IF ( (AdjointSolve == Solve_adaptive .and. NewtonConverge)      &
             .or. (AdjointSolve == Solve_fixed) ) THEN
 
@@ -1420,8 +1420,8 @@ NewtonLoopAdj:DO  NewtonIter = 1, NewtonMaxit
 
             !~~~> Prepare the right-hand side
             CALL RK_PrepareRHS_Adj(N,H,Jac1,Jac2,Jac3,Lambda(1,iadj), &
-	    		U1(1,iadj),U2(1,iadj),U3(1,iadj),	      &
-			G1, G2, G3, DU1,DU2,DU3)
+                        U1(1,iadj),U2(1,iadj),U3(1,iadj),             &
+                        G1, G2, G3, DU1,DU2,DU3)
 
             !~~~> Solve the linear systems
             CALL RK_SolveTR( N,H,E1,IP1,E2,IP2,DU1,DU2,DU3,ISING )
@@ -1434,12 +1434,12 @@ NewtonLoopAdj:DO  NewtonIter = 1, NewtonMaxit
                  AbsTol_adj(1:N,iadj),RelTol_adj(1:N,iadj), &
                  Lambda(1:N,iadj),SCAL)
 
-	    ! SCAL(1:N) = 1.0d0
+            ! SCAL(1:N) = 1.0d0
             NewtonIncrement = SQRT( ( RK_ErrorNorm(N,SCAL,DU1)**2 +   &
                                 RK_ErrorNorm(N,SCAL,DU2)**2 +         &
                                 RK_ErrorNorm(N,SCAL,DU3)**2 )/3.0d0 )
             
-	
+        
             IF ( NewtonIter == 1 ) THEN
                 Theta      = ABS(ThetaMin)
                 NewtonRate = 2.0d0 
@@ -1448,13 +1448,13 @@ NewtonLoopAdj:DO  NewtonIter = 1, NewtonMaxit
                 IF (Theta < 0.99d0) THEN
                     NewtonRate = Theta/(ONE-Theta)
                 ELSE ! Non-convergence of Newton: Theta too large
-		    Reject = .TRUE.
-		    NewtonDone = .FALSE.
+                    Reject = .TRUE.
+                    NewtonDone = .FALSE.
                     EXIT NewtonLoopAdj
                 END IF
 
             END IF
-	  
+          
             NewtonIncrementOld = MAX(NewtonIncrement,Roundoff) 
 
             END IF ! (AdjointSolve == Solve_adaptive)
@@ -1477,9 +1477,9 @@ NewtonLoopAdj:DO  NewtonIter = 1, NewtonMaxit
       
       IF ((AdjointSolve==Solve_adaptive).AND.(.NOT.NewtonDone)) THEN
          ! print*,'Newton iterations do not converge, switching to full system.'
-	 NewtonConverge = .FALSE.
-	 Reject = .TRUE.
-	 GOTO 111
+         NewtonConverge = .FALSE.
+         Reject = .TRUE.
+         GOTO 111
       END IF
       
       ! Update adjoint solution: Y_adj <- Y_adj + sum (U_i)
@@ -1490,30 +1490,30 @@ NewtonLoopAdj:DO  NewtonIter = 1, NewtonMaxit
       ELSE ! NewtonConverge = .false.
 
 #ifdef FULL_ALGEBRA  
-	X(1:N)       = -G1(1:N)
-	X(N+1:2*N)   = -G2(1:N)
-	X(2*N+1:3*N) = -G3(1:N)
-	CALL DGETRS('T',3*N,1,Jbig,3*N,IPbig,X,3*N,ISING) 
+        X(1:N)       = -G1(1:N)
+        X(N+1:2*N)   = -G2(1:N)
+        X(2*N+1:3*N) = -G3(1:N)
+        CALL DGETRS('T',3*N,1,Jbig,3*N,IPbig,X,3*N,ISING) 
         ! CALL WGESL('T',3*N,Jbig,IPbig,X)
-	Lambda(1:N,iadj) = Lambda(1:N,iadj)+X(1:N)+X(N+1:2*N)+X(2*N+1:3*N)
+        Lambda(1:N,iadj) = Lambda(1:N,iadj)+X(1:N)+X(N+1:2*N)+X(2*N+1:3*N)
 #else        
 !   Commented lines for sparse big algebra:
-!	X(1,1:N) = -G1(1:N)
-!	X(2,1:N) = -G2(1:N)
-!	X(3,1:N) = -G3(1:N)
-!	CALL KppSolveBigTR( Jbig, IPbig, X )                
-!	Lambda(1:N,iadj) = Lambda(1:N,iadj)+X(1,1:N)+X(2,1:N)+X(3,1:N)
+!       X(1,1:N) = -G1(1:N)
+!       X(2,1:N) = -G2(1:N)
+!       X(3,1:N) = -G3(1:N)
+!       CALL KppSolveBigTR( Jbig, IPbig, X )                
+!       Lambda(1:N,iadj) = Lambda(1:N,iadj)+X(1,1:N)+X(2,1:N)+X(3,1:N)
 !   Use fill big algebra:
-	X(1:N)       = -G1(1:N)
-	X(N+1:2*N)   = -G2(1:N)
-	X(2*N+1:3*N) = -G3(1:N)
-	! CALL DGETRS('T',3*N,1,Jbig,3*N,IPbig,X,3*N,ISING) 
+        X(1:N)       = -G1(1:N)
+        X(N+1:2*N)   = -G2(1:N)
+        X(2*N+1:3*N) = -G3(1:N)
+        ! CALL DGETRS('T',3*N,1,Jbig,3*N,IPbig,X,3*N,ISING) 
         CALL WGESL('T',3*N,Jbig,IPbig,X)
-	Lambda(1:N,iadj) = Lambda(1:N,iadj)+X(1:N)+X(N+1:2*N)+X(2*N+1:3*N)
+        Lambda(1:N,iadj) = Lambda(1:N,iadj)+X(1:N)+X(N+1:2*N)+X(2*N+1:3*N)
 #endif        
         IF ((AdjointSolve==Solve_adaptive).AND.(iadj>=NADJ)) THEN
-	  NewtonConverge = .TRUE.
-	  Reject = .FALSE.
+          NewtonConverge = .TRUE.
+          Reject = .FALSE.
         END IF
      
      END IF ! NewtonConverge
@@ -2060,18 +2060,18 @@ NewtonLoopAdj:DO  NewtonIter = 1, NewtonMaxit
       CALL DGETRS ('N',N,1,E1,N,IP1,TMP,N,ISING) 
       IF ((rkMethod==R1A).OR.(rkMethod==GAU).OR.(rkMethod==L3A)) THEN
           CALL DGETRS('N',N,1,E1,N,IP1,TMP,N,ISING)
-      END IF	  
+      END IF      
       IF (rkMethod==GAU) THEN
           CALL DGETRS ('N',N,1,E1,N,IP1,TMP,N,ISING)
-      END IF	  
+      END IF      
 #else      
       CALL KppSolve (E1, TMP)
       IF ((rkMethod==R1A).OR.(rkMethod==GAU).OR.(rkMethod==L3A)) THEN
           CALL KppSolve (E1,TMP)
-      END IF	  
+      END IF      
       IF (rkMethod==GAU) THEN
           CALL KppSolve (E1,TMP)
-      END IF	  
+      END IF      
 #endif      
 
       Err = RK_ErrorNorm(N,SCAL,TMP)
@@ -2178,9 +2178,9 @@ firej:IF (FirstStep.OR.Reject) THEN
       ! Local order of error estimator 
       IF (b0==0.0d0) THEN
         rkELO  = 6.0d0
-      ELSE	
+      ELSE      
         rkELO  = 4.0d0
-      END IF	
+      END IF    
 
       !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       !~~~> Diagonalize the RK matrix:               
@@ -2309,9 +2309,9 @@ firej:IF (FirstStep.OR.Reject) THEN
       ! Local order of error estimator 
       IF (b0==0.0d0) THEN
         rkELO  = 5.0d0
-      ELSE	
+      ELSE      
         rkELO  = 4.0d0
-      END IF	
+      END IF    
 
       !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       !~~~> Diagonalize the RK matrix:               
