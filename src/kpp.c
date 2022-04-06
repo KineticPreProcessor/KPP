@@ -305,10 +305,10 @@ int dummyNr;
                    break;  
   }
 
-  VarNr = 0;
+  VarNr       = 0;
   VarActiveNr = 0;
-  FixNr = 0;
-  dummyNr = 0;
+  FixNr       = 0;
+  dummyNr     = 0;
 
   var = (CODE*)malloc( SpcNr * sizeof(CODE) );
   fix = (CODE*)malloc( SpcNr * sizeof(CODE) );
@@ -554,7 +554,6 @@ int i,j;
   ComputeLUStructJ();
 
   if( initNr == -1 ) initNr = VarNr;
-
 
   printf("\nKPP is starting the code generation.");
   Generate( rootFileName );

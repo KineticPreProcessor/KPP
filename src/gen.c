@@ -54,9 +54,7 @@ int ARP, JVRP, NJVRP, CROW_JVRP, IROW_JVRP, ICOL_JVRP;
 int V, F, VAR, FIX;
 int RCONST, RCT;
 int Vdot, P_VAR, D_VAR;
-/*  mz_rs_20160201+ */
 int StoichNum;
-/*  mz_rs_20160201- */
 int KR, A, BV, BR, IV;
 int JV, UV, JUV, JTUV, JVS; 
 int JR, UR, JUR, JRS;
@@ -160,9 +158,7 @@ int i,j;
   Vdot = DefvElm( "Vdot", real, -NVAR, "Time derivative of variable species concentrations" );
   P_VAR = DefvElm( "P_VAR", real, -NVAR, "Production term" );
   D_VAR = DefvElm( "D_VAR", real, -NVAR, "Destruction term" );
-  /*  mz_rs_20160201+ */
   StoichNum = DefmElm( "StoichNum", real, -NVAR, -NREACT, "Stoichiometric numbers" );
-  /*  mz_rs_20160201- */
 
 
   JVS   = DefvElm( "JVS", real, -LU_NONZERO, "sparse Jacobian of variables" );
@@ -2249,10 +2245,7 @@ void GenerateParamHeader()
 {
 int spc;
 int i;
-/*  mz_rs_20161121+ */
-/* char name[20]; */
 char name[MAX_SPNAME];
-/*  mz_rs_20161121- */
 int offs;
 int mxyz;
 
@@ -2622,10 +2615,8 @@ int INITVAL;
   F90_Inline("  USE %s_Global\n", rootFileName);
   MATLAB_Inline("global CFACTOR VAR FIX NVAR NFIX", rootFileName);
 
-  /*  mz_rs_20151116+ */
   F77_Inline("      INCLUDE '%s_Parameters.h'", rootFileName);
   F90_Inline("  USE %s_Parameters\n", rootFileName);
-  /*  mz_rs_20151116- */
   
   I = DefElm( "i", INT, 0);
   X = DefElm( "x", real, 0);
@@ -2971,10 +2962,8 @@ case 'h':
   F90_Inline("! KPP SP - Single precision kind");
   F90_Inline("  INTEGER, PARAMETER :: sp = SELECTED_REAL_KIND(6,30)");
   F90_Inline("! KPP DP - Double precision kind");
-  /*  mz_rs_20060308+ */
   /* F90_Inline("  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(14,300)"); */
   F90_Inline("  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(12,307)");
-  /*  mz_rs_20060308- */
   F90_Inline("! KPP QP - Quadruple precision kind");
   F90_Inline("  INTEGER, PARAMETER :: qp = SELECTED_REAL_KIND(18,400)");
   F90_Inline("\nEND MODULE %s_Precision\n\n", rootFileName );
@@ -3265,13 +3254,9 @@ int n;
 
   printf("\nKPP is generating the ODE function:");
   printf("\n    - %s_Function",rootFileName);
-  GenerateFun();  
-  /*mz_dt_20150424+*/
+  GenerateFun();
   GenerateFun_Split();  
-  /*mz_dt_20150424-*/
-  /*  mz_rs_20160201+ */
   GenerateStoichNum();  
-  /*  mz_rs_20160201- */
 
   if ( useStochastic ) {
     printf("\nKPP is generating the Stochastic description:");

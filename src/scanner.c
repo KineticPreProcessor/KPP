@@ -811,7 +811,6 @@ void AddUseFile( char *fname )
 
 char * AppendString( char * s1, char * s2, int * maxlen, int addlen ) 
 {
-char * tmp;
 
   *maxlen += addlen;
 
@@ -829,7 +828,6 @@ char * tmp;
 
 char * ReplaceString( char * s1, char * s2, int * maxlen, int addlen ) 
 {
-char * tmp;
 
   if( s1 ) free(s1);
 

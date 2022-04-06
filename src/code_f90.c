@@ -37,14 +37,13 @@
 
 #define MAX_LINE 300
 
-/* setting LEN=15 avoids problems with long species names */
-/* setting LEN=32 avoids problems with long equation tags ! mz_pj_20080716 */
-/* change in F90_DeclareData is probably also necessary */
+/* Setting LEN=32 avoids problems with long species names and long equation tags. */
+/* A consistent change in F90_DeclareData (see below) is probably also necessary */
 char *F90_types[] = { "",                   /* VOID */ 
                     "INTEGER",            /* INT */
                     "REAL(kind=sp)",      /* FLOAT */
                     "REAL(kind=dp)",      /* DOUBLE */
-                    "CHARACTER(LEN=32)",  /* STRING */ /*  mz_ak_20060206 */
+                    "CHARACTER(LEN=32)",  /* STRING */
                     "CHARACTER(LEN=100)"  /* DOUBLESTRING */
                   };
 
@@ -120,10 +119,8 @@ int crtident;
 
 /* Max no of continuation lines in F90/F95 differs with compilers, but 39
                                should work for every compiler*/
-/*  mz_rs_20151126+ */
 /* if MAX_NO_OF_LINES is too small, KPP will split lines incorrectly */
 int number_of_lines = 1, MAX_NO_OF_LINES = 250;
-/*  mz_rs_20151126- */
 
 /*  Operator Mapping: 0xaa = '*' | 0xab = '+' | 0xac = ',' 
                       0xad = '-' | 0xae ='.' | 0xaf = '/' */		      
@@ -387,10 +384,9 @@ char dsbuf[200];
           case REAL:
             bprintf( "%12.6e", dval[i] ); break;
           case STRING:
-            /* setting length to 15 avoids problems with long species names */
-            /* setting length to 32 avoids problems with long equation tags */
-            /* change in "char *F90_types" is probably also necessary */
-            bprintf( "'%-32s'", cval[i] ); break; /*  mz_ak_20060206 */
+            /* Setting length to 32 avoids problems with long species names and long equation tags. */
+            /* A consistent change in "char *F90_types" (see above) is probably also necessary */
+            bprintf( "'%-32s'", cval[i] ); break;
           case DOUBLESTRING:
             /* strncpy( dsbuf, cval[i], 54 ); dsbuf[54]='\0'; */
             /* bprintf( "'%48s'", dsbuf ); break; */
