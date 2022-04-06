@@ -34,9 +34,8 @@
 #include <stdlib.h>
 #ifdef MACOS
  #include <malloc/malloc.h>
-#else
- #include <malloc.h>
 #endif
+/* #include <malloc.h> not necessary, "malloc" comes from <stdlib.h> */
 #include <unistd.h>
 #include <string.h>
 #include "gdata.h"

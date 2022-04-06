@@ -54,6 +54,7 @@ int ARP, JVRP, NJVRP, CROW_JVRP, IROW_JVRP, ICOL_JVRP;
 int V, F, VAR, FIX, FLUX;
 int RCONST, RCT;
 int Vdot, P_VAR, D_VAR;
+int StoichNum;
 int KR, A, BV, BR, IV, RR;
 int JV, UV, JUV, JTUV, JVS; 
 int JR, UR, JUR, JRS;
@@ -167,6 +168,7 @@ int i,j;
   Vdot = DefvElm( "Vdot", real, -NVAR, "Time derivative of variable species concentrations" );
   P_VAR = DefvElm( "P_VAR", real, -NVAR, "Production term" );
   D_VAR = DefvElm( "D_VAR", real, -NVAR, "Destruction term" );
+  StoichNum = DefmElm( "StoichNum", real, -NVAR, -NREACT, "Stoichiometric numbers" );
 
 
   JVS   = DefvElm( "JVS", real, -LU_NONZERO, "sparse Jacobian of variables" );
@@ -399,8 +401,10 @@ int flxind[MAX_EQN];
 
   /* Allocate local data structures */
   dim    = SpcNr+2;
-  crow   = AllocIntegerVector( dim, "crow in GenerateMonitorData");
-  diag   = AllocIntegerVector( dim, "diag in GenerateMonitorData");
+  /*  mz_rs_20070126+ not used, therefore deleted */
+  /*  crow   = AllocIntegerVector( dim, "crow in GenerateMonitorData"); */
+  /*  diag   = AllocIntegerVector( dim, "diag in GenerateMonitorData"); */
+  /*  mz_rs_20070126- */
   lookat = AllocIntegerVector( dim, "lookat in GenerateMonitorData"); 
   moni   = AllocIntegerVector( dim, "moni in GenerateMonitorData");
   trans  = AllocIntegerVector( dim, "trans in GenerateMonitorData");
@@ -528,7 +532,10 @@ int flxind[MAX_EQN];
   F77_Inline( "%6sEND\n\n", " " );
 
   /* Free local data structures */
-  free(crow); free(diag); free(lookat); free(moni); free(trans);
+  /* mz_rs_20070126+ not used, therefore deleted */
+  /* free(crow); free(diag); */
+  /* mz_rs_20070126- */
+  free(lookat); free(moni); free(trans);
 
 }
 
@@ -624,6 +631,96 @@ void GenerateJacobianSparseHeader()
 }
 
 
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  mz_rs_20160201+ */
+void GenerateStoichNum()
+{
+  int i, j, k;
+  int l, m;
+  int CalcStoichNum;
+
+  if( VarNr == 0 ) return;
+  if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
+    UseFile( functionFile ); 
+  CalcStoichNum = DefFnc( "CalcStoichNum", 1, "calculate stoichiometric numbers");
+  FunctionBegin( CalcStoichNum, StoichNum );
+  F90_Inline("  StoichNum(:,:) = 0.");
+  for (i = 0; i < VarNr; i++) {
+    for (j = 0; j < EqnNr; j++) {
+      if ( Stoich[i][j] != 0 )
+        Assign( Elm( StoichNum, i, j ), Const( Stoich[i][j] ));
+    }
+  }
+  FunctionEnd( CalcStoichNum );
+  FreeVariable( CalcStoichNum );
+}
+/*  mz_rs_20160201- */
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*mz_dt_20150424+ */
+void GenerateFun_Split()
+{
+  int i, j, k;
+  int used;
+  int l, m;
+  int FSPLIT_VAR;
+
+  if( VarNr == 0 ) return;  
+  if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
+    UseFile( functionFile ); 
+  FSPLIT_VAR = DefFnc( "Fun_SPLIT", 5, "time derivatives of variables - Split form");
+  FunctionBegin( FSPLIT_VAR, V, F, RCT, P_VAR, D_VAR );
+  NewLines(1);
+  WriteComment("Computation of equation rates");
+  for(j=0; j<EqnNr; j++) {
+    used = 0;
+    for (i = 0; i < VarNr; i++) 
+      if ( Stoich_Right[i][j] != 0 ) { 
+        used = 1;
+        break;
+      }
+    if ( used ) {    
+      prod = RConst( j );
+      for (i = 0; i < VarNr; i++) 
+        for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
+          prod = Mul( prod, Elm( V, i ) ); 
+      for ( ; i < SpcNr; i++) 
+        for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
+          prod = Mul( prod, Elm( F, i - VarNr ) );
+      Assign( Elm( A, j ), prod );
+    }
+  }
+  NewLines(1);
+  WriteComment("Production function");
+  for (i = 0; i < VarNr; i++) {
+    sum = Const(0);
+    for (j = 0; j < EqnNr; j++) 
+      sum = Add( sum, Mul( Const( Stoich_Right[i][j] ), Elm( A, j ) ) );
+    Assign( Elm( P_VAR, i ), sum );
+  }
+  NewLines(1);
+  WriteComment("Destruction function");
+  for (i = 0; i < VarNr; i++) {
+    sum = Const(0);       
+    for(j=0; j<EqnNr; j++) {
+      if ( Stoich_Left[i][j] == 0 ) continue;
+      prod = Mul( RConst( j ), Const( Stoich_Left[i][j] ) );
+      for (l = 0; l < VarNr; l++) {
+        m=(int)Stoich_Left[l][j] - (l==i);
+        for (k = 1; k <= m; k++ )
+          prod = Mul( prod, Elm( V, l ) );
+      }     
+      for ( ; l < SpcNr; l++) 
+        for (k = 1; k <= (int)Stoich_Left[l][j]; k++ )
+          prod = Mul( prod, Elm( F, l - VarNr  ) ); 
+      sum = Add( sum, prod );
+    }
+    Assign( Elm( D_VAR, i ), sum );
+  }
+  FunctionEnd( FSPLIT_VAR );
+  FreeVariable( FSPLIT_VAR );
+}
+/*mz_dt_20150424- */
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateFun()
@@ -2251,7 +2348,7 @@ void GenerateParamHeader()
 {
 int spc;
 int i;
-char name[20];
+char name[MAX_SPNAME];
 int offs;
 int mxyz;
 
@@ -2638,6 +2735,9 @@ int INITVAL;
   F77_Inline("      INCLUDE '%s_Global.h'", rootFileName);
   F90_Inline("  USE %s_Global\n", rootFileName);
   MATLAB_Inline("global CFACTOR VAR FIX NVAR NFIX", rootFileName);
+
+  F77_Inline("      INCLUDE '%s_Parameters.h'", rootFileName);
+  F90_Inline("  USE %s_Parameters\n", rootFileName);
   
   I = DefElm( "i", INT, 0);
   X = DefElm( "x", real, 0);
@@ -2983,6 +3083,7 @@ case 'h':
   F90_Inline("! KPP SP - Single precision kind");
   F90_Inline("  INTEGER, PARAMETER :: sp = SELECTED_REAL_KIND(6,30)");
   F90_Inline("! KPP DP - Double precision kind");
+  /* F90_Inline("  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(12,307)"); */
   F90_Inline("  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(14,300)");
   F90_Inline("! KPP QP - Quadruple precision kind");
   F90_Inline("  INTEGER, PARAMETER :: qp = SELECTED_REAL_KIND(18,400)");
@@ -3213,7 +3314,7 @@ case 't':
   break;
   
 default:
-  printf("\n Unrecognized option '%s' in GenerateF90Modules\n", where);
+  printf("\n Unrecognized option '%c' in GenerateF90Modules\n", where);
   break;
 }  
 }
@@ -3247,7 +3348,7 @@ int n;
                  break; 
     case MATLAB_LANG: Use_MATLAB( rootFileName ); 
                  break; 
-    default: printf("\n Language no '%s' unknown\n",useLang );		 
+    default: printf("\n Language no '%d' unknown\n",useLang );		 
   }
   printf("\nKPP is initializing the code generation.");
   InitGen();
@@ -3281,6 +3382,8 @@ int n;
   }
   printf("\n    - %s_Function",rootFileName);
   GenerateFun();
+  GenerateFun_Split();  
+  GenerateStoichNum();  
   if (doFlux == 1) GenerateFlux();  
 
   if ( useStochastic ) {

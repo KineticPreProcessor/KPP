@@ -39,9 +39,8 @@
   #include <stdlib.h>
   #ifdef MACOS
    #include <malloc/malloc.h>
-  #else
-   #include <malloc.h>
   #endif
+  /* #include <malloc.h> not necessary, "malloc" comes from <stdlib.h> */
   #include <string.h>
   #include <unistd.h>
   #include "scan.h"
@@ -73,8 +72,9 @@
 
 %}
 
+/* value increased (must be the same as MAX_K) */
 %union{
-  char str[80];
+  char str[1000];
 };
 
 %token JACOBIAN DOUBLE FUNCTION DEFVAR DEFRAD DEFFIX SETVAR SETRAD SETFIX 
