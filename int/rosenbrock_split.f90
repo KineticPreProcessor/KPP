@@ -507,7 +507,7 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
    H = MIN(H,ABS(Tend-T))
 
 !~~~>   Compute the function at current time
-   CALL FunTemplate(T,Y,Fcn0)
+   CALL FunSplitTemplate(T,Y,Fcn0)
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 
 !~~~>  Compute the function derivative with respect to T
@@ -549,7 +549,8 @@ Stage: DO istage = 1, ros_S
             K(N*(j-1)+1),1,Ynew,1)
          END DO
          Tau = T + ros_Alpha(istage)*Direction*H
-         CALL FunTemplate(Tau,Ynew,Fcn)
+         CALL FunSplitTemplate(Tau,Ynew,Fcn)
+         !CALL FunTemplate(Tau,Ynew,Fcn) msl_20160421 - for split function
          ISTATUS(Nfun) = ISTATUS(Nfun) + 1
        END IF ! if istage == 1 elseif ros_NewF(istage)
        !slim: CALL WCOPY(N,Fcn,1,K(ioffset+1),1)
@@ -675,7 +676,8 @@ Stage: DO istage = 1, ros_S
    KPP_REAL, PARAMETER :: ONE = 1.0_dp, DeltaMin = 1.0E-6_dp
 
    Delta = SQRT(Roundoff)*MAX(DeltaMin,ABS(T))
-   CALL FunTemplate(T+Delta,Y,dFdT)
+   CALL FunSplitTemplate(T+Delta,Y,dFdT)
+!   CALL FunTemplate(T+Delta,Y,dFdT) msl_20160421
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
    CALL WAXPY(N,(-ONE),Fcn0,1,dFdT,1)
    CALL WSCAL(N,(ONE/Delta),dFdT,1)
@@ -1249,30 +1251,35 @@ END SUBROUTINE Rosenbrock
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBROUTINE FunTemplate( T, Y, Ydot )
+SUBROUTINE FunSplitTemplate( T, Y, Ydot, P_VAR, D_VAR )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the ODE function call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
  USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
- USE KPP_ROOT_Function, ONLY: Fun
+ USE KPP_ROOT_Function, ONLY: Fun_SPLIT
  USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST
 !~~~> Input variables
    KPP_REAL :: T, Y(NVAR)
 !~~~> Output variables
    KPP_REAL :: Ydot(NVAR)
+   KPP_REAL, OPTIONAL :: P_VAR(NVAR), D_VAR(NVAR)
 !~~~> Local variables
-   KPP_REAL :: Told
+   KPP_REAL :: Told, P(NVAR), D(NVAR)
 
    Told = TIME
    TIME = T
    CALL Update_SUN()
    CALL Update_RCONST()
-   CALL Fun( Y, FIX, RCONST, Ydot )
+   CALL Fun_SPLIT( Y, FIX, RCONST, P, D )
+   Ydot = P - D*y
    TIME = Told
+   
+   IF (Present(P_VAR)) P_VAR=P
+   IF (Present(D_VAR)) D_VAR=D
 
-END SUBROUTINE FunTemplate
+ END SUBROUTINE FunSplitTemplate
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

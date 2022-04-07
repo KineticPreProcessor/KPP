@@ -30,26 +30,6 @@ MODULE KPP_ROOT_Integrator
   INTEGER, PARAMETER :: Nfun=1, Njac=2, Nstp=3, Nacc=4, &
     Nrej=5, Ndec=6, Nsol=7, Nsng=8, Ntexit=1, Nhacc=2, Nhnew=3
 
-  ! mz_rs_20181026+
-  ! description of the error numbers IERR
-  CHARACTER(LEN=50), PARAMETER, DIMENSION(-13:1) :: IERR_NAMES = (/ &
-    'Requested RK method not implemented               ', & ! -13 
-    'Non-convergence of Newton iterations              ', & ! -12 
-    'Matrix is repeatedly singular                     ', & ! -11 
-    'Step size too small: T + 10*H = T or H < Roundoff ', & ! -10 
-    'No of steps exceeds maximum bound                 ', & ! -9  
-    'Tolerances are too small                          ', & ! -8  
-    'Improper values for Qmin, Qmax                    ', & ! -7  
-    'Newton stopping tolerance too small               ', & ! -6  
-    'Improper value for ThetaMin                       ', & ! -5  
-    'Improper values for FacMin/FacMax/FacSafe/FacRej  ', & ! -4  
-    'Hmin/Hmax/Hstart must be positive                 ', & ! -3  
-    'Improper value for maximal no of Newton iterations', & ! -2  
-    'Improper value for maximal no of steps            ', & ! -1  
-    '                                                  ', & !  0 (not used)
-    'Success                                           ' /) !  1
-  ! mz_rs_20181026-
-
 CONTAINS
 
   ! **************************************************************************

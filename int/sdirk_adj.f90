@@ -32,21 +32,6 @@ MODULE KPP_ROOT_Integrator
            Nrej=5, Ndec=6, Nsol=7, Nsng=8,               &
            Ntexit=1, Nhexit=2, Nhnew=3
                  
-  ! mz_rs_20181026+
-  ! description of the error numbers IERR
-  CHARACTER(LEN=50), PARAMETER, DIMENSION(-8:1) :: IERR_NAMES = (/ &
-    'Matrix is repeatedly singular                     ', & ! -8
-    'Step size too small: T + 10*H = T or H < Roundoff ', & ! -7
-    'No of steps exceeds maximum bound                 ', & ! -6
-    'Improper tolerance values                         ', & ! -5
-    'FacMin/FacMax/FacRej must be positive             ', & ! -4
-    'Hmin/Hmax/Hstart must be positive                 ', & ! -3
-    'Improper value for maximal no of Newton iterations', & ! -2
-    'Improper value for maximal no of steps            ', & ! -1
-    '                                                  ', & !  0 (not used)
-    'Success                                           ' /) !  1
-  ! mz_rs_20181026-
-
 CONTAINS
 
 SUBROUTINE INTEGRATE_ADJ( NADJ, Y, Lambda, TIN, TOUT, &

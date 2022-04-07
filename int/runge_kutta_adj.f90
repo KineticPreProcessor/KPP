@@ -31,26 +31,6 @@ MODULE KPP_ROOT_Integrator
   INTEGER, PARAMETER :: ifun=1, ijac=2, istp=3, iacc=4, &
     irej=5, idec=6, isol=7, isng=8, itexit=1, ihacc=2, ihnew=3
   
-  ! mz_rs_20181026+
-  ! description of the error numbers IERR
-  CHARACTER(LEN=50), PARAMETER, DIMENSION(-13:1) :: IERR_NAMES = (/ &
-    'Requested RK method not implemented               ', & ! -13 
-    'Non-convergence of Newton iterations              ', & ! -12 
-    'Matrix is repeatedly singular                     ', & ! -11 
-    'Step size too small: T + 10*H = T or H < Roundoff ', & ! -10 
-    'No of steps exceeds maximum bound                 ', & ! -9  
-    'Tolerances are too small                          ', & ! -8  
-    'Improper values for Qmin, Qmax                    ', & ! -7  
-    'Newton stopping tolerance too small               ', & ! -6  
-    'Improper value for ThetaMin                       ', & ! -5  
-    'Improper values for FacMin/FacMax/FacSafe/FacRej  ', & ! -4  
-    'Hmin/Hmax/Hstart must be positive                 ', & ! -3  
-    'Improper value for maximal no of Newton iterations', & ! -2  
-    'Improper value for maximal no of steps            ', & ! -1  
-    '                                                  ', & !  0 (not used)
-    'Success                                           ' /) !  1
-  ! mz_rs_20181026-
-
 CONTAINS
 
   ! **************************************************************************
@@ -331,14 +311,14 @@ CONTAINS
       ! Runge-Kutta method parameters
       INTEGER, PARAMETER :: R2A=1, R1A=2, L3C=3, GAU=4, L3A=5
       KPP_REAL :: rkT(3,3), rkTinv(3,3), rkTinvAinv(3,3), rkAinvT(3,3), &
-                       rkA(3,3), rkB(3),  rkC(3), rkD(0:3), rkE(0:3),      &
-                       rkBgam(0:4), rkBhat(0:4), rkTheta(0:3),             &
+                       rkA(3,3), rkB(3),  rkC(3), rkD(0:3), rkE(0:3),   &
+                       rkBgam(0:4), rkBhat(0:4), rkTheta(0:3),          &
                        rkGamma,  rkAlpha, rkBeta, rkELO
       ! ADJ method parameters
-      INTEGER, PARAMETER :: KPP_ROOT_none = 1, KPP_ROOT_discrete = 2,              &
+      INTEGER, PARAMETER :: KPP_ROOT_none = 1, KPP_ROOT_discrete = 2, &
                             KPP_ROOT_continuous = 3, KPP_ROOT_simple_continuous = 4
       INTEGER :: AdjointSolve                      
-      INTEGER, PARAMETER :: Solve_direct = 1, Solve_fixed = 2,             &
+      INTEGER, PARAMETER :: Solve_direct = 1, Solve_fixed = 2, &
                             Solve_adaptive = 3
       INTEGER, PARAMETER :: bufsize = 10000
       INTEGER :: stack_ptr = 0 ! last written entry

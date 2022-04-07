@@ -31,19 +31,6 @@ MODULE KPP_ROOT_Integrator
            Nrej=5, Ndec=6, Nsol=7, Nsng=8,               &
            Ntexit=1, Nhexit=2, Nhnew=3
                  
-  ! description of the error numbers IERR
-  CHARACTER(LEN=50), PARAMETER, DIMENSION(-8:1) :: IERR_NAMES = (/ &
-    'Matrix is repeatedly singular                     ', & ! -8
-    'Step size too small: T + 10*H = T or H < Roundoff ', & ! -7
-    'No of steps exceeds maximum bound                 ', & ! -6
-    'Improper tolerance values                         ', & ! -5
-    'FacMin/FacMax/FacRej must be positive             ', & ! -4
-    'Hmin/Hmax/Hstart must be positive                 ', & ! -3
-    'Improper value for maximal no of Newton iterations', & ! -2
-    'Improper value for maximal no of steps            ', & ! -1
-    '                                                  ', & !  0 (not used)
-    'Success                                           ' /) !  1
-
 CONTAINS
 
 SUBROUTINE INTEGRATE( TIN, TOUT, &
@@ -71,6 +58,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    ISTATUS(:) = 0
    RSTATUS(:) = 0.0_dp
 
+   !~~~> fine-tune the integrator:
+   ICNTRL(2) = 0        ! 0 - vector tolerances, 1 - scalar tolerances
+   ICNTRL(6) = 0        ! starting values of Newton iterations: interpolated (0), zero (1)
   ! If optional parameters are given, and if they are >0, 
    ! then they overwrite default settings. 
    IF (PRESENT(ICNTRL_U)) THEN
@@ -1227,6 +1217,7 @@ Hloop: DO WHILE (ISING /= 0)
 
       USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
       USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
+      USE KPP_ROOT_Jacobian
       USE KPP_ROOT_Jacobian, ONLY: Jac_SP
       USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
       IMPLICIT NONE

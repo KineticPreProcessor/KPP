@@ -208,6 +208,25 @@ char buf[ MAX_LINE ];
 }
 
 /*************************************************************************************************/
+void F90_WriteOMPThreadPrivate( char *fmt, ... )
+{
+Va_list args;
+int n;
+char buf[ MAX_LINE ];
+
+  Va_start( args, fmt );
+  vsprintf( buf, fmt, args );
+  va_end( args );
+  /* remove trailing spaces */
+  /* taken from http://www.cs.bath.ac.uk/~pjw/NOTES/ansi_c/ch10-idioms.pdf */
+  for (n= strlen(buf) - 1; n >= 0; n--) 
+    if (buf[n] != ' ') break; 
+  buf[n + 1]= '\0';
+  bprintf( "!$OMP THREADPRIVATE( %s )\n", buf );
+  FlushBuf();
+}
+
+/*************************************************************************************************/
 char * F90_Decl( int v )
 {
 static char buf[120];
@@ -395,7 +414,10 @@ char dsbuf[200];
           if( i < i_to-1 ) {
             bprintf( "," );
             if( (i+1) % maxCols == 0 ) {
-              bprintf( " &\n     " );
+              if (maxCols == 1 ) {
+		bprintf( " & ! index %d\n     ", i+1 ); }
+	      else {
+		bprintf( " & ! index %d - %d\n     ", i-maxCols+2, i+1 ); }
               nlines++;
             }
           }
@@ -713,6 +735,7 @@ void Use_F90()
   WriteSymbol 	    = F90_WriteSymbol;  
   WriteAssign 	    = F90_WriteAssign;
   WriteComment 	    = F90_WriteComment;
+  WriteOMPThreadPrivate   = F90_WriteOMPThreadPrivate;
   DeclareConstant   = F90_DeclareConstant;
   Declare           = F90_Declare;
   ExternDeclare     = F90_ExternDeclare;
