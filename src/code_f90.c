@@ -422,7 +422,7 @@ char dsbuf[200];
             }
           }
         }
-        bprintf( " /)\n" );
+        bprintf( " /) ! index %d - %d\n", i_to-maxCols+1, i_to );
         /* mz_rs added FlushBuf, otherwise MAX_OUTBUF would have to be very large */
         FlushBuf();
       }
