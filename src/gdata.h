@@ -29,7 +29,7 @@
 
 ******************************************************************************/
 
-#define KPP_VERSION "2.3.3_gc-AR"  // Version number
+#define KPP_VERSION "3.0.0_gc-AR.alpha2"  // Version number
 
 #ifndef _GDATA_H_
 #define _GDATA_H_

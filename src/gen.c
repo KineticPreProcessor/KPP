@@ -886,11 +886,100 @@ int F_VAR, FSPLIT_VAR;
 
   FreeVariable( F_VAR );
   FreeVariable( FSPLIT_VAR );
+
+  /** hplin 4/10/22 add FUN_Split2 which overrides DO_FUN. only used for 1st order-autoreduce **/
+  if(doAutoReduce) {
+    /* add a copy of FSPLIT that does not react to DO_FUN() */
+    fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+    fprintf(functionFile, "!\n");
+    fprintf(functionFile, "! Fun_SPLITF - time derivatives of variables - Split form\n");
+    fprintf(functionFile, "!  same as Fun_Split, but does not react to DO_FUN.\n");
+    fprintf(functionFile, "!   Arguments :\n");
+    fprintf(functionFile, "!      V         - Concentrations of variable species (local)\n");
+    fprintf(functionFile, "!      F         - Concentrations of fixed species (local)\n");
+    fprintf(functionFile, "!      RCT       - Rate constants (local)\n");
+    fprintf(functionFile, "!      P_VAR     - Production term\n");
+    fprintf(functionFile, "!      D_VAR     - Destruction term\n");
+    fprintf(functionFile, "!      Aout      - Array to return rxn rates for diagnostics (OPTIONAL)\n");
+    fprintf(functionFile, "! Haipeng Lin (hplin) - Apr 10 2022 KPP 3.0.0-AR\n");
+    fprintf(functionFile, "!\n");
+    fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
+    fprintf(functionFile, "SUBROUTINE Fun_SPLITF ( V, F, RCT, P_VAR, D_VAR, Aout )\n\n");
+    fprintf(functionFile, "! V - Concentrations of variable species (local)\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: V(NVAR)\n");
+    fprintf(functionFile, "! F - Concentrations of fixed species (local)\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: F(NFIX)\n");
+    fprintf(functionFile, "! RCT - Rate constants (local)\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: RCT(NREACT)\n");
+    fprintf(functionFile, "! P_VAR - Production term\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: P_VAR(NVAR)\n");
+    fprintf(functionFile, "! D_VAR - Destruction term\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: D_VAR(NVAR)\n");
+    fprintf(functionFile, "!### Aout - Array for returning KPP reaction rates for diagnostics\n");
+    fprintf(functionFile, "  REAL(kind=dp), OPTIONAL :: Aout(NREACT)\n");
+
+    NewLines(1);
+    WriteComment("Computation of equation rates");
+
+    for(j=0; j<EqnNr; j++) {
+      used = 0;
+      for (i = 0; i < VarNr; i++) {
+        if ( Stoich_Right[i][j] != 0 ) {
+          used = 1;
+          break;
+        }
+      }
+
+      if ( used ) {
+        prod = RConst( j );
+        for (i = 0; i < VarNr; i++)
+          for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
+            prod = Mul( prod, Elm( V, i ) );
+        for ( ; i < SpcNr; i++)
+          for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
+            prod = Mul( prod, Elm( F, i - VarNr ) );
+        Assign( Elm( A, j ), prod );
+      }
+    }
+
+    fprintf(functionFile, "\n\n!### KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)\n");
+    fprintf(functionFile, "!### Use Aout to return reaction rates\n");
+    fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n\n");
+    NewLines(1);
+    WriteComment("Production function");
+
+    for (i = 0; i < VarNr; i++) {
+      sum = Const(0);
+      for (j = 0; j < EqnNr; j++)
+        sum = Add( sum, Mul( Const( Stoich_Right[i][j] ), Elm( A, j ) ) );
+      /* if( doAutoReduce ) F90_Inline("IF (DO_FUN(%d)) &",i+1); */ /* purpose of existence */
+      Assign( Elm( P_VAR, i ), sum );
+    }
+
+    NewLines(1);
+    WriteComment("Destruction function");
+
+    for (i = 0; i < VarNr; i++) {
+      sum = Const(0);
+      for(j=0; j<EqnNr; j++) {
+        if ( Stoich_Left[i][j] == 0 ) continue;
+        prod = Mul( RConst( j ), Const( Stoich_Left[i][j] ) );
+        for (l = 0; l < VarNr; l++) {
+          m=(int)Stoich_Left[l][j] - (l==i);
+          for (k = 1; k <= m; k++ )
+            prod = Mul( prod, Elm( V, l ) );
+        }
+        for ( ; l < SpcNr; l++)
+          for (k = 1; k <= (int)Stoich_Left[l][j]; k++ )
+            prod = Mul( prod, Elm( F, l - VarNr  ) );
+        sum = Add( sum, prod );
+      }
+      Assign( Elm( D_VAR, i ), sum );
+    }
+
+    fprintf(functionFile, "END SUBROUTINE Fun_SPLITF");
+  }
 }
-
-
-
-
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /* void GenerateFlux() /\* Produces the equivalent of P_VAR and D_VAR from FunSPLIT()*\/ */

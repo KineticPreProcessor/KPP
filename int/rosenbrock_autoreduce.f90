@@ -13,6 +13,10 @@
 !    Contact: sandu@cs.vt.edu                                             !
 !    Revised by Philipp Miehe and Adrian Sandu, May 2006                  !
 !                                                                         !
+!    Revised by Mike Long and Haipeng Lin to add auto-reduce fun.         !
+!    Harvard University, Atmospheric Chemistry Modeling Group             !
+!    Contact: hplin@seas.harvard.edu                April 2022            !
+!                                                                         !
 !    This implementation is part of KPP - the Kinetic PreProcessor        !
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 
@@ -160,6 +164,9 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !    ICNTRL(4)  -> maximum number of integration steps
 !        For ICNTRL(4)=0) the default value of 100000 is used
 !
+!    ICNTRL(8)  -> use auto-reduce solver? set threshold in RCNTRL(8)
+!    ICNTRL(9)  -> ... append slow species when auto-reducing?
+!
 !    RCNTRL(1)  -> Hmin, lower bound for the integration step size
 !          It is strongly recommended to keep Hmin = ZERO
 !    RCNTRL(2)  -> Hmax, upper bound for the integration step size
@@ -171,6 +178,8 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !                          (default=0.1)
 !    RCNTRL(7)  -> FacSafe, by which the new step is slightly smaller
 !         than the predicted value  (default=0.9)
+!
+!    RCNTRL(8)  -> threshold for auto-reduction (req. RCNTRL(8)) (default=100)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
 !
@@ -230,7 +239,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
    KPP_REAL :: Hmin, Hmax, Hstart
    KPP_REAL :: Texit, Redux_Threshold
    INTEGER       :: i, UplimTol, Max_no_steps
-   LOGICAL       :: Autonomous, VectorTol, Autoreduce
+   LOGICAL       :: Autonomous, VectorTol, Autoreduce, Autoreduce_Append
 !~~~>   Parameters
    KPP_REAL, PARAMETER :: ZERO = 0.0_dp, ONE  = 1.0_dp
    KPP_REAL, PARAMETER :: DeltaMin = 1.0E-5_dp
@@ -286,6 +295,8 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !~~~> Auto-reduction toggle
    Autoreduce    = .false.
    IF (ICNTRL(8) == 1) Autoreduce = .true.
+
+   Autoreduce_Append = ICNTRL(9) == 1
 
 !~~~>  Unit roundoff (1+Roundoff>1)
    Roundoff = WLAMCH('E')
@@ -378,17 +389,36 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !       PRINT *, 'Auto-reduction Threshold < 0. Defaulting to ', Redux_Threshold
     ENDIF
 !~~~>  CALL Auto-reducing Rosenbrock method
-    IF ( Autoreduce ) &
+    IF ( Autoreduce .and. .not. Autoreduce_Append ) THEN
+         ! ros_yIntegrator is the aggressively micro-optimized revision by Haipeng Lin.
+         ! ros_cIntegrator is the original auto-reduce implementation by Mike Long.
+         CALL ros_yIntegrator(Y, Tstart, Tend, Texit,   &
+         AbsTol, RelTol,                          &
+         !  Integration parameters
+         Autonomous, VectorTol, Max_no_steps,     &
+         Roundoff, Hmin, Hmax, Hstart,            &
+         FacMin, FacMax, FacRej, FacSafe,         &
+         ! Autoreduce threshold
+         redux_threshold,                         &
+         !  Error indicator
+         IERR)
+    ENDIF
+
+!~~~> CALL Auto-reducing Rosenbrock method capable of append
+! (this version is less aggressively optimized.)
+    IF ( Autoreduce ) THEN
+         ! ros_cIntegrator is the original auto-reduce implementation by Mike Long.
          CALL ros_cIntegrator(Y, Tstart, Tend, Texit,   &
          AbsTol, RelTol,                          &
          !  Integration parameters
          Autonomous, VectorTol, Max_no_steps,     &
          Roundoff, Hmin, Hmax, Hstart,            &
          FacMin, FacMax, FacRej, FacSafe,         &
-         ! Autorecuce threshold
-         redux_threshold,                         &
+         ! Autoreduce threshold
+         redux_threshold, Autoreduce_Append,      &
          !  Error indicator
          IERR)
+    ENDIF
     
 !~~~>  CALL Normal Rosenbrock method
     IF ( .not. Autoreduce .or. IERR .eq. -99 ) &
@@ -653,8 +683,8 @@ Stage: DO istage = 1, ros_S
 
   END SUBROUTINE ros_Integrator
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- SUBROUTINE ros_cIntegrator (Y, Tstart, Tend, T,  &
+ !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ SUBROUTINE ros_yIntegrator (Y, Tstart, Tend, T,  &
         AbsTol, RelTol,                          &
 !~~~> Integration parameters
         Autonomous, VectorTol, Max_no_steps,     &
@@ -662,6 +692,449 @@ Stage: DO istage = 1, ros_S
         FacMin, FacMax, FacRej, FacSafe,         &
 !~~~> Autorecuce threshold
         threshold,                               &
+!~~~> Error indicator
+        IERR )
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!   Template for the implementation of a generic Rosenbrock method
+!      defined by ros_S (no of stages)
+!      and its coefficients ros_{A,C,M,E,Alpha,Gamma}
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!
+! Alternative micro-optimized implementation, hplin, 4/10/22
+! which does not resize arrays to rNVAR, instead always keeping to full N size
+! and skipping using DO_SLV
+!
+! All compiled assembly code was verified just short of linking to a proper BLAS.
+
+   USE KPP_ROOT_Global,  ONLY : cNONZERO, rNVAR
+   use KPP_ROOT_Monitor, ONLY : SPC_NAMES
+   USE KPP_ROOT_JacobianSP
+
+  IMPLICIT NONE
+
+!~~~> Input: the initial condition at Tstart; Output: the solution at T
+   REAL(kind=dp), INTENT(INOUT) :: Y(N)
+!~~~> Input: integration interval
+   REAL(kind=dp), INTENT(IN) :: Tstart,Tend
+!~~~> Output: time at which the solution is returned (T=Tend if success)
+   REAL(kind=dp), INTENT(OUT) ::  T
+!~~~> Input: tolerances
+   REAL(kind=dp), INTENT(IN) ::  AbsTol(N), RelTol(N)
+!~~~> Input: integration parameters
+   LOGICAL, INTENT(IN) :: Autonomous, VectorTol
+   REAL(kind=dp), INTENT(IN) :: Hstart, Hmin, Hmax
+   INTEGER, INTENT(IN) :: Max_no_steps
+   REAL(kind=dp), INTENT(IN) :: Roundoff, FacMin, FacMax, FacRej, FacSafe
+!~~~> Autoreduction threshold
+   REAL(kind=dp), INTENT(IN) :: threshold
+!~~~> Output: Error indicator
+   INTEGER, INTENT(OUT) :: IERR
+! ~~~~ Local variables
+   REAL(kind=dp) :: Ynew(N), Fcn0(N), Fcn(N), Prod(N), Loss(N), LossY(N)
+   REAL(kind=dp) :: K(NVAR*ros_S), dFdT(N)
+#ifdef FULL_ALGEBRA
+   REAL(kind=dp) :: Jac0(N,N), Ghimj(N,N)
+#else
+   REAL(kind=dp) :: Jac0(LU_NONZERO), Ghimj(LU_NONZERO)
+   REAL(kind=dp) :: cGhimj(LU_NONZERO) ! not known at this point what cNONZERO will be
+#endif
+   REAL(kind=dp) :: H, Hnew, HC, HG, Fac, Tau
+   REAL(kind=dp) :: Err, Yerr(N), Yerrsub(NVAR)
+   INTEGER :: Pivot(N), Direction, ioffset, j, istage
+   LOGICAL :: RejectLastH, RejectMoreH, Singular, Reduced
+!~~~>  Local parameters
+   REAL(kind=dp), PARAMETER :: ZERO = 0.0_dp, ONE  = 1.0_dp
+   REAL(kind=dp), PARAMETER :: DeltaMin = 1.0E-5_dp
+   INTEGER :: SPC
+   REAL(kind=dp) :: alpha_factor ! hplin 4/10/22
+!      Inline local parameters for AR.
+   INTEGER :: II, III, idx, nrmv, s
+!~~~>  Initial preparations
+   DO_SLV  = .true.
+   DO_FUN  = .true.
+   DO_JVS  = .true.
+   Reduced = .false.
+
+   T = Tstart
+   RSTATUS(Nhexit) = ZERO
+   H = MIN( MAX(ABS(Hmin),ABS(Hstart)) , ABS(Hmax) )
+   IF (ABS(H) <= 10.0_dp*Roundoff) H = DeltaMin
+
+   IF (Tend  >=  Tstart) THEN
+     Direction = +1
+   ELSE
+     Direction = -1
+   END IF
+   H = Direction*H
+
+   RejectLastH=.FALSE.
+   RejectMoreH=.FALSE.
+
+   ! reset K - hplin. this is a multiplier that gets applied to ros_A and ros_M
+   K = 0.0_dp
+   Ghimj = 0.0_dp
+
+!~~~> Time loop begins below
+
+TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
+       .OR. (Direction < 0).AND.((Tend-T)+Roundoff <= ZERO) )
+
+   IF ( ISTATUS(Nstp) > Max_no_steps ) THEN  ! Too many steps
+      CALL ros_ErrorMsg(-6,T,H,IERR)
+      RETURN
+   ENDIF
+   IF ( ((T+0.1_dp*H) == T).OR.(H <= Roundoff) ) THEN  ! Step size too small
+      CALL ros_ErrorMsg(-7,T,H,IERR)
+      RETURN
+   ENDIF
+
+!~~~>  Limit H if necessary to avoid going beyond Tend
+   H = MIN(H,ABS(Tend-T))
+
+   ! ... 0.40% ... 5.2 %
+
+!~~~>   Compute the function at current time
+! this is necessary anyway for the rest of the time loop. do not optimize out.
+   IF (T .eq. Tstart) THEN
+      CALL FunSplitF(T,Y,Fcn0,Prod,Loss,LossY) ! always calculates PL.
+   ELSE  ! ELSE or ne seems reasonably close in performance.
+      CALL FunSplitN(T,Y,Fcn0)
+   ENDIF
+   ! The above Prod, Loss were updated at every TimeLoop, so they no longer
+   ! reflect initial condition. The copy operation is extremely expensive,
+   ! so we instead run it once at the beginning of the timeloop and use a IF
+   ! to switch it to a wholy different codepath...
+   ISTATUS(Nfun) = ISTATUS(Nfun) + 1
+
+   ! ... 1.02% ... 13.00%
+
+!~~~>  Parse species for reduced computation
+   if (.not. reduced) then
+      ! Inline the entire reduction operation here.
+      iSPC_MAP = 0
+      NRMV     = 0
+      S        = 1
+
+      ! Checks should be kept out of tight inner loops.
+      IF(keepActive) THEN
+       DO i=1,NVAR
+         ! Short-circuiting using SKIP is very important here.
+         if (.not. keepSpcActive(i) .and. &
+             abs(LossY(i)).lt.threshold .and. abs(Prod(i)).lt.threshold) then ! per Shen et al., 2020
+            NRMV=NRMV+1
+            RMV(NRMV) = i
+            DO_SLV(i) = .false.
+            ! DO_FUN(i) = .false.
+            cycle
+         endif
+         SPC_MAP(S)  = i ! Add to full spc map.
+         iSPC_MAP(i) = S
+         S=S+1
+       ENDDO
+      ENDIF
+
+      IF (.not. keepActive) THEN
+        DO i=1,NVAR
+         ! Short-circuiting using SKIP is very important here.
+         if (abs(LossY(i)).lt.threshold .and. abs(Prod(i)).lt.threshold) then ! per Shen et al., 2020
+            NRMV=NRMV+1
+            RMV(NRMV) = i
+            DO_SLV(i) = .false.
+            ! DO_FUN(i) = .false.
+            cycle
+         endif
+         SPC_MAP(S)  = i ! Add to full spc map.
+         iSPC_MAP(i) = S
+         S=S+1
+       ENDDO
+      ENDIF
+
+      rNVAR    = NVAR-NRMV ! Number of active species in the reduced mechanism
+      II  = 1
+      III = 1
+      idx = 0
+      ! This loop can be unrolled into two branches.
+      ScanFirstNonZero: DO i = 1,LU_NONZERO
+         IF ((DO_SLV(LU_IROW(i))).and.(DO_SLV(LU_ICOL(i)))) THEN
+            idx = 1
+            cLU_IROW(1) = iSPC_MAP(LU_IROW(i))
+            cLU_ICOL(1) = iSPC_MAP(LU_ICOL(i))
+            JVS_MAP(1)  = i
+            EXIT ScanFirstNonZero
+         ENDIF
+         DO_JVS(i) = .false.
+      ENDDO ScanFirstNonZero
+      DO i = i+1,LU_NONZERO ! There is no escape for looping through LU_NONZERO here.
+         IF ((DO_SLV(LU_IROW(i))).and.(DO_SLV(LU_ICOL(i)))) THEN
+            idx=idx+1 ! counter for the number of non-zero elements in the reduced Jacobian
+            cLU_IROW(idx) = iSPC_MAP(LU_IROW(i))
+            cLU_ICOL(idx) = iSPC_MAP(LU_ICOL(i))
+            JVS_MAP(idx)  = i
+
+            IF (cLU_IROW(idx).ne.cLU_IROW(idx-1)) THEN
+               II=II+1
+               cLU_CROW(II) = idx
+            ENDIF
+            IF (cLU_IROW(idx).eq.cLU_ICOL(idx)) THEN
+               III=III+1
+               cLU_DIAG(III) = idx
+            ENDIF
+            CYCLE
+         ENDIF
+         DO_JVS(i) = .false.
+      ENDDO
+
+     cNONZERO = idx
+     cLU_CROW(1)       = 1 ! 1st index = 1
+     cLU_DIAG(1)       = 1 ! 1st index = 1
+     cLU_CROW(rNVAR+1) = cNONZERO+1
+     cLU_DIAG(rNVAR+1) = cLU_DIAG(rNVAR)+1
+
+     ! this loop approximately 0.6% ... 7.8%
+     reduced = .true.
+   endif
+   !return
+
+   ! ... 1.86% ... 26% // 1.77% ...
+
+!~~~>  Compute the function derivative with respect to T
+   IF (.NOT.Autonomous) THEN
+      CALL ros_FunTimeDerivative ( T, Roundoff, Y, &
+                Fcn0, dFdT )
+   END IF
+
+   ! 1.86 ~ 1.90%
+
+!~~~>   Compute the Jacobian at current time
+   CALL JacTemplate(T,Y,Jac0) ! Reacts to DO_JVS()
+   ISTATUS(Njac) = ISTATUS(Njac) + 1
+!~~~>  Repeat step calculation until current step accepted
+UntilAccepted: DO
+
+   CALL ros_cPrepareMatrix(H,Direction,ros_Gamma(1), &
+          Jac0,cGhimj,Pivot,Singular) ! calculate Ghimj as cGhimj(cNONZERO).
+   ! cGhimj all elem are rewritten so no need to zero out - warning - hplin 4/10/22
+   !
+   ! this step has one skip addressing step, -Jac0(JVS_MAP(1:cNONZERO)). slow.
+   ! ros_cDecomp is continuous.
+
+   IF (Singular) THEN ! More than 5 consecutive failed decompositions
+       CALL ros_ErrorMsg(-8,T,H,IERR)
+       RETURN
+   ENDIF
+
+   ! map cNONZERO back to full space. this step is very slow.
+   DO i = 1, cNONZERO
+      Ghimj(JVS_MAP(i)) = cGhimj(i)
+   ENDDO
+   ! Ghimj(JVS_MAP(1:cNONZERO)) = cGhimj
+   ! The above implementation seems to make -fcheck=bounds unhappy
+   ! and cause a segfault at -O3. The asm jumps seemed weird, so we
+   ! just explicitly write out the loop.
+
+!~~~>   Compute the stages
+Stage: DO istage = 1, ros_S
+
+      ! Current istage offset. Current istage vector is K(ioffset+1:ioffset+N)
+       ioffset = N*(istage-1) ! note this is full space
+
+      ! For the 1st istage the function has been computed previously
+       IF ( istage == 1 ) THEN
+         call WCOPY(N,Fcn0,1,Fcn,1)
+         ! Fcn(1:N) = Fcn0(1:N)
+         ! istage>1 and a new function evaluation is needed at the current istage
+         ! K = 0.0_dp ! is this fix needed? hplin 14:04 -- not. 3 hours wiser later
+       ELSEIF ( ros_NewF(istage) ) THEN
+         call WCOPY(N,Y,1,Ynew,1)
+         ! Ynew(1:N) = Y(1:N)
+         DO j = 1, istage-1
+            ! In full vector space. Just use WAXPY as normal
+            ! other entries in K are set to 1 previously.
+            ! the rest are filled by Fcn.
+
+            !          N  alpha                             x                y .... Y <- Y + a*X.
+            ! i.e. Ynew <- Ynew + ros_A(..) * K. for !DO_FUN, we want K === 0
+            ! if there are entries in x that are zero naturally they do not carry into Ynew.
+            !
+            ! otherwise Ynew will be wrongly updated
+
+            ! order of operations here is from K(N*(j-1)+1:N*j+1), total of N elem.
+            ! K for !DO_FUN should not be updated.
+            ! in fact, K is reasonably sparse here.
+
+            ! full version:
+            ! CALL WAXPY(N, ros_A((istage-1)*(istage-2)/2+j), K(N*(j-1)+1), 1, Ynew, 1)
+
+            ! only rNVAR version - maybe loops need to be unrolled: (15:39)
+            alpha_factor = ros_A((istage-1)*(istage-2)/2+j)
+            DO i = 1,rNVAR
+               Ynew(SPC_MAP(i)) = Ynew(SPC_MAP(i)) + alpha_factor * K(N*(j-1)+SPC_MAP(i))
+            ENDDO
+         END DO
+         Tau = T + ros_Alpha(istage)*Direction*H
+         CALL FunSplitN(Tau,Ynew,Fcn)
+         ! this step reacts to DO_FUN.
+         ! Fcn is updated thru Fun_Split(Ynew,..,..,P,D), Fcn <- P - D*Ynew
+         ! P and D are only updated iff. DO_FUN is set to true. otherwise they are zero
+         ! the purpose is for Fcn to be zero for !DO_FUNs so K is set to 0 for them, so delta is 0.
+         ! this looks okay then. 4/10/22 13:36 hplin
+         ISTATUS(Nfun) = ISTATUS(Nfun) + 1
+       END IF ! if istage == 1 elseif ros_NewF(istage)
+       ! K(ioffset+1:ioffset+rNVAR) = Fcn(SPC_MAP(1:rNVAR))
+
+      ! now operate on full space for all of below.
+      ! full version:
+      ! K(ioffset+1:ioffset+N) = Fcn(1:N)
+
+      ! faster version: (this copy also feels expensive...)
+      ! unroll j = 1 stage iff. istage-1>1, otherwise this is skipped.
+      IF(istage .gt. 1) THEN
+         HC = ros_C((istage-1)*(istage-2)/2+1)/(Direction*H)
+         DO i = 1,rNVAR
+            K(ioffset+SPC_MAP(i)) = Fcn(SPC_MAP(i)) + HC * K(SPC_MAP(i))
+         ENDDO
+      ENDIF
+
+      IF(istage .eq. 1) THEN
+         DO i = 1,rNVAR
+            K(ioffset+SPC_MAP(i)) = Fcn(SPC_MAP(i))
+         ENDDO
+      ENDIF
+
+      DO j = 2, istage-1
+         HC = ros_C((istage-1)*(istage-2)/2+j)/(Direction*H)
+
+         ! full version
+         ! K(ioffset+1:ioffset+1+N) <- K(ioffset+1:ioffset+1+N) + HC*K(N*(j-1)+1)
+         ! CALL WAXPY(N,HC,K(N*(j-1)+1),1,K(ioffset+1),1)
+         ! K also updated here...
+         ! write(6,*) "istage,kupd2",istage,K(ioffset+1:ioffset+1+N)
+
+         ! faster version:
+         DO i = 1,rNVAR
+            K(ioffset+SPC_MAP(i)) = K(ioffset+SPC_MAP(i)) + HC * K(N*(j-1)+SPC_MAP(i))
+         ENDDO
+         ! CALL zWAXPY(N,HC,K(N*(j-1)+1),K(ioffset+1),SPC_MAP)
+         ! loop unrolling is consistently slower here. 18:58
+      ENDDO
+
+      IF ((.NOT. Autonomous).AND.(ros_Gamma(istage).NE.ZERO)) THEN
+         HG = Direction*H*ros_Gamma(istage)
+
+         ! full version: CALL WAXPY(N,HG,dFdT,1,K(ioffset+1),1)
+         ! faster version:
+         DO i = 1,rNVAR
+            K(ioffset+SPC_MAP(i)) = K(ioffset+SPC_MAP(i)) + HG * dFdT(SPC_MAP(i))
+         ENDDO
+      ENDIF
+
+      ! CALL ros_cSolve(Ghimj(1:cNONZERO), Pivot, K(ioffset+1), JVS_MAP, SPC_MAP)
+      ! this means that ros_cSolve now does not need to be mapped back to full space here
+      ! avoiding several full maps.
+      !
+      ! K is passed to ros_Solve -> KppSolve, which responds to DO_SLV.
+      ! If DO_SLV is 0, K is not updated at that point
+      ! Note other terms may still depend on other JVS(LU_NONZERO) or K(N) terms ...
+
+      ! this fix is generally necessary. this means that before K gets to
+      ! ros_Solve, the non-DO_SLV terms need to be zeroed out.
+      !
+      ! of course this is inefficient, so care should be taken to only update K
+      ! where necessary without doing this final sweep.
+      ! each one of these sweeps costs approximately 2% of total time.
+      ! DO j = 1, N
+      !    IF (.not. DO_SLV(j)) K(ioffset+j) = 0.0_dp
+      ! ENDDO
+      ! ... 2.90% (39%)
+      CALL ros_Solve(Ghimj, Pivot, K(ioffset+1))
+      ! ... 3.10% (40%)
+
+      ! note in ros_cSolve -> kppSolve the back-substitution for !DO_SLV==!DO_FUN are
+      ! not resolved so Ynew remains the same.
+
+   ENDDO Stage
+
+   ! ... 4.44%
+! roll the new solution and error estimation into one loop.
+   Ynew(:) = Y(:)
+   Yerr(:) = ZERO
+   DO j = 1, ros_S
+      DO i = 1,rNVAR
+         Ynew(SPC_MAP(i)) = Ynew(SPC_MAP(i)) + ros_M(j) * K(N*(j-1)+SPC_MAP(i))
+         Yerr(SPC_MAP(i)) = Yerr(SPC_MAP(i)) + ros_E(j) * K(N*(j-1)+SPC_MAP(i))
+      ENDDO
+   ENDDO
+   Err = ros_ErrorNorm ( Y, Ynew, Yerr, AbsTol, RelTol, VectorTol )
+   ! ... 4.73% (~0.3%). i will leave this alone for now
+
+!~~~> New step size is bounded by FacMin <= Hnew/H <= FacMax
+   Fac  = MIN(FacMax,MAX(FacMin,FacSafe/Err**(ONE/ros_ELO)))
+   Hnew = H*Fac
+
+!~~~>  Check the error magnitude and adjust step size
+   ISTATUS(Nstp) = ISTATUS(Nstp) + 1
+   IF ( (Err <= ONE).OR.(H <= Hmin) ) THEN  !~~~> Accept step
+      ISTATUS(Nacc) = ISTATUS(Nacc) + 1
+      CALL WCOPY(N,Ynew,1,Y,1)
+      !Y(1:N) = Ynew(1:N)
+      T = T + Direction*H
+      Hnew = MAX(Hmin,MIN(Hnew,Hmax))
+      IF (RejectLastH) THEN  ! No step size increase after a rejected step
+         Hnew = MIN(Hnew,H)
+      ENDIF
+      RSTATUS(Nhexit) = H
+      RSTATUS(Nhnew)  = Hnew
+      RSTATUS(Ntexit) = T
+      RejectLastH = .FALSE.
+      RejectMoreH = .FALSE.
+      H = Hnew
+
+      ! write(6,*) "STEP ACCEPTED"
+
+      EXIT UntilAccepted ! EXIT THE LOOP: WHILE STEP NOT ACCEPTED
+   ELSE           !~~~> Reject step
+      IF (RejectMoreH) THEN
+         Hnew = H*FacRej
+      END IF
+      RejectMoreH = RejectLastH
+      RejectLastH = .TRUE.
+      H = Hnew
+      IF (ISTATUS(Nacc) >= 1)  ISTATUS(Nrej) = ISTATUS(Nrej) + 1
+      ! write(6,*) "STEP REJECTED"
+   END IF ! Err <= 1
+
+   END DO UntilAccepted
+
+   ! ... 4.70%
+   END DO TimeLoop
+
+   ! 1st order calculation for removed species per Shen et al. (2020) Eq. 4
+   ! -- currently, DO_FUN() selects
+   ! -- DO_FUN loops over 1,NVAR. Only needs to loop over NVAR-rNVAR
+   !    but the structure doesn't exist. Maybe worth considering 
+   !    for efficiency purposes.
+   DO i=1,N
+      IF (.not. DO_SLV(i)) THEN
+           call autoreduce_1stOrder(i,Y(i),Prod(i),Loss(i),Tstart,Tend)
+      ENDIF
+   ENDDO
+
+!~~~> Successful exit
+   IERR = 1  !~~~> The integration was successful
+
+ END SUBROUTINE ros_yIntegrator
+ ! Aggressively micro-optimized by hplin
+ ! 4/10/22
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ SUBROUTINE ros_cIntegrator (Y, Tstart, Tend, T,  &
+        AbsTol, RelTol,                          &
+!~~~> Integration parameters
+        Autonomous, VectorTol, Max_no_steps,     &
+        Roundoff, Hmin, Hmax, Hstart,            &
+        FacMin, FacMax, FacRej, FacSafe,         &
+!~~~> Autoreduce threshold
+        threshold, doAppend,                     &
 !~~~> Error indicator
         IERR )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -690,6 +1163,7 @@ Stage: DO istage = 1, ros_S
    KPP_REAL, INTENT(IN) :: Roundoff, FacMin, FacMax, FacRej, FacSafe
 !~~~> Autoreduction threshold
    KPP_REAL, INTENT(IN) :: threshold
+   LOGICAL,  INTENT(IN) :: doAppend
 !~~~> Output: Error indicator
    INTEGER, INTENT(OUT) :: IERR
 ! ~~~~ Local variables
@@ -769,6 +1243,20 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
          return
       endif
       if (IERR .eq. -99) return
+   endif
+
+   if (doAppend .and. reduced) then
+      ! Scan prod/loss for condition change for append functionality.
+      ! Note because this requires internal Prod/Loss update, yIntegrator will fall through
+      ! here. (hplin, 4/10/22)
+      DO i=1,NVAR
+         SPC = RMV(i)
+         if (SPC .eq. 0) cycle ! Species is already appended
+         if (abs(Loss(SPC)*Y(SPC)).gt.threshold .or. abs(Prod(SPC)).gt.threshold) then
+            CALL APPEND(SPC)
+            RMV(i) = 0
+         endif
+      ENDDO
    endif
 
 !~~~>  Compute the function derivative with respect to T
@@ -1732,7 +2220,65 @@ SUBROUTINE FunSplitTemplate( T, Y, Ydot, P_VAR, D_VAR )
    IF (Present(D_VAR)) D_VAR=D
 
  END SUBROUTINE FunSplitTemplate
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SUBROUTINE FunSplitF( T, Y, Ydot, P_VAR, D_VAR, DY_VAR )
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!  Template for the ODE function call.
+!  Updates the rate coefficients (and possibly the fixed species) at each call
+!  This version does not react to DO_FUN even within autoreduce.
+!  It also does not have any optional arguments.
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
+ USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
+ USE KPP_ROOT_Function, ONLY: Fun_SPLITF
+!~~~> Input variables
+   REAL(kind=dp) :: T, Y(NVAR)
+!~~~> Output variables
+   REAL(kind=dp) :: Ydot(NVAR)
+   REAL(kind=dp) :: P_VAR(NVAR), D_VAR(NVAR), DY_VAR(NVAR)
+!~~~> Local variables
+   REAL(kind=dp) :: Told, P(NVAR), D(NVAR)
+   P    = 0.d0
+   D    = 0.d0
+   Told = TIME
+   TIME = T
+   CALL Fun_SPLITF( Y, FIX, RCONST, P, D )
+   DY_VAR = D*y ! this can be used later.
+   Ydot = P - DY_VAR
+   TIME = Told
 
+   P_VAR=P
+   D_VAR=D
+
+ END SUBROUTINE FunSplitF
+
+ !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SUBROUTINE FunSplitN( T, Y, Ydot)
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!  Template for the ODE function call.
+!  Updates the rate coefficients (and possibly the fixed species) at each call
+!  This version does not have any optional arguments.
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
+ USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
+ USE KPP_ROOT_Function, ONLY: Fun_SPLITF
+!~~~> Input variables
+   REAL(kind=dp) :: T, Y(NVAR)
+!~~~> Output variables
+   REAL(kind=dp) :: Ydot(NVAR)
+   REAL(kind=dp) :: P_VAR(NVAR), D_VAR(NVAR)
+!~~~> Local variables
+   REAL(kind=dp) :: Told, P(NVAR), D(NVAR)
+
+   P    = 0.d0
+   D    = 0.d0
+   Told = TIME
+   TIME = T
+   CALL Fun_SPLITF( Y, FIX, RCONST, P, D )
+   Ydot = P - D*y
+   TIME = Told
+
+ END SUBROUTINE FunSplitN
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SUBROUTINE JacTemplate( T, Y, Jcb )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1856,120 +2402,141 @@ SUBROUTINE cWAXPY(N,Alpha,X,incX,Y,incY,fN,indx)
   
 END SUBROUTINE cWAXPY
 
-!--------------------------------------------------------------
-      SUBROUTINE cWCOPY(N,NN,X,incX,Y,incY,indx)
-!--------------------------------------------------------------
-!     copies a vector, x, to a vector, y:  y <- x
-!     only for incX=incY=1
-!     after BLAS
-!     replace this by the function from the optimized BLAS implementation:
-!         CALL  SCOPY(N,X,1,Y,1)   or   CALL  DCOPY(N,X,1,Y,1)
-!--------------------------------------------------------------
-!     USE KPP_ROOT_Precision
-      
-      INTEGER  :: i,incX,incY,M,MP1,N,NN,indx(NN)
-      KPP_REAL :: X(N),Y(NN)
+! Unoptimized version
+SUBROUTINE REDUCE(threshold,P,L,IERR)
+  USE KPP_ROOT_JacobianSP
 
-      IF (N.LE.0) RETURN
-
-      M = MOD(N,8)
-      IF( M .NE. 0 ) THEN
-        DO i = 1,M
-          Y(indx(i)) = X(i)
-        END DO
-        IF( N .LT. 8 ) RETURN
-      END IF    
-      MP1 = M+1
-      DO i = MP1,N,8
-        Y(indx(i)) = X(i)
-        Y(indx(i + 1)) = X(i + 1)
-        Y(indx(i + 2)) = X(i + 2)
-        Y(indx(i + 3)) = X(i + 3)
-        Y(indx(i + 4)) = X(i + 4)
-        Y(indx(i + 5)) = X(i + 5)
-        Y(indx(i + 6)) = X(i + 6)
-        Y(indx(i + 7)) = X(i + 7)
-      END DO
-
-      END SUBROUTINE cWCOPY
-
-      SUBROUTINE REDUCE(threshold,P,L,IERR)
-        
-        USE KPP_ROOT_JacobianSP
-
-        REAL(dp), INTENT(IN) :: P(NVAR), L(NVAR), threshold
+  REAL(dp), INTENT(IN) :: P(NVAR), L(NVAR), threshold
 !        INTEGER              :: iSPC_MAP(NVAR)
-        INTEGER              :: i, ii, iii, idx, nrmv, s
-        INTEGER              :: IERR
-        LOGICAL              :: SKIP
+  INTEGER              :: i, ii, iii, idx, nrmv, s
+  INTEGER              :: IERR
+  LOGICAL              :: SKIP
 
-        iSPC_MAP = 0
+  iSPC_MAP = 0
+  NRMV = 0
+  S    = 1
+
+  ! If all species will be deactivated, just to 1st order approx
+  ! hplin: patch this out ... maxval is very expensive here
+  ! if (maxval(P) .lt. threshold .and. maxval(L) .lt. threshold .and. .not. keepActive) then
+  !    IERR = -98
+  !    return
+  ! endif
+
+  ! Checks should be kept out of tight inner loops.
+  IF(keepActive) THEN
+   DO i=1,NVAR
+     ! Short-circuiting using SKIP is very important here.
+     if (.not. keepSpcActive(i) .and. &
+         abs(L(i)).lt.threshold .and. abs(P(i)).lt.threshold) then ! per Shen et al., 2020
+        NRMV=NRMV+1
+        RMV(NRMV) = i
+        DO_SLV(i) = .false.
+        DO_FUN(i) = .false.
+        cycle
+     endif
+     SPC_MAP(S)  = i ! Add to full spc map.
+     iSPC_MAP(i) = S
+     S=S+1
+   ENDDO
+  ENDIF
+
+  IF (.not. keepActive) THEN
+    DO i=1,NVAR
+     ! Short-circuiting using SKIP is very important here.
+     if (abs(L(i)).lt.threshold .and. abs(P(i)).lt.threshold) then ! per Shen et al., 2020
+        NRMV=NRMV+1
+        RMV(NRMV) = i
+        DO_SLV(i) = .false.
+        DO_FUN(i) = .false.
+        cycle
+     endif
+     SPC_MAP(S)  = i ! Add to full spc map.
+     iSPC_MAP(i) = S
+     S=S+1
+   ENDDO
+  ENDIF
+
+  rNVAR    = NVAR-NRMV ! Number of active species in the reduced mechanism
+
+  ! Problem size cut-off. If problem is greater than some fraction of the
+  ! full, just solve the full (via error value) -- MSL
+  ! if (dble(rNVAR)/dble(NVAR) .ge. 1.1) then ! Set to 1.1 to deactive it. The results can't be > 1
+  !    IERR = -99
+  !    return
+  ! endif
+
+  II  = 1
+  III = 1
+  idx = 0
+  DO i = 1,LU_NONZERO
+     IF ((DO_SLV(LU_IROW(i))).and.(DO_SLV(LU_ICOL(i)))) THEN
+        idx=idx+1 ! counter for the number of non-zero elements in the reduced Jacobian
+        cLU_IROW(idx) = iSPC_MAP(LU_IROW(i))
+        cLU_ICOL(idx) = iSPC_MAP(LU_ICOL(i))
+        JVS_MAP(idx)  = i
         
-        NRMV = 0
-        S    = 1
-
-        ! If all species will be deactivated, just to 1st order approx
-        if (maxval(P) .lt. threshold .and. maxval(L) .lt. threshold .and. .not. keepActive) then
-           IERR = -98
-           return
-        endif
-
-        do i=1,NVAR
-           SKIP = .false. ! Assume not kept active.
-           if (keepactive .and. keepSpcActive(i)) SKIP = .true. ! Keep this species active
-           if (abs(L(i)).lt.threshold .and. abs(P(i)).lt.threshold .and. .not. SKIP) then ! per Shen et al., 2020
-!           if (abs(dcdt(i)).le.threshold) then ! per Santillana et al., 2010)
-              NRMV=NRMV+1
-              RMV(NRMV) = i
-              DO_SLV(i) = .false.
-              !DO_FUN(i) = .false.
-              cycle
-           endif
-           SPC_MAP(S)  = i
-           iSPC_MAP(i) = S
-           S=S+1
-        ENDDO
-        rNVAR    = NVAR-NRMV ! Number of active species in the reduced mechanism
-
-        ! Problem size cut-off. If problem is greater than some fraction of the 
-        ! full, just solve the full (via error value) -- MSL
-        if (dble(rNVAR)/dble(NVAR) .ge. 1.1) then ! Set to 1.1 to deactive it. The results can't be > 1
-           IERR = -99
-           return
-        endif
-
-        II  = 1
-        III = 1
-        idx = 0
-        DO i = 1,LU_NONZERO
-           IF ((DO_SLV(LU_IROW(i))).and.(DO_SLV(LU_ICOL(i)))) THEN
-              idx=idx+1 ! counter for the number of non-zero elements in the reduced Jacobian
-              cLU_IROW(idx) = iSPC_MAP(LU_IROW(i))
-              cLU_ICOL(idx) = iSPC_MAP(LU_ICOL(i))
-              JVS_MAP(idx)  = i
-              
-              IF (idx.gt.1) THEN
-                 IF (cLU_IROW(idx).ne.cLU_IROW(idx-1)) THEN
-                    II=II+1
-                    cLU_CROW(II) = idx
-                 ENDIF
-                 IF (cLU_IROW(idx).eq.cLU_ICOL(idx)) THEN
-                    III=III+1
-                    cLU_DIAG(III) = idx
-                 ENDIF
-              ENDIF
-              cycle
+        IF (idx.gt.1) THEN
+           IF (cLU_IROW(idx).ne.cLU_IROW(idx-1)) THEN
+              II=II+1
+              cLU_CROW(II) = idx
            ENDIF
-           DO_JVS(i) = .false.
-        ENDDO
-        
-        cNONZERO = idx
-        
-        cLU_CROW(1)       = 1 ! 1st index = 1
-        cLU_DIAG(1)       = 1 ! 1st index = 1
-        cLU_CROW(rNVAR+1) = cNONZERO+1
-        cLU_DIAG(rNVAR+1) = cLU_DIAG(rNVAR)+1
-      END SUBROUTINE REDUCE
-      
+           IF (cLU_IROW(idx).eq.cLU_ICOL(idx)) THEN
+              III=III+1
+              cLU_DIAG(III) = idx
+           ENDIF
+        ENDIF
+        cycle
+     ENDIF
+     DO_JVS(i) = .false.
+  ENDDO
+
+  cNONZERO = idx
+
+  cLU_CROW(1)       = 1 ! 1st index = 1
+  cLU_DIAG(1)       = 1 ! 1st index = 1
+  cLU_CROW(rNVAR+1) = cNONZERO+1
+  cLU_DIAG(rNVAR+1) = cLU_DIAG(rNVAR)+1
+END SUBROUTINE REDUCE
+
+SUBROUTINE APPEND(IDX)
+  USE KPP_ROOT_JacobianSP
+  ! Reactivate a deactivated species
+  INTEGER, INTENT(IN) :: IDX ! Index of deactivated KPP species to append
+  INTEGER :: I
+  ! set the do_* logicals
+  DO_SLV(IDX) = .true.
+  DO_FUN(IDX) = .true.
+  ! increment rNVAR
+  rNVAR    = rNVAR+1 
+  ! append SPC_MAP & iSPC_MAP
+  SPC_MAP(rNVAR) = IDX ! From AR to full species
+  iSPC_MAP(IDX)  = rNVAR ! From full to AR species
+  ! -- the following requires scanning LU_NONZERO elements
+  DO I = 1, LU_NONZERO
+     IF (LU_IROW(i).eq.IDX .and. DO_SLV(LU_ICOL(i))) THEN ! TERM IS ACTIVE
+        cNONZERO = cNONZERO+1 ! Add a non-zero term
+        ! append cLU_IROW
+        ! append cLU_ICOL
+        ! append JVS_MAP
+        cLU_IROW(cNONZERO) = iSPC_MAP(LU_IROW(I))
+        cLU_ICOL(cNONZERO) = iSPC_MAP(LU_ICOL(I))
+        JVS_MAP(cNONZERO)  = I
+        DO_JVS(I)          = .true.
+        ! append cLU_CROW
+        ! append cLU_DIAG
+        IF (cLU_IROW(cNONZERO).ne.cLU_IROW(cNONZERO-1)) THEN
+           cLU_CROW(rNVAR) = cNONZERO
+        ENDIF
+        IF (cLU_IROW(cNONZERO).eq.cLU_ICOL(cNONZERO)) THEN
+           cLU_DIAG(rNVAR) = cNONZERO
+        ENDIF
+     ENDIF
+  ENDDO
+  cLU_CROW(rNVAR+1) = cNONZERO+1
+  cLU_DIAG(rNVAR+1) = cLU_DIAG(rNVAR)+1
+END SUBROUTINE APPEND
+
+
 END MODULE KPP_ROOT_Integrator
 
