@@ -406,7 +406,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 
 !~~~> CALL Auto-reducing Rosenbrock method capable of append
 ! (this version is less aggressively optimized.)
-    IF ( Autoreduce ) THEN
+    IF ( Autoreduce .and. Autoreduce_Append ) THEN
          ! ros_cIntegrator is the original auto-reduce implementation by Mike Long.
          CALL ros_cIntegrator(Y, Tstart, Tend, Texit,   &
          AbsTol, RelTol,                          &
