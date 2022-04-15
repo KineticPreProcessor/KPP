@@ -23,6 +23,13 @@ MODULE KPP_ROOT_Integrator
   PUBLIC
   SAVE
 
+!~~~> Flags to determine if we should call the UPDATE_* routines from within
+!~~~> the integrator.  If using KPP in an external model, you might want to
+!~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
+  LOGICAL :: Do_Update_RCONST
+  LOGICAL :: Do_Update_PHOTO
+  LOGICAL :: Do_Update_SUN
+
 !~~~>  Statistics on the work performed by the Rosenbrock method
   INTEGER, PARAMETER :: Nfun=1, Njac=2, Nstp=3, Nacc=4, &
                         Nrej=5, Ndec=6, Nsol=7, Nsng=8, &
@@ -67,7 +74,19 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
      WHERE(RCNTRL_U(:) > 0) RCNTRL(:) = RCNTRL_U(:)
    END IF
 
+   ! Determine the settings of the Do_Update_* flags, which determine
+   ! whether or not we need to call Update_* routines in the integrator
+   ! (or not, if we are calling them from a higher-level)
+   ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
+   !            =  0 ! Status quo
+   !            =  1 ! Call Update_RCONST from within the integrator
+   !            =  2 ! Call Update_PHOTO from within the integrator
+   !            =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
+   !            =  4 ! Call Update_SUN from within the integrator
+   !            =  5 ! Call Update_SUN and Update_RCONST from within the int.
+   CALL Integrator_Update_Options( ICNTRL(15) )
 
+   ! Call the Rosenbrock solver
    CALL Rosenbrock(NVAR,VAR,TIN,TOUT,   &
          ATOL,RTOL,                &
          RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR)
@@ -159,11 +178,13 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !    ICNTRL(4)  -> maximum number of integration steps
 !        For ICNTRL(4)=0) the default value of 100000 is used
 !
-!    ICNTRL(15) -> Determine whether to update rates within the solver step
-!        ICNTRL(15)=0 : Do not update rates within the solver step
-!        ICNTRL(15)=1 : Call Update_RCONST within solver step
-!        ICNTRL(15)=2 : Call Update_RCONST & Update_PHOTO w/in solver step
-!        ICNTRL(15)=3 : Call Update_SUN & Update_RCONST w/in solver step
+!    ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
+!               =  0 ! Status quo
+!               =  1 ! Call Update_RCONST from within the integrator
+!               =  2 ! Call Update_PHOTO from within the integrator
+!               =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
+!               =  4 ! Call Update_SUN from within the integrator
+!               =  5 ! Call Update_SUN and Update_RCONST from within the int.
 !
 !    RCNTRL(1)  -> Hmin, lower bound for the integration step size
 !          It is strongly recommended to keep Hmin = ZERO
@@ -373,12 +394,12 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 
 
 !~~~>  CALL Rosenbrock method
-   CALL ros_Integrator(ICNTRL, Y, Tstart, Tend, Texit,   &
-        AbsTol, RelTol,                                  &
+   CALL ros_Integrator(Y, Tstart, Tend, Texit,   &
+        AbsTol, RelTol,                          &
 !  Integration parameters
-        Autonomous, VectorTol, Max_no_steps,             &
-        Roundoff, Hmin, Hmax, Hstart,                    &
-        FacMin, FacMax, FacRej, FacSafe,                 &
+        Autonomous, VectorTol, Max_no_steps,     &
+        Roundoff, Hmin, Hmax, Hstart,            &
+        FacMin, FacMax, FacRej, FacSafe,         &
 !  Error indicator
         IERR)
 
@@ -427,12 +448,12 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
  END SUBROUTINE ros_ErrorMsg
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- SUBROUTINE ros_Integrator (ICNTRL, Y, Tstart, Tend, T,  &
-        AbsTol, RelTol,                                  &
+ SUBROUTINE ros_Integrator (Y, Tstart, Tend, T,  &
+        AbsTol, RelTol,                          &
 !~~~> Integration parameters
-        Autonomous, VectorTol, Max_no_steps,             &
-        Roundoff, Hmin, Hmax, Hstart,                    &
-        FacMin, FacMax, FacRej, FacSafe,                 &
+        Autonomous, VectorTol, Max_no_steps,     &
+        Roundoff, Hmin, Hmax, Hstart,            &
+        FacMin, FacMax, FacRej, FacSafe,         &
 !~~~> Error indicator
         IERR )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -442,8 +463,6 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   IMPLICIT NONE
-!~~~> Input: KPP runtime options
-   INTEGER,  INTENT(IN) :: ICNTRL(20)
 !~~~> Input: the initial condition at Tstart; Output: the solution at T
    KPP_REAL, INTENT(INOUT) :: Y(N)
 !~~~> Input: integration interval
@@ -514,17 +533,16 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
    H = MIN(H,ABS(Tend-T))
 
 !~~~>   Compute the function at current time
-   CALL FunTemplate( ICNTRL, T, Y, Fcn0 )
+   CALL FunTemplate( T, Y, Fcn0 )
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 
 !~~~>  Compute the function derivative with respect to T
    IF (.NOT.Autonomous) THEN
-      CALL ros_FunTimeDerivative (ICNTRL, T, Roundoff, Y, &
-                Fcn0, dFdT )
+      CALL ros_FunTimeDerivative ( T, Roundoff, Y, Fcn0, dFdT )
    END IF
 
 !~~~>   Compute the Jacobian at current time
-   CALL JacTemplate( ICNTRL, T, Y, Jac0 )
+   CALL JacTemplate( T, Y, Jac0 )
    ISTATUS(Njac) = ISTATUS(Njac) + 1
 
 !~~~>  Repeat step calculation until current step accepted
@@ -556,7 +574,7 @@ Stage: DO istage = 1, ros_S
             K(N*(j-1)+1),1,Ynew,1)
          END DO
          Tau = T + ros_Alpha(istage)*Direction*H
-         CALL FunTemplate( ICNTRL, Tau, Ynew, Fcn )
+         CALL FunTemplate( Tau, Ynew, Fcn )
          ISTATUS(Nfun) = ISTATUS(Nfun) + 1
        END IF ! if istage == 1 elseif ros_NewF(istage)
        !slim: CALL WCOPY(N,Fcn,1,K(ioffset+1),1)
@@ -666,15 +684,12 @@ Stage: DO istage = 1, ros_S
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE ros_FunTimeDerivative ( ICNTRL, T, Roundoff, Y, &
-                Fcn0, dFdT )
+  SUBROUTINE ros_FunTimeDerivative ( T, Roundoff, Y, Fcn0, dFdT )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~> The time partial derivative of the function by finite differences
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    IMPLICIT NONE
 
-!~~~> Input arguments
-   INTEGER,  INTENT(IN) :: ICNTRL(20)
    KPP_REAL, INTENT(IN) :: T, Roundoff, Y(N), Fcn0(N)
 !~~~> Output arguments
    KPP_REAL, INTENT(OUT) :: dFdT(N)
@@ -683,7 +698,7 @@ Stage: DO istage = 1, ros_S
    KPP_REAL, PARAMETER :: ONE = 1.0_dp, DeltaMin = 1.0E-6_dp
 
    Delta = SQRT(Roundoff)*MAX(DeltaMin,ABS(T))
-   CALL FunTemplate( ICNTRL, T+Delta, Y, dFdT )
+   CALL FunTemplate( T+Delta, Y, dFdT )
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
    CALL WAXPY(N,(-ONE),Fcn0,1,dFdT,1)
    CALL WSCAL(N,(ONE/Delta),dFdT,1)
@@ -1257,7 +1272,7 @@ END SUBROUTINE Rosenbrock
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBROUTINE FunTemplate( ICNTRL, T, Y, Ydot )
+SUBROUTINE FunTemplate( T, Y, Ydot )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the ODE function call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
@@ -1267,7 +1282,6 @@ SUBROUTINE FunTemplate( ICNTRL, T, Y, Ydot )
  USE KPP_ROOT_Function, ONLY: Fun
  USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST
 !~~~> Input variables
-   INTEGER :: ICNTRL(20)
    KPP_REAL :: T, Y(NVAR)
 !~~~> Output variables
    KPP_REAL :: Ydot(NVAR)
@@ -1276,8 +1290,8 @@ SUBROUTINE FunTemplate( ICNTRL, T, Y, Ydot )
 
    Told = TIME
    TIME = T
-   IF ( ICNTRL(15) == 3 ) CALL Update_SUN()
-   IF ( ICNTRL(15) >= 1 ) CALL Update_RCONST()
+   IF ( Do_Update_SUN    ) CALL Update_SUN()
+   IF ( Do_Update_RCONST ) CALL Update_RCONST()
    CALL Fun( Y, FIX, RCONST, Ydot )
    TIME = Told
 
@@ -1285,7 +1299,7 @@ END SUBROUTINE FunTemplate
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBROUTINE JacTemplate( ICNTRL, T, Y, Jcb )
+SUBROUTINE JacTemplate( T, Y, Jcb )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the ODE Jacobian call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
@@ -1296,7 +1310,6 @@ SUBROUTINE JacTemplate( ICNTRL, T, Y, Jcb )
  USE KPP_ROOT_LinearAlgebra
  USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST
 !~~~> Input variables
-    INTEGER :: ICNTRL(20)
     KPP_REAL :: T, Y(NVAR)
 !~~~> Output variables
 #ifdef FULL_ALGEBRA
@@ -1312,8 +1325,8 @@ SUBROUTINE JacTemplate( ICNTRL, T, Y, Jcb )
 
     Told = TIME
     TIME = T
-    IF ( ICNTRL(15) == 3 ) CALL Update_SUN()
-    IF ( ICNTRL(15) >= 1 ) CALL Update_RCONST()
+    IF ( Do_Update_SUN    ) CALL Update_SUN()
+    IF ( Do_Update_RCONST ) CALL Update_RCONST()
 #ifdef FULL_ALGEBRA
     CALL Jac_SP(Y, FIX, RCONST, JV)
     DO j=1,NVAR
@@ -1330,5 +1343,43 @@ SUBROUTINE JacTemplate( ICNTRL, T, Y, Jcb )
     TIME = Told
 
 END SUBROUTINE JacTemplate
+
+SUBROUTINE Integrator_Update_Options( option )
+
+!    option      -> determine whether to call Update_RCONST, Update_PHOTO,
+!                   and Update_SUN from within the integrator
+!        = -1 :   Do not call Update_* functions within the integrator
+!        =  0 :   Status quo: Call whichever functions are normally called
+!        =  1 :   Call Update_RCONST from within the integrator
+!        =  2 :   Call Update_PHOTO from within the integrator
+!        =  3 :   Call Update_RCONST and Update_PHOTO from within the int.
+!        =  4 :   Call Update_SUN from within the integrator
+!        =  5 :   Call Update_SUN and Update_RCONST from within the int.
+
+!~~~> Input variable
+  INTEGER, INTENT(IN) :: option
+
+  ! Option -1: turn off all Update_* calls within the integrator
+  IF ( option == -1 ) THEN
+     Do_Update_RCONST = .FALSE.
+     Do_Update_PHOTO  = .FALSE.
+     Do_Update_SUN    = .FALSE.
+     RETURN
+  ENDIF
+
+  ! Option 0: status quo: Call update functions if defined
+  IF ( option == 0 ) THEN
+     Do_Update_RCONST = .TRUE.
+     Do_Update_PHOTO  = .TRUE.
+     Do_Update_SUN    = .TRUE.
+     RETURN
+  ENDIF
+
+  ! Otherwise determine from the value passed
+  Do_Update_RCONST = ( IAND( option, 1 ) > 0 )
+  Do_Update_PHOTO  = ( IAND( option, 2 ) > 0 )
+  Do_Update_SUN    = ( IAND( option, 4 ) > 0 )
+
+END SUBROUTINE Integrator_Update_Options
 
 END MODULE KPP_ROOT_Integrator
