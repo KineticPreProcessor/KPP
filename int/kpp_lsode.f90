@@ -13,11 +13,18 @@ MODULE KPP_ROOT_Integrator
   USE KPP_ROOT_JacobianSP, ONLY: LU_DIAG
   USE KPP_ROOT_LinearAlgebra, ONLY: KppDecomp, KppSolve, &
                Set2zero, WLAMCH
-  
+
   IMPLICIT NONE
   PUBLIC
   SAVE
   
+!~~~> Flags to determine if we should call the UPDATE_* routines from within 
+!~~~> the integrator.  If using KPP in an external model, you might want to
+!~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
+  LOGICAL :: Do_Update_RCONST
+  LOGICAL :: Do_Update_PHOTO
+  LOGICAL :: Do_Update_SUN
+
   !~~~>  Statistics on the work performed by the LSODE method
   INTEGER :: Nfun,Njac,Nstp,Nacc,Nrej,Ndec,Nsol,Nsng
   INTEGER, PARAMETER :: ifun=1, ijac=2, istp=3, iacc=4,  &
@@ -47,6 +54,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 
    USE KPP_ROOT_Parameters
    USE KPP_ROOT_Global
+   USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
+
    IMPLICIT NONE
 
    KPP_REAL, INTENT(IN) :: TIN  ! Start Time
@@ -78,6 +87,24 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
      WHERE(RCNTRL_U(:) > 0) RCNTRL(:) = RCNTRL_U(:)
    END IF
 
+   ! Determine the settings of the Do_Update_* flags, which determine
+   ! whether or not we need to call Update_* routines in the integrator
+   ! (or not, if we are calling them from a higher-level)
+   ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
+   !            =  0 ! Status quo
+   !            =  1 ! Call Update_RCONST from within the integrator
+   !            =  2 ! Call Update_PHOTO from within the integrator
+   !            =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
+   !            =  4 ! Call Update_SUN from within the integrator
+   !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
+   !            =  6 ! Not implemented
+   !            =  7 ! Not implemented
+   CALL Integrator_Update_Options( ICNTRL(15),          &
+                                   Do_Update_RCONST,    &
+                                   Do_Update_PHOTO,     &
+                                   Do_Update_Sun       )
+
+   ! Call the integrator
    CALL KppLsode( TIN,TOUT,VAR,RTOL,ATOL,                &
                   RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR )
 
@@ -135,6 +162,17 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !        For ICNTRL(4)=0 the default value of 100000 is used
 !
 !    ICNTRL(5)  -> maximum order of the integration formula allowed
+!
+!    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
+!        = -1 :  Do not call Update_* functions within the integrator
+!        =  0 :  Status quo
+!        =  1 :  Call Update_RCONST from within the integrator
+!        =  2 :  Call Update_PHOTO from within the integrator
+!        =  3 :  Call Update_RCONST and Update_PHOTO from w/in the int.
+!        =  4 :  Call Update_SUN from within the integrator
+!        =  5 :  Call Update_SUN and Update_RCONST from within the int.
+!        =  6 :  Not implemented
+!        =  7 :  Not implemented
 !
 !~~~>  Real parameters
 !
@@ -3370,9 +3408,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       
 !      TOLD = TIME
 !      TIME = T
-!      CALL Update_SUN()
-!      CALL Update_RCONST()
-!      CALL Update_PHOTO()
+!      IF ( Do_Update_SUN    ) CALL Update_SUN()
+!      IF ( Do_Update_RCONST ) CALL Update_RCONST()
+!      IF ( Do_Update_PHOTO  ) CALL Update_PHOTO()
 !      TIME = TOLD
 
       CALL Fun(V, FIX, RCONST, FCT)
@@ -3405,9 +3443,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
   
 !      TOLD = TIME
 !      TIME = T
-!      CALL Update_SUN()
-!      CALL Update_RCONST()
-!      CALL Update_PHOTO()
+!      IF ( Do_Update_SUN    ) CALL Update_SUN()
+!      IF ( Do_Update_RCONST ) CALL Update_RCONST()
+!      IF ( Do_Update_PHOTO  ) CALL Update_PHOTO()
 !      TIME = TOLD
     
 #ifdef FULL_ALGEBRA    

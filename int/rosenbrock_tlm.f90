@@ -32,6 +32,13 @@ MODULE KPP_ROOT_Integrator
    PUBLIC
    SAVE
 
+!~~~> Flags to determine if we should call the UPDATE_* routines from within 
+!~~~> the integrator.  If using KPP in an external model, you might want to
+!~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
+  LOGICAL :: Do_Update_RCONST
+  LOGICAL :: Do_Update_PHOTO
+  LOGICAL :: Do_Update_SUN
+
 !~~~>  Statistics on the work performed by the Rosenbrock method
   INTEGER, PARAMETER :: Nfun=1, Njac=2, Nstp=3, Nacc=4, &
                         Nrej=5, Ndec=6, Nsol=7, Nsng=8, &
@@ -87,6 +94,24 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm,&
      WHERE(RCNTRL_U(:) >= 0) RCNTRL(:) = RCNTRL_U(:)
    ENDIF
 
+   ! Determine the settings of the Do_Update_* flags, which determine
+   ! whether or not we need to call Update_* routines in the integrator
+   ! (or not, if we are calling them from a higher-level)
+   ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
+   !            =  0 ! Status quo
+   !            =  1 ! Call Update_RCONST from within the integrator
+   !            =  2 ! Call Update_PHOTO from within the integrator
+   !            =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
+   !            =  4 ! Call Update_SUN from within the integrator
+   !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
+   !            =  6 ! Not implemented
+   !            =  7 ! Not implemented
+   CALL Integrator_Update_Options( ICNTRL(15),          &
+                                   Do_Update_RCONST,    &
+                                   Do_Update_PHOTO,     &
+                                   Do_Update_Sun       )
+
+   ! Call the integrator
    CALL RosenbrockTLM(NVAR, VAR, NTLM, Y_tlm,      &
          TIN,TOUT,ATOL,RTOL,ATOL_tlm,RTOL_tlm,     &
          RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR)
@@ -200,12 +225,17 @@ SUBROUTINE RosenbrockTLM(N,Y,NTLM,Y_tlm,                      &
 !        ICNTRL(12) = 0: TLM error is not used
 !        ICNTRL(12) = 1: TLM error is computed and used
 !
-!    ICNTRL(15) -> Determine whether to update rates within the solver step
-!        ICNTRL(15)=0 : Do not update rates within the solver step
-!        ICNTRL(15)=1 : Call Update_RCONST within solver step
-!        ICNTRL(15)=2 : Call Update_RCONST & Update_PHOTO w/in solver step
-!        ICNTRL(15)=3 : Call Update_SUN & Update_RCONST w/in solver step
-!
+!    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
+!        = -1 :  Do not call Update_* functions within the integrator
+!        =  0 :  Status quo
+!        =  1 :  Call Update_RCONST from within the integrator
+!        =  2 :  Call Update_PHOTO from within the integrator
+!        =  3 :  Call Update_RCONST and Update_PHOTO from w/in the int.
+!        =  4 :  Call Update_SUN from within the integrator
+!        =  5 :  Call Update_SUN and Update_RCONST from within the int.
+!        =  6 :  Not implemented
+!        =  7 :  Not implemented
+
 !    RCNTRL(1)  -> Hmin, lower bound for the integration step size
 !          It is strongly recommended to keep Hmin = ZERO
 !    RCNTRL(2)  -> Hmax, upper bound for the integration step size
@@ -410,7 +440,7 @@ SUBROUTINE RosenbrockTLM(N,Y,NTLM,Y_tlm,                      &
 
 
 !~~~>  CALL Rosenbrock method
-   CALL ros_TLM_Int(ICNTRL, Y, NTLM, Y_tlm,      &
+   CALL ros_TLM_Int( Y, NTLM, Y_tlm,      &
         Tstart, Tend, Texit,                     &
 !  Error indicator
         IERR)
@@ -462,8 +492,8 @@ CONTAINS ! Procedures internal to RosenbrockTLM
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- SUBROUTINE ros_TLM_Int (ICNTRL, Y, NTLM, Y_tlm, &
-        Tstart, Tend, T,                         &
+ SUBROUTINE ros_TLM_Int ( Y, NTLM, Y_tlm, &
+        Tstart, Tend, T,                  &
 !~~~> Error indicator
         IERR )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -473,8 +503,6 @@ CONTAINS ! Procedures internal to RosenbrockTLM
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   IMPLICIT NONE
-!~~~> Input: KPP runtime options
-   INTEGER, INTENT(IN) :: ICNTRL(20)
 !~~~> Input: the initial condition at Tstart; Output: the solution at T
    KPP_REAL, INTENT(INOUT) :: Y(N)
 !~~~> Input: Number of sensitivity coefficients
@@ -542,15 +570,15 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
    H = MIN(H,ABS(Tend-T))
 
 !~~~>   Compute the function at current time
-   CALL FunTemplate( ICNTRL, T, Y, Fcn0 )
+   CALL FunTemplate( T, Y, Fcn0 )
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 
 !~~~>   Compute the Jacobian at current time
-   CALL JacTemplate( ICNTRL, T, Y, Jac0 )
+   CALL JacTemplate( T, Y, Jac0 )
    ISTATUS(Njac) = ISTATUS(Njac) + 1
 
 !~~~>   Compute the Hessian at current time
-   CALL HessTemplate( ICNTRL, T, Y, Hes0 )
+   CALL HessTemplate( T, Y, Hes0 )
    ISTATUS(Nhes) = ISTATUS(Nhes) + 1
 
 !~~~>   Compute the TLM function at current time
@@ -560,8 +588,8 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
 
 !~~~>  Compute the function and Jacobian derivatives with respect to T
    IF (.NOT.Autonomous) THEN
-      CALL ros_FunTimeDerivative ( ICNTRL, T, Roundoff, Y, Fcn0, dFdT )
-      CALL ros_JacTimeDerivative ( ICNTRL, T, Roundoff, Y, Jac0, dJdT )
+      CALL ros_FunTimeDerivative ( T, Roundoff, Y, Fcn0, dFdT )
+      CALL ros_JacTimeDerivative ( T, Roundoff, Y, Jac0, dJdT )
    END IF
 
 !~~~>  Repeat step calculation until current step accepted
@@ -599,9 +627,9 @@ Stage: DO istage = 1, ros_S
            END DO
          END DO
          Tau = T + ros_Alpha(istage)*Direction*H
-         CALL FunTemplate( ICNTRL, Tau, Ynew, Fcn )
+         CALL FunTemplate( Tau, Ynew, Fcn )
          ISTATUS(Nfun) = ISTATUS(Nfun) + 1
-         CALL JacTemplate( ICNTRL, Tau, Ynew, Jac )
+         CALL JacTemplate( Tau, Ynew, Jac )
          ISTATUS(Njac) = ISTATUS(Njac) + 1
          DO itlm=1,NTLM
            CALL Jac_SP_Vec ( Jac, Ynew_tlm(1,itlm), Fcn_tlm(1,itlm) )
@@ -771,15 +799,13 @@ Stage: DO istage = 1, ros_S
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE ros_FunTimeDerivative ( ICNTRL, T, Roundoff, Y, &
-                Fcn0, dFdT )
+  SUBROUTINE ros_FunTimeDerivative ( T, Roundoff, Y, Fcn0, dFdT )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~> The time partial derivative of the function by finite differences
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    IMPLICIT NONE
 
 !~~~> Input arguments
-   INTEGER,  INTENT(IN) :: ICNTRL(20)
    KPP_REAL, INTENT(IN) :: T, Roundoff, Y(N), Fcn0(N)
 !~~~> Output arguments
    KPP_REAL, INTENT(OUT) :: dFdT(N)
@@ -788,7 +814,7 @@ Stage: DO istage = 1, ros_S
    KPP_REAL, PARAMETER :: DeltaMin = 1.0d-6
 
    Delta = SQRT(Roundoff)*MAX(DeltaMin,ABS(T))
-   CALL FunTemplate( ICNTRL, T+Delta, Y, dFdT )
+   CALL FunTemplate( T+Delta, Y, dFdT )
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
    CALL WAXPY(N,(-ONE),Fcn0,1,dFdT,1)
    CALL WSCAL(N,(ONE/Delta),dFdT,1)
@@ -797,15 +823,13 @@ Stage: DO istage = 1, ros_S
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE ros_JacTimeDerivative ( ICNTRL, T, Roundoff, Y, &
-                Jac0, dJdT )
+  SUBROUTINE ros_JacTimeDerivative ( T, Roundoff, Y, Jac0, dJdT )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~> The time partial derivative of the Jacobian by finite differences
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    IMPLICIT NONE
 
 !~~~> Input arguments
-   INTEGER,  INTENT(IN) :: ICNTRL(20)
    KPP_REAL, INTENT(IN) :: T, Roundoff, Y(N), Jac0(LU_NONZERO)
 !~~~> Output arguments
    KPP_REAL, INTENT(OUT) :: dJdT(LU_NONZERO)
@@ -814,7 +838,7 @@ Stage: DO istage = 1, ros_S
    KPP_REAL, PARAMETER :: ONE = 1.0d0, DeltaMin = 1.0d-6
 
    Delta = SQRT(Roundoff)*MAX(DeltaMin,ABS(T))
-   CALL JacTemplate( ICNTRL, T+Delta, Y, dJdT )
+   CALL JacTemplate( T+Delta, Y, dJdT )
    ISTATUS(Njac) = ISTATUS(Njac) + 1
    CALL WAXPY(LU_NONZERO,(-ONE),Jac0,1,dJdT,1)
    CALL WSCAL(LU_NONZERO,(ONE/Delta),dJdT,1)
@@ -1291,7 +1315,7 @@ END SUBROUTINE RosenbrockTLM
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBROUTINE FunTemplate( ICNTRL, T, Y, Ydot )
+SUBROUTINE FunTemplate( T, Y, Ydot )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the ODE function call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
@@ -1299,7 +1323,6 @@ SUBROUTINE FunTemplate( ICNTRL, T, Y, Ydot )
 
    IMPLICIT NONE
 !~~~> Input variables
-   INTEGER  :: ICNTRL(20)
    KPP_REAL :: T, Y(NVAR)
 !~~~> Output variables
    KPP_REAL :: Ydot(NVAR)
@@ -1308,8 +1331,8 @@ SUBROUTINE FunTemplate( ICNTRL, T, Y, Ydot )
 
    Told = TIME
    TIME = T
-   IF ( ICNTRL(15) == 3 ) CALL Update_SUN()
-   IF ( ICNTRL(15) >= 1 ) CALL Update_RCONST()
+   IF ( Do_Update_SUN    ) CALL Update_SUN()
+   IF ( Do_Update_RCONST ) CALL Update_RCONST()
    CALL Fun( Y, FIX, RCONST, Ydot )
    TIME = Told
 
@@ -1317,7 +1340,7 @@ END SUBROUTINE FunTemplate
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBROUTINE JacTemplate( ICNTRL, T, Y, Jcb )
+SUBROUTINE JacTemplate( T, Y, Jcb )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the ODE Jacobian call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
@@ -1325,7 +1348,6 @@ SUBROUTINE JacTemplate( ICNTRL, T, Y, Jcb )
     IMPLICIT NONE
 
 !~~~> Input variables
-    INTEGER  :: ICNTRL(20)
     KPP_REAL :: T, Y(NVAR)
 !~~~> Output variables
     KPP_REAL :: Jcb(LU_NONZERO)
@@ -1334,17 +1356,16 @@ SUBROUTINE JacTemplate( ICNTRL, T, Y, Jcb )
 
     Told = TIME
     TIME = T
-    IF ( ICNTRL(15) == 3 ) CALL Update_SUN()
-    IF ( ICNTRL(15) >= 1 ) CALL Update_RCONST()
+    IF ( Do_Update_SUN    ) CALL Update_SUN()
+    IF ( Do_Update_RCONST ) CALL Update_RCONST()
     CALL Jac_SP( Y, FIX, RCONST, Jcb )
     TIME = Told
 
 END SUBROUTINE JacTemplate
 
 
-
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBROUTINE HessTemplate( ICNTRL, T, Y, Hes )
+SUBROUTINE HessTemplate( T, Y, Hes )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the ODE Hessian call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
@@ -1352,7 +1373,6 @@ SUBROUTINE HessTemplate( ICNTRL, T, Y, Hes )
     IMPLICIT NONE
 
 !~~~> Input variables
-    INTEGER :: ICNTRL(20)
     KPP_REAL :: T, Y(NVAR)
 !~~~> Output variables
     KPP_REAL :: Hes(NHESS)
@@ -1361,8 +1381,8 @@ SUBROUTINE HessTemplate( ICNTRL, T, Y, Hes )
 
     Told = TIME
     TIME = T
-    IF ( ICNTRL(15) == 3 ) CALL Update_SUN()
-    IF ( ICNTRL(15) >= 1 ) CALL Update_RCONST()
+    IF ( Do_Update_SUN    ) CALL Update_SUN()
+    IF ( Do_Update_RCONST ) CALL Update_RCONST()
     CALL Hessian( Y, FIX, RCONST, Hes )
     TIME = Told
 

@@ -118,14 +118,19 @@ SUBROUTINE INTEGRATE_ADJ( NADJ, Y, Lambda, TIN, TOUT, &
    !            =  2 ! Call Update_PHOTO from within the integrator
    !            =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
    !            =  4 ! Call Update_SUN from within the integrator
-   !            =  5 ! Call Update_SUN and Update_RCONST from within the int.
-   CALL Integrator_Update_Options( ICNTRL(15) )
+   !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
+   !            =  6 ! Not implemented
+   !            =  7 ! Not implemented
+   CALL Integrator_Update_Options( ICNTRL(15),          &
+                                   Do_Update_RCONST,    &
+                                   Do_Update_PHOTO,     &
+                                   Do_Update_Sun       )
 
+   ! Call the integrator
    CALL RosenbrockADJ(Y, NADJ, Lambda,                 &
          TIN, TOUT,                                    &
          ATOL, RTOL, ATOL_adj, RTOL_adj,               &
          RCNTRL, ICNTRL, RSTATUS, ISTATUS, IERR)
-
 
 !~~~> Debug option: show number of steps
 !    Ntotal = Ntotal + ISTATUS(Nstp)
@@ -255,13 +260,16 @@ SUBROUTINE RosenbrockADJ( Y, NADJ, Lambda,             &
 !        ICNTRL(8)=1 : save LU factorization
 !        Note: if ICNTRL(7)=1 the LU factorization is *not* saved
 !
-!    ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
-!               =  0 ! Status quo
-!               =  1 ! Call Update_RCONST from within the integrator
-!               =  2 ! Call Update_PHOTO from within the integrator
-!               =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
-!               =  4 ! Call Update_SUN from within the integrator
-!               =  5 ! Call Update_SUN and Update_RCONST from within the int.
+!    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
+!        = -1 : Do not call Update_* functions within the integrator
+!        =  0 : Status quo
+!        =  1 : Call Update_RCONST from within the integrator
+!        =  2 : Call Update_PHOTO from within the integrator
+!        =  3 : Call Update_RCONST and Update_PHOTO from w/in the int.
+!        =  4 : Call Update_SUN from within the integrator
+!        =  5 : Call Update_SUN and Update_RCONST from within the int.
+!        =  6 : Not implemented
+!        =  7 : Not implemented
 !
 !~~~>  Real input parameters:
 !
@@ -2581,43 +2589,5 @@ SUBROUTINE HessTemplate( T, Y, Hes )
     TIME = Told
 
 END SUBROUTINE HessTemplate
-
-SUBROUTINE Integrator_Update_Options( option )
-
-!    option      -> determine whether to call Update_RCONST, Update_PHOTO,
-!                   and Update_SUN from within the integrator
-!        = -1 :   Do not call Update_* functions within the integrator
-!        =  0 :   Status quo: Call whichever functions are normally called
-!        =  1 :   Call Update_RCONST from within the integrator
-!        =  2 :   Call Update_PHOTO from within the integrator
-!        =  3 :   Call Update_RCONST and Update_PHOTO from within the int.
-!        =  4 :   Call Update_SUN from within the integrator
-!        =  5 :   Call Update_SUN and Update_RCONST from within the int.
-
-!~~~> Input variable
-  INTEGER, INTENT(IN) :: option
-
-  ! Option -1: turn off all Update_* calls within the integrator
-  IF ( option == -1 ) THEN
-     Do_Update_RCONST = .FALSE.
-     Do_Update_PHOTO  = .FALSE.
-     Do_Update_SUN    = .FALSE.
-     RETURN
-  ENDIF
-
-  ! Option 0: status quo: Call update functions if defined
-  IF ( option == 0 ) THEN
-     Do_Update_RCONST = .TRUE.
-     Do_Update_PHOTO  = .TRUE.
-     Do_Update_SUN    = .TRUE.
-     RETURN
-  ENDIF
-
-  ! Otherwise determine from the value passed
-  Do_Update_RCONST = ( IAND( option, 1 ) > 0 )
-  Do_Update_PHOTO  = ( IAND( option, 2 ) > 0 )
-  Do_Update_SUN    = ( IAND( option, 4 ) > 0 )
-
-END SUBROUTINE Integrator_Update_Options
 
 END MODULE KPP_ROOT_Integrator

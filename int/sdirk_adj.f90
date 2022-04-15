@@ -26,7 +26,14 @@ MODULE KPP_ROOT_Integrator
   IMPLICIT NONE
   PUBLIC
   SAVE
-  
+
+!~~~> Flags to determine if we should call the UPDATE_* routines from within 
+!~~~> the integrator.  If using KPP in an external model, you might want to
+!~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
+  LOGICAL :: Do_Update_RCONST
+  LOGICAL :: Do_Update_PHOTO
+  LOGICAL :: Do_Update_SUN
+
 !~~~>  Statistics on the work performed by the SDIRK method
   INTEGER, PARAMETER :: Nfun=1, Njac=2, Nstp=3, Nacc=4,  &
            Nrej=5, Ndec=6, Nsol=7, Nsng=8,               &
@@ -40,6 +47,8 @@ SUBROUTINE INTEGRATE_ADJ( NADJ, Y, Lambda, TIN, TOUT, &
 
    USE KPP_ROOT_Parameters
    USE KPP_ROOT_Global
+   USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
+
    IMPLICIT NONE
 
 !~~~> Y - Concentrations
@@ -89,7 +98,24 @@ SUBROUTINE INTEGRATE_ADJ( NADJ, Y, Lambda, TIN, TOUT, &
      WHERE(RCNTRL_U(:) > 0) RCNTRL(:) = RCNTRL_U(:)
    END IF
    
-   
+   ! Determine the settings of the Do_Update_* flags, which determine
+   ! whether or not we need to call Update_* routines in the integrator
+   ! (or not, if we are calling them from a higher-level)
+   ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
+   !            =  0 ! Status quo
+   !            =  1 ! Call Update_RCONST from within the integrator
+   !            =  2 ! Call Update_PHOTO from within the integrator
+   !            =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
+   !            =  4 ! Call Update_SUN from within the integrator
+   !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
+   !            =  6 ! Not implemented
+   !            =  7 ! Not implemented
+   CALL Integrator_Update_Options( ICNTRL(15),          &
+                                   Do_Update_RCONST,    &
+                                   Do_Update_PHOTO,     &
+                                   Do_Update_Sun       )
+
+   ! Call the integrator
    T1 = TIN; T2 = TOUT
    CALL SDIRKADJ( NVAR, NADJ, T1, T2, Y, Lambda,            &
                   RTOL, ATOL, ATOL_adj, RTOL_adj,           &
@@ -199,6 +225,17 @@ SUBROUTINE INTEGRATE_ADJ( NADJ, Y, Lambda, TIN, TOUT, &
 !        ICNTRL(8)=0 : do *not* save LU factorization (the default)
 !        ICNTRL(8)=1 : save LU factorization
 !        Note: if ICNTRL(7)=1 the LU factorization is *not* saved
+!
+!    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
+!        = -1 :  Do not call Update_* functions within the integrator
+!        =  0 :  Status quo
+!        =  1 :  Call Update_RCONST from within the integrator
+!        =  2 :  Call Update_PHOTO from within the integrator
+!        =  3 :  Call Update_RCONST and Update_PHOTO from w/in the int.
+!        =  4 :  Call Update_SUN from within the integrator
+!        =  5 :  Call Update_SUN and Update_RCONST from within the int.
+!        =  6 :  Not implemented
+!        =  7 :  Not implemented
 !
 !~~~>  Real parameters
 !
@@ -1614,8 +1651,8 @@ Hloop: DO WHILE (ISING /= 0)
       
       Told = TIME
       TIME = T
-      CALL Update_SUN()
-      CALL Update_RCONST()
+      IF ( Do_Update_SUN    ) CALL Update_SUN()
+      IF ( Do_Update_RCONST ) CALL Update_RCONST()
       
       CALL Fun( Y, FIX, RCONST, P )
       
@@ -1644,8 +1681,8 @@ Hloop: DO WHILE (ISING /= 0)
  
       Told = TIME
       TIME = T
-      CALL Update_SUN()
-      CALL Update_RCONST()
+      IF ( Do_Update_SUN    ) CALL Update_SUN()
+      IF ( Do_Update_RCONST ) CALL Update_RCONST()
 
 #ifdef FULL_ALGEBRA
       CALL Jac_SP(Y, FIX, RCONST, JS)

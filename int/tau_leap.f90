@@ -99,7 +99,6 @@ REAL, PRIVATE      :: zero = 0.0, half = 0.5, one = 1.0, two = 2.0,   &
 PRIVATE            :: integral
 INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(12, 60)
 
-
 CONTAINS
 
 
@@ -1623,6 +1622,8 @@ SUBROUTINE TauLeap(Nsteps, Tau, T, SCT, NmlcV, NmlcF)
 !      
 !
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
+
   IMPLICIT NONE
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
@@ -1633,7 +1634,7 @@ SUBROUTINE TauLeap(Nsteps, Tau, T, SCT, NmlcV, NmlcF)
       REAL   :: mu
       KPP_REAL :: A(NREACT), SCT(NREACT), x
       LOGICAL, SAVE :: First = .TRUE.
-   
+
       DO istep = 1, Nsteps
 
           ! Propensity vector

@@ -11,7 +11,8 @@
 !    (C)  Adrian Sandu, August 2004                                       !
 !    Virginia Polytechnic Institute and State University                  !
 !    Contact: sandu@cs.vt.edu                                             !
-!    Revised by Philipp Miehe and Adrian Sandu, May 2006                  !                               !
+!    Revised by Philipp Miehe and Adrian Sandu, May 2006                  !
+!                                                                         !
 !    This implementation is part of KPP - the Kinetic PreProcessor        !
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 
@@ -39,6 +40,8 @@ CONTAINS
 
 SUBROUTINE INTEGRATE( TIN, TOUT, &
   ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, IERR_U )
+
+   USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
 
    IMPLICIT NONE
 
@@ -83,10 +86,15 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    !            =  2 ! Call Update_PHOTO from within the integrator
    !            =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
    !            =  4 ! Call Update_SUN from within the integrator
-   !            =  5 ! Call Update_SUN and Update_RCONST from within the int.
-   CALL Integrator_Update_Options( ICNTRL(15) )
+   !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
+   !            =  6 ! Not implemented
+   !            =  7 ! Not implemented
+   CALL Integrator_Update_Options( ICNTRL(15),          &
+                                   Do_Update_RCONST,    &
+                                   Do_Update_PHOTO,     &
+                                   Do_Update_Sun       )
 
-   ! Call the Rosenbrock solver
+   ! Call the integrator
    CALL Rosenbrock(NVAR,VAR,TIN,TOUT,   &
          ATOL,RTOL,                &
          RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR)
@@ -178,13 +186,16 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !    ICNTRL(4)  -> maximum number of integration steps
 !        For ICNTRL(4)=0) the default value of 100000 is used
 !
-!    ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
-!               =  0 ! Status quo
-!               =  1 ! Call Update_RCONST from within the integrator
-!               =  2 ! Call Update_PHOTO from within the integrator
-!               =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
-!               =  4 ! Call Update_SUN from within the integrator
-!               =  5 ! Call Update_SUN and Update_RCONST from within the int.
+!    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
+!        = -1 :  Do not call Update_* functions within the integrator
+!        =  0 :  Status quo
+!        =  1 :  Call Update_RCONST from within the integrator
+!        =  2 :  Call Update_PHOTO from within the integrator
+!        =  3 :  Call Update_RCONST and Update_PHOTO from w/in the int.
+!        =  4 :  Call Update_SUN from within the integrator
+!        =  5 :  Call Update_SUN and Update_RCONST from within the int.
+!        =  6 :  Not implemented
+!        =  7 :  Not implemented
 !
 !    RCNTRL(1)  -> Hmin, lower bound for the integration step size
 !          It is strongly recommended to keep Hmin = ZERO
@@ -1343,43 +1354,5 @@ SUBROUTINE JacTemplate( T, Y, Jcb )
     TIME = Told
 
 END SUBROUTINE JacTemplate
-
-SUBROUTINE Integrator_Update_Options( option )
-
-!    option      -> determine whether to call Update_RCONST, Update_PHOTO,
-!                   and Update_SUN from within the integrator
-!        = -1 :   Do not call Update_* functions within the integrator
-!        =  0 :   Status quo: Call whichever functions are normally called
-!        =  1 :   Call Update_RCONST from within the integrator
-!        =  2 :   Call Update_PHOTO from within the integrator
-!        =  3 :   Call Update_RCONST and Update_PHOTO from within the int.
-!        =  4 :   Call Update_SUN from within the integrator
-!        =  5 :   Call Update_SUN and Update_RCONST from within the int.
-
-!~~~> Input variable
-  INTEGER, INTENT(IN) :: option
-
-  ! Option -1: turn off all Update_* calls within the integrator
-  IF ( option == -1 ) THEN
-     Do_Update_RCONST = .FALSE.
-     Do_Update_PHOTO  = .FALSE.
-     Do_Update_SUN    = .FALSE.
-     RETURN
-  ENDIF
-
-  ! Option 0: status quo: Call update functions if defined
-  IF ( option == 0 ) THEN
-     Do_Update_RCONST = .TRUE.
-     Do_Update_PHOTO  = .TRUE.
-     Do_Update_SUN    = .TRUE.
-     RETURN
-  ENDIF
-
-  ! Otherwise determine from the value passed
-  Do_Update_RCONST = ( IAND( option, 1 ) > 0 )
-  Do_Update_PHOTO  = ( IAND( option, 2 ) > 0 )
-  Do_Update_SUN    = ( IAND( option, 4 ) > 0 )
-
-END SUBROUTINE Integrator_Update_Options
 
 END MODULE KPP_ROOT_Integrator
