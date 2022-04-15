@@ -715,7 +715,7 @@ void F90_FunctionEnd( int f )
 void F90_Inline( char *fmt, ... )
 {
 va_list args;
-char buf[ 1000 ];
+char buf[ MAX_K ];
 
   if( useLang != F90_LANG ) return;
   

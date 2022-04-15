@@ -531,7 +531,7 @@ void F77_FunctionEnd( int f )
 void F77_Inline( char *fmt, ... )
 {
 Va_list args;
-char buf[ 1000 ];
+char buf[ MAX_K ];
 
   if( useLang != F77_LANG ) return;
   

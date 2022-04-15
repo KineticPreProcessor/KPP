@@ -114,8 +114,8 @@ FILE *oldf;
   
 void OpenFile( FILE **fpp, char *name, char * ext, char * identity )
 {
-char bufname[300];
-char buf[300];
+char bufname[MAX_PATHLEN];
+char buf[MAX_PATHLEN];
 time_t t;
 int blength;
 
@@ -147,7 +147,7 @@ int blength;
   strcpy( buf, (char*)ctime( &t ) ); 
   buf[ (int)strlen(buf) - 1 ] = 0;
   WriteComment("%-20s : %s", "Time", buf );
-  WriteComment("%-20s : %s", "Working directory", getcwd(buf, 300) );
+  WriteComment("%-20s : %s", "Working directory", getcwd(buf, MAX_PATHLEN) );
   WriteComment("%-20s : %s", "Equation file", eqFileName );
   WriteComment("%-20s : %s", "Output root filename", rootFileName );
   WriteComment("");
