@@ -35,9 +35,9 @@ MODULE KPP_ROOT_Integrator
 !~~~> Flags to determine if we should call the UPDATE_* routines from within 
 !~~~> the integrator.  If using KPP in an external model, you might want to
 !~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
-  LOGICAL :: Do_Update_RCONST
-  LOGICAL :: Do_Update_PHOTO
-  LOGICAL :: Do_Update_SUN
+  LOGICAL, PRIVATE :: Do_Update_RCONST
+  LOGICAL, PRIVATE :: Do_Update_PHOTO
+  LOGICAL, PRIVATE :: Do_Update_SUN
 
 !~~~>  Statistics on the work performed by the Rosenbrock method
   INTEGER, PARAMETER :: Nfun=1, Njac=2, Nstp=3, Nacc=4, &

@@ -1,0 +1,39 @@
+{
+    "access_right": "open",
+    "creators": [
+	{
+	    "name": "Adrian Sandu",
+	    "affiliation": "Virginia Tech" 
+	},
+	{
+	    "name": "Rolf Sander",
+	    "affiliation": "Max Planck Institute, Juelich"
+	},
+	{
+	    "name": "Josue Bock"
+	},
+	{
+	    "name": "Michael Long",
+	    "affiliation": "Harvard University"
+	},
+	{
+	    "name": "Robert Yantosca",
+	    "affiliation": "Harvard University"
+	},
+	{
+	    "name": "Haipeng Lin",
+	    "affiliation": "Harvard University"
+	}
+    ],
+    "description": "The Kinetic Pre-Processor (KPP)",
+    "keywords": [
+	"atmospheric-chemistry",
+	"atmospheric-composition",
+	"atmospheric-modeling",
+	"chemistry-solver",
+	"climate-modeling",
+	"fortran-90"
+    ],
+    "license": "GNU GPLv3",
+    "upload_type": "software"
+}

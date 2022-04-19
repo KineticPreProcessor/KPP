@@ -14,9 +14,9 @@ MODULE KPP_ROOT_Integrator
 !~~~> Flags to determine if we should call the UPDATE_* routines from within 
 !~~~> the integrator.  If using KPP in an external model, you might want to
 !~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
-  LOGICAL :: Do_Update_RCONST
-  LOGICAL :: Do_Update_PHOTO
-  LOGICAL :: Do_Update_SUN
+  LOGICAL, PRIVATE :: Do_Update_RCONST
+  LOGICAL, PRIVATE :: Do_Update_PHOTO
+  LOGICAL, PRIVATE :: Do_Update_SUN
 
   !~~~>  Statistics on the work performed by the VODE method
   INTEGER :: Nfun,Njac,Nstp,Nacc,Nrej,Ndec,Nsol,Nsng
@@ -253,7 +253,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    USE KPP_ROOT_Parameters
    USE KPP_ROOT_Global
    USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
-  
+
    IMPLICIT NONE
 
    KPP_REAL, INTENT(IN) :: TIN  ! Start Time
@@ -282,6 +282,10 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    ! then they overwrite default settings. 
    IF (PRESENT(ICNTRL_U)) THEN
      WHERE(ICNTRL_U(:) > 0) ICNTRL(:) = ICNTRL_U(:)
+
+   END IF
+   IF (PRESENT(RCNTRL_U)) THEN
+     WHERE(RCNTRL_U(:) > 0) RCNTRL(:) = RCNTRL_U(:)
    END IF
    IF (PRESENT(RCNTRL_U)) THEN
      WHERE(RCNTRL_U(:) > 0) RCNTRL(:) = RCNTRL_U(:)

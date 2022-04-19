@@ -29,9 +29,9 @@ MODULE KPP_ROOT_Integrator
 !~~~> Flags to determine if we should call the UPDATE_* routines from within 
 !~~~> the integrator.  If using KPP in an external model, you might want to
 !~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
-  LOGICAL :: Do_Update_RCONST
-  LOGICAL :: Do_Update_PHOTO
-  LOGICAL :: Do_Update_SUN
+  LOGICAL, PRIVATE :: Do_Update_RCONST
+  LOGICAL, PRIVATE :: Do_Update_PHOTO
+  LOGICAL, PRIVATE :: Do_Update_SUN
 
 !~~~>  Statistics on the work performed by the SDIRK method
   INTEGER, PARAMETER :: Nfun=1, Njac=2, Nstp=3, Nacc=4,  &
@@ -1230,7 +1230,6 @@ Hloop: DO WHILE (ISING /= 0)
       USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
       USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
       USE KPP_ROOT_Function, ONLY: Fun
-      USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
       IMPLICIT NONE
 
       KPP_REAL :: T, Told
@@ -1256,7 +1255,6 @@ Hloop: DO WHILE (ISING /= 0)
       USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
       USE KPP_ROOT_Jacobian
       USE KPP_ROOT_Jacobian, ONLY: Jac_SP
-      USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
       IMPLICIT NONE
   
       KPP_REAL ::  T, Told

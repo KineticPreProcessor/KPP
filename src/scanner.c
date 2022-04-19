@@ -694,10 +694,10 @@ int err;
     }
     if ( equal ) {
       if( r1 == r2 )
-        ScanError( "Duplicate equation: "
+        ScanWarning( "Duplicate equation: "
         	   " (eqn<%d> = eqn<%d> )", i+1, EqnNr+1 );
       else
-	ScanError( "Linearly dependent equations: "
+	ScanWarning( "Linearly dependent equations: "
 		   "( %.0f eqn<%d> = %.0f eqn<%d> )",
 		   r1, i+1, r2, EqnNr+1 );
       break;
@@ -976,7 +976,7 @@ int code;
 /* -----------------------------------------------------------------------*/
 /* -- The following routines were added for the FAMILIES functionality -- */
 /* -----------------------------------------------------------------------*/
-void ProcessProdLossTerm( int EqNr, char *sign, char *coef, char *spname  )
+void ProcessProdLossTerm( int type, int EqNr, char *sign, char *coef, char *spname  )
 {
 int code;  
 CODE crtSpec;
@@ -1002,10 +1002,17 @@ char buf[40];
   strcat( buf, coef ); 
   sscanf( buf, "%lf", &val );
 
+  /*  switch( type ) {
+      case LOSS_FAM:*/
   Stoich_Right[ crtSpec ][ EqNr ] = val;
   Stoich[ crtSpec ][ EqNr ]       = val;
 
-  /*printf("\nSpecies %s with Stoich[%d][%d] = %f. SpcNr=%d. Code=%d. ReverseCode=%d",spname,crtSpec,EqNr,Stoich[crtSpec][EqNr],SpcNr,Code[crtSpec],ReverseCode[ code ]);*/
+  /*if ( type == LOSS_FAM ) {
+  printf("\nLOSS Species %s with Stoich[%d][%d] = %f. SpcNr=%d. Code=%d. ReverseCode=%d",spname,crtSpec,EqNr,Stoich[crtSpec][EqNr],SpcNr,Code[crtSpec],ReverseCode[ code ]);
+  }
+  if ( type == PROD_FAM ) {
+  printf("\nPROD Species %s with Stoich[%d][%d] = %f. SpcNr=%d. Code=%d. ReverseCode=%d",spname,crtSpec,EqNr,Stoich[crtSpec][EqNr],SpcNr,Code[crtSpec],ReverseCode[ code ]);
+  }*/
 }
            
 int FindFamily( char *famname )
@@ -1035,10 +1042,12 @@ void ScanEquations( MEMBER crtMbr ) {
     if ( Stoich_Left[ crtCode ][ i ] > 0 ) { /* Then this species is part of this equations's LHS */
       coeff = Stoich_Left[ crtCode ][ i ] * crtMbr.coeff;
       Loss_Coeff[ FamilyNr ][ i ] += Stoich_Left[ crtCode ][ i ] * crtMbr.coeff;
+      /*printf("\nAdded %s to loss family eq. %i ... %f",crtMbr.name,i,Stoich_Left[ crtCode ][ i ]);*/
     }
     if ( Stoich_Right[ crtCode ][ i ] > 0 ) { /* Then this species is part of this equations's RHS */
       coeff = Stoich_Right[ crtCode ][ i ] * crtMbr.coeff;
       Prod_Coeff[ FamilyNr ][ i ] += Stoich_Right[ crtCode ][ i ] * crtMbr.coeff;
+      /*printf("\nAdded %s to prod family eq. %i ... %f",crtMbr.name,i,Stoich_Right[ crtCode ][ i ]);*/
     }
     /* ---------------------------------------------------------------------------------------------*/
     /* ---------------------------------------------------------------------------------------------*/
@@ -1093,6 +1102,7 @@ void FinalizeFamily()
   int type;
   char spstr[40];
   char eqNr[40];
+  char Coef[40];
   int newSpcCode;
   
   type = FamilyTable[FamilyNr].type;

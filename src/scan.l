@@ -116,6 +116,7 @@ REAL  	{NRS}?"."?{NR}
 UREAL  	{NR}?"."?{NR}
 FLOAT   {REAL}([eE]{NRS})?
 UFLOAT  {UREAL}([eE]{NRS})?
+STOICH  {LIT}[a-zA-Z_0-9]*[*]
 
 %%
 {SPACE}+                {
@@ -170,6 +171,9 @@ UFLOAT  {UREAL}([eE]{NRS})?
                         }
 <ATM_STATE>;            { RETURN( yytext[0] );
                         } 
+<EQN_STATE>{STOICH}     { strcpy( yylval.str, yytext );
+                          RETURN( EQNCOEF );
+                        }
 <FAM_STATE>[:]          { RETURN( FAMCOLON );
                         }
 <FAM_STATE>{IDSPC}      { strcpy( yylval.str, yytext );
