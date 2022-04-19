@@ -36,11 +36,9 @@
 
 #include <stdio.h>
 
-/* mz_rs_20100222+ */
 /* - Many limits can be changed here by adjusting the MAX_* constants */
 /* - To increase the max size of inlined code (F90_GLOBAL etc.), */
 /*   change MAX_INLINE in scan.h */
-/* mz_rs_20100222- */
 
 // Note: MAX_EQN or MAX_SPECIES over 1023 causes a seg fault in CI build -- lae 10/13/2021
 #define MAX_EQN       11000
@@ -49,14 +47,11 @@
 // #define MAX_SPECIES     1023
 #define MAX_SPNAME       30
 #define MAX_IVAL         40
-/* MAX_EQNTAG = max length of equation ID in eqn file */
+/* MAX_EQNTAG = max length of equation tag in eqn file */
 /* Check if changes in code_f90.c are also necessary when changing MAX_EQNTAG */
 #define MAX_EQNTAG       32
 /* To allow longer f90 expressions for the rate coefficients in the */
-/* eqn file, change consistently: */
-/* - MAX_K here */
-/* - crtToken, nextToken, crtFile, and crt_rate in scan.l */
-/* - union in scan.y */
+/* eqn file, change MAX_K here and union str in scan.y consistently */
 #define MAX_K          1000
 #define MAX_ATOMS	 10
 #define MAX_ATNAME	 10
@@ -68,6 +63,8 @@
 /* MAX_EQNLEN only determines how long the printout of the */
 /* equation in the Monitor file will be. */
 #define MAX_EQNLEN      100
+/* MAX_PATHLEN = max length of a directory or file name */
+#define MAX_PATHLEN     300
 
 #define NO_CODE 	-1
 #define max( x, y ) (x) > (y) ? (x) : (y)

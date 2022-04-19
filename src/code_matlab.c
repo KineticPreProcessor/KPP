@@ -658,7 +658,7 @@ void MATLAB_FunctionEnd( int f )
 void MATLAB_Inline( char *fmt, ... )
 {
 Va_list args;
-char buf[ 1000 ];
+char buf[ MAX_K ];
 
   if( useLang != MATLAB_LANG ) return;
   

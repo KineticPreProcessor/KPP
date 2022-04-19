@@ -72,7 +72,7 @@
 
 %}
 
-/* value increased (must be the same as MAX_K) */
+/* size of char str must be the same as MAX_K in gdata.h */
 %union{
   char str[1000];
 };

@@ -473,7 +473,7 @@ void C_FunctionEnd( int f )
 void C_Inline( char *fmt, ... )
 {
 Va_list args;
-char buf[ 1000 ];
+char buf[ MAX_K ];
 
   if( useLang != C_LANG ) return;
   
