@@ -17,6 +17,10 @@ ENV KPP_HOME=/kpp
 ENV CC=gcc CXX=g++ FC=gfortran
 ENV F90=$FC F9X=$FC F77=$FC
 
+# for CI, MAX_EQN and MAX_SPECIES must be < 1024:
+RUN sed -i 's/#define MAX_EQN .*/#define MAX_EQN 1023/g' /kpp/src/gdata.h \
+    && sed -i 's/#define MAX_SPECIES .*/#define MAX_SPECIES 1023/g' /kpp/src/gdata.h
+
 # switch compiler to use gfortran instead of ifort
 RUN sed -i 's/COMPILER = INTEL/#COMPILER = INTEL/g' /kpp/util/Makefile.f90 \
     && sed -i 's/#COMPILER = GFORTRAN/COMPILER = GFORTRAN/g' /kpp/util/Makefile.f90

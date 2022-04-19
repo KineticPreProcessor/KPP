@@ -13,6 +13,7 @@ trigger:
       - dev*
       - patch*
       - bugfix*
+      - MECCA*
 pr:
   branches:
     include:
