@@ -30,12 +30,22 @@
 #
 #######################################################################################
 
+SYSTEM := $(shell uname)
 include ../Makefile.defs
 
 BISON=bison -d 
 CFLAGS=`cat ../cflags`
 
 all: kpp
+
+# list the configuration:
+.PHONY: list
+list:
+	@echo "SYSTEM       = $(SYSTEM)"
+	@echo "CC           = $(CC)"
+	@echo "FLEX         = $(FLEX)"
+	@echo "FLEX_LIB_DIR = $(FLEX_LIB_DIR)"
+	@echo "CC_FLAGS     = $(CC_FLAGS)"
 
 .c.o:
 	@echo "  "$(CC) $(CC_FLAGS) $(CFLAGS) -c $*.c
@@ -58,7 +68,8 @@ OBJS  = \
 kpp:    $(OBJS)
 	@echo "  "$(CC) $(CC_FLAGS) $(CFLAGS) $(OBJS) -L$(FLEX_LIB_DIR) -lfl -o kpp
 	@$(CC) $(CC_FLAGS) $(CFLAGS) $(OBJS) -L$(FLEX_LIB_DIR) -lfl -o kpp
-	@mv kpp ../bin
+	@mkdir -p ../bin
+	@mv kpp ../bin/kpp
 
 clean:  
 	@rm -f *~ *.o cflags 

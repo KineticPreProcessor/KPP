@@ -37,7 +37,10 @@
 %{
   #include <stdio.h>
   #include <stdlib.h>
-  #include <malloc.h>
+  #ifdef MACOS
+   #include <malloc/malloc.h>
+  #endif
+  /* #include <malloc.h> not necessary, "malloc" comes from <stdlib.h> */
   #include <string.h>
   #include <unistd.h>
   #include "scan.h"
@@ -69,8 +72,9 @@
 
 %}
 
+/* size of char str must be the same as MAX_K in gdata.h */
 %union{
-  char str[80];
+  char str[1000];
 };
 
 %token JACOBIAN DOUBLE FUNCTION DEFVAR DEFRAD DEFFIX SETVAR SETRAD SETFIX 

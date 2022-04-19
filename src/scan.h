@@ -37,7 +37,7 @@
 #include <stdio.h>
 #include "gdef.h"
 
-#define MAX_INLINE 200000  // KPP 2.3.2_gc, bmy, 06 May 2021
+#define MAX_INLINE 200000
           
 enum eq_state { LHS, RHS, RAT };
 enum sptypes { DUMMY_SPC, VAR_SPC, RAD_SPC, FIX_SPC, PL_SPC };

@@ -54,6 +54,7 @@ int ARP, JVRP, NJVRP, CROW_JVRP, IROW_JVRP, ICOL_JVRP;
 int V, F, VAR, FIX, FLUX;
 int RCONST, RCT;
 int Vdot, P_VAR, D_VAR;
+int StoichNum;
 int KR, A, BV, BR, IV, RR;
 int JV, UV, JUV, JTUV, JVS;
 int JR, UR, JUR, JRS;
@@ -76,13 +77,8 @@ int V_USER, CL;
 int NMLCV, NMLCF, SCT, PROPENSITY, VOLUME, IRCT;
 int FLUX_MAP;
 int FAM,NFAM;
+
 int Jac_NZ, LU_Jac_NZ, nzr;
-//===========================================================================
-// KPP 2.3.2_gc, Bob Yantosca (26 Mar 2021)
-// Define extra arrays and scalars
-//
-int MW, SR_MW, SR_TEMP, K300_OVER_TEMP, TEMP_OVER_K300, NUMDEN;
-//===========================================================================
 
 NODE *sum, *prod;
 int real;
@@ -94,6 +90,9 @@ char * CommonName;
 
 int Hess_NZ, *iHess_i, *iHess_j, *iHess_k;
 int nnz_stoicm;
+
+// Prototypes
+void GenerateComputeFamilies(void);
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 char * ascii(int x)
@@ -167,9 +166,9 @@ int i,j;
   RCT    = DefvElm( "RCT",    real, -NREACT, "Rate constants (local)" );
 
   Vdot = DefvElm( "Vdot", real, -NVAR, "Time derivative of variable species concentrations" );
-
   P_VAR = DefvElm( "P_VAR", real, -NVAR, "Production term" );
   D_VAR = DefvElm( "D_VAR", real, -NVAR, "Destruction term" );
+  StoichNum = DefmElm( "StoichNum", real, -NVAR, -NREACT, "Stoichiometric numbers" );
 
 
   JVS   = DefvElm( "JVS", real, -LU_NONZERO, "sparse Jacobian of variables" );
@@ -274,24 +273,6 @@ int i,j;
   VOLUME = DefElm( "Volume", real, "Volume of the reaction container" );
   IRCT  = DefElm( "IRCT", INT, "Index of chemical reaction" );
 
-//===========================================================================
-// KPP 2.3.2_gc, Bob Yantosca (26 Mar 2021)
-// Define extra arrays and scalars for gckpp_Global.F90
-//
-  MW = DefvElm( "MW",   real, -NSPEC,
-		"Species molecular weight [g/mole]" );
-  SR_MW = DefvElm( "SR_MW", real, -NSPEC,
-		   "Square root of species molecular weight [g/mole]" );
-  SR_TEMP = DefElm( "SR_TEMP", real,
-		    "Square root of Temperature [K**0.5]" );
-  K300_OVER_TEMP = DefElm( "K300_OVER_TEMP", real,
-			   "300.0 / Temperature [K]" );
-  TEMP_OVER_K300 = DefElm( "TEMP_OVER_K300", real,
-			   "Temperature [K] / 300.0");
-  NUMDEN = DefElm( "NUMDEN", real,
-		   "Air number density [#/cm3]");
-//===========================================================================
-
   for ( i=0; i<EqnNr; i++ )
     for ( j=0; j<SpcNr; j++ )
       structB[i][j] = ( Stoich_Left[j][i] != 0 ) ? 1 : 0;
@@ -354,7 +335,6 @@ char *EQN_TAGS[MAX_EQN];
 char *bufeqn, *p;
 int dim;
 
-/*** NOTE: This is only for C and Matlab, not Fortran ***/
   if ( (useLang != C_LANG)&&(useLang != MATLAB_LANG) ) return;
 
   UseFile( driverFile );
@@ -646,6 +626,96 @@ void GenerateJacobianSparseHeader()
 }
 
 
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  mz_rs_20160201+ */
+void GenerateStoichNum()
+{
+  int i, j, k;
+  int l, m;
+  int CalcStoichNum;
+
+  if( VarNr == 0 ) return;
+  if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
+    UseFile( functionFile );
+  CalcStoichNum = DefFnc( "CalcStoichNum", 1, "calculate stoichiometric numbers");
+  FunctionBegin( CalcStoichNum, StoichNum );
+  F90_Inline("  StoichNum(:,:) = 0.");
+  for (i = 0; i < VarNr; i++) {
+    for (j = 0; j < EqnNr; j++) {
+      if ( Stoich[i][j] != 0 )
+        Assign( Elm( StoichNum, i, j ), Const( Stoich[i][j] ));
+    }
+  }
+  FunctionEnd( CalcStoichNum );
+  FreeVariable( CalcStoichNum );
+}
+/*  mz_rs_20160201- */
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*mz_dt_20150424+ */
+void GenerateFun_Split()
+{
+  int i, j, k;
+  int used;
+  int l, m;
+  int FSPLIT_VAR;
+
+  if( VarNr == 0 ) return;
+  if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
+    UseFile( functionFile );
+  FSPLIT_VAR = DefFnc( "Fun_SPLIT", 5, "time derivatives of variables - Split form");
+  FunctionBegin( FSPLIT_VAR, V, F, RCT, P_VAR, D_VAR );
+  NewLines(1);
+  WriteComment("Computation of equation rates");
+  for(j=0; j<EqnNr; j++) {
+    used = 0;
+    for (i = 0; i < VarNr; i++)
+      if ( Stoich_Right[i][j] != 0 ) {
+        used = 1;
+        break;
+      }
+    if ( used ) {
+      prod = RConst( j );
+      for (i = 0; i < VarNr; i++)
+        for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
+          prod = Mul( prod, Elm( V, i ) );
+      for ( ; i < SpcNr; i++)
+        for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
+          prod = Mul( prod, Elm( F, i - VarNr ) );
+      Assign( Elm( A, j ), prod );
+    }
+  }
+  NewLines(1);
+  WriteComment("Production function");
+  for (i = 0; i < VarNr; i++) {
+    sum = Const(0);
+    for (j = 0; j < EqnNr; j++)
+      sum = Add( sum, Mul( Const( Stoich_Right[i][j] ), Elm( A, j ) ) );
+    Assign( Elm( P_VAR, i ), sum );
+  }
+  NewLines(1);
+  WriteComment("Destruction function");
+  for (i = 0; i < VarNr; i++) {
+    sum = Const(0);
+    for(j=0; j<EqnNr; j++) {
+      if ( Stoich_Left[i][j] == 0 ) continue;
+      prod = Mul( RConst( j ), Const( Stoich_Left[i][j] ) );
+      for (l = 0; l < VarNr; l++) {
+        m=(int)Stoich_Left[l][j] - (l==i);
+        for (k = 1; k <= m; k++ )
+          prod = Mul( prod, Elm( V, l ) );
+      }
+      for ( ; l < SpcNr; l++)
+        for (k = 1; k <= (int)Stoich_Left[l][j]; k++ )
+          prod = Mul( prod, Elm( F, l - VarNr  ) );
+      sum = Add( sum, prod );
+    }
+    Assign( Elm( D_VAR, i ), sum );
+  }
+  FunctionEnd( FSPLIT_VAR );
+  FreeVariable( FSPLIT_VAR );
+}
+/*mz_dt_20150424- */
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateFun()
@@ -2075,57 +2145,6 @@ int dim;
   FreeIntegerMatrix(pos, dim+1, dim+1);
 }
 
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-
-void str_replace(char *target, const char *needle, const char *replacement)
-{
-
-//===========================================================================
-// KPP 2.3.2_gc, Bob Yantosca (06 May 2021)
-// Add function to replace character in a string.  This is used
-// for replacing "~" with "%" in the inlined rate-law functions.
-// This overcomes the problem where "%" is interpreted as the
-// printf format specifier.  For more information, please see:
-//
-//   https://stackoverflow.com/questions/32413667/
-//    replace-all-occurrences-of-a-substring-in-a-string-in-c
-//
-// Note: This string replacement could also have been done with
-// Flex/Bison, but this is a much faster (and straightforward)
-// solution.
-//===========================================================================
-
-  char buffer[MAX_INLINE] = { 0 };
-  char *insert_point = &buffer[0];
-  const char *tmp = target;
-  size_t needle_len = strlen(needle);
-  size_t repl_len = strlen(replacement);
-
-  while (1) {
-    const char *p = strstr(tmp, needle);
-
-    // walked past last occurrence of needle; copy remaining part
-    if (p == NULL) {
-      strcpy(insert_point, tmp);
-      break;
-    }
-
-    // copy part before needle
-    memcpy(insert_point, tmp, p - tmp);
-    insert_point += p - tmp;
-
-    // copy replacement string
-    memcpy(insert_point, replacement, repl_len);
-    insert_point += repl_len;
-
-    // adjust pointers, move on
-    tmp = p + needle_len;
-  }
-
-  // write altered string back to target
-  strcpy(target, buffer);
-}
-
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateRateLaws()
@@ -2133,52 +2152,27 @@ void GenerateRateLaws()
 
   UseFile( rateFile );
 
-//===========================================================================
-// KPP 2.3.2_gc, Bob Yantosca (06 May 2021)
-// Do not print out default rate-law functions for GEOS-Chem,
-// as we only need the ones that are defined in gckpp.kpp
-//
-//  NewLines(1);
-//  WriteComment("Begin Rate Law Functions from KPP_HOME/util/UserRateLaws");
-//  NewLines(1);
-//  IncludeCode( "%s/util/UserRateLaws", Home );
-//  NewLines(1);
-//  WriteComment("End Rate Law Functions from KPP_HOME/util/UserRateLaws");
-//  NewLines(1);
-//===========================================================================
+  NewLines(1);
+  WriteComment("Begin Rate Law Functions from KPP_HOME/util/UserRateLaws");
+  NewLines(1);
+  IncludeCode( "%s/util/UserRateLaws", Home );
+  NewLines(1);
+  WriteComment("End Rate Law Functions from KPP_HOME/util/UserRateLaws");
+  NewLines(1);
 
   NewLines(1);
   WriteComment("Begin INLINED Rate Law Functions");
   NewLines(1);
 
   switch( useLang ) {
-    case C_LANG:
-      bprintf( InlineCode[ C_RATES ].code );
-      break;
-    case F77_LANG:
-      bprintf( InlineCode[ F77_RATES ].code );
-      break;
-    case F90_LANG:
-//===========================================================================
-// KPP 2.3.2_gc, Bob Yantosca (06 May 2021)
-// Call function str_replace to replace "=>" with "%%%%".
-// This will render as "%%" going into bprintf, which will print
-// tot he gckpp_Rates.F90 file as "%".  This is a workaround in
-// order to have KPP be able to inline code with Fortran-90
-// derived types.
-//
-// KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
-// Also make sure the F90_RATES inline text is not null before printing.
-//
-      if ( strlen(InlineCode[ F90_RATES ].code) > 0 ) {
-	  str_replace( InlineCode[ F90_RATES ].code, "=>", "%%%%");
-	  bprintf( InlineCode[ F90_RATES ].code );
-	}
-//===========================================================================
-      break;
-    case MATLAB_LANG:
-      bprintf( InlineCode[ MATLAB_RATES ].code );
-      break;
+    case C_LANG:  bprintf( InlineCode[ C_RATES ].code );
+                 break;
+    case F77_LANG: bprintf( InlineCode[ F77_RATES ].code );
+                 break;
+    case F90_LANG: bprintf( InlineCode[ F90_RATES ].code );
+                 break;
+    case MATLAB_LANG: bprintf( InlineCode[ MATLAB_RATES ].code );
+                 break;
   }
   FlushBuf();
 
@@ -2389,7 +2383,7 @@ void GenerateParamHeader()
 {
 int spc;
 int i;
-char name[ MAX_SPNAME ];
+char name[MAX_SPNAME];
 int offs;
 int mxyz;
 
@@ -2572,20 +2566,8 @@ void GenerateGlobalHeader()
   ExternDeclare( TEMP );
   if ( useFortran ) { WriteOMPThreadPrivate("TEMP"); }
 
-  ExternDeclare( SR_TEMP );
-  if ( useFortran ) { WriteOMPThreadPrivate("SR_TEMP"); }
-
-  ExternDeclare( TEMP_OVER_K300 );
-  if ( useFortran ) { WriteOMPThreadPrivate("TEMP_OVER_K300"); }
-
-  ExternDeclare( K300_OVER_TEMP );
-  if ( useFortran ) { WriteOMPThreadPrivate("K300_OVER_TEMP"); }
-
   ExternDeclare( CFACTOR );
   if ( useFortran ) { WriteOMPThreadPrivate("CFACTOR"); }
-
-  ExternDeclare( NUMDEN );
-  if ( useFortran ) { WriteOMPThreadPrivate("NUMDEN"); }
 
   C_Inline("  extern %s * %s;", C_types[real], varTable[VAR]->name );
   C_Inline("  extern %s * %s;", C_types[real], varTable[FIX]->name );
@@ -2599,8 +2581,6 @@ void GenerateGlobalHeader()
     NewLines(1);
   }
 
-  ExternDeclare( MW   );
-  ExternDeclare( SR_MW );
   ExternDeclare( RTOLS );
   ExternDeclare( TSTART );
   ExternDeclare( TEND );
@@ -2609,6 +2589,7 @@ void GenerateGlobalHeader()
   ExternDeclare( RTOL );
   ExternDeclare( STEPMIN );
   ExternDeclare( STEPMAX );
+  ExternDeclare( CFACTOR );
   if (useStochastic)
       ExternDeclare( VOLUME );
 
@@ -2826,6 +2807,9 @@ int INITVAL;
   F77_Inline("      INCLUDE '%s_Global.h'", rootFileName);
   F90_Inline("  USE %s_Global\n", rootFileName);
   MATLAB_Inline("global CFACTOR VAR FIX NVAR NFIX", rootFileName);
+
+  F77_Inline("      INCLUDE '%s_Parameters.h'", rootFileName);
+  F90_Inline("  USE %s_Parameters\n", rootFileName);
 
   I = DefElm( "i", INT, 0);
   X = DefElm( "x", real, 0);
@@ -3172,18 +3156,18 @@ case 'h':
     FatalError(3,"%s: Can't create file", buf );
   }
   UseFile( sparse_dataFile );
-    F90_Inline("\nMODULE %s_Precision\n", rootFileName );
-    F90_Inline("!");
-    F90_Inline("! Definition of different levels of accuracy");
-    F90_Inline("! for REAL variables using KIND parameterization");
-    F90_Inline("!");
-    F90_Inline("! KPP SP - Single precision kind");
-    F90_Inline("  INTEGER, PARAMETER :: sp = SELECTED_REAL_KIND(6,30)");
-    F90_Inline("! KPP DP - Double precision kind");
-    F90_Inline("  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(14,300)");
-    F90_Inline("! KPP QP - Quadruple precision kind");
-    F90_Inline("  INTEGER, PARAMETER :: qp = SELECTED_REAL_KIND(18,400)");
-    F90_Inline("\nEND MODULE %s_Precision\n\n", rootFileName );
+  F90_Inline("\nMODULE %s_Precision\n", rootFileName );
+  F90_Inline("!");
+  F90_Inline("! Definition of different levels of accuracy");
+  F90_Inline("! for REAL variables using KIND parameterization");
+  F90_Inline("!");
+  F90_Inline("! KPP SP - Single precision kind");
+  F90_Inline("  INTEGER, PARAMETER :: sp = SELECTED_REAL_KIND(6,30)");
+  F90_Inline("! KPP DP - Double precision kind");
+  F90_Inline("  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(14,300)");
+  F90_Inline("! KPP QP - Quadruple precision kind");
+  F90_Inline("  INTEGER, PARAMETER :: qp = SELECTED_REAL_KIND(18,400)");
+  F90_Inline("\nEND MODULE %s_Precision\n\n", rootFileName );
 
   UseFile( initFile );
     F90_Inline("MODULE %s_Initialize\n", rootFileName );
@@ -3412,7 +3396,7 @@ case 't':
   break;
 
 default:
-  printf("\n Unrecognized option '%s' in GenerateF90Modules\n", where);
+  printf("\n Unrecognized option '%c' in GenerateF90Modules\n", where);
   break;
 }
 }
@@ -3446,7 +3430,7 @@ int n;
                  break;
     case MATLAB_LANG: Use_MATLAB( rootFileName );
                  break;
-    default: printf("\n Language no '%s' unknown\n",useLang );
+    default: printf("\n Language no '%d' unknown\n",useLang );
   }
   printf("\nKPP is initializing the code generation.");
   InitGen();
@@ -3480,6 +3464,8 @@ int n;
   }
   printf("\n    - %s_Function",rootFileName);
   GenerateFun();
+  GenerateFun_Split();
+  GenerateStoichNum();
   if (doFlux == 1) GenerateFlux();
 
   if ( useStochastic ) {
@@ -3527,20 +3513,12 @@ int n;
   printf("\n    - %s_Rates",rootFileName);
 
   GenerateRateLaws();
-//===========================================================================
-// KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
-// Comment out the function call that pastes the UPDATE_SUN function into
-// the gckpp_Rates.F90 file.  This is not needed for GEOS-Chem and most
-// other external models, as photo rates are usually computed externally
-// and passed in.
-//
-//  GenerateUpdateSun();
-//===========================================================================
+  GenerateUpdateSun();
   GenerateUpdateRconst();
   GenerateUpdatePhoto();
   GenerateGetMass();
 
-  /*  GenerateComputeFamilies(); Removed. MSL Oct. 30, 2017*/
+  GenerateComputeFamilies();
 
   printf("\nKPP is generating the parameters:");
   printf("\n    - %s_Parameters",rootFileName);

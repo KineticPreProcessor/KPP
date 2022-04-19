@@ -60,13 +60,13 @@
   char *yy_filename[ MAX_INCLUDE ];
   int yy_buf_level = 0;
   
-  char crtToken[ MAX_K ];
-  char nextToken[ MAX_K ];
+  char crtToken[MAX_K];
+  char nextToken[MAX_K];
   int crtTokType;
   int nextTokType;
   int crtLine;
-  char crtFile[ MAX_K ];
-  char crt_rate[ MAX_K ];
+  char crtFile[MAX_K];
+  char crt_rate[MAX_K];
 
   int oldnErr = 0;
 
@@ -358,6 +358,7 @@ STOICH  {LIT}[a-zA-Z_0-9]*[*]
                          { "USES",       USE_STATE, USES },
                          { "SPARSEDATA", PRM_STATE, SPARSEDATA },
                          { "FLUX",       PRM_STATE, FLUX }, 
+                         { "FORTRAN_SUFFIX", PRM_STATE, FORTRAN_SUFFIX },
                          { 0, 0, 0 } 
                        };
 

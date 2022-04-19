@@ -29,19 +29,21 @@
 
 ******************************************************************************/
 
-#define KPP_VERSION "2.3.3_gc"  // Version number
+#define KPP_VERSION "3.0.0"
 
 #ifndef _GDATA_H_
 #define _GDATA_H_
 
 #include <stdio.h>
 
-#define MAX_EQN        1500     // Max number of equations
-#define MAX_SPECIES    1000     // Max number of species
+// Note: MAX_EQN or MAX_SPECIES over 1023 causes a seg fault in CI build 
+// -- lae 10/13/2021
+#define MAX_EQN       11000     // Max number of equations
+#define MAX_SPECIES    6000     // Max number of species
 #define MAX_SPNAME       30     // Max char length of species name
 #define MAX_IVAL         40     // Max char length of species ID ?
-#define MAX_EQNTAG       12     // Max length of equation ID in eqn file
-#define MAX_K           200     // Max length of rate expression in eqn file
+#define MAX_EQNTAG       32     // Max length of equation ID in eqn file
+#define MAX_K          1000     // Max length of rate expression in eqn file
 #define MAX_ATOMS        10     // Max number of atoms
 #define MAX_ATNAME       10     // Max char length of atom name
 #define MAX_ATNR        250     // Max number of atom tables
@@ -50,7 +52,7 @@
 #define MAX_FAMILIES    300     // Max number of family definitions
 #define MAX_MEMBERS     150     // Max number of family members
 #define MAX_EQNLEN      200     // Max char length of equations
-
+#define MAX_PATHLEN     300     // Max length of a directory or file name
 
 #define NO_CODE 	-1
 #define max( x, y ) (x) > (y) ? (x) : (y)
