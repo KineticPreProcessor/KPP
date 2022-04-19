@@ -119,8 +119,8 @@ SUBROUTINE INTEGRATE_ADJ( NADJ, Y, Lambda, TIN, TOUT, &
    !            =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
    !            =  4 ! Call Update_SUN from within the integrator
    !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
-   !            =  6 ! Not implemented
-   !            =  7 ! Not implemented
+   !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
+   !            =  7 ! Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
    CALL Integrator_Update_Options( ICNTRL(15),          &
                                    Do_Update_RCONST,    &
                                    Do_Update_PHOTO,     &
