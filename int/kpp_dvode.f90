@@ -11,6 +11,13 @@ MODULE KPP_ROOT_Integrator
   PUBLIC
   SAVE
   
+!~~~> Flags to determine if we should call the UPDATE_* routines from within 
+!~~~> the integrator.  If using KPP in an external model, you might want to
+!~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
+  LOGICAL :: Do_Update_RCONST
+  LOGICAL :: Do_Update_PHOTO
+  LOGICAL :: Do_Update_SUN
+
   !~~~>  Statistics on the work performed by the VODE method
   INTEGER :: Nfun,Njac,Nstp,Nacc,Nrej,Ndec,Nsol,Nsng
   INTEGER, PARAMETER :: ifun=1, ijac=2, istp=3, iacc=4,  &
@@ -245,6 +252,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 
    USE KPP_ROOT_Parameters
    USE KPP_ROOT_Global
+   USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
+  
    IMPLICIT NONE
 
    KPP_REAL, INTENT(IN) :: TIN  ! Start Time
@@ -278,14 +287,31 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
      WHERE(RCNTRL_U(:) > 0) RCNTRL(:) = RCNTRL_U(:)
    END IF
 
+   ! Determine the settings of the Do_Update_* flags, which determine
+   ! whether or not we need to call Update_* routines in the integrator
+   ! (or not, if we are calling them from a higher-level)
+   ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
+   !            =  0 ! Status quo
+   !            =  1 ! Call Update_RCONST from within the integrator
+   !            =  2 ! Call Update_PHOTO from within the integrator
+   !            =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
+   !            =  4 ! Call Update_SUN from within the integrator
+   !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
+   !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
+   !            =  7 ! Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+   CALL Integrator_Update_Options( ICNTRL(15),          &
+                                   Do_Update_RCONST,    &
+                                   Do_Update_PHOTO,     &
+                                   Do_Update_Sun       )
 
-    OPTIONS = SET_OPTS(USER_SUPPLIED_JACOBIAN=.TRUE., SPARSE_J=.TRUE.,             &
-              ABSERR_VECTOR=ATOL, RELERR_VECTOR=RTOL, MXSTEP=100000,               &
-              NZSWAG=LU_NONZERO,   METHOD_FLAG=26,                                 &
-              MA28_ELBOW_ROOM=10, MC19_SCALING=.TRUE., MA28_MESSAGES=.FALSE.,      &
-              MA28_EPS=1.0D-4, MA28_RPS=.TRUE.,                                    &
+    OPTIONS = SET_OPTS(USER_SUPPLIED_JACOBIAN=.TRUE., SPARSE_J=.TRUE.,        &
+              ABSERR_VECTOR=ATOL, RELERR_VECTOR=RTOL, MXSTEP=100000,          &
+              NZSWAG=LU_NONZERO,   METHOD_FLAG=26,                            &
+              MA28_ELBOW_ROOM=10, MC19_SCALING=.TRUE., MA28_MESSAGES=.FALSE., &
+              MA28_EPS=1.0D-4, MA28_RPS=.TRUE.,                               &
               USER_SUPPLIED_SPARSITY=.TRUE.)
 
+   ! Call the integrator
    CALL USERSETS_IAJA(LU_IROW,LU_NONZERO,LU_ICOL,LU_NONZERO)
    ISTATE = 1
    ITASK  = 1
@@ -325,9 +351,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       
 !      TOLD = TIME
 !      TIME = T
-!      CALL Update_SUN()
-!      CALL Update_RCONST()
-!      CALL Update_PHOTO()
+!      IF ( Do_Update_SUN    ) CALL Update_SUN()
+!      IF ( Do_Update_RCONST ) CALL Update_RCONST()
+!      IF ( Do_Update_PHOTO  ) CALL Update_PHOTO()
 !      TIME = TOLD
 
       CALL Fun(V, FIX, RCONST, FCT)
@@ -361,9 +387,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
   
 !      TOLD = TIME
 !      TIME = T
-!      CALL Update_SUN()
-!      CALL Update_RCONST()
-!      CALL Update_PHOTO()
+!      IF ( Do_Update_SUN    ) CALL Update_SUN()
+!      IF ( Do_Update_RCONST ) CALL Update_RCONST()
+!      IF ( Do_Update_PHOTO  ) CALL Update_PHOTO()
 !      TIME = TOLD
     
 #ifdef FULL_ALGEBRA    

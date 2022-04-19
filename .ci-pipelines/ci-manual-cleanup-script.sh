@@ -18,7 +18,10 @@ for this_test in $all_tests; do
     echo ""
     echo ">>>>>>>> Making clean for $this_test <<<<<<<<"
     echo ""
-    make -f Makefile_$this_test clean
+    make -f Makefile_$this_test distclean
+
+    # Also remove other output files from the tests
+    rm -f *.m
 
     cd ..
 
