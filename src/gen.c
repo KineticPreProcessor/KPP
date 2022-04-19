@@ -628,7 +628,6 @@ void GenerateJacobianSparseHeader()
   NewLines(1);
 }
 
-
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /*  mz_rs_20160201+ */
 void GenerateStoichNum()
@@ -637,7 +636,6 @@ void GenerateStoichNum()
   int l, m;
   int CalcStoichNum;
 
-
   if( VarNr == 0 ) return;
   if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
     UseFile( functionFile );
@@ -667,37 +665,6 @@ void GenerateFun_Split()
   if( VarNr == 0 ) return;
   if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
     UseFile( functionFile );
-
-  if( VarNr == 0 ) return;
-  if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
-    UseFile( functionFile );
-  CalcStoichNum = DefFnc( "CalcStoichNum", 1, "calculate stoichiometric numbers");
-  FunctionBegin( CalcStoichNum, StoichNum );
-  F90_Inline("  StoichNum(:,:) = 0.");
-  for (i = 0; i < VarNr; i++) {
-    for (j = 0; j < EqnNr; j++) {
-      if ( Stoich[i][j] != 0 )
-        Assign( Elm( StoichNum, i, j ), Const( Stoich[i][j] ));
-    }
-  }
-  FunctionEnd( CalcStoichNum );
-  FreeVariable( CalcStoichNum );
-}
-/*  mz_rs_20160201- */
-
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-/*mz_dt_20150424+ */
-void GenerateFun_Split()
-{
-  int i, j, k;
-  int used;
-  int l, m;
-  int FSPLIT_VAR;
-
-  if( VarNr == 0 ) return;
-  if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
-    UseFile( functionFile );
->>>>>>> da538e301fe27d2999998a4d8eb144a232adcddd
   FSPLIT_VAR = DefFnc( "Fun_SPLIT", 5, "time derivatives of variables - Split form");
   FunctionBegin( FSPLIT_VAR, V, F, RCT, P_VAR, D_VAR );
   NewLines(1);
@@ -770,7 +737,7 @@ int F_VAR, FSPLIT_VAR;
 
   if( useAggregate ) {
 //===========================================================================
-// KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)
+// MODIFICATION FOR GEOS-CHEM: Bob Yantosca (11 Feb 2021)
 // Manually declare Aout as an optional variable.  We cannot use
 // routine FunctionBegin, because this has no way of defining
 // optional Fortran90 arguments.  Therefore we will just
@@ -847,7 +814,7 @@ int F_VAR, FSPLIT_VAR;
 
   if( useAggregate ) {
 //===========================================================================
-// KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)
+// MODIFICATION FOR GEOS-CHEM: Bob Yantosca (11 Feb 2021)
 // Copy A to Aout to return reaction rates outside of KPP
 //
     fprintf(functionFile,
@@ -888,14 +855,6 @@ int F_VAR, FSPLIT_VAR;
     WriteComment("Destruction function");
 
     /* msl_20160421
-    for (i = 0; i < VarNr; i++) {
-      sum = Const(0);
-      for (j = 0; j < EqnNr; j++)
-        sum = Add( sum, Mul( Const( Stoich_Left[i][j] ), Elm( A, j ) ) );
-      Assign( Elm( D_VAR, i ), sum );
-    }
-    */
-
     for (i = 0; i < VarNr; i++) {
       sum = Const(0);
       for (j = 0; j < EqnNr; j++)

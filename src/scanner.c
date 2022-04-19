@@ -1116,12 +1116,11 @@ void FinalizeFamily()
     /* -- -- IF P-L is not zero then we can proceed. This is for efficiency: don't add dummy  -- -- */
     /* -- -- species if their net result is zero! (MSL)                                       -- -- */
     for( i=0; i<EqnNr; i++ ) {
-      switch( type ) {
-      case LOSS_FAM:
+      if ( type == LOSS_FAM ) {
 	if ( (Loss_Coeff[ FamilyNr ][ i ] - Prod_Coeff[ FamilyNr ][ i ]) > 0. ) {
-	  sprintf(eqNr, "%d", i+1 );
-	  strcpy( spstr, "RR" );
-	  strcat( spstr, eqNr );
+	  sprintf(eqNr, "%d", FamilyNr );
+	  strcpy( spstr, FamilyTable[ FamilyNr ].name );
+	  /*strcat( spstr, eqNr );
 	  /* -- -- Scan all species to see if RR_<i> exists. -- -- */
 	  newSpcCode = FindSpecies( spstr );
 	  /* -- -- If not, then declare it                   -- -- */
@@ -1129,15 +1128,16 @@ void FinalizeFamily()
 	    DeclareSpecies( VAR_SPC, spstr );
 	  } 
 	  /* -- -- Now, add this species to the appropriate Stoich* arrays -- */
-	  ProcessProdLossTerm( i, "+", "1", spstr );
+	  sprintf(Coef,"%f",Loss_Coeff[ FamilyNr ][ i ] - Prod_Coeff[ FamilyNr ][ i ]);
+	  ProcessProdLossTerm( LOSS_FAM, i, "+", Coef, spstr );
 	  Loss_Spc[ i ] = &ReverseCode[ FindSpecies( spstr ) ];
-	  break;
 	}
-      case PROD_FAM:
+      }
+      else if ( type == PROD_FAM ) {
 	if ( (Prod_Coeff[ FamilyNr ][ i ] - Loss_Coeff[ FamilyNr ][ i ]) > 0. ) {
-	  sprintf(eqNr, "%d", i+1 );
-	  strcpy( spstr, "RR" );
-	  strcat( spstr, eqNr );
+	  sprintf(eqNr, "%d", FamilyNr );
+	  strcpy( spstr, FamilyTable[ FamilyNr ].name );
+	  /*strcat( spstr, eqNr );
 	  /* -- -- Scan all species to see if RR_<i> exists. -- -- */
 	  newSpcCode = FindSpecies( spstr );
 	  /* -- -- If not, then declare it                   -- -- */
@@ -1145,9 +1145,9 @@ void FinalizeFamily()
 	    DeclareSpecies( VAR_SPC, spstr );
 	  } 
 	  /* -- -- Now, add this species to the appropriate Stoich* arrays -- */
-	  ProcessProdLossTerm( i, "+", "1", spstr );
+	  sprintf(Coef,"%f",Prod_Coeff[ FamilyNr ][ i ] - Loss_Coeff[ FamilyNr ][ i ]);
+	  ProcessProdLossTerm( PROD_FAM, i, "+", Coef, spstr );
 	  Prod_Spc[ i ] = &ReverseCode[ FindSpecies( spstr ) ];
-	  break;
 	}
       }
     }
