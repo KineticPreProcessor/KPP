@@ -3083,7 +3083,6 @@ case 'h':
   F90_Inline("! KPP SP - Single precision kind");
   F90_Inline("  INTEGER, PARAMETER :: sp = SELECTED_REAL_KIND(6,30)");
   F90_Inline("! KPP DP - Double precision kind");
-  /* F90_Inline("  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(12,307)"); */
   F90_Inline("  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(14,300)");
   F90_Inline("! KPP QP - Quadruple precision kind");
   F90_Inline("  INTEGER, PARAMETER :: qp = SELECTED_REAL_KIND(18,400)");

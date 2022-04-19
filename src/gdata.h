@@ -43,8 +43,6 @@
 // Note: MAX_EQN or MAX_SPECIES over 1023 causes a seg fault in CI build -- lae 10/13/2021
 #define MAX_EQN       11000
 #define MAX_SPECIES    6000
-// #define MAX_EQN         1023
-// #define MAX_SPECIES     1023
 #define MAX_SPNAME       30
 #define MAX_IVAL         40
 /* MAX_EQNTAG = max length of equation tag in eqn file */
