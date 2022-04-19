@@ -162,8 +162,7 @@ int LUnonZero()
 {
 CODE v[MAX_SPECIES];
 CODE *var;
-int i,j,k;
-int nu,nl;
+int i,j;
 
   var = v;
   if( Stru != bestStru ) {
@@ -185,7 +184,6 @@ void LinColSparsity()
 {
 int i,j,k;
 int nlin, ncol;
-FILE * fff;
 
   for ( i=0; i<VarNr; i++ )
     for ( j=0; j<VarNr; j++ )
@@ -278,7 +276,6 @@ void ReorderSpecies( int criteria )
 CODE *var;
 CODE *fix;
 CODE *dummy;
-CODE *PrLo;
 EQ_VECT *tmpStoich_Left;
 EQ_VECT *tmpStoich_Right;
 EQ_VECT *tmpStoich;
@@ -495,10 +492,9 @@ for (i=0; i<SpcNr; i++)
 int Postprocess( char * root )
 {
 char buf[ 200 ];
-char cmd[500];
-char cmdexe[500];
-static char tmpfile[] = "kppfile.tmp";
-FILE * fp;
+//char cmd[500];
+//char cmdexe[500];
+//static char tmpfile[] = "kppfile.tmp";
 
   if ( useLang == MATLAB_LANG ) {
  /*  Add rate function definitions as internal functions to the Update_RCONST file*/
@@ -542,7 +538,6 @@ int main( int argc, char * argv[] )
 int status;
 char name[ 200 ];
 char *p;
-int i,j;
   
   AllocInternalArrays();
 
