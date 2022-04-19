@@ -2098,7 +2098,6 @@ int dim;
   for( i = 0; i < VarNr; i++) {
    for( j = 0; j < VarNr; j++)
     pos[i][j]=-1;
-  }
   for( i = 0; i < VarNr; i++) {
     ibgn = crow[i];
     iend = diag[i];
@@ -2497,7 +2496,7 @@ void GenerateGlobalHeader()
 
 
 //===========================================================================
-// KPP 2.3.2_gc, Bob Yantosca (26 Mar 2021)
+// MODIFICATION: Bob Yantosca (26 Mar 2021)
 // Modify code to inline the F77/F90 THREADPRIVATE declarations
 // and also declare extra arrays and scalars
 //===========================================================================
@@ -2563,11 +2562,11 @@ void GenerateGlobalHeader()
   ExternDeclare( TIME );
   if ( useFortran ) { WriteOMPThreadPrivate("TIME"); }
 
+  ExternDeclare( SUN );
+  if ( useFortran ) { WriteOMPThreadPrivate("SUN"); }
+
   ExternDeclare( TEMP );
   if ( useFortran ) { WriteOMPThreadPrivate("TEMP"); }
-
-  ExternDeclare( CFACTOR );
-  if ( useFortran ) { WriteOMPThreadPrivate("CFACTOR"); }
 
   C_Inline("  extern %s * %s;", C_types[real], varTable[VAR]->name );
   C_Inline("  extern %s * %s;", C_types[real], varTable[FIX]->name );
@@ -3291,7 +3290,7 @@ case 'h':
     /* (reusing "sparse_dataFile" as done above for _Precision file) */
 
 
-    sprintf( buf, "%s_Model.F90", rootFileName );
+    sprintf( buf, "%s_Model.f90", rootFileName );
     sparse_dataFile = fopen(buf, "w");
     if( sparse_dataFile == 0 ) {
       FatalError(3,"%s: Can't create file", buf );
