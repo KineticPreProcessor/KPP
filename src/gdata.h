@@ -29,7 +29,7 @@
 
 ******************************************************************************/
 
-#define KPP_VERSION "2.2.3_rs3"
+#define KPP_VERSION "2.2.3"
 
 #ifndef _GDATA_H_
 #define _GDATA_H_
