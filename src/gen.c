@@ -336,6 +336,7 @@ void GenerateGData()
   GlobalDeclare( RCONST );
   GlobalDeclare( TIME );
   GlobalDeclare( SUN ); 
+  GlobalDeclare( TEMP );
   GlobalDeclare( RTOLS );
   GlobalDeclare( TSTART );
   GlobalDeclare( TEND );
@@ -909,6 +910,7 @@ int FLUX_VAR;
       sum = Add( sum, Mul( Const( Stoich_Left[i][j] ), Elm( RR, j ) ) );
     Assign( Elm( D_VAR, i ), sum );
   }
+
 
   /*MATLAB_Inline("\n   P_VAR = P_VAR(:);\n   D_VAR = D_VAR(:);\n");*/
 
@@ -1967,6 +1969,7 @@ int *irow;
 int *icol;
 int *crow;
 int *diag;
+int nElm;
 int ibgn, iend;
 int useLangOld;
 int dim;
@@ -1982,6 +1985,7 @@ int dim;
 
   useLangOld = useLang;
   useLang = C_LANG;
+  nElm = NonZero( LU, 0, VarNr, irow, icol, crow, diag );
   useLang = useLangOld;
 
   UseFile( linalgFile );
@@ -3104,7 +3108,6 @@ char buf[200];
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateF90Modules(char where)
 {
-
 char buf[200];
 
 if (useLang != F90_LANG) return;
@@ -3259,8 +3262,6 @@ case 'h':
     /* Here we define the model module which aggregates everything */
     /* put module rootFileName_Model into separate file */
     /* (reusing "sparse_dataFile" as done above for _Precision file) */
-
-
     sprintf( buf, "%s_Model.f90", rootFileName );
     sparse_dataFile = fopen(buf, "w");
     if( sparse_dataFile == 0 ) {
@@ -3416,6 +3417,7 @@ int n;
   printf("\nKPP is generating the global declarations:");
   printf("\n    - %s_Main",rootFileName);
   GenerateGData();
+
 
   if ( doFlux == 1 ) {
     printf("\nKPP is generating the ODE function with flux enabled:");
