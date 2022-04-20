@@ -267,7 +267,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
    KPP_REAL :: Hmin, Hmax, Hstart
    KPP_REAL :: Texit
    INTEGER       :: i, UplimTol, Max_no_steps
-   LOGICAL       :: Autonomous, VectorTol, Do_Update_Rates
+   LOGICAL       :: Autonomous, VectorTol
 !~~~>   Parameters
    KPP_REAL, PARAMETER :: ZERO = 0.0_dp, ONE  = 1.0_dp
    KPP_REAL, PARAMETER :: DeltaMin = 1.0E-5_dp
@@ -278,9 +278,6 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 
 !~~~>  Autonomous or time dependent ODE. Default is time dependent.
    Autonomous = .NOT.(ICNTRL(1) == 0)
-
-!~~~>  Update rates within the integration step
-   Do_Update_Rates = ( ICNTRL(15) == 1 )
 
 !~~~>  For Scalar tolerances (ICNTRL(2).NE.0)  the code uses AbsTol(1) and RelTol(1)
 !   For Vector tolerances (ICNTRL(2) == 0) the code uses AbsTol(1:N) and RelTol(1:N)
@@ -414,11 +411,6 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
         Autonomous, VectorTol, Max_no_steps,     &
         Roundoff, Hmin, Hmax, Hstart,            &
         FacMin, FacMax, FacRej, FacSafe,         &
-!============================================================================
-! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
-! Pass Do_Update_Rates, which is needed for routine FunTemplate.
-        Do_Update_Rates,                         & 
-!============================================================================
 !  Error indicator
         IERR)
 
@@ -473,7 +465,6 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
         Autonomous, VectorTol, Max_no_steps,     &
         Roundoff, Hmin, Hmax, Hstart,            &
         FacMin, FacMax, FacRej, FacSafe,         &
-        Do_Update_Rates,                         &
 !~~~> Error indicator
         IERR )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -492,7 +483,7 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
 !~~~> Input: tolerances
    KPP_REAL, INTENT(IN) ::  AbsTol(N), RelTol(N)
 !~~~> Input: integration parameters
-   LOGICAL, INTENT(IN) :: Autonomous, VectorTol, Do_Update_Rates
+   LOGICAL, INTENT(IN) :: Autonomous, VectorTol
    KPP_REAL, INTENT(IN) :: Hstart, Hmin, Hmax
    INTEGER, INTENT(IN) :: Max_no_steps
    KPP_REAL, INTENT(IN) :: Roundoff, FacMin, FacMax, FacRej, FacSafe
@@ -712,7 +703,6 @@ Stage: DO istage = 1, ros_S
    IMPLICIT NONE
 
    KPP_REAL, INTENT(IN) :: T, Roundoff, Y(N), Fcn0(N)
-   LOGICAL,  INTENT(IN) :: Do_Update_Rates
 !~~~> Output arguments
    KPP_REAL, INTENT(OUT) :: dFdT(N)
 !~~~> Local variables
@@ -1307,7 +1297,6 @@ SUBROUTINE FunTemplate( T, Y, Ydot )
 
 !~~~> Input variables
    KPP_REAL :: T, Y(NVAR)
-   LOGICAL  :: Do_Update_Rates
 !~~~> Output variables
    KPP_REAL :: Ydot(NVAR)
 !~~~> Local variables
