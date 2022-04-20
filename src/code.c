@@ -370,9 +370,6 @@ Va_list args;
 NODE *n;
 ELEMENT *elm;
 VARIABLE *var;
-int i, j;
-float val;
-char *expr;
 
   var = varTable[ v ];
   n   = (NODE*)    malloc( sizeof(NODE) );
@@ -778,11 +775,9 @@ NODE *n;
 void CommentFncBegin( int f, int *vars )
 {
 VARIABLE *var;
-char * name;
 int narg;
 int i;
 
-  name = varTable[ f ]->name;
   narg = varTable[ f ]->maxi;
   var = varTable[ f ];
 

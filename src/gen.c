@@ -19,7 +19,7 @@
   You should have received a copy of the GNU General Public License along
   with this program; if not, consult http://www.gnu.org/copyleft/gpl.html or
   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-  Boston, MA  02111-1307,  USA.
+    Boston, MA  02111-1307,  USA.
 
   Adrian Sandu
   Computer Science Department
@@ -320,21 +320,6 @@ int i,j;
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateGData()
 {
-int  i,j,k;
-int  *crow;
-int  *diag;
-int  nElm;
-int  *lookat;
-int  *moni;
-char *snames[MAX_SPECIES];
-int  *trans;
-char *strans[MAX_SPECIES];
-char *smass[MAX_ATOMS];
-char *EQN_NAMES[MAX_EQN];
-char *EQN_TAGS[MAX_EQN];
-char *bufeqn, *p;
-int dim;
-
   if ( (useLang != C_LANG)&&(useLang != MATLAB_LANG) ) return;
 
   UseFile( driverFile );
@@ -350,8 +335,7 @@ int dim;
 
   GlobalDeclare( RCONST );
   GlobalDeclare( TIME );
-  GlobalDeclare( SUN );
-  GlobalDeclare( TEMP );
+  GlobalDeclare( SUN ); 
   GlobalDeclare( RTOLS );
   GlobalDeclare( TSTART );
   GlobalDeclare( TEND );
@@ -382,15 +366,11 @@ int dim;
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateMonitorData()
 {
-int  i,j,k;
-int  *crow;
-int  *diag;
-int  nElm;
+int i, j;
 int  *lookat;
 int  *moni;
 char *snames[MAX_SPECIES];
 int  *trans;
-char *strans[MAX_SPECIES];
 char *smass[MAX_ATOMS];
 char *seqn[MAX_EQN];
 char *sfam[MAX_FAMILIES];
@@ -401,8 +381,6 @@ int flxind[MAX_EQN];
 
   /* Allocate local data structures */
   dim    = SpcNr+2;
-  crow   = AllocIntegerVector( dim, "crow in GenerateMonitorData");
-  diag   = AllocIntegerVector( dim, "diag in GenerateMonitorData");
   lookat = AllocIntegerVector( dim, "lookat in GenerateMonitorData");
   moni   = AllocIntegerVector( dim, "moni in GenerateMonitorData");
   trans  = AllocIntegerVector( dim, "trans in GenerateMonitorData");
@@ -467,7 +445,6 @@ int flxind[MAX_EQN];
   for (i = 0; i < SpcNr; i++)
     if ( SpeciesTable[Code[i]].trans ) {
       trans[ntrans] = Index(i);
-      strans[ntrans] = SpeciesTable[Code[i]].name;
       ntrans++;
     }
 
@@ -530,9 +507,6 @@ int flxind[MAX_EQN];
   F77_Inline( "%6sEND\n\n", " " );
 
   /* Free local data structures */
-  /* mz_rs_20070126+ not used, therefore deleted */
-  /* free(crow); free(diag); */
-  /* mz_rs_20070126- */
   free(lookat); free(moni); free(trans);
 
 }
@@ -545,7 +519,6 @@ int* irow;
 int* icol;
 int* crow;
 int* diag;
-int nElm;
 int dim;
 
   if( !useJacSparse ) return;
@@ -632,8 +605,7 @@ void GenerateJacobianSparseHeader()
 /*  mz_rs_20160201+ */
 void GenerateStoichNum()
 {
-  int i, j, k;
-  int l, m;
+  int i, j;
   int CalcStoichNum;
 
   if( VarNr == 0 ) return;
@@ -903,9 +875,7 @@ int F_VAR, FSPLIT_VAR;
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateFlux()
 {
-int i, j, k;
-int used;
-int l, m;
+int i, j;
 int FLUX_VAR;
 
   if( VarNr == 0 ) return;
@@ -953,7 +923,7 @@ int FLUX_VAR;
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateStochastic()
 {
-int i, j, k, l, m, n, jnr;
+int i, j, k, m, n, jnr;
 int used;
 int F_VAR;
 
@@ -1078,8 +1048,6 @@ int F_VAR;
 void GenerateReactantProd()
 {
 int i, j, k;
-int used;
-int l, m;
 int F_STOIC;
 
   if( VarNr == 0 ) return;
@@ -1118,7 +1086,6 @@ int F_STOIC;
 void GenerateJacReactantProd()
 {
 int i, j, k, l, m, JVRP_NZ, newrow;
-int used;
 int F_STOIC;
 int crow_JVRP[MAX_EQN], icol_JVRP[MAX_EQN*MAX_SPECIES];
 int irow_JVRP[MAX_EQN*MAX_SPECIES];
@@ -1357,8 +1324,7 @@ void GenerateHessian()
 /* Unlike Hess, this function deffers the sparse Data structure generation */
 {
 int i, j, k;
-int used;
-int l, m, i1, i2, nElm;
+int m, i1, i2, nElm;
 int F_Hess, F_Hess_VEC, F_HessTR_VEC;
 int *coeff_j, *coeff_i1, *coeff_i2;
 int Djv_isElm;
@@ -2001,7 +1967,6 @@ int *irow;
 int *icol;
 int *crow;
 int *diag;
-int nElm;
 int ibgn, iend;
 int useLangOld;
 int dim;
@@ -2017,7 +1982,6 @@ int dim;
 
   useLangOld = useLang;
   useLang = C_LANG;
-  nElm = NonZero( LU, 0, VarNr, irow, icol, crow, diag );
   useLang = useLangOld;
 
   UseFile( linalgFile );
@@ -2070,7 +2034,6 @@ int *irow;
 int *icol;
 int *crow;
 int *diag;
-int nElm;
 int ibgn, iend;
 int useLangOld;
 int **pos;
@@ -2088,7 +2051,6 @@ int dim;
 
   useLangOld = useLang;
   useLang = C_LANG;
-  nElm = NonZero( LU, 0, VarNr, irow, icol, crow, diag );
   useLang = useLangOld;
 
   UseFile( linalgFile );
@@ -2384,8 +2346,6 @@ void GenerateParamHeader()
 int spc;
 int i;
 char name[MAX_SPNAME];
-int offs;
-int mxyz;
 
 int j,dummy_species;
 
@@ -2488,13 +2448,7 @@ int j,dummy_species;
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateGlobalHeader()
 {
-  int spc;
-  int i;
-  char name[20];
-  int offs;
-  int mxyz;
   int useFortran;
-
 
 //===========================================================================
 // MODIFICATION: Bob Yantosca (26 Mar 2021)
@@ -2650,7 +2604,6 @@ int EqnStr( int eq, char * buf, float** mat )
 int spc, first;
 
 /* bugfix if stoichiometric factor is not an integer */
-int n;
 char s[40];
 
   first = 1;
@@ -2914,7 +2867,7 @@ int INITVAL;
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateShuffle_user2kpp()
 {
-int i,k,l;
+int i,k;
 int Shuffle_user2kpp;
 
   UseFile( utilFile );
@@ -2922,7 +2875,7 @@ int Shuffle_user2kpp;
   Shuffle_user2kpp    = DefFnc( "Shuffle_user2kpp", 2, "function to copy concentrations from USER to KPP");
   FunctionBegin( Shuffle_user2kpp, V_USER, V );
 
-  k = 0;l = 0;
+  k = 0;
   for( i = 1; i < SpcNr; i++) {
     if( ReverseCode[i] < 0 ) {
       if( SpeciesTable[i].type == VAR_SPC ) k++;
@@ -2949,7 +2902,7 @@ int Shuffle_user2kpp;
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateShuffle_kpp2user()
 {
-int i,k,l;
+int i,k;
 int Shuffle_kpp2user;
 
   UseFile( utilFile );
@@ -2957,7 +2910,7 @@ int Shuffle_kpp2user;
   Shuffle_kpp2user    = DefFnc( "Shuffle_kpp2user", 2, "function to restore concentrations from KPP to USER");
   FunctionBegin( Shuffle_kpp2user, V, V_USER );
 
-  k = 0; l = 0;
+  k = 0;
   for( i = 0; i < SpcNr; i++) {
     if( ReverseCode[i] < 0 ) {
       if( SpeciesTable[i].type == VAR_SPC ) k++;
@@ -3095,7 +3048,7 @@ char buf[100], suffix[5];
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateMatlabTemplates()
 {
-char buf[200], suffix[5];
+char buf[200];
 
   if (useLang != MATLAB_LANG) return;
 
@@ -3397,7 +3350,7 @@ default:
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void Generate()
 {
-int i, j;
+int i;
 int n;
 
   VarStartNr = 0;
