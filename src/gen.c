@@ -2486,6 +2486,23 @@ void GenerateGlobalHeader()
 
     ExternDeclare( FIX );
     WriteOMPThreadPrivate("FIX");
+
+    //======================================================================
+    // MODIFICATION -- Bob Yantosca (20 Apr 2022)
+    // Temporarily restore the EQUIVALENCE statement for C to VAR & FIX
+    // so that we can pass CI-testing for development.  However, the
+    // EQUIVALENCE statement is not thread-safe, and thus cannot be used
+    // in contexts (such as GEOS-Chem) where KPP is called from within
+    // an OpenMP parallel loop.  For more info, see Github issue:
+    // https://github.com/KineticPreProcessor/KPP/issues/27
+    WriteComment("VAR, FIX are chunks of array C");
+    F90_Inline("      EQUIVALENCE( %s(%d),%s(1) )",
+	       varTable[C]->name, 1, varTable[VAR]->name );
+    if ( FixNr > 0 ) { /*  mz_rs_20050121 */
+      F90_Inline("      EQUIVALENCE( %s(%d),%s(1) )",
+		 varTable[C]->name, VarNr+1, varTable[FIX]->name );
+    }
+    //======================================================================
   }
 
   /*** Declare VAR and fix for F77 ***/
