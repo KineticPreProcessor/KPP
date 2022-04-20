@@ -96,6 +96,11 @@ ifeq ($(HOST),fluorine)
   CC_FLAGS   = -O -Wno-implicit-function-declaration
 endif
 
+# Settings for Cannon (Harvard cluster) from Bob Yantosca
+ifeq ($(findstring rc.fas.harvard.edu,$(HOSTNAME)),rc.fas.harvard.edu)
+  FLEX_LIB_DIR=${FLEX_HOME}/lib64
+endif
+
 # Note: Additional systems should be added as needed.
 
 # Disable this till further notice (bmy, 11/1/21)
