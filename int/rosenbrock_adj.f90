@@ -35,9 +35,9 @@ MODULE KPP_ROOT_Integrator
 !~~~> Flags to determine if we should call the UPDATE_* routines from within
 !~~~> the integrator.  If using KPP in an external model, you might want to
 !~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
-  LOGICAL :: Do_Update_RCONST
-  LOGICAL :: Do_Update_PHOTO
-  LOGICAL :: Do_Update_SUN
+  LOGICAL, PRIVATE :: Do_Update_RCONST
+  LOGICAL, PRIVATE :: Do_Update_PHOTO
+  LOGICAL, PRIVATE :: Do_Update_SUN
 
 !~~~>  Statistics on the work performed by the Rosenbrock method
    INTEGER, PARAMETER :: Nfun=1, Njac=2, Nstp=3, Nacc=4, &
@@ -120,7 +120,7 @@ SUBROUTINE INTEGRATE_ADJ( NADJ, Y, Lambda, TIN, TOUT, &
    !            =  4 ! Call Update_SUN from within the integrator
    !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
    !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
-   !            =  7 ! Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+   !            =  7 ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
    CALL Integrator_Update_Options( ICNTRL(15),          &
                                    Do_Update_RCONST,    &
                                    Do_Update_PHOTO,     &
@@ -268,8 +268,8 @@ SUBROUTINE RosenbrockADJ( Y, NADJ, Lambda,             &
 !        =  3 : Call Update_RCONST and Update_PHOTO from w/in the int.
 !        =  4 : Call Update_SUN from within the integrator
 !        =  5 : Call Update_SUN and Update_RCONST from within the int.
-!        =  6 : Not implemented
-!        =  7 : Not implemented
+!        =  6 : Call Update_SUN and Update_PHOTO from within the int.
+!        =  7 : Call Update_SUN, Update_PHOTO, Update_RCONST w/in the int.
 !
 !~~~>  Real input parameters:
 !

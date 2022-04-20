@@ -88,7 +88,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    !            =  4 ! Call Update_SUN from within the integrator
    !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
    !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
-   !            =  7 ! Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+   !            =  7 ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
    CALL Integrator_Update_Options( ICNTRL(15),          &
                                    Do_Update_RCONST,    &
                                    Do_Update_PHOTO,     &
@@ -195,7 +195,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !        =  4 :  Call Update_SUN from within the integrator
 !        =  5 :  Call Update_SUN and Update_RCONST from within the int.
 !        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
-!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO, Update_RCONST w/in the int.
 !
 !    RCNTRL(1)  -> Hmin, lower bound for the integration step size
 !          It is strongly recommended to keep Hmin = ZERO
@@ -1295,23 +1295,15 @@ END SUBROUTINE Rosenbrock
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBROUTINE FunTemplate( T, Y,            &
-!============================================================================
-! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
-                        Do_Update_Rates, &
-!============================================================================
-                        Ydot )
+SUBROUTINE FunTemplate( T, Y, Ydot )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the ODE function call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
- USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
- USE KPP_ROOT_Function, ONLY: Fun
-!============================================================================
-! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
- USE KPP_ROOT_Rates, ONLY : Update_Rconst
-!============================================================================
+ USE KPP_ROOT_Parameters, ONLY : NVAR, LU_NONZERO
+ USE KPP_ROOT_Global,     ONLY : FIX, RCONST, TIME
+ USE KPP_ROOT_Function,   ONLY : Fun
+ USE KPP_ROOT_Rates,      ONLY : Update_SUN, Update_RCONST
 
 !~~~> Input variables
    KPP_REAL :: T, Y(NVAR)
@@ -1337,10 +1329,11 @@ SUBROUTINE JacTemplate( T, Y, Jcb )
 !  Template for the ODE Jacobian call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
- USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
- USE KPP_ROOT_Jacobian, ONLY: Jac_SP, LU_IROW, LU_ICOL
+ USE KPP_ROOT_Parameters,    ONLY : NVAR, LU_NONZERO
+ USE KPP_ROOT_Global,        ONLY : FIX, RCONST, TIME
+ USE KPP_ROOT_Jacobian,      ONLY : Jac_SP, LU_IROW, LU_ICOL
  USE KPP_ROOT_LinearAlgebra
+ USE KPP_ROOT_Rates,         ONLY : Update_SUN, Update_RCONST
 !~~~> Input variables
     KPP_REAL :: T, Y(NVAR)
 !~~~> Output variables

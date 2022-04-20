@@ -16,7 +16,7 @@ MODULE KPP_ROOT_Integrator
   PUBLIC
   SAVE
   
-!~~~> Flags to determine if we should call the UPDATE_* routines from within 
+!~~~> Flags to determine if we should call the UPDATE_* routines from within
 !~~~> the integrator.  If using KPP in an external model, you might want to
 !~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
   LOGICAL :: Do_Update_RCONST
@@ -101,7 +101,7 @@ CONTAINS
     !            =  4 ! Call Update_SUN from within the integrator
     !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
     !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
-    !            =  7 ! Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+    !            =  7 ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
     CALL Integrator_Update_Options( ICNTRL(15),          &
                                     Do_Update_RCONST,    &
                                     Do_Update_PHOTO,     &
@@ -260,7 +260,7 @@ CONTAINS
 !        =  4 :  Call Update_SUN from within the integrator
 !        =  5 :  Call Update_SUN and Update_RCONST from within the int.
 !        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
-!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST w/in the int.
 !
 !~~~>  Real input parameters:
 !
@@ -1197,7 +1197,7 @@ firej:IF (FirstStep.OR.REJECT) THEN
     USE KPP_ROOT_Global
     USE KPP_ROOT_JacobianSP
     USE KPP_ROOT_Jacobian, ONLY: Jac_SP
-    USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
+    !USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
 
     IMPLICIT NONE
 

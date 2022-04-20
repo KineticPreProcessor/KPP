@@ -32,7 +32,7 @@ MODULE KPP_ROOT_Integrator
    PUBLIC
    SAVE
 
-!~~~> Flags to determine if we should call the UPDATE_* routines from within 
+!~~~> Flags to determine if we should call the UPDATE_* routines from within
 !~~~> the integrator.  If using KPP in an external model, you might want to
 !~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
   LOGICAL, PRIVATE :: Do_Update_RCONST
@@ -105,7 +105,7 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm,&
    !            =  4 ! Call Update_SUN from within the integrator
    !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
    !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
-   !            =  7 ! Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+   !            =  7 ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
    CALL Integrator_Update_Options( ICNTRL(15),          &
                                    Do_Update_RCONST,    &
                                    Do_Update_PHOTO,     &
@@ -234,7 +234,7 @@ SUBROUTINE RosenbrockTLM(N,Y,NTLM,Y_tlm,                      &
 !        =  4 :  Call Update_SUN from within the integrator
 !        =  5 :  Call Update_SUN and Update_RCONST from within the int.
 !        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
-!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO, Update_RCONST w/in the int.
 
 !    RCNTRL(1)  -> Hmin, lower bound for the integration step size
 !          It is strongly recommended to keep Hmin = ZERO

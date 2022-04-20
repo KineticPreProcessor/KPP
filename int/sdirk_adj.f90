@@ -1641,9 +1641,10 @@ Hloop: DO WHILE (ISING /= 0)
       SUBROUTINE FUN_CHEM( T, Y, P )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      USE KPP_ROOT_Parameters, ONLY: NVAR
-      USE KPP_ROOT_Global, ONLY: TIME, FIX, RCONST
-      USE KPP_ROOT_Function, ONLY: Fun
+      USE KPP_ROOT_Parameters, ONLY : NVAR
+      USE KPP_ROOT_Global,     ONLY : TIME, FIX, RCONST
+      USE KPP_ROOT_Function,   ONLY : Fun
+      USE KPP_ROOT_Rates,      ONLY : Update_SUN, Update_RCONST
 
       KPP_REAL :: T, Told
       KPP_REAL :: Y(NVAR), P(NVAR)
@@ -1664,10 +1665,11 @@ Hloop: DO WHILE (ISING /= 0)
       SUBROUTINE JAC_CHEM( T, Y, JV )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
-      USE KPP_ROOT_Global, ONLY: TIME, FIX, RCONST
-      USE KPP_ROOT_Jacobian, ONLY: Jac_SP,LU_IROW,LU_ICOL
-  
+      USE KPP_ROOT_Parameters, ONLY : NVAR, LU_NONZERO
+      USE KPP_ROOT_Global,     ONLY : TIME, FIX, RCONST
+      USE KPP_ROOT_Jacobian,   ONLY : Jac_SP,LU_IROW,LU_ICOL
+      USE KPP_ROOT_Rates,      ONLY : Update_SUN, Update_RCONST
+
       KPP_REAL ::  T, Told
       KPP_REAL ::  Y(NVAR)
 #ifdef FULL_ALGEBRA

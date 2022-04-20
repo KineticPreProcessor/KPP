@@ -19,7 +19,7 @@ MODULE KPP_ROOT_Integrator
   PUBLIC
   SAVE
 
-!~~~> Flags to determine if we should call the UPDATE_* routines from within 
+!~~~> Flags to determine if we should call the UPDATE_* routines from within
 !~~~> the integrator.  If using KPP in an external model, you might want to
 !~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
   LOGICAL, PRIVATE :: Do_Update_RCONST
@@ -95,7 +95,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    !            =  4 ! Call Update_SUN from within the integrator
    !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
    !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
-   !            =  7 ! Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+   !            =  7 ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
    CALL Integrator_Update_Options( ICNTRL(15),          &
                                    Do_Update_RCONST,    &
                                    Do_Update_PHOTO,     &
@@ -203,7 +203,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !        =  4 :  Call Update_SUN from within the integrator
 !        =  5 :  Call Update_SUN and Update_RCONST from within the int.
 !        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
-!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST w/in the int.
 !
 !~~~>  Real parameters
 !
@@ -943,10 +943,11 @@ Hloop: DO WHILE (ISING /= 0)
       SUBROUTINE FUN_CHEM( T, Y, P )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
-      USE KPP_ROOT_Global, ONLY: TIME, FIX, RCONST
+      USE KPP_ROOT_Parameters, ONLY : NVAR, LU_NONZERO
+      USE KPP_ROOT_Global,     ONLY : TIME, FIX, RCONST
       USE KPP_ROOT_Function
-
+      USE KPP_ROOT_Rates,      ONLY : Update_SUN, Update_RCONST
+ 
       INTEGER N
       KPP_REAL   T, Told
       KPP_REAL   Y(NVAR), P(NVAR)
@@ -968,9 +969,10 @@ Hloop: DO WHILE (ISING /= 0)
       SUBROUTINE JAC_CHEM( T, Y, JV )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
-      USE KPP_ROOT_Global, ONLY: TIME, FIX, RCONST
+      USE KPP_ROOT_Parameters, ONLY : NVAR, LU_NONZERO
+      USE KPP_ROOT_Global,     ONLY : TIME, FIX, RCONST
       USE KPP_ROOT_Jacobian
+      USE KPP_ROOT_Rates,      ONLY : Update_SUN, Update_RCONST
   
       INTEGER N
       KPP_REAL   T, Told
