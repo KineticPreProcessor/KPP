@@ -146,9 +146,6 @@ int blength;
   WriteComment("%-20s : %s", "File", bufname );
   strcpy( buf, (char*)ctime( &t ) );
   buf[ (int)strlen(buf) - 1 ] = 0;
-  WriteComment("%-20s : %s", "Time", buf );
-  WriteComment("%-20s : %s", "Working directory", getcwd(buf, MAX_PATHLEN) );
-
 //===========================================================================
 // MODIFICATION: Bob Yantosca (11 Feb 2021)
 // Do not write out changeable parameters such as file creation time
