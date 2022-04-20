@@ -276,6 +276,7 @@ void ReorderSpecies( int criteria )
 CODE *var;
 CODE *fix;
 CODE *dummy;
+CODE *PrLo;
 EQ_VECT *tmpStoich_Left;
 EQ_VECT *tmpStoich_Right;
 EQ_VECT *tmpStoich;
