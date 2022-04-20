@@ -763,7 +763,7 @@ int F_VAR, FSPLIT_VAR;
     fprintf(functionFile, "  REAL(kind=dp) :: RCT(NREACT)\n");
     fprintf(functionFile, "! Vdot - Time derivative of variable species concentrations\n");
     fprintf(functionFile, "  REAL(kind=dp) :: Vdot(NVAR)\n");
-    fprintf(functionFile, "!### KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)\n");
+    fprintf(functionFile, "!### MODIFICATION, Bob Yantosca (11 Feb 2021)\n");
     fprintf(functionFile, "!### Aout - Array for returning KPP reaction rates for diagnostics\n");
     fprintf(functionFile, "  REAL(kind=dp), OPTIONAL :: Aout(NREACT)\n");
 //===========================================================================
@@ -2098,6 +2098,7 @@ int dim;
   for( i = 0; i < VarNr; i++) {
    for( j = 0; j < VarNr; j++)
     pos[i][j]=-1;
+  }
   for( i = 0; i < VarNr; i++) {
     ibgn = crow[i];
     iend = diag[i];
