@@ -709,37 +709,41 @@ int F_VAR, FSPLIT_VAR;
   FSPLIT_VAR = DefFnc( "Fun_SPLIT", 5, "time derivatives of variables - Split form");
 
   if( useAggregate ) {
-//===========================================================================
-// MODIFICATION FOR GEOS-CHEM: Bob Yantosca (11 Feb 2021)
-// Manually declare Aout as an optional variable.  We cannot use
-// routine FunctionBegin, because this has no way of defining
-// optional Fortran90 arguments.  Therefore we will just
-// write this using C-language fprintf statements.
-//
-    fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-    fprintf(functionFile, "!\n");
-    fprintf(functionFile, "! Fun - time derivatives of variables - Aggregate form\n");
-    fprintf(functionFile, "!   Arguments :\n");
-    fprintf(functionFile, "!      V         - Concentrations of variable species (local)\n");
-    fprintf(functionFile, "!      F         - Concentrations of fixed species (local)\n");
-    fprintf(functionFile, "!      RCT       - Rate constants (local)\n");
-    fprintf(functionFile, "!      Vdot      - Time derivative of variable species concentrations\n");
-    fprintf(functionFile, "!      Aout      - Array to return rxn rates for diagnostics (OPTIONAL)\n");
-    fprintf(functionFile, "!\n");
-    fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
-    fprintf(functionFile, "SUBROUTINE Fun ( V, F, RCT, Vdot, Aout )\n\n");
-    fprintf(functionFile, "! V - Concentrations of variable species (local)\n");
-    fprintf(functionFile, "  REAL(kind=dp) :: V(NVAR)\n");
-    fprintf(functionFile, "! F - Concentrations of fixed species (local)\n");
-    fprintf(functionFile, "  REAL(kind=dp) :: F(NFIX)\n");
-    fprintf(functionFile, "! RCT - Rate constants (local)\n");
-    fprintf(functionFile, "  REAL(kind=dp) :: RCT(NREACT)\n");
-    fprintf(functionFile, "! Vdot - Time derivative of variable species concentrations\n");
-    fprintf(functionFile, "  REAL(kind=dp) :: Vdot(NVAR)\n");
-    fprintf(functionFile, "!### MODIFICATION, Bob Yantosca (11 Feb 2021)\n");
-    fprintf(functionFile, "!### Aout - Array for returning KPP reaction rates for diagnostics\n");
-    fprintf(functionFile, "  REAL(kind=dp), OPTIONAL :: Aout(NREACT)\n");
-//===========================================================================
+    //===========================================================================
+    // MODIFICATION FOR GEOS-CHEM: Bob Yantosca (11 Feb 2021)
+    // Manually declare Aout as an optional variable.  We cannot use
+    // routine FunctionBegin, because this has no way of defining
+    // optional Fortran90 arguments.  Therefore we will just
+    // write this using C-language fprintf statements.
+    if ( rootFileName == "gckpp" ) {
+      fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+      fprintf(functionFile, "!\n");
+      fprintf(functionFile, "! Fun - time derivatives of variables - Aggregate form\n");
+      fprintf(functionFile, "!   Arguments :\n");
+      fprintf(functionFile, "!      V         - Concentrations of variable species (local)\n");
+      fprintf(functionFile, "!      F         - Concentrations of fixed species (local)\n");
+      fprintf(functionFile, "!      RCT       - Rate constants (local)\n");
+      fprintf(functionFile, "!      Vdot      - Time derivative of variable species concentrations\n");
+      fprintf(functionFile, "!      Aout      - Array to return rxn rates for diagnostics (OPTIONAL)\n");
+      fprintf(functionFile, "!\n");
+      fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
+      fprintf(functionFile, "SUBROUTINE Fun ( V, F, RCT, Vdot, Aout )\n\n");
+      fprintf(functionFile, "! V - Concentrations of variable species (local)\n");
+      fprintf(functionFile, "  REAL(kind=dp) :: V(NVAR)\n");
+      fprintf(functionFile, "! F - Concentrations of fixed species (local)\n");
+      fprintf(functionFile, "  REAL(kind=dp) :: F(NFIX)\n");
+      fprintf(functionFile, "! RCT - Rate constants (local)\n");
+      fprintf(functionFile, "  REAL(kind=dp) :: RCT(NREACT)\n");
+      fprintf(functionFile, "! Vdot - Time derivative of variable species concentrations\n");
+      fprintf(functionFile, "  REAL(kind=dp) :: Vdot(NVAR)\n");
+      fprintf(functionFile, "!### MODIFICATION, Bob Yantosca (11 Feb 2021)\n");
+      fprintf(functionFile, "!### Aout - Array for returning KPP reaction rates for diagnostics\n");
+      fprintf(functionFile, "  REAL(kind=dp), OPTIONAL :: Aout(NREACT)\n");
+    } else {
+      // If not GEOS-Chem, use FunctionBegin
+      FunctionBegin( F_VAR, V, F, RCT, Vdot );
+    }
+    //===========================================================================
   } else {
     FunctionBegin( FSPLIT_VAR, V, F, RCT, P_VAR, D_VAR );
   }
@@ -786,15 +790,17 @@ int F_VAR, FSPLIT_VAR;
   }
 
   if( useAggregate ) {
-//===========================================================================
-// MODIFICATION FOR GEOS-CHEM: Bob Yantosca (11 Feb 2021)
-// Copy A to Aout to return reaction rates outside of KPP
-//
-    fprintf(functionFile,
-	    "\n\n!### KPP 2.3.2_gc, Bob Yantosca (11 Feb 2021)\n");
-    fprintf(functionFile, "\!### Use Aout to return reaction rates\n");
-    fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n\n");
-//===========================================================================
+    //===========================================================================
+    // MODIFICATION FOR GEOS-CHEM: Bob Yantosca (11 Feb 2021)
+    // Copy A to Aout to return reaction rates outside of KPP
+    //
+    if ( rootFileName == "gckpp" ) {
+      fprintf(functionFile,
+	      "\n\n!### KPP 2.3.2_gc, Bob Yantosca (11 Feb 2021)\n");
+      fprintf(functionFile, "\!### Use Aout to return reaction rates\n");
+      fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n\n");
+    }
+    //===========================================================================
 
     NewLines(1);
     WriteComment("Aggregate function");
