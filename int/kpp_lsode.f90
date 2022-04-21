@@ -1595,14 +1595,15 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
         IF (ITOL .EQ. 2 .OR. ITOL .EQ. 4) AbsTolI = AbsTol(I) 
         IF (RelTolI .LT. 0.0D0) GO TO 619 
         IF (AbsTolI .LT. 0.0D0) GO TO 620 
-   70   CONTINUE 
+   70 CONTINUE
       IF (ISTATE .EQ. 1) GO TO 100 
 ! If ISTATE = 3, set flag to signal parameter changes to DSTODE. -------
       JSTART = -1 
       IF (NQ .LE. MAXORD) GO TO 90 
 ! MAXORD was reduced below NQ.  Copy YH(*,MAXORD+2) into SAVF. ---------
       DO 80 I = 1,N 
-   80   RWORK(I+LSAVF-1) = RWORK(I+LWM-1) 
+         RWORK(I+LSAVF-1) = RWORK(I+LWM-1)
+   80 CONTINUE
 ! Reload WM(1) = RWORK(LWM), since LWM may have changed. ---------------
    90 IF (MITER .GT. 0) RWORK(LWM) = SQRT(UROUND) 
       IF (N .EQ. NYH) GO TO 200 
@@ -1611,7 +1612,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       I2 = LYH + (MAXORD + 1)*NYH - 1 
       IF (I1 .GT. I2) GO TO 200 
       DO 95 I = I1,I2 
-   95   RWORK(I) = 0.0D0 
+        RWORK(I) = 0.0D0
+   95 CONTINUE
       GO TO 200 
 !-----------------------------------------------------------------------
 ! Block C.                                                              
@@ -1644,7 +1646,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       CALL F (NEQ, T, Y, RWORK(LF0)) 
       NFE = 1 
 ! Load the initial value vector in YH. ---------------------------------
-      DO I = 1,N
+      DO 115 I = 1,N
          RWORK(I+LYH-1) = Y(I)
    115 CONTINUE
 ! Load and invert the EWT array.  (H is temporarily set to 1.0.) -------
