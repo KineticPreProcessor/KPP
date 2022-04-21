@@ -71,18 +71,23 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    KPP_REAL :: RCNTRL(20), RSTATUS(20)
    INTEGER  :: ICNTRL(20), ISTATUS(20), IERR
 
-   ICNTRL(:)  = 0
-   RCNTRL(:)  = 0.0_dp
-   ISTATUS(:) = 0
+   !~~~> Zero input and output arrays for safety's sake
+   ICNTRL     = 0
+   RCNTRL     = 0.0_dp
+   ISTATUS    = 0
+   RSTATUS    = 0.0_dp
 
-   ! If optional parameters are given, and if they are >0, 
-   ! then they overwrite default settings. 
-   IF (PRESENT(ICNTRL_U)) THEN
-     WHERE(ICNTRL_U(:) > 0) ICNTRL(:) = ICNTRL_U(:)
-   END IF
-   IF (PRESENT(RCNTRL_U)) THEN
-     WHERE(RCNTRL_U(:) > 0) RCNTRL(:) = RCNTRL_U(:)
-   END IF
+   !~~~> fine-tune the integrator
+   ICNTRL(15) = 5       ! Call Update_SUN and Update_RCONST from w/in the int. 
+
+   !~~~> if optional parameters are given, and if they are /= 0,
+   !     then use them to overwrite default settings
+   IF ( PRESENT( ICNTRL_U ) ) THEN
+      WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
+   ENDIF
+   IF ( PRESENT( RCNTRL_U ) ) THEN
+      WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
+   ENDIF
 
    ! Determine the settings of the Do_Update_* flags, which determine
    ! whether or not we need to call Update_* routines in the integrator
@@ -116,12 +121,12 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
     STEPMIN = RSTATUS(ihexit) ! Save last step
    
    ! if optional parameters are given for output they to return information
-   IF (PRESENT(ISTATUS_U)) ISTATUS_U(:) = ISTATUS(:)
-   IF (PRESENT(RSTATUS_U)) THEN
-     RSTATUS_U(:) = RSTATUS(:)
+   IF ( PRESENT( ISTATUS_U ) ) ISTATUS_U = ISTATUS
+   IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR
+   IF ( PRESENT( RSTATUS_U ) ) THEN
+     RSTATUS_U    = RSTATUS
      RSTATUS_U(1) = TOUT ! final time
    END IF  
-   IF (PRESENT(IERR_U))    IERR_U       = IERR
 
    END SUBROUTINE INTEGRATE
 

@@ -59,23 +59,25 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 
    INTEGER, SAVE :: Ntotal = 0
 
-   ICNTRL(:)  = 0
-   RCNTRL(:)  = 0.0_dp
-   ISTATUS(:) = 0
-   RSTATUS(:) = 0.0_dp
+   !~~~> Zero input and output arrays for safety's sake
+   ICNTRL     = 0
+   RCNTRL     = 0.0_dp
+   ISTATUS    = 0
+   RSTATUS    = 0.0_dp
 
-    !~~~> fine-tune the integrator:
-   ICNTRL(1) = 0        ! 0 - non-autonomous, 1 - autonomous
-   ICNTRL(2) = 0        ! 0 - vector tolerances, 1 - scalars
+   !~~~> fine-tune the integrator:
+   ICNTRL(1)  = 0       ! 0 - non-autonomous, 1 - autonomous
+   ICNTRL(2)  = 0       ! 0 - vector tolerances, 1 - scalars
+   ICNTRL(15) = 5       ! Call Update_SUN and Update_RCONST from w/in the int. 
 
-   ! If optional parameters are given, and if they are >0, 
-   ! then they overwrite default settings. 
-   IF (PRESENT(ICNTRL_U)) THEN
-     WHERE(ICNTRL_U(:) > 0) ICNTRL(:) = ICNTRL_U(:)
-   END IF
-   IF (PRESENT(RCNTRL_U)) THEN
-     WHERE(RCNTRL_U(:) > 0) RCNTRL(:) = RCNTRL_U(:)
-   END IF
+   !~~~> if optional parameters are given, and if they are /= 0,
+   !     then use them to overwrite default settings
+   IF ( PRESENT( ICNTRL_U ) ) THEN
+      WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
+   ENDIF
+   IF ( PRESENT( RCNTRL_U ) ) THEN
+      WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
+   ENDIF
 
    ! Determine the settings of the Do_Update_* flags, which determine
    ! whether or not we need to call Update_* routines in the integrator
@@ -88,7 +90,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    !            =  4 ! Call Update_SUN from within the integrator
    !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
    !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
-   !            =  7 ! Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+   !            =  7 ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
    CALL Integrator_Update_Options( ICNTRL(15),          &
                                    Do_Update_RCONST,    &
                                    Do_Update_PHOTO,     &
@@ -104,11 +106,12 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    ! PRINT*,'NSTEPS=',ISTATUS(Nstp),' (',Ntotal,')','  O3=', VAR(ind_O3)
 
    STEPMIN = RSTATUS(Nhexit)
-   ! if optional parameters are given for output they 
-   ! are updated with the return information
-   IF (PRESENT(ISTATUS_U)) ISTATUS_U(:) = ISTATUS(:)
-   IF (PRESENT(RSTATUS_U)) RSTATUS_U(:) = RSTATUS(:)
-   IF (PRESENT(IERR_U))    IERR_U       = IERR
+
+   ! if optional parameters are given for output
+   ! use them to store information in them
+   IF ( PRESENT( ISTATUS_U ) ) ISTATUS_U = ISTATUS
+   IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
+   IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR
 
 END SUBROUTINE INTEGRATE
 

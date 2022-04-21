@@ -81,9 +81,11 @@ CONTAINS
     INTEGER       :: ICNTRL(20), ISTATUS(20)
     INTEGER, SAVE :: Ntotal = 0
 
-
-    ICNTRL(1:20) = 0
-    RCNTRL(1:20) = 0.0_dp
+    ! Zero input and output arrays for safety's sake
+    ICNTRL     = 0
+    RCNTRL     = 0.0_dp
+    ISTATUS    = 0
+    RSTATUS    = 0.0_dp
 
     !~~~> fine-tune the integrator:
     ICNTRL(2)  = 0   ! 0=vector tolerances, 1=scalar tolerances
@@ -91,20 +93,21 @@ CONTAINS
     ICNTRL(6)  = 0   ! Starting values for Newton are: 0=interpolated, 1=zero
     ICNTRL(7)  = 2   ! Adj. system solved by: 1=iteration, 2=direct, 3=adaptive
     ICNTRL(8)  = 0   ! Adj. LU decomp: 0=compute, 1=save from fwd
-    ICNTRL(9)  = 2   ! Adjoint: 1=none, 2=discrete, 3=full continuous, 4=simplified continuous
+    ICNTRL(9)  = 2   ! Adjoint: 1=none, 2=discrete, 3=full continuous, 
+                     !  4=simplified continuous
     ICNTRL(10) = 0   ! Error estimator: 0=classic, 1=SDIRK
     ICNTRL(11) = 1   ! Step controller: 1=Gustaffson, 2=classic
+    ICNTRL(15) = 7   ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
 
-
-    !~~~> if optional parameters are given, and if they are >0,
+    !~~~> if optional parameters are given, and if they are /= 0,
     !     then use them to overwrite default settings
-    IF (PRESENT(ICNTRL_U)) THEN
-      WHERE(ICNTRL_U(:) > 0) ICNTRL(:) = ICNTRL_U(:)
-    END IF
-    IF (PRESENT(RCNTRL_U)) THEN
-      WHERE(RCNTRL_U(:) > 0) RCNTRL(:) = RCNTRL_U(:)
-    END IF
-    
+    IF ( PRESENT( ICNTRL_U ) ) THEN
+       WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
+    ENDIF
+    IF ( PRESENT( RCNTRL_U ) ) THEN
+       WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
+    ENDIF
+
     ! Determine the settings of the Do_Update_* flags, which determine
     ! whether or not we need to call Update_* routines in the integrator
     ! (or not, if we are calling them from a higher-level)
@@ -133,9 +136,9 @@ CONTAINS
 
     ! if optional parameters are given for output
     ! use them to store information in them
-    IF (PRESENT(ISTATUS_U)) ISTATUS_U(:) = ISTATUS(:)
-    IF (PRESENT(RSTATUS_U)) RSTATUS_U(:) = RSTATUS(:)
-    IF (PRESENT(IERR_U)) IERR_U = IERR
+    IF ( PRESENT( ISTATUS_U ) ) ISTATUS_U = ISTATUS
+    IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
+    IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR
 
     IF (IERR < 0) THEN
       PRINT *,'Runge-Kutta-ADJ: Unsuccessful exit at T=', TIN,' (IERR=',IERR,')'

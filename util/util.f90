@@ -154,14 +154,6 @@
          RETURN
       ENDIF
 
-      ! Option 0: status quo: Call update functions if defined
-      IF ( option == 0 ) THEN
-         Do_Update_RCONST = .TRUE.
-         Do_Update_PHOTO  = .TRUE.
-         Do_Update_SUN    = .TRUE.
-         RETURN
-      ENDIF
-
       ! Otherwise determine from the value passed
       Do_Update_RCONST = ( IAND( option, 1 ) > 0 )
       Do_Update_PHOTO  = ( IAND( option, 2 ) > 0 )

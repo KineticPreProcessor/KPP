@@ -75,20 +75,29 @@ CONTAINS
     INTEGER :: ICNTRL(20), ISTATUS(20)
     INTEGER, SAVE :: Ntotal = 0
 
-    H =0.0_dp
+    H = 0.0_dp
+
+    !~~~> Zero input and output arrays for safety's sake
+    ICNTRL     = 0
+    RCNTRL     = 0.0_dp
+    ISTATUS    = 0
+    RSTATUS    = 0.0_dp
 
     !~~~> fine-tune the integrator:
-    ICNTRL(:)  = 0
-    ICNTRL(2)  = 0 ! 0=vector tolerances, 1=scalar tolerances
-    ICNTRL(5)  = 8 ! Max no. of Newton iterations
-    ICNTRL(6)  = 1 ! Starting values for Newton are interpolated (0) or zero (1)
-    ICNTRL(11) = 1 ! Gustaffson (1) or classic(2) controller
-    RCNTRL(1:20) = 0._dp
+    ICNTRL(2)  = 0       ! 0=vector tolerances, 1=scalar tolerances
+    ICNTRL(5)  = 8       ! Max no. of Newton iterations
+    ICNTRL(6)  = 1       ! Starting values for Newton are interpolated (0) 
+                         !  or zero (1)
+    ICNTRL(11) = 1       ! Gustaffson (1) or classic(2) controller
 
     !~~~> if optional parameters are given, and if they are >0,
     !     then use them to overwrite default settings
-    IF (PRESENT(ICNTRL_U)) ICNTRL(1:20) = ICNTRL_U(1:20)
-    IF (PRESENT(RCNTRL_U)) RCNTRL(1:20) = RCNTRL_U(1:20)
+    IF ( PRESENT( ICNTRL_U ) ) THEN
+       WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
+    ENDIF
+    IF ( PRESENT( RCNTRL_U ) ) THEN
+       WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
+    ENDIF
    
     ! Determine the settings of the Do_Update_* flags, which determine
     ! whether or not we need to call Update_* routines in the integrator
@@ -1169,19 +1178,19 @@ firej:IF (FirstStep.OR.REJECT) THEN
     USE KPP_ROOT_Parameters
     USE KPP_ROOT_Global
     USE KPP_ROOT_Function, ONLY: Fun
-    !USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
+    USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
 
     IMPLICIT NONE
 
     KPP_REAL :: V(NVAR), FCT(NVAR)
     KPP_REAL :: T, Told
 
-    !Told = TIME
-    !TIME = T
-    !IF ( Do_Update_SUN    ) CALL Update_SUN()
-    !IF ( Do_Update_RCONST ) CALL Update_RCONST()
-    !IF ( Do_Update_PHOTO  ) CALL Update_PHOTO()
-    !TIME = Told
+    Told = TIME
+    TIME = T
+    IF ( Do_Update_SUN    ) CALL Update_SUN()
+    IF ( Do_Update_RCONST ) CALL Update_RCONST()
+    IF ( Do_Update_PHOTO  ) CALL Update_PHOTO()
+    TIME = Told
     
     CALL Fun(V, FIX, RCONST, FCT)
     
@@ -1197,7 +1206,7 @@ firej:IF (FirstStep.OR.REJECT) THEN
     USE KPP_ROOT_Global
     USE KPP_ROOT_JacobianSP
     USE KPP_ROOT_Jacobian, ONLY: Jac_SP
-    !USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
+    USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
 
     IMPLICIT NONE
 
@@ -1209,12 +1218,12 @@ firej:IF (FirstStep.OR.REJECT) THEN
     KPP_REAL :: JF(LU_NONZERO)
 #endif   
 
-    !Told = TIME
-    !TIME = T
-    !IF ( Do_Update_SUN    ) CALL Update_SUN()
-    !IF ( Do_Update_RCONST ) CALL Update_RCONST()
-    !IF ( Do_Update_PHOTO  ) CALL Update_PHOTO()
-    !TIME = Told
+    Told = TIME
+    TIME = T
+    IF ( Do_Update_SUN    ) CALL Update_SUN()
+    IF ( Do_Update_RCONST ) CALL Update_RCONST()
+    IF ( Do_Update_PHOTO  ) CALL Update_PHOTO()
+    TIME = Told
     
 #ifdef FULL_ALGEBRA    
     CALL Jac_SP(V, FIX, RCONST, JV)
