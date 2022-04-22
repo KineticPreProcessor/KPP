@@ -6,7 +6,7 @@
 ########################################################################
 
 # List of tests (add more as necessary; separate each with a space)
-all_tests="radau90 rk rktlm ros rosadj rosenbrock90 rostlm saprc2006 sd sdadj small_f90"
+all_tests="radau90 rk rktlm ros rosadj rosenbrock90 rostlm saprc2006 sd sdadj small_f90 ros_upcase"
 
 # Current directory
 this_dir=$(pwd -P)

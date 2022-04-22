@@ -253,6 +253,7 @@ char line[ MAX_LINE ];
 
 void IncludeCode( char* fmt, ... )
 {
+
 Va_list args;
 char buf[200];
 char cmd[500];
@@ -263,17 +264,25 @@ FILE * fp;
   vsprintf( buf, fmt, args );
   va_end( args );
 
+  // NOTE: Do not change .f90 to .F90 in this CASE statement.  Here the .f90
+  // defines the extension of the template files that will be inlined into the
+  // KPP-generated code (which all end in .f90).
+  //
+  // The only exception is when upperCaseF90 == 1, then we need to include
+  // util/Makefile.F90 instead of util/Makefile.f90, since we have to list
+  // all the source code files ending in *.F90.   Add some logic here.
+  //    -- Bob Yantosca (22 Apr 2022)
   switch( useLang ) {
-    case F77_LANG: sprintf( buf, "%s.f", buf );
-                 break;
-    case F90_LANG: sprintf( buf, "%s.f90", buf );
-                 break;
-    case C_LANG: sprintf( buf, "%s.c", buf );
-                 break;
-    case MATLAB_LANG: sprintf( buf, "%s.m", buf );
-                 break;
-    default: printf("\n Language '%d' not implemented!\n",useLang);
-                 exit(1);
+    case F90_LANG:
+      if ( upperCaseF90 && ( strstr( buf, "Makefile" ) != NULL ) )
+	   {           sprintf( buf, "%s.F90", buf ); break; }
+      else
+           {           sprintf( buf, "%s.f90", buf ); break; }
+    case F77_LANG:     sprintf( buf, "%s.f",   buf ); break;
+    case C_LANG:       sprintf( buf, "%s.c",   buf ); break;
+    case MATLAB_LANG:  sprintf( buf, "%s.m",   buf ); break;
+    default:
+      printf("\n Language '%d' not implemented!\n",useLang); exit(1);
   }
   fp = fopen( buf, "r" );
   if ( fp == 0 )

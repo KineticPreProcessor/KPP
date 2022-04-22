@@ -3031,16 +3031,17 @@ char buf[100], suffix[5];
   if (useLang == MATLAB_LANG) return;
   if (useMex == 0) return;
 
+  // Because this CASE statement is used to create the _Mex* files,
+  // use the f90Suffix variable to use the proper .f90 or .F90 extension,
+  // depending on the value of the #UPPERCASEF90 switch.
+  //   -- Bob Yantosca (22 Apr 2022)
   switch( useLang ) {
-    case F77_LANG: sprintf( suffix, "f");
-                 break;
-    case F90_LANG: sprintf( suffix, "f90");
-                 break;
-    case C_LANG:   sprintf( suffix, "c");
-                 break;
-    default: printf("\nCannot create mex files for language %d\n", useLang);
-                 exit(1);
-                 break;
+    case F77_LANG: sprintf( suffix, "f"       ); break;
+    case F90_LANG: sprintf( suffix, f90Suffix ); break;
+    case C_LANG:   sprintf( suffix, "c"       ); break;
+    default:
+      printf("\nCannot create mex files for language %d\n", useLang);
+      exit(1);
   }
 
   sprintf( buf, "%s_mex_Fun.%s", rootFileName, suffix );
@@ -3123,24 +3124,24 @@ if (useLang != F90_LANG) return;
 switch (where) {
 case 'h':
 
-  sprintf( buf, "%s_Precision.f90", rootFileName );
+  sprintf( buf, "%s_Precision.%s", rootFileName, f90Suffix );
   sparse_dataFile = fopen(buf, "w");
   if( sparse_dataFile == 0 ) {
     FatalError(3,"%s: Can't create file", buf );
   }
   UseFile( sparse_dataFile );
-  F90_Inline("\nMODULE %s_Precision\n", rootFileName );
-  F90_Inline("!");
-  F90_Inline("! Definition of different levels of accuracy");
-  F90_Inline("! for REAL variables using KIND parameterization");
-  F90_Inline("!");
-  F90_Inline("! KPP SP - Single precision kind");
-  F90_Inline("  INTEGER, PARAMETER :: sp = SELECTED_REAL_KIND(6,30)");
-  F90_Inline("! KPP DP - Double precision kind");
-  F90_Inline("  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(14,300)");
-  F90_Inline("! KPP QP - Quadruple precision kind");
-  F90_Inline("  INTEGER, PARAMETER :: qp = SELECTED_REAL_KIND(18,400)");
-  F90_Inline("\nEND MODULE %s_Precision\n\n", rootFileName );
+    F90_Inline("\nMODULE %s_Precision\n", rootFileName );
+    F90_Inline("!");
+    F90_Inline("! Definition of different levels of accuracy");
+    F90_Inline("! for REAL variables using KIND parameterization");
+    F90_Inline("!");
+    F90_Inline("! KPP SP - Single precision kind");
+    F90_Inline("  INTEGER, PARAMETER :: sp = SELECTED_REAL_KIND(6,30)");
+    F90_Inline("! KPP DP - Double precision kind");
+    F90_Inline("  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(14,300)");
+    F90_Inline("! KPP QP - Quadruple precision kind");
+    F90_Inline("  INTEGER, PARAMETER :: qp = SELECTED_REAL_KIND(18,400)");
+    F90_Inline("\nEND MODULE %s_Precision\n\n", rootFileName );
 
   UseFile( initFile );
     F90_Inline("MODULE %s_Initialize\n", rootFileName );
@@ -3270,7 +3271,8 @@ case 'h':
     /* Here we define the model module which aggregates everything */
     /* put module rootFileName_Model into separate file */
     /* (reusing "sparse_dataFile" as done above for _Precision file) */
-    sprintf( buf, "%s_Model.f90", rootFileName );
+    //sprintf( buf, "%s_Model.f90", rootFileName );
+    sprintf( buf, "%s_Model.%s", rootFileName, f90Suffix );
     sparse_dataFile = fopen(buf, "w");
     if( sparse_dataFile == 0 ) {
       FatalError(3,"%s: Can't create file", buf );
@@ -3525,7 +3527,7 @@ int n;
     GenerateDJacDRcoeff();
   }
 
-  printf("\nKPP is generating the driver from %s.f90:", driver);
+  printf("\nKPP is generating the driver from %s.%s:", driver, f90Suffix);
   printf("\n    - %s_Main",rootFileName);
 
   if ( (useLang == F77_LANG)||(useLang == F90_LANG)||(useLang == C_LANG) )

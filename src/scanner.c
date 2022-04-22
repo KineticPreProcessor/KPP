@@ -115,6 +115,8 @@ int doFlux         = 0;
 /* if useValues=1 KPP replaces parameters like NVAR etc. 
        by their values in vector/matrix declarations */
 int useDeclareValues = 0; 
+int upperCaseF90     = 0;
+char f90Suffix[3]    = "f90";
 
 char integrator[ MAX_PATH ] = "none";
 char driver[ MAX_PATH ] = "none";
@@ -399,6 +401,21 @@ void CmdFlux( char *cmd )
     return;
   }
   ScanError("'%s': Unknown parameter for #FLUX [ON|OFF]", cmd );
+}
+
+void CmdUpperCaseF90( char *cmd )
+{
+  if( EqNoCase( cmd, "OFF" ) ) {
+    upperCaseF90 = 0;
+    sprintf( f90Suffix, "%s", "f90" );
+    return;
+  }
+  if( EqNoCase( cmd, "ON" ) ) {
+    upperCaseF90 = 1;
+    sprintf( f90Suffix, "%s", "F90" );
+    return;
+  }
+  ScanError("'%s': Unknown parameter for #UPPERCASEF90 [ON|OFF]", cmd );
 }
 
 int FindAtom( char *atname )

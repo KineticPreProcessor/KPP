@@ -721,69 +721,114 @@ char buf[ MAX_K ];
 /*************************************************************************************************/
 void Use_F90()
 {
-  WriteElm 	    = F90_WriteElm;
-  WriteSymbol 	    = F90_WriteSymbol;
-  WriteAssign 	    = F90_WriteAssign;
-  WriteComment 	    = F90_WriteComment;
-  WriteOMPThreadPrivate   = F90_WriteOMPThreadPrivate;
-  DeclareConstant   = F90_DeclareConstant;
-  Declare           = F90_Declare;
-  ExternDeclare     = F90_ExternDeclare;
-  GlobalDeclare     = F90_GlobalDeclare;
-  InitDeclare       = F90_InitDeclare;
+  // Temporary string variable
+  char buf[ MAX_K ];
 
-  FunctionStart     = F90_FunctionStart;
-  FunctionPrototipe = F90_FunctionPrototipe;
-  FunctionBegin     = F90_FunctionBegin;
-  FunctionEnd       = F90_FunctionEnd;
+  // Use functions for writing code to the F90 format files
+  WriteElm              = F90_WriteElm;
+  WriteSymbol           = F90_WriteSymbol;
+  WriteAssign           = F90_WriteAssign;
+  WriteComment          = F90_WriteComment;
+  WriteOMPThreadPrivate = F90_WriteOMPThreadPrivate;
+  DeclareConstant       = F90_DeclareConstant;
+  Declare               = F90_Declare;
+  ExternDeclare         = F90_ExternDeclare;
+  GlobalDeclare         = F90_GlobalDeclare;
+  InitDeclare           = F90_InitDeclare;
+  FunctionStart         = F90_FunctionStart;
+  FunctionPrototipe     = F90_FunctionPrototipe;
+  FunctionBegin         = F90_FunctionBegin;
+  FunctionEnd           = F90_FunctionEnd;
 
-  OpenFile( &param_headerFile,   rootFileName,
-	    "_Parameters.f90", "Parameter Module File" );
-  /*  mz_rs_20050117+ */
-  OpenFile( &initFile, rootFileName,
-	    "_Initialize.f90", "Initialization File" );
-  /*  mz_rs_20050117- */
-  /* mz_rs_20050518+ no driver file if driver = none */
-  if( strcmp( driver, "none" ) != 0 )
-    OpenFile( &driverFile, rootFileName,
-	      "_Main.f90", "Main Program File" );
-  /* mz_rs_20050518- */
-  OpenFile( &integratorFile, rootFileName, "_Integrator.f90",
-                   "Numerical Integrator (Time-Stepping) File" );
-  OpenFile( &linalgFile, rootFileName, "_LinearAlgebra.f90",
-                   "Linear Algebra Data and Routines File" );
-  OpenFile( &functionFile, rootFileName, "_Function.f90",
-                   "The ODE Function of Chemical Model File" );
-  OpenFile( &jacobianFile, rootFileName, "_Jacobian.f90",
-                   "The ODE Jacobian of Chemical Model File" );
-  OpenFile( &rateFile, rootFileName, "_Rates.f90",
-                   "The Reaction Rates File" );
-  if ( useStochastic )
-    OpenFile( &stochasticFile, rootFileName, "_Stochastic.f90",
-                   "The Stochastic Chemical Model File" );
-  if ( useStoicmat ) {
-     OpenFile( &stoichiomFile, rootFileName, "_Stoichiom.f90",
-                   "The Stoichiometric Chemical Model File" );
-     OpenFile( &sparse_stoicmFile, rootFileName, "_StoichiomSP.f90",
-                   "Sparse Stoichiometric Data Structures File" );
+  // Parameters
+  sprintf( buf, "_Parameters.%s", f90Suffix );
+  OpenFile( &param_headerFile, rootFileName, buf, "Parameter Module File" );
+
+  // Initialize
+  sprintf( buf, "_Initialize.%s", f90Suffix );
+  OpenFile( &initFile, rootFileName, buf, "Initialization File" );
+
+  // Main
+  if( strcmp( driver, "none" ) != 0 ) {
+    sprintf( buf, "_Main.%s", f90Suffix );
+    OpenFile( &driverFile, rootFileName, buf, "Main Program File" );
   }
-  OpenFile( &utilFile, rootFileName, "_Util.f90",
-                   "Auxiliary Routines File" );
+
+  // Integrator
+  sprintf( buf, "_Integrator.%s", f90Suffix );
+  OpenFile( &integratorFile, rootFileName, buf,
+	    "Numerical Integrator (Time-Stepping) File" );
+
+  // LinearAlgebra
+  sprintf( buf, "_LinearAlgebra.%s", f90Suffix );
+  OpenFile( &linalgFile, rootFileName, buf,
+	    "Linear Algebra Data and Routines File" );
+
+  // Function
+  sprintf( buf, "_Function.%s", f90Suffix );
+  OpenFile( &functionFile, rootFileName, buf,
+	    "The ODE Function of Chemical Model File" );
+
+  // Jacobian
+  sprintf( buf, "_Jacobian.%s", f90Suffix );
+  OpenFile( &jacobianFile, rootFileName, buf,
+	    "The ODE Jacobian of Chemical Model File" );
+
+  // _Rates
+  sprintf( buf, "_Rates.%s", f90Suffix );
+  OpenFile( &rateFile, rootFileName, buf, "The Reaction Rates File" );
+
+  // _Stochastic
+  if ( useStochastic ) {
+    sprintf( buf, "_Stochastic.%s", f90Suffix );
+    OpenFile( &stochasticFile, rootFileName, buf,
+	      "The Stochastic Chemical Model File" );
+  }
+
+  // _Stoichiom and _StoichiomSP
+  if ( useStoicmat ) {
+    sprintf( buf, "_Stoichiom.%s", f90Suffix );
+    OpenFile( &stoichiomFile, rootFileName, buf,
+	      "The Stoichiometric Chemical Model File" );
+
+    sprintf( buf, "_StoichiomSP.%s", f90Suffix );
+    OpenFile( &sparse_stoicmFile, rootFileName, buf,
+	      "Sparse Stoichiometric Data Structures File" );
+  }
+
+  // _Util
+  sprintf( buf, "_Util.%s", f90Suffix );
+  OpenFile( &utilFile, rootFileName, buf, "Auxiliary Routines File" );
+
   /* OpenFile( &sparse_dataFile, rootFileName, "_Sparse.f90",
                        "Sparse Data Module File" );*/
-  OpenFile( &global_dataFile, rootFileName, "_Global.f90",
-	    "Global Data Module File" );
+
+  // _Global
+  sprintf( buf, "_Global.%s", f90Suffix );
+  OpenFile( &global_dataFile, rootFileName, buf, "Global Data Module File" );
+
+  // _JacobianSP
   if ( useJacSparse ) {
-     OpenFile( &sparse_jacFile, rootFileName, "_JacobianSP.f90",
-         "Sparse Jacobian Data Structures File" );
+    sprintf( buf, "_JacobianSP.%s", f90Suffix );
+    OpenFile( &sparse_jacFile, rootFileName, buf,
+	      "Sparse Jacobian Data Structures File" );
   }
+
+  // _Hessian and _HessianSP
   if ( useHessian ) {
-     OpenFile( &hessianFile, rootFileName, "_Hessian.f90", "Hessian File" );
-     OpenFile( &sparse_hessFile, rootFileName, "_HessianSP.f90",
-         "Sparse Hessian Data Structures File" );
+    sprintf( buf, "_Hessian.%s", f90Suffix );
+    OpenFile( &hessianFile, rootFileName, buf, "Hessian File" );
+
+    sprintf( buf, "_HessianSP.%s", f90Suffix );
+    OpenFile( &sparse_hessFile, rootFileName, buf,
+	      "Sparse Hessian Data Structures File" );
   }
+
+  // .map
   OpenFile( &mapFile, rootFileName, ".map",
-                   "Map File with Human-Readable Information" );
-  OpenFile( &monitorFile, rootFileName, "_Monitor.f90",
-                   "Utility Data Module File" );
+	    "Map File with Human-Readable Information" );
+
+  // _Monitor
+  sprintf( buf, "_Monitor.%s", f90Suffix );
+  OpenFile( &monitorFile, rootFileName, buf, "Utility Data Module File" );
 }
