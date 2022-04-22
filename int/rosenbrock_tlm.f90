@@ -75,23 +75,27 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm,&
    INTEGER ::   ICNTRL(20), ISTATUS(20)
    INTEGER, SAVE :: Ntotal = 0
 
-   ICNTRL(1:20)  = 0
-   RCNTRL(1:20)  = 0.0_dp
-   ISTATUS(1:20) = 0
-   RSTATUS(1:20) = 0.0_dp
+   !~~~> Zero input and output arrays for safety's sake
+   ICNTRL     = 0
+   RCNTRL     = 0.0_dp
+   ISTATUS    = 0
+   RSTATUS    = 0.0_dp
 
-   ICNTRL(1) = 0       ! non-autonomous
-   ICNTRL(2) = 1       ! vector tolerances
-   ICNTRL(3) = 5       ! choice of the method
-   ICNTRL(12) = 1      ! 0 - fwd trunc error only, 1 - tlm trunc error
-   RCNTRL(3) = STEPMIN ! starting step
+   !~~~> fine-tune the integrator:
+   ICNTRL(1)  = 0       ! non-autonomous
+   ICNTRL(2)  = 1       ! vector tolerances
+   ICNTRL(3)  = 5       ! choice of the method
+   RCNTRL(3)  = STEPMIN ! starting step
+   ICNTRL(12) = 1       ! 0 - fwd trunc error only, 1 - tlm trunc error
+   ICNTRL(15) = 5       ! Call Update_SUN and Update_RCONST from w/in the int. 
 
-   ! if optional parameters are given, and if they are >=0, then they overwrite default settings
-   IF (PRESENT(ICNTRL_U)) THEN
-     WHERE(ICNTRL_U(:) >= 0) ICNTRL(:) = ICNTRL_U(:)
+   !~~~> if optional parameters are given, and if they are /= 0,
+   !     then use them to overwrite default settings
+   IF ( PRESENT( ICNTRL_U ) ) THEN
+      WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
    ENDIF
-   IF (PRESENT(RCNTRL_U)) THEN
-     WHERE(RCNTRL_U(:) >= 0) RCNTRL(:) = RCNTRL_U(:)
+   IF ( PRESENT( RCNTRL_U ) ) THEN
+      WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
    ENDIF
 
    ! Determine the settings of the Do_Update_* flags, which determine
@@ -126,9 +130,11 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm,&
    END IF
 
    STEPMIN = RSTATUS(Nhexit)
-   ! if optional parameters are given for output they return information
-   IF (PRESENT(ISTATUS_U)) ISTATUS_U(:) = ISTATUS(:)
-   IF (PRESENT(RSTATUS_U)) RSTATUS_U(:) = RSTATUS(:)
+
+   ! if optional parameters are given for output
+   ! use them to store information in them
+   IF ( PRESENT( ISTATUS_U ) ) ISTATUS_U = ISTATUS
+   IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
 
 END SUBROUTINE INTEGRATE_TLM
 

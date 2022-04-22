@@ -75,8 +75,11 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm, &
     INTEGER :: ICNTRL(20), ISTATUS(20)
     INTEGER, SAVE :: Ntotal = 0
 
-    ICNTRL(1:20) = 0
-    RCNTRL(1:20) = 0.0_dp
+    !~~~> Zero input and output arrays for safety's sake
+    ICNTRL     = 0
+    RCNTRL     = 0.0_dp
+    ISTATUS    = 0
+    RSTATUS    = 0.0_dp
 
     !~~~> fine-tune the integrator:
     ICNTRL(2)  = 0   ! Tolerances: 0=vector, 1=scalar
@@ -87,15 +90,16 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm, &
     ICNTRL(10) = 1   ! FWD error estimation: 0=classic, 1=SDIRK
     ICNTRL(11) = 1   ! Step size ontroller: 1=Gustaffson, 2=classic
     ICNTRL(12) = 0   ! Trunc. error estimate: 0=fwd only, 1=fwd and TLM
+    ICNTRL(15) = 7   ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
 
-    !~~~> if optional parameters are given, and if they are >0,
+    !~~~> if optional parameters are given, and if they are /= 0,
     !     then use them to overwrite default settings
-    IF (PRESENT(ICNTRL_U)) THEN
-      WHERE(ICNTRL_U(:) > 0) ICNTRL(:) = ICNTRL_U(:)
-    END IF
-    IF (PRESENT(RCNTRL_U)) THEN
-      WHERE(RCNTRL_U(:) > 0) RCNTRL(:) = RCNTRL_U(:)
-    END IF
+    IF ( PRESENT( ICNTRL_U ) ) THEN
+       WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
+    ENDIF
+    IF ( PRESENT( RCNTRL_U ) ) THEN
+       WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
+    ENDIF
 
     ! Determine the settings of the Do_Update_* flags, which determine
     ! whether or not we need to call Update_* routines in the integrator
@@ -125,9 +129,9 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm, &
 
     ! if optional parameters are given for output
     ! use them to store information in them
-    IF (PRESENT(ISTATUS_U)) ISTATUS_U(:) = ISTATUS(:)
-    IF (PRESENT(RSTATUS_U)) RSTATUS_U(:) = RSTATUS(:)
-    IF (PRESENT(IERR_U)) IERR_U = IERR
+    IF ( PRESENT( ISTATUS_U ) ) ISTATUS_U = ISTATUS
+    IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
+    IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR
 
     IF (IERR < 0) THEN
       PRINT *,'Runge-Kutta-TLM: Unsuccessful exit at T=', TIN,' (IERR=',IERR,')'

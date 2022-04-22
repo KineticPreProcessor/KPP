@@ -72,23 +72,27 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    KPP_REAL :: RCNTRL(20), RSTATUS(20), T1, T2
    INTEGER       :: ICNTRL(20), ISTATUS(20), Ierr
 
-   ICNTRL(:)  = 0
-   RCNTRL(:)  = 0.0_dp
-   ISTATUS(:) = 0
-   RSTATUS(:) = 0.0_dp
+   !~~~> Zero input and output arrays for safety's sake
+   ICNTRL     = 0
+   RCNTRL     = 0.0_dp
+   ISTATUS    = 0
+   RSTATUS    = 0.0_dp
 
    !~~~> fine-tune the integrator:
-   ICNTRL(2) = 0        ! 0 - vector tolerances, 1 - scalar tolerances
-   ICNTRL(6) = 0        ! starting values of Newton iterations: interpolated (0), zero (1)
-  ! If optional parameters are given, and if they are >0, 
-   ! then they overwrite default settings. 
-   IF (PRESENT(ICNTRL_U)) THEN
-     WHERE(ICNTRL_U(:) > 0) ICNTRL(:) = ICNTRL_U(:)
-   END IF
-   IF (PRESENT(RCNTRL_U)) THEN
-     WHERE(RCNTRL_U(:) > 0) RCNTRL(:) = RCNTRL_U(:)
-   END IF
-   
+   ICNTRL(2)  = 0       ! 0 - vector tolerances, 1 - scalar tolerances
+   ICNTRL(6)  = 0       ! starting values of Newton iterations: 
+                        !  interpolated (0), zero (1)
+   ICNTRL(15) = 5       ! Call Update_SUN and Update_RCONST from w/in the int. 
+
+   !~~~> if optional parameters are given, and if they are /= 0,
+   !     then use them to overwrite default settings
+   IF ( PRESENT( ICNTRL_U ) ) THEN
+      WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
+   ENDIF
+   IF ( PRESENT( RCNTRL_U ) ) THEN
+      WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
+   ENDIF
+
    ! Determine the settings of the Do_Update_* flags, which determine
    ! whether or not we need to call Update_* routines in the integrator
    ! (or not, if we are calling them from a higher-level)
@@ -119,10 +123,11 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
         PRINT *,'SDIRK: Unsuccessful exit at T=',TIN,' (Ierr=',Ierr,')'
    ENDIF
    
-   ! if optional parameters are given for output they to return information
-   IF (PRESENT(ISTATUS_U)) ISTATUS_U(:) = ISTATUS(:)
-   IF (PRESENT(RSTATUS_U)) RSTATUS_U(:) = RSTATUS(:)
-   IF (PRESENT(Ierr_U))    Ierr_U       = Ierr
+   ! if optional parameters are given for output
+   ! use them to store information in them
+   IF ( PRESENT( ISTATUS_U ) ) ISTATUS_U = ISTATUS
+   IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
+   IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR
 
    END SUBROUTINE INTEGRATE
 
