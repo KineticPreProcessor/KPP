@@ -50,11 +50,11 @@
 Makefile_*
 
 # LaTeX and BibTeX files:
-/docs/*.aux
-/docs/*.bbl
-/docs/*.blg
-/docs/*.log
-/docs/*.toc
+/manual/*.aux
+/manual/*.bbl
+/manual/*.blg
+/manual/*.log
+/manual/*.toc
 
 # are there any *.dat files to exclude?
 *.dat
