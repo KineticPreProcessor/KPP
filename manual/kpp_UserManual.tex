@@ -1,4 +1,4 @@
-\def\myfiledate{2022-04-20} % "\myfiledate" because packages may change \filedate
+\def\myfiledate{2022-04-22} % "\myfiledate" because packages may change \filedate
 \def\thiskppversion{2.2.3}
 
 \documentclass[twoside]{article}
@@ -2478,14 +2478,14 @@ Variable & Description\\
                       are called within the integrator:\par
                     \begin{tabular}{lp{10cm}}
                       -1:   & Do not call any \code{Update_*} subroutines\\
-                      0:    & Call all \code{Update_*} subroutines (default)\\
+                      0:    & Use the integrator-specific default values\\
                       $>$1: & A number between 1 and 7, derived by adding
                               up the bits with values 4, 2, and 1. The first
                               digit (4) activates \code{Update_SUN}. The second
                               digit (2) activates \code{Update_PHOTO}. The last
                               digit (1) activates \code{Update_RCONST}. 
                     \end{tabular}\par
-                    For example, \code{ICNTRL_U(15)=6} will activate the
+                    For example, \code{ICNTRL_U(15)=6} (4+2) will activate the
                     calls to \code{Update_SUN} and \code{Update_PHOTO}
                     but not the call to \code{Update_RCONST}.\\
 \hhline
