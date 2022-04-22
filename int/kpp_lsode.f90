@@ -3407,7 +3407,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       IMPLICIT NONE
 
       INTEGER :: N
-      KPP_REAL :: V(NVAR), FCT(NVAR), T
+      KPP_REAL :: V(NVAR), FCT(NVAR), T, TOLD
       
       TOLD = TIME
       TIME = T
@@ -3435,7 +3435,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 
       IMPLICIT NONE
 
-      KPP_REAL :: V(NVAR), T
+      KPP_REAL :: V(NVAR), T, TOLD
       INTEGER :: N
 #ifdef FULL_ALGEBRA    
       INTEGER :: I, J
