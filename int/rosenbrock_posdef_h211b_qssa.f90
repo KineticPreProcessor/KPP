@@ -59,7 +59,7 @@ CONTAINS
 SUBROUTINE INTEGRATE( TIN, TOUT, &
   ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, IERR_U )
 
-   USE KPP_ROOT_Util,       ONLY : Integrator_Update_Options
+   USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
 
    IMPLICIT NONE
 
@@ -225,6 +225,9 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !        =  5 :  Call Update_SUN and Update_RCONST from within the int.
 !        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
 !        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST w/in the int.
+=======
+!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+>>>>>>> 76890098ddc972b300d403f357240a1b6b0ed30d
 !
 !    RCNTRL(1)  -> Hmin, lower bound for the integration step size
 !          It is strongly recommended to keep Hmin = ZERO

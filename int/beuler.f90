@@ -35,7 +35,7 @@ MODULE KPP_ROOT_Integrator
   LOGICAL, PRIVATE :: Do_Update_RCONST
   LOGICAL, PRIVATE :: Do_Update_PHOTO
   LOGICAL, PRIVATE :: Do_Update_SUN
-  
+
 !~~~>  Statistics on the work performed by the SDIRK method
   INTEGER, PARAMETER :: Nfun=1, Njac=2, Nstp=3, Nacc=4,  &
            Nrej=5, Ndec=6, Nsol=7, Nsng=8,               &
@@ -1351,7 +1351,7 @@ END SUBROUTINE BEuler
       Told = TIME
       TIME = T
       IF ( Do_Update_SUN    ) CALL Update_SUN()
-      IF ( Do_Update_RCONST ) CALL Update_RCONST() 
+      IF ( Do_Update_RCONST ) CALL Update_RCONST()
 
 #ifdef FULL_ALGEBRA
       CALL Jac_SP(Y, FIX, RCONST, JS)
