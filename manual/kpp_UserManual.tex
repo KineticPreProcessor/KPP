@@ -1,4 +1,4 @@
-\def\myfiledate{2022-04-22} % "\myfiledate" because packages may change \filedate
+\def\myfiledate{2022-04-25} % "\myfiledate" because packages may change \filedate
 \def\thiskppversion{2.2.3}
 
 \documentclass[twoside]{article}
@@ -930,14 +930,15 @@ this category are \code{#CHECKALL}, \code{#LOOKATALL} and
 sections.
 
 %-----------------------------------------------------------------------------
-\subsubsection{Generate Fortran-90 files with the {\tt\.F90} suffix ({\tt\#UPPERCASEF90})}
+\subsubsection{Generate Fortran90 files with the {\tt .F90} suffix
+  ({\tt\#UPPERCASEF90})}
 \label{sec:command-uppercasef90}
 %-----------------------------------------------------------------------------
 
 If you have selected the \code{#LANGUAGE Fortran90} option, KPP will
-generate source code ending in `\code{.f90} by default.  Setting
-{\tt\#UPPERCASEf90 on} will tell KPP to generate Fortran-90 code
-ending in {\tt\.F90} instead.  
+generate source code ending in `\code{.f90}' by default. Setting
+{\tt\#UPPERCASEF90 ON} will tell KPP to generate Fortran90 code ending
+in `\code{.F90}' instead.
 
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 \subsection{Inlined code}
@@ -3152,7 +3153,7 @@ Following is the BNF-like specification of the language:
                    & \code{#FUNCTION} \verb![ AGGREGATE | SPLIT ]!                       & $|$\\
                    & \code{#HESSIAN} \verb![ ON | OFF ]!                                 & $|$\\
                    & \code{#INCLUDE} {\it file\_name}                                    & $|$\\
-                   & \code{#INTEGRATOR} {\it integrator\_name}                   pr        & $|$\\
+                   & \code{#INTEGRATOR} {\it integrator\_name}                           & $|$\\
                    & \code{#INTFILE} {\it integrator\_name}                              & $|$\\
                    & \code{#JACOBIAN} \verb![ OFF | FULL | SPARSE_LU_ROW | SPARSE_ROW ]! & $|$\\
                    & \code{#LANGUAGE} \verb![ Fortran90 | Fortran77 | C | Matlab ]!      & $|$\\
@@ -3162,8 +3163,8 @@ Following is the BNF-like specification of the language:
                    & \code{#REORDER} \verb![ ON | OFF ]!                                 & $|$\\
                    & \code{#STOCHASTIC} \verb![ ON | OFF ]!                              & $|$\\
                    & \code{#STOICMAT} \verb![ ON | OFF ]!                                & $|$\\
-                   & \code{#TRANSPORTALL}\\[3mm]\\
-                   & \code{#UPPERCASEF90} \verb![ ON | OFF ]!                                     & $|$
+                   & \code{#TRANSPORTALL} \verb![ ON | OFF ]!                            & $|$\\
+                   & \code{#UPPERCASEF90}\\[3mm]
 {\it inline\_code} ::= & \code{#INLINE} {\it inline\_type}\\
                        & {\it inline\_code}\\
                        & \code{#ENDINLINE}
@@ -3207,7 +3208,7 @@ Following is the BNF-like specification of the language:
                                     & \code{C_RATES} $|$ \code{C_RCONST} $|$ \code{C_GLOBAL} $|$
                                       \code{C_INIT} $|$ \code{C_DATA} $|$ \code{C_UTIL} & $|$\\
                                     & \code{MATLAB_RATES} $|$ \code{MATLAB_RCONST} $|$ \code{MATLAB_GLOBAL} & $|$\\
-                                    & \code{MATLAB_INIT} $|$ \code{MATLAB_DATA} $|$ \code{MATLAB_UTIL}\\[1.5mm]qq
+                                    & \code{MATLAB_INIT} $|$ \code{MATLAB_DATA} $|$ \code{MATLAB_UTIL}\\[1.5mm]
 
 {\it lump} ::=                      & {\it lump\_sum} : {\it species\_name};\\[1.5mm]
 
