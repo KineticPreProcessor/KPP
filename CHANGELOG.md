@@ -5,11 +5,16 @@
 ## [2.4.0]
 
 - Brought updates from the MECCA branch into the main line of
-  development
+  development:
+  - new integrators: beuler.f90, rosenbrock_mz.f90, rosenbrock_posdef.f90,
+    rosenbrock_posdef_h211b_qssa.f90
+  - several memory sizes (MAX_EQN, ...) increased to allow large chemical mechanisms
+  - new Makefile target: list
+  - LaTeX User Manual added
 - Now use ICNTRL(15) to decide whether or not to toggle calling the
   Update\_SUN, Update\_RCONST, and Update\_PHOTO routines from within
   the integrator
-   
+
 ## [2.3.2_gc]
 
 ### Added
