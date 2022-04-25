@@ -2828,51 +2828,76 @@ int INITVAL;
   Declare( X );
 
   NewLines(1);
+  WriteComment("~~~ Define scale factor for units");
   WriteAssign( varTable[CFACTOR]->name , ascid( (double)cfactor ) );
   NewLines(1);
 
-  Assign( Elm( X ), Mul( Elm( IV, varDefault ), Elm( CFACTOR ) ) );
-  C_Inline("  for( i = 0; i < NVAR; i++ )" );
-  F77_Inline("      DO i = 1, NVAR" );
-  F90_Inline("  DO i = 1, NVAR" );
-  MATLAB_Inline("   for i = 1:NVAR" );
-  ident++;
+  //=========================================================================
+  // MODIFICATION by Bob Yantosca (25 Apr 2022)
+  //
+  // For F90, assign values to C directly (since VAR and FIX now point to C
+  // instead of the other way around).  Otherwise, preserve prior code.
+  //=========================================================================
+  if ( useLang == F90_LANG ) {
+
+    //
+    // Fortran-90
+    //
+    WriteComment("~~~ Zero C array");
+    F90_Inline("  C = (0.)*CFACTOR" );
+    NewLines(1);
+
+    WriteComment("~~~ Set initial species concentrations");
+    for( i = 0; i < SpcNr; i++) {
+      if( *SpeciesTable[ Code[i] ].ival == 0 ) continue;
+      Assign( Elm( C, i ),
+	      Mul( Elm( IV, SpeciesTable[ Code[i] ].ival ),
+	      Elm( CFACTOR ) ) );
+    }
+
+    NewLines(1);
+
+  } else {
+
+    //
+    // Fortran-77, C, and Matlab
+    //
+    Assign( Elm( X ), Mul( Elm( IV, varDefault ), Elm( CFACTOR ) ) );
+    C_Inline("  for( i = 0; i < NVAR; i++ )" );
+    F77_Inline("      DO i = 1, NVAR" );
+    MATLAB_Inline("   for i = 1:NVAR" );
+    ident++;
     Assign( Elm( VAR, -I ), Elm( X ) );
-  ident--;
-  F77_Inline("      END DO" );
-  F90_Inline("  END DO" );
-  MATLAB_Inline("   end" );
+    ident--;
+    F77_Inline("      END DO" );
+    MATLAB_Inline("   end" );
 
-
-  NewLines(1);
-  Assign( Elm( X ), Mul( Elm( IV, fixDefault ), Elm( CFACTOR ) ) );
-  C_Inline("  for( i = 0; i < NFIX; i++ )" );
-  F77_Inline("      DO i = 1, NFIX" );
-  F90_Inline("  DO i = 1, NFIX" );
-  MATLAB_Inline("   for i = 1:NFIX" );
-  ident++;
+    NewLines(1);
+    Assign( Elm( X ), Mul( Elm( IV, fixDefault ), Elm( CFACTOR ) ) );
+    C_Inline("  for( i = 0; i < NFIX; i++ )" );
+    F77_Inline("      DO i = 1, NFIX" );
+    MATLAB_Inline("   for i = 1:NFIX" );
+    ident++;
     Assign( Elm( FIX, -I ), Elm( X ) );
-  ident--;
-  F77_Inline("      END DO" );
-  F90_Inline("  END DO" );
-  MATLAB_Inline("   end" );
+    ident--;
+    F77_Inline("      END DO" );
+    MATLAB_Inline("   end" );
 
+    NewLines(1);
 
-  NewLines(1);
+    for( i = 0; i < VarNr; i++) {
+      if( *SpeciesTable[ Code[i] ].ival == 0 ) continue;
+      Assign( Elm( VAR, i ),
+	      Mul( Elm( IV, SpeciesTable[ Code[i] ].ival ),
+	      Elm( CFACTOR ) ) );
+    }
 
-  for( i = 0; i < VarNr; i++) {
-    if( *SpeciesTable[ Code[i] ].ival == 0 ) continue;
-    Assign( Elm( VAR, i ), Mul(
-              Elm( IV, SpeciesTable[ Code[i] ].ival ),
+    for( i = 0; i < FixNr; i++) {
+      if( *SpeciesTable[ Code[i + VarNr] ].ival == 0 ) continue;
+      Assign( Elm( FIX, i ),
+	      Mul( Elm( IV, SpeciesTable[ Code[i + VarNr] ].ival ),
               Elm( CFACTOR ) ) );
-  }
-
-
-  for( i = 0; i < FixNr; i++) {
-    if( *SpeciesTable[ Code[i + VarNr] ].ival == 0 ) continue;
-    Assign( Elm( FIX, i ), Mul(
-              Elm( IV, SpeciesTable[ Code[i + VarNr] ].ival ),
-              Elm( CFACTOR ) ) );
+    }
   }
 
 /*  NewLines(1);
