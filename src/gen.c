@@ -2511,9 +2511,23 @@ void GenerateGlobalHeader()
   WriteComment("Declaration of global variables");
   if ( useFortran ) {
     NewLines(1);
-    WriteComment("These quantities vary with lon/lat/lev location.");
-    WriteComment("They must be declared THREADPRIVATE for the parallel");
-    WriteComment("loop over all cells in the chemistry grid.");
+    WriteComment(
+      "~~~ The following quantities vary with lon/lat/lev location.");
+    WriteComment(
+      "~~~ Therefore, they must declared THREADPRIVATE for OpenMP");
+    WriteComment(
+      "~~~ parallelization.  The compiler will make a private copy of");
+    WriteComment(
+      "~~~ these variables (using stack memory) for each execution");
+    WriteComment(
+      "~~~ thread.  At the end of the parallel loop, these variables");
+    WriteComment(
+      "~~~ will be finalized, and their memory deallocated.");
+    NewLines(1);
+    WriteComment(
+      "~~~ NOTE: Because the OpenMP commands all  with a comment character");
+    WriteComment(
+      "~~~ they will be ignored unless the code is compiled for OpenMP.");
   }
   NewLines(1);
 
@@ -2572,9 +2586,8 @@ void GenerateGlobalHeader()
   /*** Declare non-threadprivate variables ***/
   NewLines(1);
   if ( useFortran ) {
-    WriteComment("These variables do not vary with location, and can be");
-    WriteComment("assigned outside of the parallel loop over cells in the");
-    WriteComment("chemistry grid.  These do not need to be THREADPRIVATE.");
+    WriteComment("~~~ The following quantities do not vary with location.");
+    WriteComment("~~~ As such, they do not  need to be declared THREADPRIVATE.");
     NewLines(1);
   }
 
