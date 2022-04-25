@@ -2525,9 +2525,11 @@ void GenerateGlobalHeader()
       "~~~ will be finalized, and their memory deallocated.");
     NewLines(1);
     WriteComment(
-      "~~~ NOTE: Because the OpenMP commands all  with a comment character");
+      "~~~ NOTE: Because the OpenMP commands all begin with a comment");
     WriteComment(
-      "~~~ they will be ignored unless the code is compiled for OpenMP.");
+      "~~~ character, they will be ignored unless the code is compiled");
+    WriteComment(
+		 "~~~ with OpenMP parallelization turned on.");
   }
   NewLines(1);
 
