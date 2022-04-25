@@ -258,8 +258,23 @@ char maxj[20];
 		      sprintf( maxi, "%d", (varTable[-var->maxi]->value)==0?
 		           1:varTable[-var->maxi]->value );
 		}
-                sprintf( buf, "%s :: %s(%s)", baseType, var->name, maxi );
+
+		//=============================================================
+		// MODIFICATION by Bob Yantosca (25 Apr 2022)
+		//
+		// Modify the IF block so that F90 variables can be declared
+		// with either the POINTER or TARGET attribute if needed.
+		//
+		if ( var->attr == ATTR_F90_PTR )
+		  sprintf( buf, "%s, POINTER :: %s(:)", baseType, var->name );
+		else if ( var->attr == ATTR_F90_TGT )
+		  sprintf( buf, "%s, TARGET :: %s(%s)", baseType,
+			                                var->name, maxi );
+		else
+		  sprintf( buf, "%s :: %s(%s)", baseType, var->name, maxi );
+		//=============================================================
  		break;
+
     case MELM:
                 if( var->maxi > 0 ) sprintf( maxi, "%d", var->maxi );
                 else {
@@ -290,6 +305,7 @@ char maxj[20];
                 sprintf( buf, "%s :: %s(%s,%s)",
                          baseType, var->name, maxi, maxj );
 		break;
+
     default:
                 printf( "Can not declare type %d\n", var->type );
                 break;
@@ -342,6 +358,7 @@ int maxCols = MAX_COLS;
 		  case STRING: bprintf( "'%3s'", *cval ); break;
 		}
 		break;
+
     case VELM:
       /* define maxCols here already and choose suitable splitsize */
       switch( var -> baseType ) {
@@ -365,8 +382,22 @@ int maxCols = MAX_COLS;
         if( (var->maxi == 0) ||
             ((var->maxi < 0) && (varTable[ -var->maxi ]->maxi == 0)) )
           strcat( maxi, "+1");
-        bprintf( "  %s, " , baseType);
+	bprintf( "  %s, " , baseType);
         if( n>0 ) bprintf( "PARAMETER, " ); /* if values are assigned now */
+	//====================================================================
+	// MODIFICATION by Bob Yantosca (25 Apr 2002)
+	//
+	// Add the POINTER or TARGET attributes to F90 variables, if needed.
+	//
+	if ( var->attr == ATTR_F90_PTR ) {
+          bprintf( ", POINTER :: %s(:)", var->name) ;
+	  if( n<=0 ) break;
+	}
+	if ( var->attr == ATTR_F90_TGT ) {
+          bprintf( ", TARGET :: %s(%s)", var->name, maxi) ;
+	  if( n<=0 ) break;
+        }
+	//====================================================================
         if ( maxi_div==0 ) { /* define array in one piece */
           bprintf( "DIMENSION(%s) :: %s",
                    maxi, var->name) ;
@@ -456,6 +487,7 @@ int maxCols = MAX_COLS;
                 sprintf( buf, "%s, DIMENSION(%s,%s) :: %s\n",	/* changed here */
                          baseType, maxi, maxj,var->name );
 		break;
+
     default:
                 printf( "Can not declare type %d", var->type );
                 break;

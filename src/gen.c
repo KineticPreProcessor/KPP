@@ -151,8 +151,24 @@ int i,j;
 
   /* PI      = DefConst( "PI",     real, "Value of pi" ); */
 
-  VAR = DefvElm( "VAR", real, -NVAR, "Concentrations of variable species (global)" );
-  FIX = DefvElm( "FIX", real, -NFIX, "Concentrations of fixed species (global)" );
+//============================================================================
+// MODIFICATION by Bob Yantosca (25 Apr 2022)
+//
+// For Fortran-90, declare VAR and FIX as POINTER variables, which will
+// allow us to remove the non-threadsafe EQUIVALENCE statements.
+//
+  if ( useLang == F90_LANG ) {
+    VAR = DefvElmP( "VAR", real,
+		    "Concentrations of variable species (global)" );
+    FIX = DefvElmP( "FIX", real,
+		    "Concentrations of fixed species (global)" );
+  } else {
+    VAR = DefvElm( "VAR", real, -NVAR,
+		   "Concentrations of variable species (global)" );
+    FIX = DefvElm( "FIX", real, -NFIX,
+		   "Concentrations of fixed species (global)" );
+}
+//============================================================================
   FLUX = DefvElm( "FLUX", real, -NFLUX, "Captured flux through reactions (global)" );
 
   V = DefvElm( "V", real, -NVAR, "Concentrations of variable species (local)" );
@@ -238,7 +254,18 @@ int i,j;
   IV = DefeElm( "IV", 0 );
 
   C_DEFAULT = DefvElm( "C_DEFAULT", real, -NSPEC, "Default concentration for all species" );
-  C = DefvElm( "C", real, -NSPEC, "Concentration of all species" );
+//============================================================================
+// MODIFICATION by Bob Yantosca (25 Apr 2002)
+// For Fortran-90, declare C with the TARGET attribute.  This will allow
+// VAR and FIX to point to C, which will let us remove the non-threadsafe
+// EQUIVALENCE statements.
+//
+  if ( useLang == F90_LANG ) {
+    C = DefvElmT( "C", real, -NSPEC, "Concentration of all species" );
+  } else {
+    C = DefvElm( "C", real, -NSPEC, "Concentration of all species" );
+  }
+//============================================================================
   CL = DefvElm( "CL", real, -NSPEC, "Concentration of all species (local)" );
   DC = DefvElm( "DC", real, -NSPEC, "Fluxes of all species" );
   ATOL = DefvElm( "ATOL", real, -NVAR, "Absolute tolerance" );
@@ -2464,8 +2491,11 @@ void GenerateGlobalHeader()
 
 //===========================================================================
 // MODIFICATION: Bob Yantosca (26 Mar 2021)
-// Modify code to inline the F77/F90 THREADPRIVATE declarations
-// and also declare extra arrays and scalars
+//
+// Modify code to inline the F77/F90 THREADPRIVATE declarations, and also
+// declare extra arrays and scalars.  These declarations begin with a
+// comment character and will be ignored unless the Fortran-90 code is
+// compiled with OpenMP.
 //===========================================================================
 
   /*** Define a flag to denote if we are using F90 or F77 ***/
@@ -2491,33 +2521,17 @@ void GenerateGlobalHeader()
   ExternDeclare( C );
   if ( useFortran ) { WriteOMPThreadPrivate("C"); }
 
-  /*** Declare VAR and FIX for F90 ***/
+  /*** Declare VAR and FIX for F90 (these are now pointers!) ***/
   if ( useLang == F90_LANG ) {
     ExternDeclare( VAR );
     WriteOMPThreadPrivate("VAR");
 
     ExternDeclare( FIX );
     WriteOMPThreadPrivate("FIX");
-
-    //======================================================================
-    // MODIFICATION -- Bob Yantosca (20 Apr 2022)
-    // Temporarily restore the EQUIVALENCE statement for C to VAR & FIX
-    // so that we can pass CI-testing for development.  However, the
-    // EQUIVALENCE statement is not thread-safe, and thus cannot be used
-    // in contexts (such as GEOS-Chem) where KPP is called from within
-    // an OpenMP parallel loop.  For more info, see Github issue:
-    // https://github.com/KineticPreProcessor/KPP/issues/27
-    WriteComment("VAR, FIX are chunks of array C");
-    F90_Inline("      EQUIVALENCE( %s(%d),%s(1) )",
-	       varTable[C]->name, 1, varTable[VAR]->name );
-    if ( FixNr > 0 ) { /*  mz_rs_20050121 */
-      F90_Inline("      EQUIVALENCE( %s(%d),%s(1) )",
-		 varTable[C]->name, VarNr+1, varTable[FIX]->name );
-    }
-    //======================================================================
   }
 
-  /*** Declare VAR and fix for F77 ***/
+  /*** Declare VAR and fix for F77                             ***/
+  /*** We need to keep the EQUIVALENCE statement for F77 only! ***/
   if ( useLang == F77_LANG ) {
     Declare( VAR );
     WriteOMPThreadPrivate("VAR");
@@ -2890,8 +2904,6 @@ int INITVAL;
   FunctionEnd( INITVAL );
   FreeVariable( INITVAL );
 }
-
-
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateShuffle_user2kpp()

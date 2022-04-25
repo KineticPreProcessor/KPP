@@ -147,7 +147,8 @@ int blength;
   strcpy( buf, (char*)ctime( &t ) );
   buf[ (int)strlen(buf) - 1 ] = 0;
 //===========================================================================
-// MODIFICATION: Bob Yantosca (11 Feb 2021)
+// MODIFICATION by Bob Yantosca (11 Feb 2021)
+//
 // Do not write out changeable parameters such as file creation time
 // and working directory.  These will cause Git to interpret changed
 // files as new files that need to be committed.
@@ -264,14 +265,17 @@ FILE * fp;
   vsprintf( buf, fmt, args );
   va_end( args );
 
+  //=========================================================================
+  // MODIFICATION by Bob Yantosca (22 Apr 2022)
+  //
   // NOTE: Do not change .f90 to .F90 in this CASE statement.  Here the .f90
-  // defines the extension of the template files that will be inlined into the
-  // KPP-generated code (which all end in .f90).
+  // defines the extension of the template files that will be inlined into
+  // the KPP-generated code (which all end in .f90).
   //
   // The only exception is when upperCaseF90 == 1, then we need to include
   // util/Makefile.F90 instead of util/Makefile.f90, since we have to list
   // all the source code files ending in *.F90.   Add some logic here.
-  //    -- Bob Yantosca (22 Apr 2022)
+  //=========================================================================
   switch( useLang ) {
     case F90_LANG:
       if ( upperCaseF90 && ( strstr( buf, "Makefile" ) != NULL ) )
@@ -336,7 +340,7 @@ FILE *oldf;
   UseFile( oldf );
 }
 
-int DefineVariable( char * name, int t, int bt, int maxi, int maxj, char * comment )
+int DefineVariable( char * name, int t, int bt, int maxi, int maxj, char * comment, int attr )
 {
 int i;
 VARIABLE * var;
@@ -349,6 +353,14 @@ VARIABLE * var;
     return -1;
   }
 
+  //=========================================================================
+  // MODIFICATION by Bob Yantosca (22 Apr 2022)
+  //
+  // Add attr to the variable structure (and also in code.h), so that we
+  // can flag variables that need the F90 POINTER or TARGET attributes.
+  // Also add "attr" as an integer argument to this routine.
+  //   -- Bob Yantosca (25 Apr 2022)
+  //=========================================================================
   var = (VARIABLE*) malloc( sizeof( VARIABLE ) );
   var->name = name;
   var->type = t;
@@ -356,6 +368,7 @@ VARIABLE * var;
   var->maxi = maxi;
   var->maxj = maxj;
   var->value = -1;
+  var->attr = attr;
   var->comment = comment;
 
   varTable[ i ] = var;
