@@ -16,13 +16,10 @@
 ! End of InitSaveData function
 ! ****************************************************************
 
-! ****************************************************! GenerateMatlab - Generates MATLAB file to load the data file
-!   Parameters :
-!                It will have a character string to prefix each
-!                species name with.     ************
-!
-! SaveData - Write LOOKAT species in the data file
-!   Parameters :
+! ****************************************************************
+!                            
+! SaveData - Write LOOKAT species in the data file 
+!   Parameters :                                                  
 !
 ! ****************************************************************
 

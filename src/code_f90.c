@@ -415,14 +415,14 @@ char dsbuf[200];
             bprintf( "," );
             if( (i+1) % maxCols == 0 ) {
               if (maxCols == 1 ) {
-		bprintf( " & ! index %d\n     ", i+1 ); }
-	      else {
-		bprintf( " & ! index %d - %d\n     ", i-maxCols+2, i+1 ); }
+                bprintf( " & ! index %d\n     ", i+1 ); }
+              else {
+                bprintf( " & ! index %d - %d\n     ", i-maxCols+2, i+1 ); }
               nlines++;
             }
           }
         }
-        bprintf( " /) ! index %d - %d\n", i_to-maxCols+1, i_to );
+        bprintf( " /) ! index up to %d\n", i_to );
         /* mz_rs added FlushBuf, otherwise MAX_OUTBUF would have to be very large */
         FlushBuf();
       }
