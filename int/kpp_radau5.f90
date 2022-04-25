@@ -16,6 +16,13 @@ MODULE KPP_ROOT_Integrator
   PUBLIC
   SAVE
   
+!~~~> Flags to determine if we should call the UPDATE_* routines from within 
+!~~~> the integrator.  If using KPP in an external model, you might want to
+!~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
+  LOGICAL :: Do_Update_RCONST
+  LOGICAL :: Do_Update_PHOTO
+  LOGICAL :: Do_Update_SUN
+
   ! Statistics
   INTEGER :: Nfun, Njac, Nstp, Nacc, Nrej, Ndec, Nsol, Nsng
   
@@ -47,8 +54,9 @@ CONTAINS
   SUBROUTINE INTEGRATE( TIN, TOUT, &
     ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, IERR_U )
 
-    USE KPP_ROOT_Parameters, ONLY: NVAR
-    USE KPP_ROOT_Global,     ONLY: ATOL,RTOL,VAR
+    USE KPP_ROOT_Parameters, ONLY : NVAR
+    USE KPP_ROOT_Global,     ONLY : ATOL,RTOL,VAR
+    USE KPP_ROOT_Util,       ONLY : Integrator_Update_Options
 
     IMPLICIT NONE
 
@@ -67,25 +75,51 @@ CONTAINS
     INTEGER :: ICNTRL(20), ISTATUS(20)
     INTEGER, SAVE :: Ntotal = 0
 
-    H =0.0_dp
+    H = 0.0_dp
+
+    !~~~> Zero input and output arrays for safety's sake
+    ICNTRL     = 0
+    RCNTRL     = 0.0_dp
+    ISTATUS    = 0
+    RSTATUS    = 0.0_dp
 
     !~~~> fine-tune the integrator:
-    ICNTRL(:)  = 0
-    ICNTRL(2)  = 0 ! 0=vector tolerances, 1=scalar tolerances
-    ICNTRL(5)  = 8 ! Max no. of Newton iterations
-    ICNTRL(6)  = 1 ! Starting values for Newton are interpolated (0) or zero (1)
-    ICNTRL(11) = 1 ! Gustaffson (1) or classic(2) controller
-    RCNTRL(1:20) = 0._dp
+    ICNTRL(2)  = 0       ! 0=vector tolerances, 1=scalar tolerances
+    ICNTRL(5)  = 8       ! Max no. of Newton iterations
+    ICNTRL(6)  = 1       ! Starting values for Newton are interpolated (0) 
+                         !  or zero (1)
+    ICNTRL(11) = 1       ! Gustaffson (1) or classic(2) controller
 
     !~~~> if optional parameters are given, and if they are >0,
     !     then use them to overwrite default settings
-    IF (PRESENT(ICNTRL_U)) ICNTRL(1:20) = ICNTRL_U(1:20)
-    IF (PRESENT(RCNTRL_U)) RCNTRL(1:20) = RCNTRL_U(1:20)
+    IF ( PRESENT( ICNTRL_U ) ) THEN
+       WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
+    ENDIF
+    IF ( PRESENT( RCNTRL_U ) ) THEN
+       WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
+    ENDIF
    
+    ! Determine the settings of the Do_Update_* flags, which determine
+    ! whether or not we need to call Update_* routines in the integrator
+    ! (or not, if we are calling them from a higher-level)
+    ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
+    !            =  0 ! Status quo
+    !            =  1 ! Call Update_RCONST from within the integrator
+    !            =  2 ! Call Update_PHOTO from within the integrator
+    !            =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
+    !            =  4 ! Call Update_SUN from within the integrator
+    !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
+    !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
+    !            =  7 ! Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+    CALL Integrator_Update_Options( ICNTRL(15),          &
+                                    Do_Update_RCONST,    &
+                                    Do_Update_PHOTO,     &
+                                    Do_Update_Sun       )
 
-    CALL RADAU5(  NVAR,TIN,TOUT,VAR,H,                  &
-                  RTOL,ATOL,                            &
-                  RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR  )
+    ! Call the integrator
+    CALL RADAU5( NVAR,TIN,TOUT,VAR,H,                  &
+                 RTOL,ATOL,                            &
+                 RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR  )
 
 !!$    Ntotal = Ntotal + Nstp
 !!$    PRINT*,'NSTEPS=',Nstp,' (',Ntotal,')'
@@ -225,6 +259,17 @@ CONTAINS
 !              for simple problems, the choice iwork(8) == 2 produces
 !              often slightly faster runs
 !              ( currently unused )
+!
+!    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
+!        = -1 :  Do not call Update_* functions within the integrator
+!        =  0 :  Status quo
+!        =  1 :  Call Update_RCONST from within the integrator
+!        =  2 :  Call Update_PHOTO from within the integrator
+!        =  3 :  Call Update_RCONST and Update_PHOTO from w/in the int.
+!        =  4 :  Call Update_SUN from within the integrator
+!        =  5 :  Call Update_SUN and Update_RCONST from within the int.
+!        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
 !
 !~~~>  Real input parameters:
 !
@@ -478,8 +523,9 @@ CONTAINS
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   SUBROUTINE RAD_Integrator( N,T,Y,Tend,Hmax,H,RelTol,AbsTol,ITOL,IDID, &
-        Max_no_steps,Roundoff,FacSafe,ThetaMin,TolNewton,Qmin,Qmax,      &
+   SUBROUTINE RAD_Integrator(                                         &
+        N,T,Y,Tend,Hmax,H,RelTol,AbsTol,ITOL,IDID,                    &
+        Max_no_steps,Roundoff,FacSafe,ThetaMin,TolNewton,Qmin,Qmax,   &
         NewtonMaxit,StartNewton,Gustafsson,FacMin,FacMax,FacRej )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !     CORE INTEGRATOR FOR RADAU5
@@ -540,7 +586,7 @@ CONTAINS
       Nsng=0
 !      Told=T
       CALL RAD_ErrorScale(N,ITOL,AbsTol,RelTol,Y,SCAL)
-      CALL FUN_CHEM(T,Y,Y0)
+      CALL FUN_CHEM( T, Y, Y0 )
       
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~>  Time loop begins
@@ -549,7 +595,7 @@ Tloop: DO WHILE ( (Tend-T)*Tdirection - Roundoff > ZERO )
 
       !~~~> COMPUTE JACOBIAN MATRIX ANALYTICALLY
       IF ( (.NOT.FreshJac)  .AND. (Theta > ThetaMin) ) THEN
-        CALL JAC_CHEM(T,Y,FJAC)
+        CALL JAC_CHEM( T, Y, FJAC )
         FreshJac=.TRUE.
       END IF
       
@@ -624,15 +670,15 @@ NewtonLoop:DO  NewtonIter = 1, NewtonMaxit
             DO i=1,N
                TMP(i)=Y(i)+Z1(i)
             END DO
-            CALL FUN_CHEM(T+rkC(1)*H,TMP,Z1)
+            CALL FUN_CHEM( T+rkC(1)*H, TMP, Z1 )
             DO i=1,N
                TMP(i)=Y(i)+Z2(i)
             END DO
-            CALL FUN_CHEM(T+rkC(2)*H,TMP,Z2)
+            CALL FUN_CHEM( T+rkC(2)*H, TMP, Z2 )
             DO i=1,N
                TMP(i)=Y(i)+Z3(i)
             END DO
-            CALL FUN_CHEM(T+rkC(3)*H,TMP,Z3)
+            CALL FUN_CHEM( T+rkC(3)*H, TMP, Z3 )
 
             !~~~> Solve the linear systems
             !  Z(1,2,3) = TransfInv x Z(1,2,3)
@@ -736,7 +782,7 @@ accept:IF (ERR < ONE) THEN !~~~> STEP IS ACCEPTED
             IDID=1
             RETURN
          END IF
-         CALL FUN_CHEM(T,Y,Y0)
+         CALL FUN_CHEM( T, Y, Y0 )
          Hnew=Tdirection*MIN(ABS(Hnew),HmaxN)
          Hopt=Hnew
          Hopt=MIN(H,Hnew)
@@ -1039,12 +1085,12 @@ accept:IF (ERR < ONE) THEN !~~~> STEP IS ACCEPTED
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   SUBROUTINE RAD_ErrorEstimate(N,FJAC,H,Y0,Y,T,&
-               E1,Z1,Z2,Z3,IP1,SCAL,ERR,        &
+   SUBROUTINE RAD_ErrorEstimate( N,FJAC,H,Y0,Y,T,      &
+               E1,Z1,Z2,Z3,IP1,SCAL,ERR,               &
                FirstStep,REJECT,GAMMA)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       IMPLICIT NONE
-      
+
       INTEGER :: N
 #ifdef FULL_ALGEBRA      
       KPP_REAL :: FJAC(NVAR,NVAR),  E1(NVAR,NVAR)
@@ -1139,12 +1185,12 @@ firej:IF (FirstStep.OR.REJECT) THEN
     KPP_REAL :: V(NVAR), FCT(NVAR)
     KPP_REAL :: T, Told
 
-    !Told = TIME
-    !TIME = T
-    !CALL Update_SUN()
-    !CALL Update_RCONST()
-    !CALL Update_PHOTO()
-    !TIME = Told
+    Told = TIME
+    TIME = T
+    IF ( Do_Update_SUN    ) CALL Update_SUN()
+    IF ( Do_Update_RCONST ) CALL Update_RCONST()
+    IF ( Do_Update_PHOTO  ) CALL Update_PHOTO()
+    TIME = Told
     
     CALL Fun(V, FIX, RCONST, FCT)
     
@@ -1172,12 +1218,12 @@ firej:IF (FirstStep.OR.REJECT) THEN
     KPP_REAL :: JF(LU_NONZERO)
 #endif   
 
-    !Told = TIME
-    !TIME = T
-    !CALL Update_SUN()
-    !CALL Update_RCONST()
-    !CALL Update_PHOTO()
-    !TIME = Told
+    Told = TIME
+    TIME = T
+    IF ( Do_Update_SUN    ) CALL Update_SUN()
+    IF ( Do_Update_RCONST ) CALL Update_RCONST()
+    IF ( Do_Update_PHOTO  ) CALL Update_PHOTO()
+    TIME = Told
     
 #ifdef FULL_ALGEBRA    
     CALL Jac_SP(V, FIX, RCONST, JV)

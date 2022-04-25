@@ -46,3 +46,16 @@ clean:
 distclean: clean
 	@cd src;make maintainer-clean;cd ..
 	@rm -f bin/kpp
+
+# list the configuration:
+.PHONY: list
+list:
+	@echo "------------------------------------------------"
+	@echo "SYSTEM       = $(SYSTEM)"
+	@echo "HOST         = $(HOST)"
+	@echo "CC           = $(CC)"
+	@echo "CC_FLAGS     = $(CC_FLAGS)"
+	@echo "INCLUDE_DIR  = $(INCLUDE_DIR)"
+	@echo "FLEX         = $(FLEX)"
+	@echo "FLEX_LIB_DIR = $(FLEX_LIB_DIR)"
+	@echo "------------------------------------------------"

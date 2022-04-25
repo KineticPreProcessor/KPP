@@ -26,6 +26,13 @@ MODULE KPP_ROOT_Integrator
   PUBLIC
   SAVE
 
+!~~~> Flags to determine if we should call the UPDATE_* routines from within 
+!~~~> the integrator.  If using KPP in an external model, you might want to
+!~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
+  LOGICAL :: Do_Update_RCONST
+  LOGICAL :: Do_Update_PHOTO
+  LOGICAL :: Do_Update_SUN
+
 !~~~>  Statistics on the work performed by the Runge-Kutta method
   INTEGER, PARAMETER :: Nfun=1, Njac=2, Nstp=3, Nacc=4, &
     Nrej=5, Ndec=6, Nsol=7, Nsng=8, Ntexit=1, Nhacc=2, Nhnew=3
@@ -37,8 +44,9 @@ CONTAINS
   SUBROUTINE INTEGRATE( TIN, TOUT, &
     ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, IERR_U )
 
-    USE KPP_ROOT_Parameters, ONLY: NVAR
-    USE KPP_ROOT_Global,     ONLY: ATOL,RTOL,VAR
+    USE KPP_ROOT_Parameters, ONLY : NVAR
+    USE KPP_ROOT_Global,     ONLY : ATOL,RTOL,VAR
+    USE KPP_ROOT_Util,       ONLY : Integrator_Update_Options
 
     IMPLICIT NONE
 
@@ -56,26 +64,48 @@ CONTAINS
     INTEGER :: ICNTRL(20), ISTATUS(20)
     INTEGER, SAVE :: Ntotal = 0
 
-    RCNTRL(1:20) = 0.0_dp
-    ICNTRL(1:20) = 0
+    !~~~> Zero input and output arrays for safety's sake
+    ICNTRL     = 0
+    RCNTRL     = 0.0_dp
+    ISTATUS    = 0
+    RSTATUS    = 0.0_dp
 
     !~~~> fine-tune the integrator:
-    ICNTRL(2)  = 0   ! 0=vector tolerances, 1=scalar tolerances
-    ICNTRL(5)  = 8   ! Max no. of Newton iterations
-    ICNTRL(6)  = 0   ! Starting values for Newton are interpolated (0) or zero (1)
-    ICNTRL(10) = 1   ! 0 - classic or 1 - SDIRK error estimation
-    ICNTRL(11) = 0   ! Gustaffson (0) or classic(1) controller
+    ICNTRL(2)  = 0     ! 0=vector tolerances, 1=scalar tolerances
+    ICNTRL(5)  = 8     ! Max no. of Newton iterations
+    ICNTRL(6)  = 0     ! Starting values for Newton are interpolated (0) 
+                       !  or zero (1)
+    ICNTRL(10) = 1     ! 0 - classic or 1 - SDIRK error estimation
+    ICNTRL(11) = 0     ! Gustaffson (0) or classic(1) controller
+    ICNTRL(15) = 7     ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
 
-    !~~~> if optional parameters are given, and if they are >0,
+    !~~~> if optional parameters are given, and if they are /= 0,
     !     then use them to overwrite default settings
-    IF (PRESENT(ICNTRL_U)) THEN
-      WHERE(ICNTRL_U(:) > 0) ICNTRL(:) = ICNTRL_U(:)
-    END IF
-    IF (PRESENT(RCNTRL_U)) THEN
-      WHERE(RCNTRL_U(:) > 0) RCNTRL(:) = RCNTRL_U(:)
-    END IF
+    IF ( PRESENT( ICNTRL_U ) ) THEN
+       WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
+    ENDIF
+    IF ( PRESENT( RCNTRL_U ) ) THEN
+       WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
+    ENDIF
 
+    ! Determine the settings of the Do_Update_* flags, which determine
+    ! whether or not we need to call Update_* routines in the integrator
+    ! (or not, if we are calling them from a higher-level)
+    ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
+    !            =  0 ! Status quo
+    !            =  1 ! Call Update_RCONST from within the integrator
+    !            =  2 ! Call Update_PHOTO from within the integrator
+    !            =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
+    !            =  4 ! Call Update_SUN from within the integrator
+    !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
+    !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
+    !            =  7 ! Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+    CALL Integrator_Update_Options( ICNTRL(15),          &
+                                    Do_Update_RCONST,    &
+                                    Do_Update_PHOTO,     &
+                                    Do_Update_Sun       )
     
+    ! Call the integrator
     T1 = TIN; T2 = TOUT
     CALL RungeKutta(  NVAR, T1, T2, VAR, RTOL, ATOL, &
                       RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR  )
@@ -85,9 +115,9 @@ CONTAINS
 
     ! if optional parameters are given for output
     ! use them to store information in them
-    IF (PRESENT(ISTATUS_U)) ISTATUS_U(:) = ISTATUS(:)
-    IF (PRESENT(RSTATUS_U)) RSTATUS_U(:) = RSTATUS(:)
-    IF (PRESENT(IERR_U)) IERR_U = IERR
+    IF ( PRESENT( ISTATUS_U ) ) ISTATUS_U = ISTATUS
+    IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
+    IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR
 
     IF (IERR < 0) THEN
       PRINT *,'Runge-Kutta: Unsuccessful exit at T=', TIN,' (IERR=',IERR,')'
@@ -156,7 +186,7 @@ CONTAINS
 !              = 2:  Lobatto-3C
 !              = 3:  Gauss
 !              = 4:  Radau-1A
-!	       = 5:  Lobatto-3A (not yet implemented)
+!              = 5:  Lobatto-3A (not yet implemented)
 !
 !    ICNTRL(4)  -> maximum number of integration steps
 !        For ICNTRL(4)=0 the default value of 10000 is used
@@ -171,10 +201,10 @@ CONTAINS
 !        ICNTRL(6)=1 : starting values are zero
 !
 !    ICNTRL(10) -> switch for error estimation strategy
-!		ICNTRL(10) = 0: one additional stage at c=0, 
-!				see Hairer (default)
-!		ICNTRL(10) = 1: two additional stages at c=0 
-!				and SDIRK at c=1, stiffly accurate
+!               ICNTRL(10) = 0: one additional stage at c=0, 
+!                               see Hairer (default)
+!               ICNTRL(10) = 1: two additional stages at c=0 
+!                               and SDIRK at c=1, stiffly accurate
 !
 !    ICNTRL(11) -> switch for step size strategy
 !              ICNTRL(11)=0:  mod. predictive controller (Gustafsson, default)
@@ -182,6 +212,17 @@ CONTAINS
 !              the choice 1 seems to produce safer results;
 !              for simple problems, the choice 2 produces
 !              often slightly faster runs
+!
+!    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
+!        = -1 :  Do not call Update_* functions within the integrator
+!        =  0 :  Status quo
+!        =  1 :  Call Update_RCONST from within the integrator
+!        =  2 :  Call Update_PHOTO from within the integrator
+!        =  3 :  Call Update_RCONST and Update_PHOTO from w/in the int.
+!        =  4 :  Call Update_SUN from within the integrator
+!        =  5 :  Call Update_SUN and Update_RCONST from within the int.
+!        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
 !
 !~~~>  Real input parameters:
 !
@@ -265,7 +306,7 @@ CONTAINS
       INTEGER, PARAMETER :: R2A=1, R1A=2, L3C=3, GAU=4, L3A=5
       KPP_REAL :: rkT(3,3), rkTinv(3,3), rkTinvAinv(3,3), rkAinvT(3,3), &
                        rkA(0:3,0:3), rkB(0:3),  rkC(0:3), rkD(0:3), rkE(0:3), &
-		       rkBgam(0:4), rkBhat(0:4), rkTheta(0:3), rkF(0:4),      &
+                       rkBgam(0:4), rkBhat(0:4), rkTheta(0:3), rkF(0:4),      &
                        rkGamma,  rkAlpha, rkBeta, rkELO
        !~~~> Local variables
       INTEGER :: i
@@ -470,7 +511,7 @@ CONTAINS
       COMPLEX(kind=dp) :: E2(LU_NONZERO)   
 #endif                
       KPP_REAL, DIMENSION(NVAR) :: Z1,Z2,Z3,Z4,SCAL,DZ1,DZ2,DZ3,DZ4, &
-      				G,TMP,F0
+                                G,TMP,F0
       KPP_REAL  :: CONT(NVAR,3), Tdirection,  H, Hacc, Hnew, Hold, Fac, &
                  FacGus, Theta, Err, ErrOld, NewtonRate, NewtonIncrement,    &
                  Hratio, Qnewton, NewtonPredictedErr,NewtonIncrementOld, ThetaSD
@@ -597,10 +638,10 @@ NewtonLoop:DO  NewtonIter = 1, NewtonMaxit
             ! Check error in Newton iterations
             NewtonDone = (NewtonRate*NewtonIncrement <= NewtonTol)
             IF (NewtonDone) EXIT NewtonLoop
-   	    IF (NewtonIter == NewtonMaxit) THEN
-		PRINT*, 'Slow or no convergence in Newton Iteration: Max no. of', &
-		 	'Newton iterations reached'
-	    END IF
+            IF (NewtonIter == NewtonMaxit) THEN
+                PRINT*, 'Slow or no convergence in Newton Iteration: Max no. of', &
+                        'Newton iterations reached'
+            END IF
             
       END DO NewtonLoop
             
@@ -633,11 +674,11 @@ NewtonLoop:DO  NewtonIter = 1, NewtonMaxit
 SDNewtonLoop:DO NewtonIter = 1, NewtonMaxit
 
 !~~~>   Prepare the loop-dependent part of the right-hand side
-	    CALL WADD(N,Y,Z4,TMP)         ! TMP <- Y + Z4
-	    CALL FUN_CHEM(T+H,TMP,DZ4) 	  ! DZ4 <- Fun(Y+Z4)         
+            CALL WADD(N,Y,Z4,TMP)         ! TMP <- Y + Z4
+            CALL FUN_CHEM(T+H,TMP,DZ4)    ! DZ4 <- Fun(Y+Z4)         
             ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 !            DZ4(1:N) = (G(1:N)-Z4(1:N))*(rkGamma/H) + DZ4(1:N)
-	    CALL WAXPY (N, -ONE*rkGamma/H, Z4, 1, DZ4, 1)
+            CALL WAXPY (N, -ONE*rkGamma/H, Z4, 1, DZ4, 1)
             CALL WAXPY (N, rkGamma/H, G,1, DZ4,1)
 
 !~~~>   Solve the linear system
@@ -692,21 +733,21 @@ SDNewtonLoop:DO NewtonIter = 1, NewtonMaxit
 !~~~> Error estimation
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       IF (SdirkError) THEN
-	 CALL Set2Zero(N, DZ4)
+         CALL Set2Zero(N, DZ4)
          IF (rkMethod==L3A) THEN
            DZ4(1:N) = H*rkF(0)*F0(1:N)
-	   IF (rkF(1) /= ZERO)  CALL WAXPY(N, rkF(1), Z1, 1, DZ4, 1)
-	   IF (rkF(2) /= ZERO)  CALL WAXPY(N, rkF(2), Z2, 1, DZ4, 1)
-	   IF (rkF(3) /= ZERO)  CALL WAXPY(N, rkF(3), Z3, 1, DZ4, 1)
+           IF (rkF(1) /= ZERO)  CALL WAXPY(N, rkF(1), Z1, 1, DZ4, 1)
+           IF (rkF(2) /= ZERO)  CALL WAXPY(N, rkF(2), Z2, 1, DZ4, 1)
+           IF (rkF(3) /= ZERO)  CALL WAXPY(N, rkF(3), Z3, 1, DZ4, 1)
            TMP = Y + Z4
            CALL FUN_CHEM(T+H,TMP,DZ1)
- 	   CALL WAXPY(N, H*rkBgam(4), DZ1, 1, DZ4, 1)
+           CALL WAXPY(N, H*rkBgam(4), DZ1, 1, DZ4, 1)
          ELSE
 !         DZ4(1:N) =  rkD(1)*Z1 + rkD(2)*Z2 + rkD(3)*Z3 - Z4    
-  	   IF (rkD(1) /= ZERO)  CALL WAXPY(N, rkD(1), Z1, 1, DZ4, 1)
-	   IF (rkD(2) /= ZERO)  CALL WAXPY(N, rkD(2), Z2, 1, DZ4, 1)
-	   IF (rkD(3) /= ZERO)  CALL WAXPY(N, rkD(3), Z3, 1, DZ4, 1)
-	   CALL WAXPY(N, -ONE, Z4, 1, DZ4, 1)
+           IF (rkD(1) /= ZERO)  CALL WAXPY(N, rkD(1), Z1, 1, DZ4, 1)
+           IF (rkD(2) /= ZERO)  CALL WAXPY(N, rkD(2), Z2, 1, DZ4, 1)
+           IF (rkD(3) /= ZERO)  CALL WAXPY(N, rkD(3), Z3, 1, DZ4, 1)
+           CALL WAXPY(N, -ONE, Z4, 1, DZ4, 1)
          END IF
          Err = RK_ErrorNorm(N,SCAL,DZ4)    
       ELSE
@@ -771,7 +812,7 @@ accept:IF (Err < ONE) THEN !~~~> STEP IS ACCEPTED
              H = Hnew
          END IF
          Reject   = .TRUE.
-         SkipJac  = .TRUE.	! Skip if rejected - Jac is independent of H
+         SkipJac  = .TRUE.      ! Skip if rejected - Jac is independent of H
          SkipLU   = .FALSE. 
          IF (ISTATUS(Nacc) >= 1) ISTATUS(Nrej) = ISTATUS(Nrej) + 1
       END IF accept
@@ -1117,18 +1158,18 @@ accept:IF (Err < ONE) THEN !~~~> STEP IS ACCEPTED
       CALL DGETRS ('N',N,1,E1,N,IP1,TMP,N,ISING) 
       IF ((rkMethod==R1A).OR.(rkMethod==GAU).OR.(rkMethod==L3A)) THEN
            CALL DGETRS ('N',N,1,E1,N,IP1,TMP,N,ISING)
-      END IF 	   
+      END IF       
       IF (rkMethod==GAU) THEN
            CALL DGETRS ('N',N,1,E1,N,IP1,TMP,N,ISING)
-      END IF 	   
+      END IF       
 #else      
       CALL KppSolve (E1, TMP)
       IF ((rkMethod==R1A).OR.(rkMethod==GAU).OR.(rkMethod==L3A)) THEN
             CALL KppSolve (E1,TMP)
-      END IF 	   
+      END IF       
       IF (rkMethod==GAU) THEN
             CALL KppSolve (E1,TMP)
-      END IF 	   
+      END IF       
 #endif      
 
       Err = RK_ErrorNorm(N,SCAL,TMP)
@@ -1236,9 +1277,9 @@ firej:IF (FirstStep.OR.Reject) THEN
       ! Local order of error estimator 
       IF (b0==0.0d0) THEN
         rkELO  = 6.0d0
-      ELSE	
+      ELSE      
         rkELO  = 4.0d0
-      END IF	
+      END IF    
 
       !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       !~~~> Diagonalize the RK matrix:               
@@ -1367,9 +1408,9 @@ firej:IF (FirstStep.OR.Reject) THEN
       ! Local order of error estimator 
       IF (b0==0.0d0) THEN
         rkELO  = 5.0d0
-      ELSE	
+      ELSE      
         rkELO  = 4.0d0
-      END IF	
+      END IF    
 
       !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       !~~~> Diagonalize the RK matrix:               
@@ -1830,9 +1871,9 @@ firej:IF (FirstStep.OR.Reject) THEN
 
     Told = TIME
     TIME = T
-    CALL Update_SUN()
-    CALL Update_RCONST()
-    CALL Update_PHOTO()
+    IF ( Do_Update_SUN    ) CALL Update_SUN()
+    IF ( Do_Update_RCONST ) CALL Update_RCONST()
+    IF ( Do_Update_PHOTO  ) CALL Update_PHOTO()
     TIME = Told
     
     CALL Fun(V, FIX, RCONST, FCT)
@@ -1862,9 +1903,9 @@ firej:IF (FirstStep.OR.Reject) THEN
 
     Told = TIME
     TIME = T
-    CALL Update_SUN()
-    CALL Update_RCONST()
-    CALL Update_PHOTO()
+    IF ( Do_Update_SUN    ) CALL Update_SUN()
+    IF ( Do_Update_RCONST ) CALL Update_RCONST()
+    IF ( Do_Update_PHOTO  ) CALL Update_PHOTO()
     TIME = Told
     
 #ifdef FULL_ALGEBRA    

@@ -1,0 +1,285 @@
+# Changelog
+
+## Unreleased
+
+## [2.4.0]
+
+- Brought updates from the MECCA branch into the main line of
+  development:
+  - new integrators: beuler.f90, rosenbrock_mz.f90, rosenbrock_posdef.f90,
+    rosenbrock_posdef_h211b_qssa.f90
+  - several memory sizes (MAX_EQN, ...) increased to allow large chemical mechanisms
+  - new Makefile target: list
+  - LaTeX User Manual added
+- Now use ICNTRL(15) to decide whether or not to toggle calling the
+  Update\_SUN, Update\_RCONST, and Update\_PHOTO routines from within
+  the integrator
+
+## [2.3.2_gc]
+
+### Added
+
+- Workaround for F90 derived-type objects in inlined code (i.e. properly parse State_Het%xArea, etc).
+- Write global variables NUMDEN, MW, SR_MW, SR_TEMP, TEMP_OVER_K300, K300_OVER_TEMP to gckpp_Global.F90
+- Documentation for ReadTheDocs (in the docs folder)
+- Github issue templates
+
+### Changed
+
+- MAX_INLINE (max # of inlined code lines to read) is now 200000
+- Version number in gdata.h is now 2.3.2
+- README.md now contains the ReadTheDocs badge
+- README.md now points to kpp.readthedocs.io for documentation
+
+### Removed
+
+- Comment out the Update_Sun() functions in update_sun.F90, update_sun.F
+- Default rate law functions are no longer written to gckpp_Rates.F90
+
+## [2.3.1_gc]
+
+### Added
+
+- Documentation for ReadTheDocs (in the docs folder)
+- Github issue templates
+
+### Changed
+
+- Version number in gdata.h is now 2.3.1
+- README.md now contains the ReadTheDocs badge
+- README.md now points to kpp.readthedocs.io for documentation
+
+## [2.3.0_gc]
+
+### Added
+
+- Added README.md for the GC_updates branch
+- Added MIT license for the GC_updates branch
+- Add Aout argument to return reaction rates from SUBROUTINE Fun
+
+### Changed
+
+- Rename KPP/kpp_2.2.3_01 folder to KPP/kpp-code
+- Now write gckpp_Model.F90 and gckpp_Precision.F90 from gen.c
+- Do not write file creation & time to KPP-generated files
+- Now create Fortran-90 source code files with *.F90 instead of *.f90
+
+### Removed
+
+- Remove calls to UPDATE_SUN and UPDATE_RCONST from all *.f90 integrators
+
+## [2.2.5_gc]
+
+### Changed
+
+- Increase MAX_INLINE from 20000 to 50000
+
+
+## [2.2.4_gc]
+
+### Added
+
+- Add MIT license files and update README.md accordingly
+- Create README.md for main branch
+- Set FLEX_LIB_DIR using FLEX_HOME env variable if it is defined
+- Added an exponential integrator
+- Added array to *_Monitor for family names (FAM_NAMES) string vector
+- Added functionality for Prod/Loss families using FAMILY token
+- Add scripts necessary to build a new mechanism for GEOS-Chem
+- Completed the prod/loss option (token: #FLUX [on/off])
+- Added OMP THREADPRIVATE to LinearAlgebra.F90
+- Added rosenbrock_split.def integrator definition
+- Added OMPThreadPrivate function for F77
+- Added declaration of "A" in *_Function.F90
+- Added OMPThreadPrivate Functionality to F90 output
+- Completed the split-form Function for f90
+
+## [2.2.3_rs3] - 2018-11-30
+
+### CHANGES by Rolf Sander:
+- several int/*.f90: TABs converted to spaces
+- several dvode files converted to unix file format
+- kpp/int/beuler.f90:
+  - factor 101 added to Hstart
+  - description of the error numbers IERR added
+- kpp/int/rosenbrock_posdef_h211b_qssa.f90:
+  USE KPP_ROOT_Function, ONLY: Fun_Split
+
+### CHANGES by Sergey Gromov and Rolf Sander:
+- several limits increased:
+  - src/gdata.h:
+    #define MAX_K 1000
+  - src/scan.l:
+    char crtToken[1000];
+    char nextToken[1000];
+    char crtFile[1000];
+    char crt_rate[1000];
+  - src/scan.y:
+    %union{char str[1000];};
+
+### CHANGES by Adrian Sandu:
+- new integrator beuler.f90 (based on sdirk.f90)
+
+## [2.2.3_rs2] - 2016-11-21
+
+### CHANGES by Rolf Sander:
+- src/gen.c: bug fix in GenerateParamHeader(): char name[MAX_SPNAME]
+  instead of name[20]
+- kpp.el updated: #REPLACE, #ENDREPLACE, uncertainty of rate coefficient
+- Makefile.defs.Linux: compiler option -Wno-implicit-function-declaration
+
+## [2.2.3_rs1] - 2016-08-28
+
+### CHANGES by Rolf Sander:
+- upgrade to the official KPP version 2.2.3
+
+## [2.2.1_rs7] - 2016-02-09
+
+### CHANGES by Rolf Sander:
+- rosenbrock_mz.f90-orig deleted
+- new function StoichNum to get stoichiometric numbers:
+  - src/gen.c: new function GenerateFun_Split()
+  - kp4.sh: GenerateStoichNum added to KPP_SUBROUTINE_LIST
+
+## [2.2.1_rs6] - 2016-01-07
+
+### CHANGES by Rolf Sander:
+- src/code_f90.c: Maximum number of continuation lines MAX_NO_OF_LINES
+  increased again, now to 250
+- src/gdata.h: info adjusted
+- src/gen.c: "USE kpp_Parameters" added to SUBROUTINE Initialize to
+  allow species-specific code in #INLINE F90_INIT
+- several int/*.f90: TABs converted to spaces
+
+### CHANGES by Patrick Joeckel:
+- int/rosenbrock_mz.f90: loop fusion according to BULL
+- new file Makefile.m
+
+Changes by Domenico Taraborrelli:
+- option for faster chemistry calculation by alternative time stepping
+  (integrator rosenbrock_posdef_h211b_qssa)
+  - modified files:
+    - src/gen.c: new function GenerateFun_Split
+    - kp4.sh: GenerateFun_Split added to KPP_SUBROUTINE_LIST
+  - new integrator files:
+    rosenbrock_posdef_h211b_qssa.def, rosenbrock_posdef_h211b_qssa.f90
+
+## [2.2.1_rs5] - since caaba_2.5n, 2010-02-22
+
+### CHANGES by Rolf Sander:
+- src/gdata.h: several limits increased to allow larger mechanisms:
+  #define MAX_EQN       11000
+  #define MAX_SPECIES    3500
+  #define MAX_EQNTAG       32
+  #define MAX_K           300
+- src/gen.c:
+  - crow and diag deleted because they are not used
+  - Fortran90 double precision changed to SELECTED_REAL_KIND(12,307)
+- src/Makefile: PHONY target list added to list the configuration
+- src/scan.h: MAX_INLINE increased to 100000
+- src/scan.l: several limits increased to allow larger mechanisms:
+  char crtToken[300];
+  char nextToken[300];
+  char crtFile[300];
+  char crt_rate[300];
+- src/scan.y:
+  - "char" increased to 300 (must be the same as MAX_K)
+- util/sutil.f90: TABs converted to spaces
+
+## [2.2.1_rs4] - since caaba_2.5m, 2009-11-27
+
+### CHANGES by Patrick Joeckel:
+- Makefile, Makefile.defs, Makefile.defs.*, src/Makefile: changes to
+  allow compilation on different machines
+
+### CHANGES by Rolf Sander:
+- src/code_matlab.c: "#include <time.h>" added because it is necessary
+  for time_t, see: http://en.wikipedia.org/wiki/Time_t
+- src/scanutil.c:
+  - "#include <malloc.h>" removed because it comes from <stdlib.h> (this
+    had caused a problem on MAC-OSX)
+- src/scan.y:
+  - "#include <malloc.h>" removed because it comes from <stdlib.h> (this
+    had caused a problem on MAC-OSX)
+- using GNU Bison 2.3 now instead of 2.1
+
+## [2.2.1_rs3] - since caaba_2.5c, 2008-07-17
+
+### CHANGES by Patrick Joeckel and Rolf Sander:
+- src/code_f90.c and src/gdata.h: changes in MAX_EQNTAG etc. to avoid
+  problems with long equation tags
+
+## [2.2.1_rs2] - since caaba_2.4, 2008-02-18
+
+### CHANGES by Rolf Sander:
+- kpp_lsode.f90, kpp_seulex.f90, rosenbrock.f90, rosenbrock_posdef.f90,
+  runge_kutta.f90, and sdirk.f90: IERR_NAMES (for error messages)
+  adapted to correct syntax
+- src/code_f90.c:
+  - Maximum number of continuation lines increased to 100. If
+    MAX_NO_OF_LINES is too small, kpp may split lines incorrectly.
+
+## [2.2.1_rs] - 2007-08-22
+
+### CHANGES by Rolf Sander:
+- code_f90.c: added FlushBuf() to F90_DeclareData (otherwise MAX_OUTBUF
+  would have to be very large for large reaction mechanisms)
+- gen.c: The declaration of RTOLS was deleted because it is not needed
+  by the integrators. If the driver programs need it, they can define it
+  themselves.
+- Makefile: new option maintainer-clean is now consistent with
+  src/Makefile
+
+### CHANGES by Astrid Kerkweg:
+- src/code_f90.c: string length of F90_types and in subroutine
+  F90_DeclareData increased from 12 to 32 to avoid problems with long
+  species names and long equation tags
+
+### CHANGES by Adrian Sandu and Rolf Sander:
+- It looks like the model is hypersensitive to negative concentrations;
+  many times when small negative concentrations are produced the entire
+  future trajectory is put in jeopardy. In the new integrator
+  rosenbrock_posdef.f90, this is fixed by changing "CALL
+  WCOPY(N,Ynew,1,Y,1)" to "Y = MAX(Ynew,ZERO)".
+
+## [2.2.1] - 2006-12-01
+
+### CHANGES by Adrian Sandu:
+- rosenbrock_soa deleted
+- util/sutil.c: new subroutine KppDecompCmplxR
+- new files: examples/cell.kpp, examples/saprc2006.kpp,
+  int/runge_kutta.c, and int/sdirk.c
+
+### CHANGES by Rolf Sander:
+- int/kpp_lsode.f90: like all other integrators, kpp_lsode now also
+  returns IERR==1 after successful completion
+
+### CHANGES by Adrian Sandu and Rolf Sander:
+- src/Makefile, scan.l, scan.y: yacc replaced by bison, implementing the
+  bug fixes suggested by Jason Lander
+
+## [2.2_July2006] - 2006-07-23
+
+### CHANGES by Adrian Sandu:
+- models/CMAQ added
+- changes in int/runge_kutta_adj.f90 and int/runge_kutta_tlm.f90
+- util/blas.c: new subroutines Set2Zero and WADD
+- util/blas.f90: new subroutines WGEFA and WGESL
+- util/sutil.f90: new subroutines KppDecompCmplxR, KppSolveCmplxR, and
+  KppSolveTRCmplxR
+
+## [2.2.June2006] - 2006-06-06
+
+### CHANGES by Philipp Miehe and Adrian Sandu:
+- new integrators kpp_sdirk4, rosenbrock_soa, runge_kutta, and sdirk
+- integrators rosenbrock, rosenbrock_tlm, and rosenbrock_adj: completely
+  revised
+- new kpp command #DECLARE [SYMBOL|VALUE]
+- util/blas.f90: new subroutine WADD
+- util/sutil.f90: new subroutines KppSolveTRIndirect and KppSolveTRCmplx
+- several files examples/* added
+- changes in drv/general_adj.f90 and drv/general_tlm.f90
+- examples/mimi* deleted
+
+## [2.1] - 2005-07-19
+

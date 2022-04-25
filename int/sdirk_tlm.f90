@@ -26,7 +26,14 @@ MODULE KPP_ROOT_Integrator
   IMPLICIT NONE
   PUBLIC
   SAVE
-  
+
+!~~~> Flags to determine if we should call the UPDATE_* routines from within 
+!~~~> the integrator.  If using KPP in an external model, you might want to
+!~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
+  LOGICAL :: Do_Update_RCONST
+  LOGICAL :: Do_Update_PHOTO
+  LOGICAL :: Do_Update_SUN
+
 !~~~>  Statistics on the work performed by the SDIRK method
   INTEGER, PARAMETER :: Nfun=1, Njac=2, Nstp=3, Nacc=4,  &
            Nrej=5, Ndec=6, Nsol=7, Nsng=8,               &
@@ -39,8 +46,9 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm,RTOL_tlm, &
        ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, IERR_U )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    USE KPP_ROOT_Parameters, ONLY: NVAR,ind_O3
-    USE KPP_ROOT_Global,     ONLY: ATOL,RTOL,VAR
+    USE KPP_ROOT_Parameters, ONLY : NVAR,ind_O3
+    USE KPP_ROOT_Global,     ONLY : ATOL,RTOL,VAR
+    USE KPP_ROOT_Util,       ONLY : Integrator_Update_Options
 
     IMPLICIT NONE
 
@@ -67,27 +75,50 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm,RTOL_tlm, &
     INTEGER       :: ICNTRL(20), ISTATUS(20)
     INTEGER, SAVE :: Ntotal = 0
 
-    ICNTRL(1:20) = 0
-    RCNTRL(1:20) = 0.0_dp
+    !~~~> Zero input and output arrays for safety's sake
+    ICNTRL     = 0
+    RCNTRL     = 0.0_dp
+    ISTATUS    = 0
+    RSTATUS    = 0.0_dp
 
     !~~~> fine-tune the integrator:
-    ICNTRL(2)  = 0   ! 0=vector tolerances, 1=scalar tolerances
-    ICNTRL(5)  = 8   ! Max no. of Newton iterations
-    ICNTRL(6)  = 0   ! Starting values for Newton are interpolated (0) or zero (1)
-    ICNTRL(7)  = 0   ! How to solve TLM: 0=modified Newton, 1=direct
-    ICNTRL(9)  = 0   ! TLM Newton Iterations influence
-    ICNTRL(12) = 0   ! TLM Truncation Error influence
+    ICNTRL(2)  = 0       ! 0=vector tolerances, 1=scalar tolerances
+    ICNTRL(5)  = 8       ! Max no. of Newton iterations
+    ICNTRL(6)  = 0       ! Starting values for Newton are interpolated (0) 
+                         !  or zero (1)
+    ICNTRL(7)  = 0       ! How to solve TLM: 0=modified Newton, 1=direct
+    ICNTRL(9)  = 0       ! TLM Newton Iterations influence
+    ICNTRL(12) = 0       ! TLM Truncation Error influence
+    ICNTRL(15) = 5       ! Call Update_SUN and Update_RCONST from w/in the int. 
 
-    !~~~> if optional parameters are given, and if they are >0,
+    
+    !~~~> if optional parameters are given, and if they are /= 0,
     !     then use them to overwrite default settings
-    IF (PRESENT(ICNTRL_U)) THEN
-      WHERE(ICNTRL_U(:) > 0) ICNTRL(:) = ICNTRL_U(:)
-    END IF
-    IF (PRESENT(RCNTRL_U)) THEN
-      WHERE(RCNTRL_U(:) > 0) RCNTRL(:) = RCNTRL_U(:)
-    END IF
+    IF ( PRESENT( ICNTRL_U ) ) THEN
+       WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
+    ENDIF
+    IF ( PRESENT( RCNTRL_U ) ) THEN
+       WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
+    ENDIF
 
+    ! Determine the settings of the Do_Update_* flags, which determine
+    ! whether or not we need to call Update_* routines in the integrator
+    ! (or not, if we are calling them from a higher-level)
+    ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
+    !            =  0 ! Status quo
+    !            =  1 ! Call Update_RCONST from within the integrator
+    !            =  2 ! Call Update_PHOTO from within the integrator
+    !            =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
+    !            =  4 ! Call Update_SUN from within the integrator
+    !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
+    !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
+    !            =  7 ! Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+    CALL Integrator_Update_Options( ICNTRL(15),          &
+                                    Do_Update_RCONST,    &
+                                    Do_Update_PHOTO,     &
+                                    Do_Update_Sun       )
 
+    ! Call the integrator
     T1 = TIN; T2 = TOUT
     CALL SdirkTLM(  NVAR, NTLM, T1, T2, Y, Y_tlm, RTOL, ATOL, &
                     RTOL_tlm, ATOL_tlm, RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR  )
@@ -98,9 +129,9 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm,RTOL_tlm, &
 
     ! if optional parameters are given for output
     ! use them to store information in them
-    IF (PRESENT(ISTATUS_U)) ISTATUS_U(:) = ISTATUS(:)
-    IF (PRESENT(RSTATUS_U)) RSTATUS_U(:) = RSTATUS(:)
-    IF (PRESENT(IERR_U)) IERR_U = IERR
+    IF ( PRESENT( ISTATUS_U ) ) ISTATUS_U = ISTATUS
+    IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
+    IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR
 
     IF (IERR < 0) THEN
       PRINT *,'SDIRK-TLM: Unsuccessful exit at T=', TIN,' (IERR=',IERR,')'
@@ -109,11 +140,10 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm,RTOL_tlm, &
   END SUBROUTINE INTEGRATE_TLM
 
 
-
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    SUBROUTINE SdirkTLM(N, NTLM, Tinitial, Tfinal, Y, Y_tlm, RelTol, AbsTol, &
                           RelTol_tlm, AbsTol_tlm, &
-			  RCNTRL, ICNTRL, RSTATUS, ISTATUS, Ierr)
+                          RCNTRL, ICNTRL, RSTATUS, ISTATUS, Ierr)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
 !    Solves the system y'=F(t,y) using a Singly-Diagonally-Implicit
@@ -192,14 +222,24 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm,RTOL_tlm, &
 !        ICNTRL(7)=1 : direct solution (additional one LU factorization per stage)
 !
 !    ICNTRL(9) -> switch for TLM Newton iteration error estimation strategy
-!		ICNTRL(9) = 0: base number of iterations as forward solution
-!		ICNTRL(9) = 1: use RTOL_tlm and ATOL_tlm to calculate
-!				error estimation for TLM at Newton stages
+!        ICNTRL(9) = 0: base number of iterations as forward solution
+!        ICNTRL(9) = 1: use RTOL_tlm and ATOL_tlm to calculate
+!                       error estimation for TLM at Newton stages
 !
 !    ICNTRL(12) -> switch for TLM truncation error control
-!		ICNTRL(12) = 0: TLM error is not used
-!		ICNTRL(12) = 1: TLM error is computed and used
+!        ICNTRL(12) = 0: TLM error is not used
+!        ICNTRL(12) = 1: TLM error is computed and used
 !
+!    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
+!        = -1 :  Do not call Update_* functions within the integrator
+!        =  0 :  Status quo
+!        =  1 :  Call Update_RCONST from within the integrator
+!        =  2 :  Call Update_PHOTO from within the integrator
+!        =  3 :  Call Update_RCONST and Update_PHOTO from w/in the int.
+!        =  4 :  Call Update_SUN from within the integrator
+!        =  5 :  Call Update_SUN and Update_RCONST from within the int.
+!        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
 !
 !~~~>  Real parameters
 !
@@ -254,7 +294,7 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm,RTOL_tlm, &
       INTEGER, INTENT(IN)          :: N, NTLM, ICNTRL(20)
       KPP_REAL, INTENT(IN)    :: Tinitial, Tfinal, &
                     RelTol(N), AbsTol(N), RCNTRL(20), &
-		    RelTol_tlm(N,NTLM), AbsTol_tlm(N,NTLM)
+                    RelTol_tlm(N,NTLM), AbsTol_tlm(N,NTLM)
       KPP_REAL, INTENT(INOUT) :: Y(NVAR), Y_tlm(N,NTLM)
       INTEGER, INTENT(OUT)         :: Ierr
       INTEGER, INTENT(INOUT)       :: ISTATUS(20) 
@@ -486,7 +526,7 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm,RTOL_tlm, &
                        T, H, Theta, Hratio, NewtonPredictedErr, &
                        Qnewton, Err, Fac, Hnew, Tdirection,     &
                        NewtonIncrement, NewtonIncrementOld, &
-		       SCAL_tlm(NVAR), Yerr(N), Yerr_tlm(N,NTLM), ThetaTLM
+                       SCAL_tlm(NVAR), Yerr(N), Yerr_tlm(N,NTLM), ThetaTLM
       KPP_REAL :: Z_tlm(NVAR,rkS,NTLM)
       INTEGER :: itlm, j, IER, istage, NewtonIter, saveNiter, NewtonIterTLM
       INTEGER :: IP(NVAR), IP_tlm(NVAR)
@@ -555,9 +595,9 @@ stages:DO istage = 1, rkS
                ! Gj(:) = sum_j Theta(i,j)*Zj(:) = H * sum_j A(i,j)*Fun(Zj(:))
                CALL WAXPY(N,rkTheta(istage,j),Z(1,j),1,G,1)
                ! Zi(:) = sum_j Alpha(i,j)*Zj(:)
-	       IF (StartNewton) THEN
+               IF (StartNewton) THEN
                  CALL WAXPY(N,rkAlpha(istage,j),Z(1,j),1,Z(1,istage),1)
-	       END IF
+               END IF
            END DO
        END IF
 
@@ -568,12 +608,12 @@ stages:DO istage = 1, rkS
 NewtonLoop:DO NewtonIter = 1, NewtonMaxit
 
 !~~~>   Prepare the loop-dependent part of the right-hand side
- 	    CALL WADD(N,Y,Z(1,istage),TMP)         	! TMP <- Y + Zi
-            CALL FUN_CHEM(T+rkC(istage)*H,TMP,DZ)	! DZ <- Fun(Y+Zi)
+            CALL WADD(N,Y,Z(1,istage),TMP)              ! TMP <- Y + Zi
+            CALL FUN_CHEM(T+rkC(istage)*H,TMP,DZ)       ! DZ <- Fun(Y+Zi)
             ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 !            DZ(1:N) = G(1:N) - Z(1:N,istage) + (H*rkGamma)*DZ(1:N)
-	    CALL WSCAL(N, H*rkGamma, DZ, 1)
-	    CALL WAXPY (N, -ONE, Z(1,istage), 1, DZ, 1)
+            CALL WSCAL(N, H*rkGamma, DZ, 1)
+            CALL WAXPY (N, -ONE, Z(1,istage), 1, DZ, 1)
             CALL WAXPY (N, ONE, G,1, DZ,1)
 
 !~~~>   Solve the linear system
@@ -608,10 +648,10 @@ NewtonLoop:DO NewtonIter = 1, NewtonMaxit
             ! Check error in Newton iterations
             NewtonDone = (NewtonRate*NewtonIncrement <= NewtonTol)
             IF (NewtonDone) THEN
-    	       ! Tune error in TLM variables by defining the minimal number of Newton iterations.
-	       saveNiter = NewtonIter+1
-	       EXIT NewtonLoop
-	    END IF
+               ! Tune error in TLM variables by defining the minimal number of Newton iterations.
+               saveNiter = NewtonIter+1
+               EXIT NewtonLoop
+            END IF
             
             END DO NewtonLoop
             
@@ -701,7 +741,7 @@ NewtonLoopTLM:DO NewtonIterTLM = 1, NewtonMaxit
 
             CALL SDIRK_Solve ( H, N, E, IP, IER, DZ )
             
-	    IF (TLMNewtonEst) THEN
+            IF (TLMNewtonEst) THEN
 !~~~>   Check convergence of Newton iterations
             CALL SDIRK_ErrorNorm(N, DZ, SCAL_tlm, NewtonIncrement)
             IF ( NewtonIterTLM <= 1 ) THEN
@@ -725,8 +765,8 @@ NewtonLoopTLM:DO NewtonIterTLM = 1, NewtonMaxit
                 END IF
             END IF
             NewtonIncrementOld = NewtonIncrement
-	    END IF !(TLMNewtonEst)
-	    
+            END IF !(TLMNewtonEst)
+            
             ! Update solution: Z_tlm(:) <-- Z_tlm(:)+DZ(:)
             CALL WAXPY(N,ONE,DZ,1,Z_tlm(1,istage,itlm),1) 
             
@@ -734,10 +774,10 @@ NewtonLoopTLM:DO NewtonIterTLM = 1, NewtonMaxit
             IF (TLMNewtonEst) THEN
                NewtonDone = (NewtonRate*NewtonIncrement <= NewtonTol)
                IF (NewtonDone) EXIT NewtonLoopTLM
-	    ELSE
-  	       ! Minimum number of iterations same as FWD iterations
+            ELSE
+               ! Minimum number of iterations same as FWD iterations
                IF (NewtonIterTLM>=saveNiter) EXIT NewtonLoopTLM
-	    END IF
+            END IF
             
             END DO NewtonLoopTLM
             
@@ -773,7 +813,7 @@ NewtonLoopTLM:DO NewtonIterTLM = 1, NewtonMaxit
           DO j=1,rkS  
             IF (rkE(j) /= ZERO) CALL WAXPY(N,rkE(j),Z_tlm(1,j,itlm),1,Yerr_tlm(1,itlm),1)
           END DO 
-	  CALL SDIRK_Solve (H, N, E, IP, IER, Yerr_tlm(1,itlm))
+          CALL SDIRK_Solve (H, N, E, IP, IER, Yerr_tlm(1,itlm))
         END DO
         CALL SDIRK_ErrorNorm_tlm(N,NTLM, Yerr_tlm, Err)
       END IF
@@ -823,7 +863,7 @@ accept: IF ( Err < ONE ) THEN !~~~> Step is accepted
             SkipLU = ( (Theta <= ThetaMin) .AND. (Hratio >= Qmin) &
                                      .AND. (Hratio <= Qmax) )
             ! For TLM: do not skip LU (decrease TLM error)
-   	    SkipLU = .FALSE.
+            SkipLU = .FALSE.
             IF (.NOT.SkipLU) H = Hnew
          END IF
          ! If convergence is fast enough, do not update Jacobian
@@ -895,8 +935,8 @@ accept: IF ( Err < ONE ) THEN !~~~> Step is accepted
       DO itlm=1,NTLM
         CALL SDIRK_ErrorScale(N,ITOL,AbsTol_tlm(1,itlm),RelTol_tlm(1,itlm), &
                Y_tlm(1,itlm),SCAL_tlm)
-	CALL SDIRK_ErrorNorm(N, Y_tlm(1,itlm), SCAL_tlm, Err)
-	FWD_Err = MAX(FWD_Err, Err)
+        CALL SDIRK_ErrorNorm(N, Y_tlm(1,itlm), SCAL_tlm, Err)
+        FWD_Err = MAX(FWD_Err, Err)
       END DO
 !
       END SUBROUTINE SDIRK_ErrorNorm_tlm
@@ -1407,8 +1447,8 @@ Hloop: DO WHILE (ISING /= 0)
       
       Told = TIME
       TIME = T
-      CALL Update_SUN()
-      CALL Update_RCONST()
+      IF ( Do_Update_SUN    ) CALL Update_SUN()
+      IF ( Do_Update_RCONST ) CALL Update_RCONST()
       
       CALL Fun( Y, FIX, RCONST, P )
       
@@ -1438,8 +1478,8 @@ Hloop: DO WHILE (ISING /= 0)
  
       Told = TIME
       TIME = T
-      CALL Update_SUN()
-      CALL Update_RCONST()
+      IF ( Do_Update_SUN    ) CALL Update_SUN()
+      IF ( Do_Update_RCONST ) CALL Update_RCONST()
 
 #ifdef FULL_ALGEBRA
       CALL Jac_SP(Y, FIX, RCONST, JS)

@@ -15,6 +15,13 @@ MODULE KPP_ROOT_Integrator
   PUBLIC
   SAVE
 
+!~~~> Flags to determine if we should call the UPDATE_* routines from within 
+!~~~> the integrator.  If using KPP in an external model, you might want to
+!~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
+  LOGICAL :: Do_Update_RCONST
+  LOGICAL :: Do_Update_PHOTO
+  LOGICAL :: Do_Update_SUN
+
   ! variables from the former COMMON block /CONRA5/ are now here:
   INTEGER :: NN, NN2, NN3, NN4
   KPP_REAL :: TSOL, HSOL
@@ -41,8 +48,9 @@ CONTAINS
     ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, IERR_U )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    USE KPP_ROOT_Parameters, ONLY: nvar
-    USE KPP_ROOT_Global,     ONLY: atol,rtol,var
+    USE KPP_ROOT_Parameters, ONLY : nvar
+    USE KPP_ROOT_Global,     ONLY : atol,rtol,var
+    USE KPP_ROOT_Util,       ONLY : Integrator_Update_Options
 
     IMPLICIT NONE
 
@@ -65,17 +73,42 @@ CONTAINS
 
     H = 0.0_dp
 
-    ICNTRL(1:20) = 0
-    RCNTRL(1:20)  = 0._dp
-    ICNTRL(10)=0    !~~~> OUTPUT ROUTINE IS NOT USED DURING INTEGRATION
+    !~~~> Zero input and output arrays for safety's sake
+    ICNTRL     = 0
+    RCNTRL     = 0.0_dp
+    ISTATUS    = 0
+    RSTATUS    = 0.0_dp
 
-    ! if optional parameters are given, and if they are >0, 
-    ! they overwrite the default settings
-    IF (PRESENT(ICNTRL_U)) ICNTRL(:) = ICNTRL_U(:)
-    IF (PRESENT(RCNTRL_U)) RCNTRL(:) = RCNTRL_U(:)
-    !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-----
-    
+    !~~~> fine-tune the integrator:
+    ICNTRL(10) = 0      !~~~> OUTPUT ROUTINE IS NOT USED DURING INTEGRATION
 
+    !~~~> if optional parameters are given, and if they are /= 0,
+    !     then use them to overwrite default settings
+    IF ( PRESENT( ICNTRL_U ) ) THEN
+       WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
+    ENDIF
+    IF ( PRESENT( RCNTRL_U ) ) THEN
+       WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
+    ENDIF
+
+    ! Determine the settings of the Do_Update_* flags, which determine
+    ! whether or not we need to call Update_* routines in the integrator
+    ! (or not, if we are calling them from a higher-level)
+    ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
+    !            =  0 ! Status quo
+    !            =  1 ! Call Update_RCONST from within the integrator
+    !            =  2 ! Call Update_PHOTO from within the integrator
+    !            =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
+    !            =  4 ! Call Update_SUN from within the integrator
+    !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
+    !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
+    !            =  7 ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
+    CALL Integrator_Update_Options( ICNTRL(15),          &
+                                    Do_Update_RCONST,    &
+                                    Do_Update_PHOTO,     &
+                                    Do_Update_Sun       )
+
+    ! Call the integrator
     CALL ATMSEULEX(NVAR,TIN,TOUT,VAR,H,RTOL,ATOL,      &
                     RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR )
     Ntotal = Ntotal + Nstp
@@ -103,7 +136,7 @@ CONTAINS
       ISTATUS_U(7) = Nsol ! forward/backward substitutions
     ENDIF
     IF (PRESENT(RSTATUS_U)) THEN
-      RSTATUS_U(:) = 0.
+      RSTATUS_U(:) = 0.0_dp
       RSTATUS_U(1) = TOUT ! final time
     ENDIF
     IF (PRESENT(IERR_U)) IERR_U = IERR
@@ -239,6 +272,17 @@ CONTAINS
 !
 !    ICNTRL(14)  = NRDENS = NUMBER OF COMPONENTS, FOR WHICH DENSE OUTPUT
 !              IS REQUIRED
+!
+!    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
+!        = -1 :  Do not call Update_* functions within the integrator
+!        =  0 :  Status quo
+!        =  1 :  Call Update_RCONST from within the integrator
+!        =  2 :  Call Update_PHOTO from within the integrator
+!        =  3 :  Call Update_RCONST and Update_PHOTO from w/in the int.
+!        =  4 :  Call Update_SUN from within the integrator
+!        =  5 :  Call Update_SUN and Update_RCONST from within the int.
+!        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
 !
 !    ICNTRL(21),...,ICNTRL(NRDENS+20) INDICATE THE COMPONENTS, FOR WHICH
 !              DENSE OUTPUT IS REQUIRED
@@ -1103,12 +1147,12 @@ CONTAINS
     KPP_REAL :: V(NVAR), FCT(NVAR)
     KPP_REAL :: T, TOLD
 
-    !TOLD = TIME
-    !TIME = T
-    !CALL Update_SUN()
-    !CALL Update_RCONST()
-    !CALL Update_PHOTO()
-    !TIME = TOLD
+    TOLD = TIME
+    TIME = T
+    IF ( Do_Update_SUN    ) CALL Update_SUN()
+    IF ( Do_Update_RCONST ) CALL Update_RCONST()
+    IF ( Do_Update_PHOTO  ) CALL Update_PHOTO()
+    TIME = TOLD
     CALL Fun(V, FIX, RCONST, FCT)
     Nfun=Nfun+1
 
@@ -1134,12 +1178,12 @@ CONTAINS
     KPP_REAL :: Jcb(LU_NONZERO)
 #endif   
 
-    !TOLD = TIME
-    !TIME = T
-    !CALL Update_SUN()
-    !CALL Update_RCONST()
-    !CALL Update_PHOTO()
-    !TIME = TOLD
+    TOLD = TIME
+    TIME = T
+    IF ( Do_Update_SUN    ) CALL Update_SUN()
+    IF ( Do_Update_RCONST ) CALL Update_RCONST()
+    IF ( Do_Update_PHOTO  ) CALL Update_PHOTO()
+    TIME = TOLD
     
 #ifdef FULL_ALGEBRA    
     CALL Jac_SP(V, FIX, RCONST, JV)

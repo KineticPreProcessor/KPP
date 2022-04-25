@@ -695,11 +695,11 @@ int err;
     if ( equal ) {
       if( r1 == r2 )
         ScanError( "Duplicate equation: "
-        	" (eqn<%d> = eqn<%d> )", i+1, EqnNr+1 );
+        	   " (eqn<%d> = eqn<%d> )", i+1, EqnNr+1 );
       else
-	      ScanError( "Linearly dependent equations: "
-		      "( %.0f eqn<%d> = %.0f eqn<%d> )",
-		      r1, i+1, r2, EqnNr+1 );
+	ScanError( "Linearly dependent equations: "
+		   "( %.0f eqn<%d> = %.0f eqn<%d> )",
+		   r1, i+1, r2, EqnNr+1 );
       break;
     }
   }

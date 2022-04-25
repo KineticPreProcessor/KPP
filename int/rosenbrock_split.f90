@@ -19,10 +19,18 @@ MODULE KPP_ROOT_Integrator
 
   USE KPP_ROOT_Parameters, ONLY: NVAR, NFIX, NSPEC, LU_NONZERO
   USE KPP_ROOT_Global
+
   IMPLICIT NONE
   PUBLIC
   SAVE
   
+!~~~> Flags to determine if we should call the UPDATE_* routines from within 
+!~~~> the integrator.  If using KPP in an external model, you might want to
+!~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
+  LOGICAL :: Do_Update_RCONST
+  LOGICAL :: Do_Update_PHOTO
+  LOGICAL :: Do_Update_SUN
+
 !~~~>  Statistics on the work performed by the Rosenbrock method
   INTEGER, PARAMETER :: Nfun=1, Njac=2, Nstp=3, Nacc=4, &
                         Nrej=5, Ndec=6, Nsol=7, Nsng=8, &
@@ -32,6 +40,8 @@ CONTAINS
 
 SUBROUTINE INTEGRATE( TIN, TOUT, &
   ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, IERR_U )
+
+   USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
 
    IMPLICIT NONE
 
@@ -49,25 +59,44 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 
    INTEGER, SAVE :: Ntotal = 0
 
-   ICNTRL(:)  = 0
-   RCNTRL(:)  = 0.0_dp
-   ISTATUS(:) = 0
-   RSTATUS(:) = 0.0_dp
+   !~~~> Zero input and output arrays for safety's sake
+   ICNTRL     = 0
+   RCNTRL     = 0.0_dp
+   ISTATUS    = 0
+   RSTATUS    = 0.0_dp
 
-    !~~~> fine-tune the integrator:
-   ICNTRL(1) = 0	! 0 - non-autonomous, 1 - autonomous
-   ICNTRL(2) = 0	! 0 - vector tolerances, 1 - scalars
+   !~~~> fine-tune the integrator:
+   ICNTRL(1)  = 0       ! 0 - non-autonomous, 1 - autonomous
+   ICNTRL(2)  = 0       ! 0 - vector tolerances, 1 - scalars
+   ICNTRL(15) = 5       ! Call Update_SUN and Update_RCONST from w/in the int. 
 
-   ! If optional parameters are given, and if they are >0, 
-   ! then they overwrite default settings. 
-   IF (PRESENT(ICNTRL_U)) THEN
-     WHERE(ICNTRL_U(:) > 0) ICNTRL(:) = ICNTRL_U(:)
-   END IF
-   IF (PRESENT(RCNTRL_U)) THEN
-     WHERE(RCNTRL_U(:) > 0) RCNTRL(:) = RCNTRL_U(:)
-   END IF
+   !~~~> if optional parameters are given, and if they are /= 0,
+   !     then use them to overwrite default settings
+   IF ( PRESENT( ICNTRL_U ) ) THEN
+      WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
+   ENDIF
+   IF ( PRESENT( RCNTRL_U ) ) THEN
+      WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
+   ENDIF
 
+   ! Determine the settings of the Do_Update_* flags, which determine
+   ! whether or not we need to call Update_* routines in the integrator
+   ! (or not, if we are calling them from a higher-level)
+   ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
+   !            =  0 ! Status quo
+   !            =  1 ! Call Update_RCONST from within the integrator
+   !            =  2 ! Call Update_PHOTO from within the integrator
+   !            =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
+   !            =  4 ! Call Update_SUN from within the integrator
+   !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
+   !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
+   !            =  7 ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
+   CALL Integrator_Update_Options( ICNTRL(15),          &
+                                   Do_Update_RCONST,    &
+                                   Do_Update_PHOTO,     &
+                                   Do_Update_Sun       )
 
+   ! Call the integrator
    CALL Rosenbrock(NVAR,VAR,TIN,TOUT,   &
          ATOL,RTOL,                &
          RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR)
@@ -77,11 +106,12 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    ! PRINT*,'NSTEPS=',ISTATUS(Nstp),' (',Ntotal,')','  O3=', VAR(ind_O3)
 
    STEPMIN = RSTATUS(Nhexit)
-   ! if optional parameters are given for output they 
-   ! are updated with the return information
-   IF (PRESENT(ISTATUS_U)) ISTATUS_U(:) = ISTATUS(:)
-   IF (PRESENT(RSTATUS_U)) RSTATUS_U(:) = RSTATUS(:)
-   IF (PRESENT(IERR_U))    IERR_U       = IERR
+
+   ! if optional parameters are given for output
+   ! use them to store information in them
+   IF ( PRESENT( ISTATUS_U ) ) ISTATUS_U = ISTATUS
+   IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
+   IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR
 
 END SUBROUTINE INTEGRATE
 
@@ -158,6 +188,17 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !
 !    ICNTRL(4)  -> maximum number of integration steps
 !        For ICNTRL(4)=0) the default value of 100000 is used
+!
+!    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
+!        = -1 :  Do not call Update_* functions within the integrator
+!        =  0 :  Status quo
+!        =  1 :  Call Update_RCONST from within the integrator
+!        =  2 :  Call Update_PHOTO from within the integrator
+!        =  3 :  Call Update_RCONST and Update_PHOTO from w/in the int.
+!        =  4 :  Call Update_SUN from within the integrator
+!        =  5 :  Call Update_SUN and Update_RCONST from within the int.
+!        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
 !
 !    RCNTRL(1)  -> Hmin, lower bound for the integration step size
 !          It is strongly recommended to keep Hmin = ZERO
@@ -539,11 +580,11 @@ Stage: DO istage = 1, ros_S
       ! For the 1st istage the function has been computed previously
        IF ( istage == 1 ) THEN
          !slim: CALL WCOPY(N,Fcn0,1,Fcn,1)
-	 Fcn(1:N) = Fcn0(1:N)
+         Fcn(1:N) = Fcn0(1:N)
       ! istage>1 and a new function evaluation is needed at the current istage
        ELSEIF ( ros_NewF(istage) ) THEN
          !slim: CALL WCOPY(N,Y,1,Ynew,1)
-	 Ynew(1:N) = Y(1:N)
+         Ynew(1:N) = Y(1:N)
          DO j = 1, istage-1
            CALL WAXPY(N,ros_A((istage-1)*(istage-2)/2+j), &
             K(N*(j-1)+1),1,Ynew,1)
@@ -1270,8 +1311,8 @@ SUBROUTINE FunSplitTemplate( T, Y, Ydot, P_VAR, D_VAR )
 
    Told = TIME
    TIME = T
-   CALL Update_SUN()
-   CALL Update_RCONST()
+   IF ( Do_Update_SUN    ) CALL Update_SUN()
+   IF ( Do_Update_RCONST ) CALL Update_RCONST()
    CALL Fun_SPLIT( Y, FIX, RCONST, P, D )
    Ydot = P - D*y
    TIME = Told
@@ -1309,8 +1350,8 @@ SUBROUTINE JacTemplate( T, Y, Jcb )
 
     Told = TIME
     TIME = T
-    CALL Update_SUN()
-    CALL Update_RCONST()
+    IF ( Do_Update_SUN    ) CALL Update_SUN()
+    IF ( Do_Update_RCONST ) CALL Update_RCONST()
 #ifdef FULL_ALGEBRA    
     CALL Jac_SP(Y, FIX, RCONST, JV)
     DO j=1,NVAR

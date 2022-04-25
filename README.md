@@ -79,9 +79,6 @@ This branch incorporates fixes from Josue Bock for generating chemical mechanism
 
 This branch contains modifications to KPP that were made specifically for the mistra project.
 
-### MECCA
-This branch contains modifications to KPP specific to the CAABA/MECCA model.
-
 ## Documentation:
 
 * [KPP user manual](https://github.com/KineticPreProcessor/KPP/blob/main/doc/kpp_UserManual.pdf)

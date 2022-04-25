@@ -35,13 +35,15 @@
 #include <string.h>
 #include <stdio.h>
 
-#define MAX_LINE 120
+#define MAX_LINE 300
 
+/* Setting LEN=32 avoids problems with long species names and long equation tags. */
+/* A consistent change in F90_DeclareData (see below) is probably also necessary */
 char *F90_types[] = { "",                   /* VOID */ 
                     "INTEGER",            /* INT */
                     "REAL(kind=sp)",      /* FLOAT */
                     "REAL(kind=dp)",      /* DOUBLE */
-                    "CHARACTER(LEN=15)",  /* STRING */
+                    "CHARACTER(LEN=32)",  /* STRING */
                     "CHARACTER(LEN=100)"  /* DOUBLESTRING */
                   };
 
@@ -117,7 +119,8 @@ int crtident;
 
 /* Max no of continuation lines in F90/F95 differs with compilers, but 39
                                should work for every compiler*/
-int number_of_lines = 1, MAX_NO_OF_LINES = 36;
+/* if MAX_NO_OF_LINES is too small, KPP will split lines incorrectly */
+int number_of_lines = 1, MAX_NO_OF_LINES = 250;
 
 /*  Operator Mapping: 0xaa = '*' | 0xab = '+' | 0xac = ',' 
                       0xad = '-' | 0xae ='.' | 0xaf = '/' */		      
@@ -400,7 +403,9 @@ char dsbuf[200];
           case REAL:
             bprintf( "%12.6e", dval[i] ); break;
           case STRING:
-            bprintf( "'%-15s'", cval[i] ); break;
+            /* Setting length to 32 avoids problems with long species names and long equation tags. */
+            /* A consistent change in "char *F90_types" (see above) is probably also necessary */
+            bprintf( "'%-32s'", cval[i] ); break;
           case DOUBLESTRING:
             /* strncpy( dsbuf, cval[i], 54 ); dsbuf[54]='\0'; */
             /* bprintf( "'%48s'", dsbuf ); break; */
@@ -410,14 +415,14 @@ char dsbuf[200];
             bprintf( "," );
             if( (i+1) % maxCols == 0 ) {
               if (maxCols == 1 ) {
-		bprintf( " & ! index %d\n     ", i+1 ); }
-	      else {
-		bprintf( " & ! index %d - %d\n     ", i-maxCols+2, i+1 ); }
+                bprintf( " & ! index %d\n     ", i+1 ); }
+              else {
+                bprintf( " & ! index %d - %d\n     ", i-maxCols+2, i+1 ); }
               nlines++;
             }
           }
         }
-        bprintf( " /)\n" );
+        bprintf( " /) ! index up to %d\n", i_to );
         /* mz_rs added FlushBuf, otherwise MAX_OUTBUF would have to be very large */
         FlushBuf();
       }
@@ -710,7 +715,7 @@ void F90_FunctionEnd( int f )
 void F90_Inline( char *fmt, ... )
 {
 va_list args;
-char buf[ 1000 ];
+char buf[ MAX_K ];
 
   if( useLang != F90_LANG ) return;
   
