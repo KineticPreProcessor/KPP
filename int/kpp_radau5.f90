@@ -98,10 +98,10 @@ CONTAINS
     IF ( PRESENT( RCNTRL_U ) ) THEN
        WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
     ENDIF
-   
-    ! Determine the settings of the Do_Update_* flags, which determine
-    ! whether or not we need to call Update_* routines in the integrator
-    ! (or not, if we are calling them from a higher-level)
+
+    !~~~> Determine the settings of the Do_Update_* flags, which determine
+    !~~~> whether or not we need to call Update_* routines in the integrator
+    !~~~> (or not, if we are calling them from a higher-level)
     ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
     !            =  0 ! Status quo
     !            =  1 ! Call Update_RCONST from within the integrator
@@ -116,14 +116,25 @@ CONTAINS
                                     Do_Update_PHOTO,     &
                                     Do_Update_Sun       )
 
-    ! Call the integrator
-    CALL RADAU5( NVAR,TIN,TOUT,VAR,H,                  &
-                 RTOL,ATOL,                            &
-                 RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR  )
+    !~~~> In order to remove the prior EQUIVALENCE statements (which
+    !~~~> are not thread-safe), we now have declared VAR and FIX as
+    !~~~> threadprivate pointer variables that can point to C.
+    VAR => C(1:NVAR )
+    FIX => C(NVAR+1:NSPEC)
 
-!!$    Ntotal = Ntotal + Nstp
-!!$    PRINT*,'NSTEPS=',Nstp,' (',Ntotal,')'
+    !~~~> Call the integrator
+    CALL RADAU5( NVAR, TIN,    TOUT,   VAR,     H,       RTOL,  &
+                 ATOL, RCNTRL, ICNTRL, RSTATUS, ISTATUS, IERR  )
 
+    !~~~> Free pointers
+    VAR => NULL()
+    FIX => NULL()
+
+    !~~~> Debug option: Show number of steps
+    !Ntotal = Ntotal + Nstp
+    !PRINT*,'NSTEPS=',Nstp,' (',Ntotal,')'
+
+    ! ~~~> Accumulate statistics
     Nfun = Nfun + ISTATUS(1)
     Njac = Njac + ISTATUS(2)
     Nstp = Nstp + ISTATUS(3)
@@ -133,8 +144,8 @@ CONTAINS
     Nsol = Nsol + ISTATUS(7)
     Nsng = Nsng + ISTATUS(8)
 
-    ! if optional parameters are given for output
-    ! use them to store information in them
+    !~~~> if optional parameters are given for output
+    !~~~> use them to store information in them
     IF (PRESENT(ISTATUS_U)) THEN
       ISTATUS_U(:) = 0
       ISTATUS_U(1) = Nfun ! function calls

@@ -105,16 +105,27 @@ CONTAINS
                                     Do_Update_PHOTO,     &
                                     Do_Update_Sun       )
     
-    ! Call the integrator
+    !~~~> In order to remove the prior EQUIVALENCE statements (which
+    !~~~> are not thread-safe), we now have declared VAR and FIX as
+    !~~~> threadprivate pointer variables that can point to C.
+    VAR => C(1:NVAR )
+    FIX => C(NVAR+1:NSPEC)
+
+    !~~~> Call the integrator
     T1 = TIN; T2 = TOUT
     CALL RungeKutta(  NVAR, T1, T2, VAR, RTOL, ATOL, &
                       RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR  )
 
-    Ntotal = Ntotal + ISTATUS(Nstp)
-    PRINT*,'NSTEPS=',ISTATUS(Nstp),' (',Ntotal,')','  O3=', VAR(ind_O3)
+    !~~~> Free pointers
+    VAR => NULL()
+    FIX => NULL()
 
-    ! if optional parameters are given for output
-    ! use them to store information in them
+    !~~~> Debug option: show number of steps
+    !Ntotal = Ntotal + ISTATUS(Nstp)
+    !PRINT*,'NSTEPS=',ISTATUS(Nstp),' (',Ntotal,')','  O3=', VAR(ind_O3)
+
+    !~~~> if optional parameters are given for output
+    !~~~> use them to store information in them
     IF ( PRESENT( ISTATUS_U ) ) ISTATUS_U = ISTATUS
     IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
     IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR

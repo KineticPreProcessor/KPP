@@ -17,7 +17,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 
    KPP_REAL, INTENT(IN) :: TIN  ! Start Time
    KPP_REAL, INTENT(IN) :: TOUT ! End Time
-   ! Optional input parameters and statistics
+   !~~~> Optional input parameters and statistics
    INTEGER,       INTENT(IN),  OPTIONAL :: ICNTRL_U(20)
    KPP_REAL, INTENT(IN),  OPTIONAL :: RCNTRL_U(20)
    INTEGER,       INTENT(OUT), OPTIONAL :: ISTATUS_U(20)
@@ -49,11 +49,21 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
    ENDIF
 
-   ! Call the integrator
+   !~~~> In order to remove the prior EQUIVALENCE statements (which
+   !~~~> are not thread-safe), we now have declared VAR and FIX as
+   !~~~> threadprivate pointer variables that can point to C.
+   VAR => C(1:NVAR )
+   FIX => C(NVAR+1:NSPEC)
+
+   !~~~> Call the integrator
    CALL Exponential(NVAR,VAR,NFIX,FIX,TIN,TOUT,IERR)
 
-   ! if optional parameters are given for output
-   ! use them to store information in them
+   !~~~> Free pointers
+   VAR => NULL()
+   FIX => NULL()
+
+   !~~~> if optional parameters are given for output
+   !~~~> use them to store information in them
    IF ( PRESENT( ISTATUS_U ) ) ISTATUS_U = ISTATUS
    IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
    IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR

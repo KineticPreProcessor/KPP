@@ -51,7 +51,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 
    KPP_REAL, INTENT(IN) :: TIN  ! Start Time
    KPP_REAL, INTENT(IN) :: TOUT ! End Time
-   ! Optional input parameters and statistics
+   !~~~> Optional input parameters and statistics
    INTEGER,       INTENT(IN),  OPTIONAL :: ICNTRL_U(20)
    KPP_REAL, INTENT(IN),  OPTIONAL :: RCNTRL_U(20)
    INTEGER,       INTENT(OUT), OPTIONAL :: ISTATUS_U(20)
@@ -75,7 +75,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    ICNTRL(15) = 5       ! Call Update_SUN and Update_RCONST from w/in the int. 
 
    !~~~> if optional parameters are given, and if they are /= 0,
-   !     then use them to overwrite default settings
+   !~~~> then use them to overwrite default settings
    IF ( PRESENT( ICNTRL_U ) ) THEN
       WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
    ENDIF
@@ -83,9 +83,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
    ENDIF
       
-   ! Determine the settings of the Do_Update_* flags, which determine
-   ! whether or not we need to call Update_* routines in the integrator
-   ! (or not, if we are calling them from a higher-level)
+   !~~~> Determine the settings of the Do_Update_* flags, which determine
+   !~~~> whether or not we need to call Update_* routines in the integrator
+   !~~~> (or not, if we are calling them from a higher-level)
    ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
    !            =  0 ! Status quo
    !            =  1 ! Call Update_RCONST from within the integrator
@@ -100,10 +100,20 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
                                    Do_Update_PHOTO,     &
                                    Do_Update_Sun       )
 
-   ! Call the integrator
+   !~~~> In order to remove the prior EQUIVALENCE statements (which
+   !~~~> are not thread-safe), we now have declared VAR and FIX as
+   !~~~> threadprivate pointer variables that can point to C.
+   VAR => C(1:NVAR )
+   FIX => C(NVAR+1:NSPEC)
+
+   !~~~> Call the integrator
    T1 = TIN; T2 = TOUT
-   CALL SDIRK( NVAR,T1,T2,VAR,RTOL,ATOL,          &
-               RCNTRL,ICNTRL,RSTATUS,ISTATUS,Ierr )
+   CALL SDIRK( NVAR,   T1,     T2,     VAR,     RTOL, ATOL,  &
+               RCNTRL, ICNTRL, RSTATUS,ISTATUS, Ierr        )
+
+   !~~~> Free pointers
+   VAR => NULL()
+   FIX => NULL()
 
    !~~~> Debug option: print number of steps
    ! Ntotal = Ntotal + ISTATUS(Nstp)
@@ -114,8 +124,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
         PRINT *,'SDIRK: Unsuccessful exit at T=',TIN,' (Ierr=',Ierr,')'
    ENDIF
    
-   ! if optional parameters are given for output
-   ! use them to store information in them
+   !~~~> if optional parameters are given for output
+   !~~~> use them to store information in them
    IF ( PRESENT( ISTATUS_U ) ) ISTATUS_U = ISTATUS
    IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
    IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR

@@ -1635,6 +1635,12 @@ SUBROUTINE TauLeap(Nsteps, Tau, T, SCT, NmlcV, NmlcF)
       KPP_REAL :: A(NREACT), SCT(NREACT), x
       LOGICAL, SAVE :: First = .TRUE.
 
+      !~~~> In order to remove the prior EQUIVALENCE statements (which
+      !~~~> are not thread-safe), we now have declared VAR and FIX as
+      !~~~> threadprivate pointer variables that can point to C.
+      VAR => C(1:NVAR )
+      FIX => C(NVAR+1:NSPEC)
+
       DO istep = 1, Nsteps
 
           ! Propensity vector
@@ -1667,6 +1673,10 @@ SUBROUTINE TauLeap(Nsteps, Tau, T, SCT, NmlcV, NmlcF)
         
      END DO
      
+     !~~~> Free pointers
+     VAR => NULL()
+     FIX => NULL()
+
 CONTAINS
 
      SUBROUTINE PropensityTemplate( T, NmlcV, NmlcF, Prop )

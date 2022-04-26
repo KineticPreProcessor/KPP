@@ -98,9 +98,9 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm,&
       WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
    ENDIF
 
-   ! Determine the settings of the Do_Update_* flags, which determine
-   ! whether or not we need to call Update_* routines in the integrator
-   ! (or not, if we are calling them from a higher-level)
+   !~~~> Determine the settings of the Do_Update_* flags, which determine
+   !~~~> whether or not we need to call Update_* routines in the integrator
+   !~~~> (or not, if we are calling them from a higher-level)
    ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
    !            =  0 ! Status quo
    !            =  1 ! Call Update_RCONST from within the integrator
@@ -115,14 +115,24 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm,&
                                    Do_Update_PHOTO,     &
                                    Do_Update_Sun       )
 
-   ! Call the integrator
-   CALL RosenbrockTLM(NVAR, VAR, NTLM, Y_tlm,      &
-         TIN,TOUT,ATOL,RTOL,ATOL_tlm,RTOL_tlm,     &
-         RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR)
+   !~~~> In order to remove the prior EQUIVALENCE statements (which
+   !~~~> are not thread-safe), we now have declared VAR and FIX as
+   !~~~> threadprivate pointer variables that can point to C.
+   VAR => C(1:NVAR )
+   FIX => C(NVAR+1:NSPEC)
 
-!~~~> Debug option: show number of steps
-!   Ntotal = Ntotal + ISTATUS(Nstp)
-!   PRINT*,'NSTEPS=',ISTATUS(Nstp),' (',Ntotal,')','  O3=', VAR(ind_O3)
+   !~~~> Call the integrator
+   CALL RosenbrockTLM( NVAR,   VAR,    NTLM,    Y_tlm,    TIN,       &
+                       TOUT,   ATOL,   RTOL,    ATOL_tlm, RTOL_tlm,  &
+                       RCNTRL, ICNTRL, RSTATUS, ISTATUS,  IERR      )
+
+   !~~~> Free pointers
+   VAR => NULL()
+   FIX => NULL()
+
+   !~~~> Debug option: show number of steps
+   !Ntotal = Ntotal + ISTATUS(Nstp)
+   !PRINT*,'NSTEPS=',ISTATUS(Nstp),' (',Ntotal,')','  O3=', VAR(ind_O3)
 
    IF (IERR < 0) THEN
      print *,'Rosenbrock: Unsucessful step at T=', &
@@ -131,8 +141,8 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm,&
 
    STEPMIN = RSTATUS(Nhexit)
 
-   ! if optional parameters are given for output
-   ! use them to store information in them
+   !~~~> if optional parameters are given for output
+   !~~~> use them to store information in them
    IF ( PRESENT( ISTATUS_U ) ) ISTATUS_U = ISTATUS
    IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
 
