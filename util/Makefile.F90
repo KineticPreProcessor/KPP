@@ -27,7 +27,7 @@ FC_INTEL   = ifort
 #FOPT_INTEL = -cpp -O -fp-model precise -pc80 -prec_div
 # More checking for debugging:
 FOPT_INTEL = -cpp -O0 -fp-model strict -implicitnone -ftrapuv \
-              -debug all -check all -warn all
+              -debug all -check all -warn all -g
 
 FC_PGF     = pgf90
 # More aggressive for production runs:
@@ -40,7 +40,7 @@ FC_HPUX    = f90
 FOPT_HPUX  = -O -u +Oall +check=on
 
 FC_GFORTRAN     = gfortran
-FOPT_GFORTRAN   = -cpp -O
+FOPT_GFORTRAN   = -cpp -O -g
 
 # define FULL_ALGEBRA for non-sparse integration
 FC   = $(FC_$(COMPILER))
