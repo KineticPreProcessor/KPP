@@ -28,13 +28,13 @@ MODULE KPP_ROOT_Integrator
   IMPLICIT NONE
   PUBLIC
   SAVE
-  
+
 !~~~> Flags to determine if we should call the UPDATE_* routines from within
 !~~~> the integrator.  If using KPP in an external model, you might want to
 !~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
-  LOGICAL :: Do_Update_RCONST
-  LOGICAL :: Do_Update_PHOTO
-  LOGICAL :: Do_Update_SUN
+  LOGICAL, PRIVATE :: Do_Update_RCONST
+  LOGICAL, PRIVATE :: Do_Update_PHOTO
+  LOGICAL, PRIVATE :: Do_Update_SUN
 
 !~~~>  Statistics on the work performed by the SDIRK method
   INTEGER, PARAMETER :: Nfun=1, Njac=2, Nstp=3, Nacc=4,  &
@@ -57,6 +57,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    USE KPP_ROOT_Parameters
    USE KPP_ROOT_Global
    USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
+
    IMPLICIT NONE
 
    KPP_REAL, INTENT(IN) :: TIN  ! Start Time
@@ -104,12 +105,13 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    !            =  4 ! Call Update_SUN from within the integrator
    !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
    !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
-   !            =  7 ! Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+   !            =  7 ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
    CALL Integrator_Update_Options( ICNTRL(15),          &
                                    Do_Update_RCONST,    &
                                    Do_Update_PHOTO,     &
                                    Do_Update_Sun       )
-
+   
+   ! Call the integrator
    T1 = TIN; T2 = TOUT
    CALL SDIRK( NVAR,T1,T2,VAR,RTOL,ATOL,          &
                RCNTRL,ICNTRL,RSTATUS,ISTATUS,Ierr )
@@ -220,7 +222,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !        =  4 :  Call Update_SUN from within the integrator
 !        =  5 :  Call Update_SUN and Update_RCONST from within the int.
 !        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
-!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO, Update_RCONST from w/in the int.
 !
 !~~~>  Real parameters
 !

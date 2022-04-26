@@ -1,6 +1,6 @@
   SUBROUTINE Update_SUN()
-      !USE KPP_ROOT_Parameters
-      !USE KPP_ROOT_Global
+    USE KPP_ROOT_Parameters
+    USE KPP_ROOT_Global
 
     IMPLICIT NONE
 

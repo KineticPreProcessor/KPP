@@ -1242,8 +1242,8 @@
 
       Told = TIME
       TIME = T
-      CALL Update_SUN()
-      CALL Update_RCONST()
+      !CALL Update_SUN()
+      !CALL Update_RCONST()
       CALL Fun( Y, FIX, RCONST, Ydot )
       TIME = Told
      
@@ -1274,8 +1274,8 @@
 
       Told = TIME
       TIME = T   
-      CALL Update_SUN()
-      CALL Update_RCONST()
+      !CALL Update_SUN()
+      !CALL Update_RCONST()
       CALL Jac_SP( Y, FIX, RCONST, Jcb )
       TIME = Told
      

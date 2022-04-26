@@ -96,6 +96,16 @@ ifeq ($(HOST),fluorine)
   CC_FLAGS   = -O -Wno-implicit-function-declaration
 endif
 
+# Settings for Cannon (Harvard cluster) from Bob Yantosca
+# Only reset FLEX_LIB_DIR if the user has not set it first
+ifeq ($(findstring rc.fas.harvard.edu,$(HOSTNAME)),rc.fas.harvard.edu)
+  ifeq ($(USER_FLEX_LIB_DIR),)
+    FLEX_LIB_DIR = ${FLEX_HOME}/lib64
+  else
+    FLEX_LIB_DIR = ${USER_FLEX_LIB_DIR}
+  endif
+endif
+
 # Note: Additional systems should be added as needed.
 
 # Disable this till further notice (bmy, 11/1/21)

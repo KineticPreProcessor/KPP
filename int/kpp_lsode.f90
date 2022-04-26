@@ -18,12 +18,12 @@ MODULE KPP_ROOT_Integrator
   PUBLIC
   SAVE
   
-!~~~> Flags to determine if we should call the UPDATE_* routines from within 
+!~~~> Flags to determine if we should call the UPDATE_* routines from within
 !~~~> the integrator.  If using KPP in an external model, you might want to
 !~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
-  LOGICAL :: Do_Update_RCONST
-  LOGICAL :: Do_Update_PHOTO
-  LOGICAL :: Do_Update_SUN
+  LOGICAL, PRIVATE :: Do_Update_RCONST
+  LOGICAL, PRIVATE :: Do_Update_PHOTO
+  LOGICAL, PRIVATE :: Do_Update_SUN
 
   !~~~>  Statistics on the work performed by the LSODE method
   INTEGER :: Nfun,Njac,Nstp,Nacc,Nrej,Ndec,Nsol,Nsng
@@ -101,7 +101,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    !            =  4 ! Call Update_SUN from within the integrator
    !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
    !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
-   !            =  7 ! Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+   !            =  7 ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
    CALL Integrator_Update_Options( ICNTRL(15),          &
                                    Do_Update_RCONST,    &
                                    Do_Update_PHOTO,     &
@@ -175,7 +175,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !        =  4 :  Call Update_SUN from within the integrator
 !        =  5 :  Call Update_SUN and Update_RCONST from within the int.
 !        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
-!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST from w/in int.
 !
 !~~~>  Real parameters
 !
@@ -1595,14 +1595,15 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
         IF (ITOL .EQ. 2 .OR. ITOL .EQ. 4) AbsTolI = AbsTol(I) 
         IF (RelTolI .LT. 0.0D0) GO TO 619 
         IF (AbsTolI .LT. 0.0D0) GO TO 620 
-   70   CONTINUE 
+   70 CONTINUE
       IF (ISTATE .EQ. 1) GO TO 100 
 ! If ISTATE = 3, set flag to signal parameter changes to DSTODE. -------
       JSTART = -1 
       IF (NQ .LE. MAXORD) GO TO 90 
 ! MAXORD was reduced below NQ.  Copy YH(*,MAXORD+2) into SAVF. ---------
       DO 80 I = 1,N 
-   80   RWORK(I+LSAVF-1) = RWORK(I+LWM-1) 
+         RWORK(I+LSAVF-1) = RWORK(I+LWM-1)
+   80 CONTINUE
 ! Reload WM(1) = RWORK(LWM), since LWM may have changed. ---------------
    90 IF (MITER .GT. 0) RWORK(LWM) = SQRT(UROUND) 
       IF (N .EQ. NYH) GO TO 200 
@@ -1611,7 +1612,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       I2 = LYH + (MAXORD + 1)*NYH - 1 
       IF (I1 .GT. I2) GO TO 200 
       DO 95 I = I1,I2 
-   95   RWORK(I) = 0.0D0 
+        RWORK(I) = 0.0D0
+   95 CONTINUE
       GO TO 200 
 !-----------------------------------------------------------------------
 ! Block C.                                                              
@@ -1644,15 +1646,17 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       CALL F (NEQ, T, Y, RWORK(LF0)) 
       NFE = 1 
 ! Load the initial value vector in YH. ---------------------------------
-      DO 115 I = 1,N 
-  115   RWORK(I+LYH-1) = Y(I) 
+      DO 115 I = 1,N
+         RWORK(I+LYH-1) = Y(I)
+   115 CONTINUE
 ! Load and invert the EWT array.  (H is temporarily set to 1.0.) -------
       NQ = 1 
       H = 1.0D0 
       CALL DEWSET (N, ITOL, RelTol, AbsTol, RWORK(LYH), RWORK(LEWT)) 
       DO 120 I = 1,N 
         IF (RWORK(I+LEWT-1) .LE. 0.0D0) GO TO 621 
-  120   RWORK(I+LEWT-1) = 1.0D0/RWORK(I+LEWT-1) 
+        RWORK(I+LEWT-1) = 1.0D0/RWORK(I+LEWT-1)
+  120 CONTINUE
 !-----------------------------------------------------------------------
 ! The coding below computes the step size, H0, to be attempted on the   
 ! first step, unless the user has supplied a value for this.            
@@ -1676,14 +1680,15 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       TOL = RelTol(1) 
       IF (ITOL .LE. 2) GO TO 140 
       DO 130 I = 1,N 
-  130   TOL = MAX(TOL,RelTol(I)) 
+        TOL = MAX(TOL,RelTol(I))
+  130 CONTINUE
   140 IF (TOL .GT. 0.0D0) GO TO 160 
       AbsTolI = AbsTol(1) 
       DO 150 I = 1,N 
         IF (ITOL .EQ. 2 .OR. ITOL .EQ. 4) AbsTolI = AbsTol(I) 
         AYI = ABS(Y(I)) 
-        IF (AYI .NE. 0.0D0) TOL = MAX(TOL,AbsTolI/AYI) 
-  150   CONTINUE 
+        IF (AYI .NE. 0.0D0) TOL = MAX(TOL,AbsTolI/AYI)
+  150 CONTINUE
   160 TOL = MAX(TOL,100.0D0*UROUND) 
       TOL = MIN(TOL,0.001D0) 
       SUM = DVNORM (N, RWORK(LF0), RWORK(LEWT)) 
@@ -1697,7 +1702,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 ! Load H with H0 and scale YH(*,2) by H0. ------------------------------
       H = H0 
       DO 190 I = 1,N 
-  190   RWORK(I+LF0-1) = H0*RWORK(I+LF0-1) 
+        RWORK(I+LF0-1) = H0*RWORK(I+LF0-1)
+  190 CONTINUE
       GO TO 270 
 !-----------------------------------------------------------------------
 ! Block D.                                                              
@@ -1748,7 +1754,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       CALL DEWSET (N, ITOL, RelTol, AbsTol, RWORK(LYH), RWORK(LEWT)) 
       DO 260 I = 1,N 
         IF (RWORK(I+LEWT-1) .LE. 0.0D0) GO TO 510 
-  260   RWORK(I+LEWT-1) = 1.0D0/RWORK(I+LEWT-1) 
+        RWORK(I+LEWT-1) = 1.0D0/RWORK(I+LEWT-1)
+  260 CONTINUE
   270 TOLSF = UROUND*DVNORM (N, RWORK(LYH), RWORK(LEWT)) 
       IF (TOLSF .LE. 1.0D0) GO TO 280 
       TOLSF = TOLSF*2.0D0 
@@ -1817,7 +1824,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 ! work arrays before returning.                                         
 !-----------------------------------------------------------------------
   400 DO 410 I = 1,N 
-  410   Y(I) = RWORK(I+LYH-1) 
+        Y(I) = RWORK(I+LYH-1)
+  410 CONTINUE
       T = TN 
       IF (ITASK .NE. 4 .AND. ITASK .NE. 5) GO TO 420 
       IF (IHIT) T = TCRIT 
@@ -1886,8 +1894,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
   570   CONTINUE 
       IWORK(16) = IMXER 
 ! Set Y vector, T, and optional outputs. -------------------------------
-  580 DO 590 I = 1,N 
-  590   Y(I) = RWORK(I+LYH-1) 
+  580 DO 590 I = 1,N
+        Y(I) = RWORK(I+LYH-1)
+  590 CONTINUE
       T = TN 
       RWORK(11) = HU 
       RWORK(12) = H 
@@ -2255,7 +2264,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    10   IC = IC*JJ 
    15 C = IC 
       DO 20 I = 1,N 
-   20   DKY(I) = C*YH(I,L) 
+        DKY(I) = C*YH(I,L)
+   20 CONTINUE
       IF (K .EQ. NQ) GO TO 55 
       JB2 = NQ - K 
       DO 50 JB = 1,JB2 
@@ -2265,15 +2275,18 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
         IF (K .EQ. 0) GO TO 35 
         JJ1 = JP1 - K 
         DO 30 JJ = JJ1,J 
-   30     IC = IC*JJ 
+          IC = IC*JJ
+   30   CONTINUE
    35   C = IC 
         DO 40 I = 1,N 
-   40     DKY(I) = C*YH(I,JP1) + S*DKY(I) 
-   50   CONTINUE 
+          DKY(I) = C*YH(I,JP1) + S*DKY(I)
+   40   CONTINUE
+   50 CONTINUE
       IF (K .EQ. 0) RETURN 
    55 R = H**(-K) 
       DO 60 I = 1,N 
-   60   DKY(I) = R*DKY(I) 
+        DKY(I) = R*DKY(I)
+   60 CONTINUE
       RETURN 
 !                                                                       
    80 MSG = 'DINTDY-  K (=I1) illegal      ' 
@@ -2528,16 +2541,20 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       IF (JOB .EQ. 2) GO TO 100 
 !                                                                       
       DO 10 I = 1,LENRLS 
-   10   RSAV(I) = RLS(I) 
+        RSAV(I) = RLS(I)
+   10 CONTINUE
       DO 20 I = 1,LENILS 
-   20   ISAV(I) = ILS(I) 
+        ISAV(I) = ILS(I)
+   20 CONTINUE
       RETURN 
 !                                                                       
   100 CONTINUE 
       DO 110 I = 1,LENRLS 
-  110    RLS(I) = RSAV(I) 
+         RLS(I) = RSAV(I)
+  110 CONTINUE
       DO 120 I = 1,LENILS 
-  120    ILS(I) = ISAV(I) 
+         ILS(I) = ISAV(I)
+  120 CONTINUE
       RETURN 
 !----------------------- END OF SUBROUTINE DSRCOM ----------------------
       END SUBROUTINE DSRCOM                                          
@@ -2720,7 +2737,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
   120 NQ = MAXORD 
       L = LMAX 
       DO 125 I = 1,L 
-  125   EL(I) = ELCO(I,NQ) 
+        EL(I) = ELCO(I,NQ)
+  125 CONTINUE
       NQNYH = NQ*NYH 
       RC = RC*EL(1)/EL0 
       EL0 = EL(1) 
@@ -2741,7 +2759,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !-----------------------------------------------------------------------
   140 CALL DCFODE (METH, ELCO, TESCO) 
   150 DO 155 I = 1,L 
-  155   EL(I) = ELCO(I,NQ) 
+        EL(I) = ELCO(I,NQ)
+  155 CONTINUE
       NQNYH = NQ*NYH 
       RC = RC*EL(1)/EL0 
       EL0 = EL(1) 
@@ -2764,8 +2783,10 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       R = 1.0D0 
       DO 180 J = 2,L 
         R = R*RH 
-        DO 180 I = 1,N 
-  180     YH(I,J) = YH(I,J)*R 
+        DO 181 I = 1,N
+          YH(I,J) = YH(I,J)*R
+  181   CONTINUE
+  180 CONTINUE
       H = H*RH 
       RC = RC*RH 
       IALTH = L 
@@ -2783,11 +2804,12 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       TN = TN + H 
       I1 = NQNYH + 1 
       DO 215 JB = 1,NQ 
-        I1 = I1 - NYH 
+        I1 = I1 - NYH
 !dir$ ivdep                                                             
         DO 210 I = I1,NQNYH 
-  210     YH1(I) = YH1(I) + YH1(I+NYH) 
-  215   CONTINUE 
+          YH1(I) = YH1(I) + YH1(I+NYH)
+  210   CONTINUE
+  215 CONTINUE
 !-----------------------------------------------------------------------
 ! Up to MAXCOR corrector iterations are taken.  A convergence test is   
 ! made on the R.M.S. norm of each correction, weighted by the error     
@@ -2796,7 +2818,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !-----------------------------------------------------------------------
   220 M = 0 
       DO 230 I = 1,N 
-  230   Y(I) = YH(I,1) 
+        Y(I) = YH(I,1)
+  230 CONTINUE
       CALL F (NEQ, TN, Y, SAVF) 
       NFE = NFE + 1 
       IF (IPUP .LE. 0) GO TO 250 
@@ -2813,19 +2836,22 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       CRATE = 0.7D0 
       IF (IERPJ .NE. 0) GO TO 430 
   250 DO 260 I = 1,N 
-  260   ACOR(I) = 0.0D0 
+        ACOR(I) = 0.0D0
+  260 CONTINUE
   270 IF (MITER .NE. 0) GO TO 350 
 !-----------------------------------------------------------------------
 ! In the case of functional iteration, update Y directly from           
 ! the result of the last function evaluation.                           
 !-----------------------------------------------------------------------
       DO 290 I = 1,N 
-        SAVF(I) = H*SAVF(I) - YH(I,2) 
-  290   Y(I) = SAVF(I) - ACOR(I) 
+        SAVF(I) = H*SAVF(I) - YH(I,2)
+        Y(I) = SAVF(I) - ACOR(I)
+  290 CONTINUE
       DEL = DVNORM (N, Y, EWT) 
       DO 300 I = 1,N 
-        Y(I) = YH(I,1) + EL(1)*SAVF(I) 
-  300   ACOR(I) = SAVF(I) 
+        Y(I) = YH(I,1) + EL(1)*SAVF(I)
+        ACOR(I) = SAVF(I)
+  300 CONTINUE
       GO TO 400 
 !-----------------------------------------------------------------------
 ! In the case of the chord method, compute the corrector error,         
@@ -2833,7 +2859,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 ! P as coefficient matrix.                                              
 !-----------------------------------------------------------------------
   350 DO 360 I = 1,N 
-  360   Y(I) = H*SAVF(I) - (YH(I,2) + ACOR(I)) 
+        Y(I) = H*SAVF(I) - (YH(I,2) + ACOR(I))
+  360 CONTINUE
       !CALL SLVS (WM, IWM, Y, SAVF) 
       CALL DSOLSY(WM, IWM, Y, SAVF)
       IF (IERSL .LT. 0) GO TO 430 
@@ -2841,7 +2868,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       DEL = DVNORM (N, Y, EWT) 
       DO 380 I = 1,N 
         ACOR(I) = ACOR(I) + Y(I) 
-  380   Y(I) = YH(I,1) + EL(1)*ACOR(I) 
+        Y(I) = YH(I,1) + EL(1)*ACOR(I)
+  380 CONTINUE
 !-----------------------------------------------------------------------
 ! Test for convergence.  If M.gt.0, an estimate of the convergence      
 ! rate constant is stored in CRATE, and this is used in the test.       
@@ -2876,8 +2904,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
         I1 = I1 - NYH 
 !dir$ ivdep                                                             
         DO 440 I = I1,NQNYH 
-  440     YH1(I) = YH1(I) - YH1(I+NYH) 
-  445   CONTINUE 
+          YH1(I) = YH1(I) - YH1(I+NYH)
+  440   CONTINUE 
+  445 CONTINUE 
       IF (IERPJ .LT. 0 .OR. IERSL .LT. 0) GO TO 680 
       IF (ABS(H) .LE. HMIN*1.00001D0) GO TO 670 
       IF (NCF .EQ. MXNCF) GO TO 670 
@@ -2911,14 +2940,17 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       HU = H 
       NQU = NQ 
       DO 470 J = 1,L 
-        DO 470 I = 1,N 
-  470     YH(I,J) = YH(I,J) + EL(J)*ACOR(I) 
+        DO 471 I = 1,N 
+          YH(I,J) = YH(I,J) + EL(J)*ACOR(I) 
+  471   CONTINUE
+  470 CONTINUE
       IALTH = IALTH - 1 
       IF (IALTH .EQ. 0) GO TO 520 
       IF (IALTH .GT. 1) GO TO 700 
       IF (L .EQ. LMAX) GO TO 700 
       DO 490 I = 1,N 
-  490   YH(I,LMAX) = ACOR(I) 
+        YH(I,LMAX) = ACOR(I)
+  490 CONTINUE 
       GO TO 700 
 !-----------------------------------------------------------------------
 ! The error test failed.  KFLAG keeps track of multiple failures.       
@@ -2934,8 +2966,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
         I1 = I1 - NYH 
 !dir$ ivdep                                                             
         DO 510 I = I1,NQNYH 
-  510     YH1(I) = YH1(I) - YH1(I+NYH) 
-  515   CONTINUE 
+          YH1(I) = YH1(I) - YH1(I+NYH) 
+  510   CONTINUE
+  515 CONTINUE 
       RMAX = 2.0D0 
       IF (ABS(H) .LE. HMIN*1.00001D0) GO TO 660 
       IF (KFLAG .LE. -3) GO TO 640 
@@ -2954,7 +2987,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
   520 RHUP = 0.0D0 
       IF (L .EQ. LMAX) GO TO 540 
       DO 530 I = 1,N 
-  530   SAVF(I) = ACOR(I) - YH(I,LMAX) 
+        SAVF(I) = ACOR(I) - YH(I,LMAX)
+  530 CONTINUE
       DUP = DVNORM (N, SAVF, EWT)/TESCO(3,NQ) 
       EXUP = 1.0D0/(L+1) 
       RHUP = 1.0D0/(1.4D0*DUP**EXUP + 0.0000014D0) 
@@ -2981,7 +3015,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       IF (RH .LT. 1.1D0) GO TO 610 
       R = EL(L)/L 
       DO 600 I = 1,N 
-  600   YH(I,NEWQ+1) = ACOR(I)*R 
+        YH(I,NEWQ+1) = ACOR(I)*R
+  600 CONTINUE
       GO TO 630 
   610 IALTH = 3 
       GO TO 700 
@@ -3011,7 +3046,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       RH = MAX(HMIN/ABS(H),RH) 
       H = H*RH 
       DO 645 I = 1,N 
-  645   Y(I) = YH(I,1) 
+        Y(I) = YH(I,1)
+  645 CONTINUE
       CALL F (NEQ, TN, Y, SAVF) 
       NFE = NFE + 1 
       DO 650 I = 1,N 
@@ -3117,8 +3153,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 !                                                                       
 !***FIRST EXECUTABLE STATEMENT  DVNORM                                  
       SUM = 0.0D0 
-      DO 10 I = 1,N 
-   10   SUM = SUM + (V(I)*W(I))**2 
+      DO I = 1,N 
+         SUM = SUM + (V(I)*W(I))**2 
+      ENDDO
       DVNORM = SQRT(SUM/N) 
       RETURN 
 !----------------------- END OF FUNCTION DVNORM ------------------------

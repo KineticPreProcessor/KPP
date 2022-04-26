@@ -115,6 +115,8 @@ int doFlux         = 0;
 /* if useValues=1 KPP replaces parameters like NVAR etc. 
        by their values in vector/matrix declarations */
 int useDeclareValues = 0; 
+int upperCaseF90     = 0;
+char f90Suffix[3]    = "f90";
 
 char integrator[ MAX_PATH ] = "none";
 char driver[ MAX_PATH ] = "none";
@@ -399,6 +401,21 @@ void CmdFlux( char *cmd )
     return;
   }
   ScanError("'%s': Unknown parameter for #FLUX [ON|OFF]", cmd );
+}
+
+void CmdUpperCaseF90( char *cmd )
+{
+  if( EqNoCase( cmd, "OFF" ) ) {
+    upperCaseF90 = 0;
+    sprintf( f90Suffix, "%s", "f90" );
+    return;
+  }
+  if( EqNoCase( cmd, "ON" ) ) {
+    upperCaseF90 = 1;
+    sprintf( f90Suffix, "%s", "F90" );
+    return;
+  }
+  ScanError("'%s': Unknown parameter for #UPPERCASEF90 [ON|OFF]", cmd );
 }
 
 int FindAtom( char *atname )
@@ -697,7 +714,7 @@ int err;
         ScanError( "Duplicate equation: "
         	   " (eqn<%d> = eqn<%d> )", i+1, EqnNr+1 );
       else
-	ScanError( "Linearly dependent equations: "
+	ScanWarning( "Linearly dependent equations: "
 		   "( %.0f eqn<%d> = %.0f eqn<%d> )",
 		   r1, i+1, r2, EqnNr+1 );
       break;
@@ -976,7 +993,7 @@ int code;
 /* -----------------------------------------------------------------------*/
 /* -- The following routines were added for the FAMILIES functionality -- */
 /* -----------------------------------------------------------------------*/
-void ProcessProdLossTerm( int EqNr, char *sign, char *coef, char *spname  )
+void ProcessProdLossTerm( int type, int EqNr, char *sign, char *coef, char *spname  )
 {
 int code;  
 CODE crtSpec;
@@ -1002,10 +1019,17 @@ char buf[40];
   strcat( buf, coef ); 
   sscanf( buf, "%lf", &val );
 
+  /*  switch( type ) {
+      case LOSS_FAM:*/
   Stoich_Right[ crtSpec ][ EqNr ] = val;
   Stoich[ crtSpec ][ EqNr ]       = val;
 
-  /*printf("\nSpecies %s with Stoich[%d][%d] = %f. SpcNr=%d. Code=%d. ReverseCode=%d",spname,crtSpec,EqNr,Stoich[crtSpec][EqNr],SpcNr,Code[crtSpec],ReverseCode[ code ]);*/
+  /*if ( type == LOSS_FAM ) {
+  printf("\nLOSS Species %s with Stoich[%d][%d] = %f. SpcNr=%d. Code=%d. ReverseCode=%d",spname,crtSpec,EqNr,Stoich[crtSpec][EqNr],SpcNr,Code[crtSpec],ReverseCode[ code ]);
+  }
+  if ( type == PROD_FAM ) {
+  printf("\nPROD Species %s with Stoich[%d][%d] = %f. SpcNr=%d. Code=%d. ReverseCode=%d",spname,crtSpec,EqNr,Stoich[crtSpec][EqNr],SpcNr,Code[crtSpec],ReverseCode[ code ]);
+  }*/
 }
            
 int FindFamily( char *famname )
@@ -1035,10 +1059,12 @@ void ScanEquations( MEMBER crtMbr ) {
     if ( Stoich_Left[ crtCode ][ i ] > 0 ) { /* Then this species is part of this equations's LHS */
       coeff = Stoich_Left[ crtCode ][ i ] * crtMbr.coeff;
       Loss_Coeff[ FamilyNr ][ i ] += Stoich_Left[ crtCode ][ i ] * crtMbr.coeff;
+      /*printf("\nAdded %s to loss family eq. %i ... %f",crtMbr.name,i,Stoich_Left[ crtCode ][ i ]);*/
     }
     if ( Stoich_Right[ crtCode ][ i ] > 0 ) { /* Then this species is part of this equations's RHS */
       coeff = Stoich_Right[ crtCode ][ i ] * crtMbr.coeff;
       Prod_Coeff[ FamilyNr ][ i ] += Stoich_Right[ crtCode ][ i ] * crtMbr.coeff;
+      /*printf("\nAdded %s to prod family eq. %i ... %f",crtMbr.name,i,Stoich_Right[ crtCode ][ i ]);*/
     }
     /* ---------------------------------------------------------------------------------------------*/
     /* ---------------------------------------------------------------------------------------------*/
@@ -1093,6 +1119,7 @@ void FinalizeFamily()
   int type;
   char spstr[40];
   char eqNr[40];
+  char Coef[40];
   int newSpcCode;
   
   type = FamilyTable[FamilyNr].type;
@@ -1106,12 +1133,11 @@ void FinalizeFamily()
     /* -- -- IF P-L is not zero then we can proceed. This is for efficiency: don't add dummy  -- -- */
     /* -- -- species if their net result is zero! (MSL)                                       -- -- */
     for( i=0; i<EqnNr; i++ ) {
-      switch( type ) {
-      case LOSS_FAM:
+      if ( type == LOSS_FAM ) {
 	if ( (Loss_Coeff[ FamilyNr ][ i ] - Prod_Coeff[ FamilyNr ][ i ]) > 0. ) {
-	  sprintf(eqNr, "%d", i+1 );
-	  strcpy( spstr, "RR" );
-	  strcat( spstr, eqNr );
+	  sprintf(eqNr, "%d", FamilyNr );
+	  strcpy( spstr, FamilyTable[ FamilyNr ].name );
+	  /*strcat( spstr, eqNr );
 	  /* -- -- Scan all species to see if RR_<i> exists. -- -- */
 	  newSpcCode = FindSpecies( spstr );
 	  /* -- -- If not, then declare it                   -- -- */
@@ -1119,15 +1145,16 @@ void FinalizeFamily()
 	    DeclareSpecies( VAR_SPC, spstr );
 	  } 
 	  /* -- -- Now, add this species to the appropriate Stoich* arrays -- */
-	  ProcessProdLossTerm( i, "+", "1", spstr );
+	  sprintf(Coef,"%f",Loss_Coeff[ FamilyNr ][ i ] - Prod_Coeff[ FamilyNr ][ i ]);
+	  ProcessProdLossTerm( LOSS_FAM, i, "+", Coef, spstr );
 	  Loss_Spc[ i ] = &ReverseCode[ FindSpecies( spstr ) ];
-	  break;
 	}
-      case PROD_FAM:
+      }
+      else if ( type == PROD_FAM ) {
 	if ( (Prod_Coeff[ FamilyNr ][ i ] - Loss_Coeff[ FamilyNr ][ i ]) > 0. ) {
-	  sprintf(eqNr, "%d", i+1 );
-	  strcpy( spstr, "RR" );
-	  strcat( spstr, eqNr );
+	  sprintf(eqNr, "%d", FamilyNr );
+	  strcpy( spstr, FamilyTable[ FamilyNr ].name );
+	  /*strcat( spstr, eqNr );
 	  /* -- -- Scan all species to see if RR_<i> exists. -- -- */
 	  newSpcCode = FindSpecies( spstr );
 	  /* -- -- If not, then declare it                   -- -- */
@@ -1135,9 +1162,9 @@ void FinalizeFamily()
 	    DeclareSpecies( VAR_SPC, spstr );
 	  } 
 	  /* -- -- Now, add this species to the appropriate Stoich* arrays -- */
-	  ProcessProdLossTerm( i, "+", "1", spstr );
+	  sprintf(Coef,"%f",Prod_Coeff[ FamilyNr ][ i ] - Loss_Coeff[ FamilyNr ][ i ]);
+	  ProcessProdLossTerm( PROD_FAM, i, "+", Coef, spstr );
 	  Prod_Spc[ i ] = &ReverseCode[ FindSpecies( spstr ) ];
-	  break;
 	}
       }
     }

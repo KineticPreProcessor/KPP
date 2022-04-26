@@ -36,33 +36,27 @@
 
 #include <stdio.h>
 
-/* - Many limits can be changed here by adjusting the MAX_* constants */
-/* - To increase the max size of inlined code (F90_GLOBAL etc.), */
-/*   change MAX_INLINE in scan.h */
-
-// Note: MAX_EQN or MAX_SPECIES over 1023 causes a seg fault in CI build -- lae 10/13/2021
-#define MAX_EQN       11000
-#define MAX_SPECIES    6000
-#define MAX_SPNAME       30
-#define MAX_IVAL         40
-/* MAX_EQNTAG = max length of equation tag in eqn file */
-/* Check if changes in code_f90.c are also necessary when changing MAX_EQNTAG */
-#define MAX_EQNTAG       32
-/* To allow longer f90 expressions for the rate coefficients in the */
-/* eqn file, change MAX_K here and union str in scan.y consistently */
-#define MAX_K          1000
-#define MAX_ATOMS	 10
-#define MAX_ATNAME	 10
-#define MAX_ATNR	250 
-#define MAX_PATH        250
-#define MAX_FILES	 20
-#define MAX_FAMILIES	 50
-#define MAX_MEMBERS 	150
-/* MAX_EQNLEN only determines how long the printout of the */
-/* equation in the Monitor file will be. */
-#define MAX_EQNLEN      100
-/* MAX_PATHLEN = max length of a directory or file name */
-#define MAX_PATHLEN     300
+/* - Many limits can be changed here by adjusting the MAX_* constants      */
+/* - To increase the max size of inlined code (F90_GLOBAL etc.),           */
+/*   change MAX_INLINE in scan.h                                           */
+/*                                                                         */
+/*   Note: MAX_EQN or MAX_SPECIES over 1023 causes a seg fault in CI build */
+/*    -- Lucas Estrada, 10/13/2021                                         */
+#define MAX_EQN       11000     // Max number of equations
+#define MAX_SPECIES    6000     // Max number of species
+#define MAX_SPNAME       30     // Max char length of species name
+#define MAX_IVAL         40     // Max char length of species ID ?
+#define MAX_EQNTAG       32     // Max length of equation ID in eqn file
+#define MAX_K          1000     // Max length of rate expression in eqn file
+#define MAX_ATOMS        10     // Max number of atoms
+#define MAX_ATNAME       10     // Max char length of atom name
+#define MAX_ATNR        250     // Max number of atom tables
+#define MAX_PATH        250     // Max char length of directory paths
+#define MAX_FILES        20     // Max number of files to open
+#define MAX_FAMILIES    300     // Max number of family definitions
+#define MAX_MEMBERS     150     // Max number of family members
+#define MAX_EQNLEN      200     // Max char length of equations
+#define MAX_PATHLEN     300     // Max length of a directory or file name
 
 #define NO_CODE 	-1
 #define max( x, y ) (x) > (y) ? (x) : (y)
@@ -73,18 +67,20 @@
 #define IntegName(x) FileName((x),"INTEG","int",".def")
 
 enum krtypes { NUMBER, EXPRESION, PHOTO };
-enum table_modes { F_TEXT, FC_TEXT, C_TEXT, S_TEXT }; 
+enum table_modes { F_TEXT, FC_TEXT, C_TEXT, S_TEXT };
 enum lang { NO_LANG, C_LANG, F77_LANG, F90_LANG, MATLAB_LANG };
-enum inl_code { F77_GLOBAL,    F77_INIT,    F77_DATA,    F77_UTIL,    F77_RATES,    F77_RCONST,
-	      F90_GLOBAL,    F90_INIT,    F90_DATA,    F90_UTIL,    F90_RATES,    F90_RCONST,
-              C_GLOBAL,      C_INIT,      C_DATA,      C_UTIL,      C_RATES,      C_RCONST,
-              MATLAB_GLOBAL, MATLAB_INIT, MATLAB_DATA, MATLAB_UTIL, MATLAB_RATES, MATLAB_RCONST,
-	      INLINE_OPT
-	      };
+enum inl_code {
+  F77_GLOBAL,  F77_INIT,    F77_DATA,     F77_UTIL,      F77_RATES,
+  F77_RCONST,  F90_GLOBAL,  F90_INIT,     F90_DATA,      F90_UTIL,
+  F90_RATES,   F90_RCONST,  C_GLOBAL,     C_INIT,        C_DATA,
+  C_UTIL,      C_RATES,     C_RCONST,     MATLAB_GLOBAL, MATLAB_INIT,
+  MATLAB_DATA, MATLAB_UTIL, MATLAB_RATES, MATLAB_RCONST,
+  INLINE_OPT
+};
 
-enum jacobian_format { JAC_OFF, JAC_FULL, JAC_LU_ROW, JAC_ROW };	      
+enum jacobian_format { JAC_OFF, JAC_FULL, JAC_LU_ROW, JAC_ROW };
 
-               	      
+
 typedef short int CODE;
 typedef float EQ_VECT[ MAX_EQN ];
 
@@ -96,7 +92,7 @@ typedef struct {
 
 typedef struct {
                  unsigned char code;
-                 unsigned char nr; 
+                 unsigned char nr;
                } ATOM;
 
 typedef struct {
@@ -107,7 +103,7 @@ typedef struct {
                  short int nratoms;
 		 char name[ MAX_SPNAME ];
                  char ival[ MAX_IVAL ];
-                 ATOM atoms[ MAX_ATOMS ]; 
+                 ATOM atoms[ MAX_ATOMS ];
                  int flux; /* msl_290416 */
 	       } SPECIES_DEF;
 
@@ -125,7 +121,7 @@ typedef struct {
                  short int nrmembers;
 		 char name[ MAX_SPNAME ];
                  char ival[ MAX_IVAL ];
-                 MEMBER members[ MAX_MEMBERS ]; 
+                 MEMBER members[ MAX_MEMBERS ];
 	       } FAMILY_DEF;
 
 typedef struct {
@@ -151,7 +147,7 @@ extern int AtomNr;
 extern int VarNr;
 extern int VarActiveNr;
 extern int FixNr;
-extern int plNr; 
+extern int plNr;
 extern int VarStartNr;
 extern int FixStartNr;
 extern int Hess_NZ;
@@ -180,10 +176,12 @@ extern int useEqntags;
 extern int useLang;
 extern int useStochastic;
 extern int doFlux;
+extern int upperCaseF90;
+extern char f90Suffix[3];
 
-/* if useValues=1 KPP replaces parameters like NVAR etc. 
+/* if useValues=1 KPP replaces parameters like NVAR etc.
        by their values in vector/matrix declarations */
-extern int useDeclareValues; 
+extern int useDeclareValues;
 
 extern char Home[ MAX_PATH ];
 extern char integrator[ MAX_PATH ];
@@ -250,4 +248,3 @@ void FreeIntegerMatrix ( int** mat, int m, int n );
 int Index( int i );
 
 #endif
-

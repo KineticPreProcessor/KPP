@@ -3,15 +3,15 @@ MODULE KPP_ROOT_Integrator
   IMPLICIT NONE
   PUBLIC
   SAVE
-!~~~>  Statistics on the work performed by the Rosenbrock method
- 
-!~~~> Flags to determine if we should call the UPDATE_* routines from within
+
+!~~~> Flags to determine if we should call the UPDATE_* routines from within 
 !~~~> the integrator.  If using KPP in an external model, you might want to
 !~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
-  LOGICAL :: Do_Update_RCONST
-  LOGICAL :: Do_Update_PHOTO
-  LOGICAL :: Do_Update_SUN
+  LOGICAL, PRIVATE :: Do_Update_RCONST
+  LOGICAL, PRIVATE :: Do_Update_PHOTO
+  LOGICAL, PRIVATE :: Do_Update_SUN
 
+!~~~>  Statistics on the work performed by the Rosenbrock method
   INTEGER :: Nfun,Njac,Nstp,Nacc,Nrej,Ndec,Nsol,Nsng
   INTEGER, PARAMETER :: ifun=1, ijac=2, istp=3, iacc=4, &
     irej=5, idec=6, isol=7, isng=8, itexit=1, ihexit=2
@@ -38,6 +38,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    USE KPP_ROOT_Parameters
    USE KPP_ROOT_Global
    USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
+
    IMPLICIT NONE
 
    KPP_REAL, INTENT(IN) :: TIN  ! Start Time
