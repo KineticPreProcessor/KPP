@@ -1595,8 +1595,8 @@ END MODULE KPP_ROOT_Random
 
 MODULE KPP_ROOT_Integrator
   USE KPP_ROOT_Random
-  USE KPP_ROOT_Parameters, ONLY : NVAR, NFIX, NREACT 
-  USE KPP_ROOT_Global, ONLY : TIME, RCONST, Volume 
+  USE KPP_ROOT_Parameters, ONLY : NVAR, NFIX,   NREACT
+  USE KPP_ROOT_Global,     ONLY : TIME, RCONST, Volume, VAR, FIX
   USE KPP_ROOT_Stoichiom  
   USE KPP_ROOT_Stochastic
   USE KPP_ROOT_Rates

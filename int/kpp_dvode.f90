@@ -1,7 +1,7 @@
 MODULE KPP_ROOT_Integrator
 
   USE KPP_ROOT_Precision
-  USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME, ATOL, RTOL
+  USE KPP_ROOT_Global, ONLY: VAR, FIX, RCONST, TIME, ATOL, RTOL
   USE KPP_ROOT_Parameters, ONLY: NVAR, NSPEC, NFIX, LU_NONZERO
   USE KPP_ROOT_JacobianSP
   USE KPP_ROOT_LinearAlgebra, ONLY: KppDecomp, KppSolve, &

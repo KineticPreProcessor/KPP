@@ -17,8 +17,8 @@
 MODULE KPP_ROOT_Integrator
 
   USE KPP_ROOT_Precision
-  USE KPP_ROOT_Parameters, ONLY: NVAR, NSPEC, NFIX, LU_NONZERO
-  USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
+  USE KPP_ROOT_Parameters, ONLY : NVAR, NSPEC, NFIX,   LU_NONZERO
+  USE KPP_ROOT_Global,     ONLY : VAR,  FIX,   RCONST, TIME
   USE KPP_ROOT_Jacobian
   USE KPP_ROOT_LinearAlgebra
 
@@ -46,8 +46,8 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm, &
        ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, IERR_U )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    USE KPP_ROOT_Parameters, ONLY : NVAR
-    USE KPP_ROOT_Global,     ONLY : ATOL,RTOL,VAR
+    USE KPP_ROOT_Parameters, ONLY : NVAR, NSPEC, NFIX
+    USE KPP_ROOT_Global,     ONLY : ATOL, RTOL,  VAR, FIX
     USE KPP_ROOT_Util,       ONLY : Integrator_Update_Options
 
     IMPLICIT NONE

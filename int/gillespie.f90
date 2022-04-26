@@ -1,7 +1,7 @@
 MODULE KPP_ROOT_Integrator
 
-  USE KPP_ROOT_Parameters, ONLY : NVAR, NFIX, NREACT 
-  USE KPP_ROOT_Global, ONLY : TIME, RCONST, Volume 
+  USE KPP_ROOT_Parameters, ONLY : NVAR, NFIX, NSPEC, NREACT
+  USE KPP_ROOT_Global, ONLY : VAR, FIX, TIME, RCONST, Volume
   USE KPP_ROOT_Stoichiom  
   USE KPP_ROOT_Stochastic
   USE KPP_ROOT_Rates
