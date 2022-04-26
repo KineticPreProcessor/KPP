@@ -11,8 +11,8 @@ PROGRAM KPP_ROOT_Driver
 
 !~~~> Control (in) arguments for the integration
 !~~~> These are set to zero by default, which will invoke default behavior
-      INTEGER,  ICNTRL(20)
-      KPP_REAL, RCNTRL(20)
+      INTEGER :: ICNTRL(20)
+      KPP_REAL :: RCNTRL(20)
 
       ICNTRL  = 0
       RCNTRL  = 0.d0
@@ -55,7 +55,7 @@ kron: DO WHILE (T < TEND)
                         TOUT      = T+DT,     &
                         ICNTRL_U  = ICNTRL,   &
                         RCNTRL_U  = RCNTRL,   &
-                        RSTATUS_U = RSTATE,  )
+                        RSTATUS_U = RSTATE   )
         T = RSTATE(1)
 
       END DO kron

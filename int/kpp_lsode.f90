@@ -104,9 +104,19 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
                                    Do_Update_PHOTO,     &
                                    Do_Update_Sun       )
 
+   !~~~> In order to remove the prior EQUIVALENCE statements (which
+   !~~~> are not thread-safe), we now have declared VAR and FIX as
+   !~~~> threadprivate pointer variables that can point to C.
+   VAR => C(1:NVAR )
+   FIX => C(NVAR+1:NSPEC)
+
    ! Call the integrator
-   CALL KppLsode( TIN,TOUT,VAR,RTOL,ATOL,                &
-                  RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR )
+   CALL KppLsode( TIN,    TOUT,   VAR,     RTOL,    ATOL, &
+                  RCNTRL, ICNTRL, RSTATUS, ISTATUS, IERR )
+
+   !~~~> Free pointers
+   VAR => NULL()
+   FIX => NULL()
 
 !     INTEGER ITASK, ISTATE, NG, NEQ, IOUT, JROOT, ISTATS, &
 !     IERROR, I
@@ -2136,7 +2146,8 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
         PC(NQ) = 0.0D0 
         DO 110 IB = 1,NQM1 
           I = NQP1 - IB 
-  110     PC(I) = PC(I-1) + FNQM1*PC(I) 
+          PC(I) = PC(I-1) + FNQM1*PC(I)
+  110   CONTINUE
         PC(1) = FNQM1*PC(1) 
 ! Compute integral, -1 to 0, of p(x) and x*p(x). -----------------------
         PINT = PC(1) 
@@ -2145,12 +2156,14 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
         DO 120 I = 2,NQ 
           TSIGN = -TSIGN 
           PINT = PINT + TSIGN*PC(I)/I 
-  120     XPIN = XPIN + TSIGN*PC(I)/(I+1) 
+          XPIN = XPIN + TSIGN*PC(I)/(I+1)
+  120   CONTINUE 
 ! Store coefficients in ELCO and TESCO. --------------------------------
         ELCO(1,NQ) = PINT*RQ1FAC 
         ELCO(2,NQ) = 1.0D0 
         DO 130 I = 2,NQ 
-  130     ELCO(I+1,NQ) = RQ1FAC*PC(I)/I 
+          ELCO(I+1,NQ) = RQ1FAC*PC(I)/I
+  130   CONTINUE
         AGAMQ = RQFAC*XPIN 
         RAGQ = 1.0D0/AGAMQ 
         TESCO(2,NQ) = RAGQ 
@@ -2173,11 +2186,13 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
         PC(NQP1) = 0.0D0 
         DO 210 IB = 1,NQ 
           I = NQ + 2 - IB 
-  210     PC(I) = PC(I-1) + FNQ*PC(I) 
+          PC(I) = PC(I-1) + FNQ*PC(I)
+  210   CONTINUE 
         PC(1) = FNQ*PC(1) 
 ! Store coefficients in ELCO and TESCO. --------------------------------
         DO 220 I = 1,NQP1 
-  220     ELCO(I,NQ) = PC(I)/PC(2) 
+          ELCO(I,NQ) = PC(I)/PC(2)
+  220    CONTINUE 
         ELCO(2,NQ) = 1.0D0 
         TESCO(1,NQ) = RQ1FAC 
         TESCO(2,NQ) = NQP1/ELCO(1,NQ) 
@@ -2258,7 +2273,8 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
       IF (K .EQ. 0) GO TO 15 
       JJ1 = L - K 
       DO 10 JJ = JJ1,NQ 
-   10   IC = IC*JJ 
+        IC = IC*JJ 
+   10 CONTINUE
    15 C = IC 
       DO 20 I = 1,N 
         DKY(I) = C*YH(I,L)
@@ -3048,7 +3064,8 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
       CALL F (NEQ, TN, Y, SAVF) 
       NFE = NFE + 1 
       DO 650 I = 1,N 
-  650   YH(I,2) = H*SAVF(I) 
+        YH(I,2) = H*SAVF(I)
+  650 CONTINUE
       IPUP = MITER 
       IALTH = 5 
       IF (NQ .EQ. 1) GO TO 200 
@@ -3069,7 +3086,8 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
   690 RMAX = 10.0D0 
   700 R = 1.0D0/TESCO(2,NQU) 
       DO 710 I = 1,N 
-  710   ACOR(I) = ACOR(I)*R 
+        ACOR(I) = ACOR(I)*R
+  710 CONTINUE 
   720 HOLD = H 
       JSTART = 1 
       RETURN 
@@ -3106,19 +3124,23 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
       GO TO (10, 20, 30, 40), ITOL 
    10 CONTINUE 
       DO 15 I = 1,N 
-   15   EWT(I) = RelTol(1)*ABS(YCUR(I)) + AbsTol(1) 
+        EWT(I) = RelTol(1)*ABS(YCUR(I)) + AbsTol(1)
+   15 CONTINUE
       RETURN 
    20 CONTINUE 
       DO 25 I = 1,N 
-   25   EWT(I) = RelTol(1)*ABS(YCUR(I)) + AbsTol(I) 
+        EWT(I) = RelTol(1)*ABS(YCUR(I)) + AbsTol(I)
+   25 CONTINUE
       RETURN 
    30 CONTINUE 
       DO 35 I = 1,N 
-   35   EWT(I) = RelTol(I)*ABS(YCUR(I)) + AbsTol(1) 
+        EWT(I) = RelTol(I)*ABS(YCUR(I)) + AbsTol(1)
+   35 CONTINUE
       RETURN 
    40 CONTINUE 
       DO 45 I = 1,N 
-   45   EWT(I) = RelTol(I)*ABS(YCUR(I)) + AbsTol(I) 
+        EWT(I) = RelTol(I)*ABS(YCUR(I)) + AbsTol(I)
+   45 CONTINUE
       RETURN 
 !----------------------- END OF SUBROUTINE DEWSET ----------------------
       END SUBROUTINE DEWSET                                          
@@ -3433,8 +3455,6 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
       SUBROUTINE FUN_CHEM(N, T, V, FCT)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      USE KPP_ROOT_Parameters
-      USE KPP_ROOT_Global
       USE KPP_ROOT_Function, ONLY: Fun
       USE KPP_ROOT_Rates
 
@@ -3461,8 +3481,6 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
       SUBROUTINE JAC_CHEM (N, T, V, JF)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      USE KPP_ROOT_Parameters
-      USE KPP_ROOT_Global
       USE KPP_ROOT_JacobianSP
       USE KPP_ROOT_Jacobian, ONLY: Jac_SP
       USE KPP_ROOT_Rates
