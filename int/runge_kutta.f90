@@ -17,9 +17,9 @@
 MODULE KPP_ROOT_Integrator
 
   USE KPP_ROOT_Precision
-  USE KPP_ROOT_Parameters, ONLY : NVAR, NSPEC, NFIX,   LU_NONZERO
-  USE KPP_ROOT_Global,     ONLY : VAR,  FIX,   RCONST, TIME
-  USE KPP_ROOT_Jacobian,   ONLY : LU_DIAG
+  USE KPP_ROOT_Parameters
+  USE KPP_ROOT_Global
+  USE KPP_ROOT_Jacobian, ONLY : LU_DIAG
   USE KPP_ROOT_LinearAlgebra
 
   IMPLICIT NONE
@@ -41,12 +41,10 @@ CONTAINS
 
   ! **************************************************************************
 
-  SUBROUTINE INTEGRATE( TIN, TOUT, &
-    ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, IERR_U )
+  SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
+                        ISTATUS_U, RSTATUS_U, IERR_U              )
 
-    USE KPP_ROOT_Parameters, ONLY : NVAR, NSPEC, NFIX
-    USE KPP_ROOT_Global,     ONLY : ATOL, RTOL,  VAR,  FIX
-    USE KPP_ROOT_Util,       ONLY : Integrator_Update_Options
+    USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
 
     IMPLICIT NONE
 
@@ -113,8 +111,8 @@ CONTAINS
 
     !~~~> Call the integrator
     T1 = TIN; T2 = TOUT
-    CALL RungeKutta(  NVAR, T1, T2, VAR, RTOL, ATOL, &
-                      RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR  )
+    CALL RungeKutta(  NVAR,   T1,     T2,      VAR,     RTOL, ATOL,  &
+                      RCNTRL, ICNTRL, RSTATUS, ISTATUS, IERR        )
 
     !~~~> Free pointers
     VAR => NULL()

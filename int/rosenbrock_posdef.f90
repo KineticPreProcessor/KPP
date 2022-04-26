@@ -21,7 +21,7 @@
 
 MODULE KPP_ROOT_Integrator
 
-  USE KPP_ROOT_Parameters, ONLY: NVAR, NFIX, NSPEC, LU_NONZERO
+  USE KPP_ROOT_Parameters
   USE KPP_ROOT_Global
   IMPLICIT NONE
   PUBLIC
@@ -54,8 +54,8 @@ MODULE KPP_ROOT_Integrator
 
 CONTAINS
 
-SUBROUTINE INTEGRATE( TIN, TOUT, &
-  ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, IERR_U )
+SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
+                      ISTATUS_U, RSTATUS_U, IERR_U              )
 
    USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
 

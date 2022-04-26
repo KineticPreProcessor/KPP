@@ -19,11 +19,12 @@
 MODULE KPP_ROOT_Integrator
 
   USE KPP_ROOT_Precision
-  USE KPP_ROOT_Global, ONLY: VAR, FIX, RCONST, TIME
-  USE KPP_ROOT_Parameters, ONLY: NVAR, NSPEC, NFIX, LU_NONZERO
-  USE KPP_ROOT_JacobianSP, ONLY: LU_DIAG
-  USE KPP_ROOT_LinearAlgebra, ONLY: KppDecomp,    &
-               KppSolve, Set2zero, WLAMCH, WCOPY, WAXPY, WSCAL, WADD
+  USE KPP_ROOT_Global
+  USE KPP_ROOT_Parameters
+  USE KPP_ROOT_JacobianSP,    ONLY : LU_DIAG
+  USE KPP_ROOT_LinearAlgebra, ONLY : KppDecomp, KppSolve, Set2zero, &
+                                     WLAMCH,    WCOPY,    WAXPY,    &
+                                     WSCAL,     WADD
   
   IMPLICIT NONE
   PUBLIC
@@ -51,11 +52,9 @@ MODULE KPP_ROOT_Integrator
 
 CONTAINS
 
-SUBROUTINE INTEGRATE( TIN, TOUT, &
-  ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, Ierr_U )
+SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
+                      ISTATUS_U, RSTATUS_U, Ierr_U              )
 
-   USE KPP_ROOT_Parameters
-   USE KPP_ROOT_Global
    USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
 
    IMPLICIT NONE

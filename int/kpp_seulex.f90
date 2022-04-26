@@ -6,9 +6,9 @@
 
 MODULE KPP_ROOT_Integrator
 
-  USE KPP_ROOT_Precision, ONLY: dp
-  USE KPP_ROOT_Parameters, ONLY: NVAR, NSPEC, NFIX, LU_NONZERO
-  USE KPP_ROOT_Jacobian, ONLY: LU_DIAG
+  USE KPP_ROOT_Precision
+  USE KPP_ROOT_Parameters
+  USE KPP_ROOT_Jacobian,      ONLY: LU_DIAG
   USE KPP_ROOT_LinearAlgebra
 
   IMPLICIT NONE
@@ -44,13 +44,11 @@ MODULE KPP_ROOT_Integrator
 CONTAINS
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE INTEGRATE( TIN, TOUT, &
-    ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, IERR_U )
+  SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
+                        ISTATUS_U, RSTATUS_U, IERR_U              )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    USE KPP_ROOT_Parameters, ONLY : NVAR, NFIX, NSPEC
-    USE KPP_ROOT_Global,     ONLY : ATOL, RTOL, VAR,  FIX
-    USE KPP_ROOT_Util,       ONLY : Integrator_Update_Options
+    USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
 
     IMPLICIT NONE
 

@@ -17,8 +17,8 @@
 MODULE KPP_ROOT_Integrator
 
   USE KPP_ROOT_Precision
-  USE KPP_ROOT_Parameters, ONLY : NVAR, NSPEC, NFIX,   LU_NONZERO
-  USE KPP_ROOT_Global,     ONLY : VAR,  FIX,   RCONST, TIME
+  USE KPP_ROOT_Parameters
+  USE KPP_ROOT_Global
   USE KPP_ROOT_Jacobian
   USE KPP_ROOT_LinearAlgebra
 
@@ -46,9 +46,7 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm, &
        ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, IERR_U )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    USE KPP_ROOT_Parameters, ONLY : NVAR, NSPEC, NFIX
-    USE KPP_ROOT_Global,     ONLY : ATOL, RTOL,  VAR, FIX
-    USE KPP_ROOT_Util,       ONLY : Integrator_Update_Options
+    USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
 
     IMPLICIT NONE
 
@@ -2205,8 +2203,8 @@ firej:IF (FirstStep.OR.Reject) THEN
   SUBROUTINE FUN_CHEM(T, V, FCT)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    USE KPP_ROOT_Parameters
-    USE KPP_ROOT_Global
+    !USE KPP_ROOT_Parameters
+    !USE KPP_ROOT_Global
     USE KPP_ROOT_Function, ONLY : Fun
     USE KPP_ROOT_Rates,    ONLY : Update_SUN, Update_RCONST, Update_PHOTO
 
@@ -2232,8 +2230,8 @@ firej:IF (FirstStep.OR.Reject) THEN
   SUBROUTINE JAC_CHEM (T, V, JF)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    USE KPP_ROOT_Parameters
-    USE KPP_ROOT_Global
+    !USE KPP_ROOT_Parameters
+    !USE KPP_ROOT_Global
     USE KPP_ROOT_JacobianSP
     USE KPP_ROOT_Jacobian, ONLY : Jac_SP
     USE KPP_ROOT_Rates,    ONLY : Update_SUN, Update_RCONST, Update_PHOTO
