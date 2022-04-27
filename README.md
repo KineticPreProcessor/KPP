@@ -12,8 +12,8 @@ https://kpp.readthedocs.io in the near future.
 ## Versions
 KPP - symbolic chemistry Kinetics PreProcessor:
 
-- Current: Version 2.2.3 (in the **main** branch)
-- In development: Version 3.0.0
+- Current: Version 2.4.0 (in the **main** branch)
+- In development: Version 2.5.0 (in the **dev** branch)
 
 ## License
 

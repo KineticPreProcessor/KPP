@@ -19,7 +19,7 @@
   You should have received a copy of the GNU General Public License along
   with this program; if not, consult http://www.gnu.org/copyleft/gpl.html or
   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA  02111-1307,  USA.
+  Boston, MA  02111-1307,  USA.
 
   Adrian Sandu
   Computer Science Department
@@ -71,7 +71,7 @@ int SPC_NAMES, EQN_NAMES, FAM_NAMES;
 int EQN_TAGS;
 int NONZERO, LU_NONZERO;
 int TIME, SUN, TEMP;
-int RTOLS, TSTART, TEND, DT;
+int TSTART, TEND, DT;
 int ATOL, RTOL, STEPMIN, STEPMAX, CFACTOR;
 int V_USER, CL;
 int NMLCV, NMLCF, SCT, PROPENSITY, VOLUME, IRCT;
@@ -201,8 +201,6 @@ int i,j;
   TIME  = DefElm( "TIME", real, "Current integration time");
   SUN   = DefElm( "SUN", real, "Sunlight intensity between [0,1]");
   TEMP  = DefElm( "TEMP", real, "Temperature");
-
-  RTOLS  = DefElm( "RTOLS", real, "(scalar) Relative tolerance");
   TSTART = DefElm( "TSTART", real, "Integration start time");
   TEND   = DefElm( "TEND", real, "Integration end time");
   DT     = DefElm( "DT", real, "Integration step");
@@ -364,7 +362,6 @@ void GenerateGData()
   GlobalDeclare( TIME );
   GlobalDeclare( SUN ); 
   GlobalDeclare( TEMP );
-  GlobalDeclare( RTOLS );
   GlobalDeclare( TSTART );
   GlobalDeclare( TEND );
   GlobalDeclare( DT );
@@ -2569,6 +2566,12 @@ void GenerateGlobalHeader()
     ExternDeclare( FIX );
   }
 
+  /*** Declare VAR and FIX for C with the extern property ***/
+  if ( useLang == C_LANG ) {
+    C_Inline("  extern %s * %s;", C_types[real], varTable[VAR]->name );
+    C_Inline("  extern %s * %s;", C_types[real], varTable[FIX]->name );
+  }
+
   /*** Declare all other threadprivate variables ***/
   ExternDeclare( RCONST );
   if ( useFortran ) { WriteOMPThreadPrivate("RCONST"); }
@@ -2582,9 +2585,6 @@ void GenerateGlobalHeader()
   ExternDeclare( TEMP );
   if ( useFortran ) { WriteOMPThreadPrivate("TEMP"); }
 
-  C_Inline("  extern %s * %s;", C_types[real], varTable[VAR]->name );
-  C_Inline("  extern %s * %s;", C_types[real], varTable[FIX]->name );
-
   /*** Declare non-threadprivate variables ***/
   NewLines(1);
   if ( useFortran ) {
@@ -2593,7 +2593,6 @@ void GenerateGlobalHeader()
     NewLines(1);
   }
 
-  ExternDeclare( RTOLS );
   ExternDeclare( TSTART );
   ExternDeclare( TEND );
   ExternDeclare( DT );
