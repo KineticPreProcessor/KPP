@@ -41,5 +41,23 @@ for this_test in $all_tests; do
 
 done
 
+# Run the ros_minver test, which tests if KPP will fail if the current 
+# version is older than the version specified with the #MINVERSION tag
+# NOTE: This test succeeds when KPP fails, so run it separately!
+for this_test in "ros_minver"; do
+
+    cd ../ci-tests/$this_test
+    [ $? -ne 0 ] && exit 1
+
+    echo ""
+    echo ">>>>>>>> Generating $this_test mechanism with KPP <<<<<<<<"
+    echo ""
+    ../../bin/kpp $this_test.kpp
+    [ $? -ne 2 ] && exit 1   
+
+    cd ..
+
+done
+
 # Return w/ success
 exit 0

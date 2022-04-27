@@ -118,7 +118,7 @@ clean:
 distclean:
 	rm -f KPP_ROOT*.o KPP_ROOT*.mod \
 	KPP_ROOT*.dat KPP_ROOT.exe KPP_ROOT.map \
-	KPP_ROOT_*.f90 KPP_ROOT_*.F90 KPP_ROOT_*.mexglx
+	KPP_ROOT_*.f90 KPP_ROOT_*.F90 KPP_ROOT_*.mexglx \
 	results*.m
 
 KPP_ROOT_Precision.o: KPP_ROOT_Precision.F90
