@@ -2509,24 +2509,24 @@ void GenerateGlobalHeader()
   if ( useFortran ) {
     NewLines(1);
     WriteComment(
-      "~~~ The following quantities vary with lon/lat/lev location.");
+      "~~~ If you are using KPP within an OpenMP parallel environment,");
     WriteComment(
-      "~~~ Therefore, they must declared THREADPRIVATE for OpenMP");
+      "~~~ then these variables must be declared THREADPRIVATE.  This means");
     WriteComment(
-      "~~~ parallelization.  The compiler will make a private copy of");
+      "~~~ that the compiler will make a private copy of these variables");
     WriteComment(
-      "~~~ these variables (using stack memory) for each execution");
+      "~~~ (in stack memory) for each execution thread.  At the end of ");
     WriteComment(
-      "~~~ thread.  At the end of the parallel loop, these variables");
+      "~~~ the OpenMP parallel loop, these variables will be finalized,");
     WriteComment(
-      "~~~ will be finalized, and their memory deallocated.");
-    NewLines(1);
+      "~~~ and their memory deallocated.");
+    WriteComment("~~~");
     WriteComment(
       "~~~ NOTE: Because the OpenMP commands all begin with a comment");
     WriteComment(
       "~~~ character, they will be ignored unless the code is compiled");
     WriteComment(
-		 "~~~ with OpenMP parallelization turned on.");
+      "~~~ with OpenMP parallelization turned on.");
   }
   NewLines(1);
 
@@ -2588,8 +2588,10 @@ void GenerateGlobalHeader()
   /*** Declare non-threadprivate variables ***/
   NewLines(1);
   if ( useFortran ) {
-    WriteComment("~~~ The following quantities do not vary with location.");
-    WriteComment("~~~ As such, they do not  need to be declared THREADPRIVATE.");
+    WriteComment(
+     "~~~ If you are using KPP within an OpenMP parallel environment,");
+    WriteComment(
+     "~~~ these variables DO NOT need to be declared THREADPRIVATE.");
     NewLines(1);
   }
 
