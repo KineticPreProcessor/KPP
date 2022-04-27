@@ -2844,8 +2844,6 @@ int INITVAL;
     //
     // Fortran-90
     //
-    WriteComment("~~~ Zero C array");
-    F90_Inline("  C = (0.)*CFACTOR" );
     NewLines(1);
 
     WriteComment("~~~ Set initial species concentrations");
