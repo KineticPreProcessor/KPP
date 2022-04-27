@@ -2844,6 +2844,11 @@ int INITVAL;
     //
     // Fortran-90
     //
+    WriteComment("~~~ Zero C array");
+    if ( useDouble )
+      F90_Inline( "  C = 0.0_dp" );
+    else
+      F90_Inline( "  C = 0.0" );
     NewLines(1);
 
     WriteComment("~~~ Set initial species concentrations");
