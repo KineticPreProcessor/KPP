@@ -73,30 +73,30 @@ CODE    *Prod_Spc[ MAX_EQN ];
 CODE    *Loss_Spc[ MAX_EQN ];
 int Reactive[ MAX_SPECIES ];
 
-INLINE_KEY InlineKeys[] = { { F77_GLOBAL,   APPEND,  "F77_GLOBAL" },
-                            { F77_INIT,   APPEND,  "F77_INIT" },
-                            { F77_DATA,   APPEND,  "F77_DATA" },
-                            { F77_UTIL,   APPEND,  "F77_UTIL" }, 
-                            { F77_RATES, APPEND,  "F77_RATES" }, 
-                            { F77_RCONST, APPEND,  "F77_RCONST" }, 
-			    { F90_GLOBAL,   APPEND,  "F90_GLOBAL" },
-                            { F90_INIT,   APPEND,  "F90_INIT" },
-                            { F90_DATA,   APPEND,  "F90_DATA" },
-                            { F90_UTIL,   APPEND,  "F90_UTIL" },
-                            { F90_RATES, APPEND,  "F90_RATES" }, 
-                            { F90_RCONST, APPEND,  "F90_RCONST" }, 
-                            { C_GLOBAL,     APPEND,  "C_GLOBAL" },
-                            { C_INIT,     APPEND,  "C_INIT" },
-                            { C_DATA,     APPEND,  "C_DATA" },
-                            { C_UTIL,     APPEND,  "C_UTIL" },
-                            { C_RATES,   APPEND,  "C_RATES" }, 
-                            { C_RCONST,   APPEND,  "C_RCONST" }, 
-                            { MATLAB_GLOBAL,     APPEND,  "MATLAB_GLOBAL" },
-                            { MATLAB_INIT,     APPEND,  "MATLAB_INIT" },
-                            { MATLAB_DATA,     APPEND,  "MATLAB_DATA" },
-                            { MATLAB_UTIL,     APPEND,  "MATLAB_UTIL" },
-                            { MATLAB_RATES,   APPEND,  "MATLAB_RATES" }, 
-                            { MATLAB_RCONST,   APPEND,  "MATLAB_RCONST" } 
+INLINE_KEY InlineKeys[] = { { F77_GLOBAL,     APPEND,  "F77_GLOBAL"    },
+                            { F77_INIT,       APPEND,  "F77_INIT"      },
+                            { F77_DATA,       APPEND,  "F77_DATA"      },
+                            { F77_UTIL,       APPEND,  "F77_UTIL"      },
+                            { F77_RATES,      APPEND,  "F77_RATES"     },
+                            { F77_RCONST,     APPEND,  "F77_RCONST"    },
+			    { F90_GLOBAL,     APPEND,  "F90_GLOBAL"    },
+                            { F90_INIT,       APPEND,  "F90_INIT"      },
+                            { F90_DATA,       APPEND,  "F90_DATA"      },
+                            { F90_UTIL,       APPEND,  "F90_UTIL"      },
+                            { F90_RATES,      APPEND,  "F90_RATES"     },
+                            { F90_RCONST,     APPEND,  "F90_RCONST"    },
+                            { C_GLOBAL,       APPEND,  "C_GLOBAL"      },
+                            { C_INIT,         APPEND,  "C_INIT"        },
+                            { C_DATA,         APPEND,  "C_DATA"        },
+                            { C_UTIL,         APPEND,  "C_UTIL"        },
+                            { C_RATES,        APPEND,  "C_RATES"       },
+                            { C_RCONST,       APPEND,  "C_RCONST"      },
+                            { MATLAB_GLOBAL,  APPEND,  "MATLAB_GLOBAL" },
+                            { MATLAB_INIT,    APPEND,  "MATLAB_INIT"   },
+                            { MATLAB_DATA,    APPEND,  "MATLAB_DATA"   },
+                            { MATLAB_UTIL,    APPEND,  "MATLAB_UTIL"   },
+                            { MATLAB_RATES,   APPEND,  "MATLAB_RATES"  },
+                            { MATLAB_RCONST,  APPEND,  "MATLAB_RCONST" }
 		 	  };
 
 int useAggregate   = 1;
@@ -112,11 +112,12 @@ int useEqntags     = 0;
 int useLang        = F77_LANG;
 int useStochastic  = 0;
 int doFlux         = 0;
-/* if useValues=1 KPP replaces parameters like NVAR etc. 
-       by their values in vector/matrix declarations */
-int useDeclareValues = 0; 
+int useDeclareValues = 0;         // if useValues=1 KPP replaces parameters
+                                  // like NVAR etc. by their values in vector
+                                  // or matrix declarations
 int upperCaseF90     = 0;
 char f90Suffix[3]    = "f90";
+char minKppVersion[30]; = "";
 
 char integrator[ MAX_PATH ] = "none";
 char driver[ MAX_PATH ] = "none";
@@ -416,6 +417,11 @@ void CmdUpperCaseF90( char *cmd )
     return;
   }
   ScanError("'%s': Unknown parameter for #UPPERCASEF90 [ON|OFF]", cmd );
+}
+
+void CmdMinVersion( char *cmd )
+{
+  strcpy( minKppVersion, cmd );
 }
 
 int FindAtom( char *atname )

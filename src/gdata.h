@@ -178,6 +178,7 @@ extern int useStochastic;
 extern int doFlux;
 extern int upperCaseF90;
 extern char f90Suffix[3];
+extern char minKppVersion[30];
 
 /* if useValues=1 KPP replaces parameters like NVAR etc.
        by their values in vector/matrix declarations */

@@ -359,6 +359,7 @@ STOICH  {LIT}[a-zA-Z_0-9]*[*]
                          { "SPARSEDATA",    PRM_STATE, SPARSEDATA   },
                          { "FLUX",          PRM_STATE, FLUX         },
                          { "UPPERCASEF90",  PRM_STATE, UPPERCASEF90 },
+                         { "MIN_VERSION",   PRM_STATE, MIN_VERSION  },
                          { 0,               0,         0            }
                        };
 
