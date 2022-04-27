@@ -38,6 +38,7 @@
 /* #include <malloc.h> not necessary, "malloc" comes from <stdlib.h> */
 #include <unistd.h>
 #include <string.h>
+#include <ctype.h>
 #include "gdata.h"
 #include "scan.h"
 

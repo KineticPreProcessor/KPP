@@ -115,6 +115,8 @@ void FlushThisBuf( char * buf );
 void NewLines( int n );
 void C_Inline( char *fmt, ... );
 void F77_Inline( char *fmt, ... );
+void F90_Inline( char *fmt, ... );
+void MATLAB_Inline( char *fmt, ... );
 void IncludeFile( char * fname );
 void IncludeCode( char *fmt, ... );
 void MapFunctionComment( int f, int *vars );

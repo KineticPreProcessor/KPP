@@ -239,12 +239,6 @@ void CmdDriver( char *cmd );
 void CmdRun( char *cmd );
 void CmdStochastic( char *cmd );
 void CmdFlux( char *cmd );
-void CmdUpperCaseF90( char *cmd );
-void CmdMinVersion( char *cmd );
-
-// Prototypes for functions in kpp.c
-int KppVersionIsTooOld();
-
 void Generate();
 
 char * FileName( char *name, char* env, char *dir, char *ext );
@@ -253,5 +247,11 @@ int*  AllocIntegerVector( int n, char* message );
 int** AllocIntegerMatrix( int m, int n, char* message );
 void FreeIntegerMatrix ( int** mat, int m, int n );
 int Index( int i );
+
+// Add function prototpyes flagged as missing by the gfortran compiler,
+// in order to remove -Wimplicit-function-declaration warnings.
+//   -- Bob Yantosca (27 Apr 2022)
+//void FatalError( int status, char *fmt, ... );
+int KppVersionIsTooOld();
 
 #endif
