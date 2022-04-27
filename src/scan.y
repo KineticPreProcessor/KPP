@@ -98,7 +98,7 @@
 %token      PLSPC
 %type <str> PLSPC
 %token UPPERCASEF90
-%token MIN_VERSION
+%token MINVERSION
 %%
 
 program		: section
@@ -214,7 +214,7 @@ section	        : JACOBIAN PARAMETER
 		  { CmdFlux( $2 ); }
                 | UPPERCASEF90 PARAMETER
 		  { CmdUpperCaseF90( $2 ); }
-                | MIN_VERSION PARAMETER
+                | MINVERSION PARAMETER
 		  { CmdMinVersion( $2 ); }
                 ;  
 semicolon       : semicolon ';'

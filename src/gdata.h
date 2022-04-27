@@ -222,6 +222,7 @@ extern char radDefault[ MAX_IVAL ];
 extern char fixDefault[ MAX_IVAL ];
 extern double cfactor;
 
+// Prototypes for functions in scanner.c
 void CmdFunction( char *cmd );
 void CmdJacobian( char *cmd );
 void CmdHessian( char *cmd );
@@ -238,6 +239,11 @@ void CmdDriver( char *cmd );
 void CmdRun( char *cmd );
 void CmdStochastic( char *cmd );
 void CmdFlux( char *cmd );
+void CmdUpperCaseF90( char *cmd );
+void CmdMinVersion( char *cmd );
+
+// Prototypes for functions in kpp.c
+int KppVersionIsTooOld();
 
 void Generate();
 

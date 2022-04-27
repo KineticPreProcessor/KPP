@@ -117,7 +117,7 @@ int useDeclareValues = 0;         // if useValues=1 KPP replaces parameters
                                   // or matrix declarations
 int upperCaseF90     = 0;
 char f90Suffix[3]    = "f90";
-char minKppVersion[30]; = "";
+char minKppVersion[30] = "none";
 
 char integrator[ MAX_PATH ] = "none";
 char driver[ MAX_PATH ] = "none";
@@ -422,6 +422,7 @@ void CmdUpperCaseF90( char *cmd )
 void CmdMinVersion( char *cmd )
 {
   strcpy( minKppVersion, cmd );
+  return;
 }
 
 int FindAtom( char *atname )
