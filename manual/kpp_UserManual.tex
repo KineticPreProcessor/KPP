@@ -652,6 +652,7 @@ name & see Sect.\\
 \code{#STOCHASTIC}   & \ref{sec:command-stochastic}\\
 \code{#STOICMAT}     & \ref{sec:command-stoicmat}\\
 \code{#TRANSPORTALL} & \ref{sec:command-shorthand}\\
+\code{#UPPERCASEF90} & \ref{sec:command-upcasef90}\\
 \hhline
 \end{tabular}
 \end{center}
@@ -3151,7 +3152,8 @@ Following is the BNF-like specification of the language:
                    & \code{#REORDER} \verb![ ON | OFF ]!                                 & $|$\\
                    & \code{#STOCHASTIC} \verb![ ON | OFF ]!                              & $|$\\
                    & \code{#STOICMAT} \verb![ ON | OFF ]!                                & $|$\\
-                   & \code{#TRANSPORTALL}\\[3mm]
+                   & \code{#TRANSPORTALL}                                                & $|$\\
+                   & \code{#UPPERCASEF90}\\[3mm]
 
 {\it inline\_code} ::= & \code{#INLINE} {\it inline\_type}\\
                        & {\it inline\_code}\\
