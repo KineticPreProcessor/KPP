@@ -19,7 +19,7 @@
   You should have received a copy of the GNU General Public License along
   with this program; if not, consult http://www.gnu.org/copyleft/gpl.html or
   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-    Boston, MA  02111-1307,  USA.
+  Boston, MA  02111-1307,  USA.
 
   Adrian Sandu
   Computer Science Department
@@ -71,7 +71,7 @@ int SPC_NAMES, EQN_NAMES, FAM_NAMES;
 int EQN_TAGS;
 int NONZERO, LU_NONZERO;
 int TIME, SUN, TEMP;
-int RTOLS, TSTART, TEND, DT;
+int TSTART, TEND, DT;
 int ATOL, RTOL, STEPMIN, STEPMAX, CFACTOR;
 int V_USER, CL;
 int NMLCV, NMLCF, SCT, PROPENSITY, VOLUME, IRCT;
@@ -201,8 +201,6 @@ int i,j;
   TIME  = DefElm( "TIME", real, "Current integration time");
   SUN   = DefElm( "SUN", real, "Sunlight intensity between [0,1]");
   TEMP  = DefElm( "TEMP", real, "Temperature");
-
-  RTOLS  = DefElm( "RTOLS", real, "(scalar) Relative tolerance");
   TSTART = DefElm( "TSTART", real, "Integration start time");
   TEND   = DefElm( "TEND", real, "Integration end time");
   DT     = DefElm( "DT", real, "Integration step");
@@ -364,7 +362,6 @@ void GenerateGData()
   GlobalDeclare( TIME );
   GlobalDeclare( SUN ); 
   GlobalDeclare( TEMP );
-  GlobalDeclare( RTOLS );
   GlobalDeclare( TSTART );
   GlobalDeclare( TEND );
   GlobalDeclare( DT );
@@ -2512,24 +2509,24 @@ void GenerateGlobalHeader()
   if ( useFortran ) {
     NewLines(1);
     WriteComment(
-      "~~~ The following quantities vary with lon/lat/lev location.");
+      "~~~ If you are using KPP within an OpenMP parallel environment,");
     WriteComment(
-      "~~~ Therefore, they must declared THREADPRIVATE for OpenMP");
+      "~~~ then these variables must be declared THREADPRIVATE.  This means");
     WriteComment(
-      "~~~ parallelization.  The compiler will make a private copy of");
+      "~~~ that the compiler will make a private copy of these variables");
     WriteComment(
-      "~~~ these variables (using stack memory) for each execution");
+      "~~~ (in stack memory) for each execution thread.  At the end of ");
     WriteComment(
-      "~~~ thread.  At the end of the parallel loop, these variables");
+      "~~~ the OpenMP parallel loop, these variables will be finalized,");
     WriteComment(
-      "~~~ will be finalized, and their memory deallocated.");
-    NewLines(1);
+      "~~~ and their memory deallocated.");
+    WriteComment("~~~");
     WriteComment(
       "~~~ NOTE: Because the OpenMP commands all begin with a comment");
     WriteComment(
       "~~~ character, they will be ignored unless the code is compiled");
     WriteComment(
-		 "~~~ with OpenMP parallelization turned on.");
+      "~~~ with OpenMP parallelization turned on.");
   }
   NewLines(1);
 
@@ -2569,6 +2566,12 @@ void GenerateGlobalHeader()
     ExternDeclare( FIX );
   }
 
+  /*** Declare VAR and FIX for C with the extern property ***/
+  if ( useLang == C_LANG ) {
+    C_Inline("  extern %s * %s;", C_types[real], varTable[VAR]->name );
+    C_Inline("  extern %s * %s;", C_types[real], varTable[FIX]->name );
+  }
+
   /*** Declare all other threadprivate variables ***/
   ExternDeclare( RCONST );
   if ( useFortran ) { WriteOMPThreadPrivate("RCONST"); }
@@ -2582,18 +2585,16 @@ void GenerateGlobalHeader()
   ExternDeclare( TEMP );
   if ( useFortran ) { WriteOMPThreadPrivate("TEMP"); }
 
-  C_Inline("  extern %s * %s;", C_types[real], varTable[VAR]->name );
-  C_Inline("  extern %s * %s;", C_types[real], varTable[FIX]->name );
-
   /*** Declare non-threadprivate variables ***/
   NewLines(1);
   if ( useFortran ) {
-    WriteComment("~~~ The following quantities do not vary with location.");
-    WriteComment("~~~ As such, they do not  need to be declared THREADPRIVATE.");
+    WriteComment(
+     "~~~ If you are using KPP within an OpenMP parallel environment,");
+    WriteComment(
+     "~~~ these variables DO NOT need to be declared THREADPRIVATE.");
     NewLines(1);
   }
 
-  ExternDeclare( RTOLS );
   ExternDeclare( TSTART );
   ExternDeclare( TEND );
   ExternDeclare( DT );
@@ -2844,7 +2845,10 @@ int INITVAL;
     // Fortran-90
     //
     WriteComment("~~~ Zero C array");
-    F90_Inline("  C = (0.)*CFACTOR" );
+    if ( useDouble )
+      F90_Inline( "  C = 0.0_dp" );
+    else
+      F90_Inline( "  C = 0.0" );
     NewLines(1);
 
     WriteComment("~~~ Set initial species concentrations");

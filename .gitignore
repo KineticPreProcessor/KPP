@@ -56,5 +56,8 @@ Makefile_*
 /manual/*.log
 /manual/*.toc
 
+# ReadTheDocs files
+docs/build/*
+
 # are there any *.dat files to exclude?
 *.dat
