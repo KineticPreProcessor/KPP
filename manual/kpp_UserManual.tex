@@ -1,4 +1,4 @@
-\def\myfiledate{2022-04-22} % "\myfiledate" because packages may change \filedate
+\def\myfiledate{2022-04-27} % "\myfiledate" because packages may change \filedate
 \def\thiskppversion{2.2.3}
 
 \documentclass[twoside]{article}
@@ -652,7 +652,7 @@ name & see Sect.\\
 \code{#STOCHASTIC}   & \ref{sec:command-stochastic}\\
 \code{#STOICMAT}     & \ref{sec:command-stoicmat}\\
 \code{#TRANSPORTALL} & \ref{sec:command-shorthand}\\
-\code{#UPPERCASEF90} & \ref{sec:command-upcasef90}\\
+\code{#UPPERCASEF90} & \ref{sec:command-uppercasef90}\\
 \hhline
 \end{tabular}
 \end{center}
@@ -928,6 +928,17 @@ KPP defines a couple of shorthand commands. The commands that fall into
 this category are \code{#CHECKALL}, \code{#LOOKATALL} and
 \code{#TRANSPORTALL}. All of them have been described in the previous
 sections.
+
+%-----------------------------------------------------------------------------
+\subsubsection{Generate Fortran90 files with the {\tt .F90} suffix
+  ({\tt\#UPPERCASEF90})}
+\label{sec:command-uppercasef90}
+%-----------------------------------------------------------------------------
+
+If you have selected the \code{#LANGUAGE Fortran90} option, KPP will
+generate source code ending in `\code{.f90}' by default. Setting
+{\tt\#UPPERCASEF90 ON} will tell KPP to generate Fortran90 code ending
+in `\code{.F90}' instead.
 
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 \subsection{Inlined code}
@@ -3153,8 +3164,7 @@ Following is the BNF-like specification of the language:
                    & \code{#STOCHASTIC} \verb![ ON | OFF ]!                              & $|$\\
                    & \code{#STOICMAT} \verb![ ON | OFF ]!                                & $|$\\
                    & \code{#TRANSPORTALL}                                                & $|$\\
-                   & \code{#UPPERCASEF90}\\[3mm]
-
+                   & \code{#UPPERCASEF90} \verb![ ON | OFF ]!                            & \\[3mm]
 {\it inline\_code} ::= & \code{#INLINE} {\it inline\_type}\\
                        & {\it inline\_code}\\
                        & \code{#ENDINLINE}
