@@ -532,7 +532,36 @@ char buf[ 200 ];
   system( cmdexe );
 */
 } 
- 
+
+
+/*******************************************************************/
+
+void KppVersionIsTooOld() {
+  //
+  // Deterine if the current KPP version is too old for the mechanism
+  //  -- Bob Yantosca (27 apr 2022)
+  //
+  int v0, v1, v2;   // Major, minor, patch numbers for current version
+  int r1, r1, r2;   // Major, minor, patch numbers for required version
+
+  // If no minimum version is specified, then exit
+  if ( minKppVersion == "" ) return 0;
+
+  // Read versions into major, minor, patch values
+  sscanf( KPP_VERSION,   "%s.%s.%s.", &v0, &v1, &v2 );
+  sscanf( minKppVersion, "%s.%s.%s.", &r0, &r1, &v2 );
+
+  if ( v0 > r0 ) return 0;      // Major version # is higher, so not too old
+  if ( v0 == r0 ) {             // Otherwise need to test minor version #
+    if ( v1 > r1 ) return 0;    // Minor version # is higher, so not too old
+    if ( v1 == r1 ) {           // Otherwise test patch version #
+      if ( v2 >= r2 ) return 0;  // Patch version # is higher, so not too old
+    }
+  }
+  return 1;                     // Otherwise version is too old
+}
+
+
 /*******************************************************************/                    
 int main( int argc, char * argv[] )
 {
@@ -567,6 +596,14 @@ char *p;
 
   printf("\nThis is KPP-%s.\n", KPP_VERSION);
 
+  // If a minimum KPP version has been specified for the mechanism,
+  // then compare against t
+  // Exit if the KPP version is too old
+  if ( KppVersionIsTooOld() ) {
+    printf("\nYou are using KPP %s, but the mechanism needs version % or later.", KPP_VERSION, minKppVersion);
+    exit(1);
+  }
+  
   printf("\nKPP is parsing the equation file.");
   status = ParseEquationFile( argv[1] );
 
