@@ -292,11 +292,12 @@ int i,j;
 
 //============================================================================
 // MODIFICATION by Bob Yantosca (28 Apr 2002)
-// Define the Aout variable for returning reaction rates from Fun().
-// This will be done if the "#RETURNRATES on" switch is set.
+// Define the Aout variable with the OPTIONAL attribute) for returning
+// reaction rates from Fun().  This will be done if the "#RETURNRATES on"
+// switch is set.
 //
   if ( returnRates ) {
-    Aout = DefvElm( "Aout", real, -NREACT,
+    Aout = DefvElmO( "Aout", real, -NREACT,
 		    "Optional argument to return equation rate constants" );
   }
 //============================================================================
