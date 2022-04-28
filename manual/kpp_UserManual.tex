@@ -653,7 +653,8 @@ name & see Sect.\\
 \code{#STOICMAT}     & \ref{sec:command-stoicmat}\\
 \code{#TRANSPORTALL} & \ref{sec:command-shorthand}\\
 \code{#UPPERCASEF90} & \ref{sec:command-uppercasef90}\\
-\code{#MINVERSION}   & \ref{sec:command-uppercasef90}\\
+\code{#MINVERSION}   & \ref{sec:command-minversion}\\
+\code{#RETURNRATES}  & \ref{sec:command-returnrates}\\
 \hhline
 \end{tabular}
 \end{center}
@@ -943,7 +944,7 @@ in `\code{.F90}' instead.
 
 %-----------------------------------------------------------------------------
 \subsubsection{Specify a minimum KPP version to use ({\tt\#MINVERSION})}
-\label{sec:command-uppercasef90}
+\label{sec:command-minversion}
 %-----------------------------------------------------------------------------
 
 You may restrict a chemical mechanism to use a given version of KPP or later.
@@ -954,6 +955,16 @@ the major version number, \code{y}, is the minor version number, and
 
 For example, if \code{#MINVERSION 2.4.0} is specified, then KPP will
 quit with an error message unless you are using KPP 2.4.0 or later.
+
+%-----------------------------------------------------------------------------
+\subsubsection{Return equation rates from the \code{Fun()} routine ({\tt\#RETURNRATES})}
+\label{sec:command-returnrates}
+%-----------------------------------------------------------------------------
+
+In some modeling contexts, it is desirable to return the equation rates for
+diagnostic purposes.  The \code{#RETURNRATES} switch allows you to return
+the equation rates (the \code{A}) variable in solver routine \code{Fun})
+via the optional \code{Aout} variable.
 
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 \subsection{Inlined code}
@@ -3180,7 +3191,8 @@ Following is the BNF-like specification of the language:
                    & \code{#STOICMAT} \verb![ ON | OFF ]!                                & $|$\\
                    & \code{#TRANSPORTALL}                                                & $|$\\
                    & \code{#UPPERCASEF90} \verb![ ON | OFF ]!                            & $|$\\
-                   & \code{#MINVERSION} {\it minimum_version_number}                     &\\[3mm]
+                   & \code{#MINVERSION} {\it minimum_version_number}                     & $|$\\
+		   & \code{#RETURNRATES} \verb![ ON | OFF ]!                             &\\[3mm]
 {\it inline\_code} ::= & \code{#INLINE} {\it inline\_type}\\
                        & {\it inline\_code}\\
                        & \code{#ENDINLINE}
