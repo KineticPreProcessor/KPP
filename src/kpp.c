@@ -610,7 +610,7 @@ char *p;
   // (or continue along if #MINVERSION is not supplied)
   //   -- Bob Yantosca (27 Apr 2022)
   status = KppVersionIsTooOld();
-  if ( status ) {
+  if ( status != 0 ) {
     sprintf( name, "You are using KPP version %s,\nbut your mechanism requires version %s or later.\n", KPP_VERSION, minKppVersion);
     FatalError( -50, name );
   }
