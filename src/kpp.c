@@ -547,8 +547,15 @@ int KppVersionIsTooOld() {
   //
   int v0, v1, v2, r0, r1, r2;
 
-  // If no minimum version is specified, then exit w/ success
-  if ( minKppVersion == "none" ) return 0;
+  // If no minimum version is specified, then exit w/ success.
+  // Use strncmp to restrict the search to the 1st 4 characters
+  // (indexed from 0) in order to make the test robust enough
+  // for running in the Docker container for C-I testing.
+  // We have found that just using strcmp( minKppVersion, "none" ),
+  // or if ( minKppVersion == "none" ) would cause the C-I tests to
+  // fail when running on Azure dev pipelines.
+  //  -- Lucas Estrada and Bob Yantosca (28 Apr 2022)
+  if ( strncmp( minKppVersion, "none", 3 ) == 0 ) return 0;
 
   // Read versions into major, minor, patch numbers
   sscanf( KPP_VERSION,   "%d.%d.%d", &v0, &v1, &v2 );  // Current version
