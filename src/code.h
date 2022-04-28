@@ -100,7 +100,7 @@ typedef struct {
                  int maxj;
                  int value;
                  char *comment;
-                 int *attr;
+                 int attr;
 	       } VARIABLE;
 
 extern VARIABLE* varTable[];
