@@ -23,7 +23,7 @@ for this_test in $all_tests; do
     echo ""
     echo ">>>>>>>> Building the $this_test test executable <<<<<<<<<"
     echo ""
-    make -f Makefile_$this_test COMPILER=GFORTRAN
+    make -j -f Makefile_$this_test COMPILER=GFORTRAN
     [ $? -ne 0 ] && exit 1
 
     echo ""
@@ -38,8 +38,8 @@ for this_test in $all_tests; do
 
 done
 
-# Run the ros_minver test, which tests if KPP will fail if the
-# current version is older than the version specified by #MINVERSION.
+# Run the ros_minver test, which tests if KPP will fail when the
+# current version is older than the version specified #MINVERSION.
 # NOTE: This test succeeds when KPP fails, so run it separately!
 for this_test in "ros_minver"; do
 
@@ -50,12 +50,14 @@ for this_test in "ros_minver"; do
     echo ">>>>>>>> Generating $this_test mechanism with KPP <<<<<<<<"
     echo ""
     ../../bin/kpp $this_test.kpp
-    [ $? -ne 2 ] && exit 1
+    [ $? -eq 0 ] && exit 1
 
     cd ..
 
 done
 
-
 # Return w/ success
+echo ""
+echo ">>>>>>>> All tests finished succesfully! <<<<<<<<"
+echo ""
 exit 0

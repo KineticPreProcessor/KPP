@@ -611,10 +611,8 @@ char *p;
   //   -- Bob Yantosca (27 Apr 2022)
   status = KppVersionIsTooOld();
   if ( status ) {
-    printf("\n\nYou are using KPP %s, but your mechanism ", KPP_VERSION );
-    printf("needs version %s or later.\n", minKppVersion);
-    FatalError( 2,"%d errors and %d warnings encountered.",
-		nError, nWarning );
+    sprintf( name, "You are using KPP version %s,\nbut your mechanism requires version %s or later.\n", KPP_VERSION, minKppVersion);
+    FatalError( -50, name );
   }
 
   /* Allocate some internal data structures */
