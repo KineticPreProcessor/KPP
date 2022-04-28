@@ -127,6 +127,7 @@ void CmdStoicmat( char *cmd );
 void CmdFlux( char *cmd );
 void CmdUpperCaseF90( char *cmd );
 void CmdMinVersion( char *cmd );
+void CmdReturnRates( char *cmd );
 void CmdUse( char *cmd );
 void DefineInitializeNbr( char *cmd );
 void DefineXGrid( char *cmd );

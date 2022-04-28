@@ -115,9 +115,10 @@ int doFlux         = 0;
 int useDeclareValues = 0;         // if useValues=1 KPP replaces parameters
                                   // like NVAR etc. by their values in vector
                                   // or matrix declarations
-int upperCaseF90     = 0;
-char f90Suffix[3]    = "f90";
+int upperCaseF90       = 0;
+char f90Suffix[3]      = "f90";
 char minKppVersion[30] = "none";
+int returnRates        = 0;
 
 char integrator[ MAX_PATH ] = "none";
 char driver[ MAX_PATH ] = "none";
@@ -423,6 +424,20 @@ void CmdMinVersion( char *cmd )
 {
   strcpy( minKppVersion, cmd );
   return;
+}
+
+
+void CmdReturnRates( char *cmd )
+{
+  if( EqNoCase( cmd, "OFF" ) ) {
+    returnRates = 0;
+    return;
+  }
+  if( EqNoCase( cmd, "ON" ) ) {
+    returnRates = 1;
+    return;
+  }
+  ScanError("'%s': Unknown parameter for #RETURNRATES [ON|OFF]", cmd );
 }
 
 int FindAtom( char *atname )

@@ -53,7 +53,7 @@ int DC;
 int ARP, JVRP, NJVRP, CROW_JVRP, IROW_JVRP, ICOL_JVRP;
 int V, F, VAR, FIX, FLUX;
 int RCONST, RCT;
-int Vdot, P_VAR, D_VAR;
+int Vdot, P_VAR, D_VAR, Aout;
 int StoichNum;
 int KR, A, BV, BR, IV, RR;
 int JV, UV, JUV, JTUV, JVS;
@@ -289,6 +289,17 @@ int i,j;
   FLUX_MAP   = DefvElm( "FLUX_MAP", INT, -NREACT, "Map-to-SPEC indeces for FLUX species" );
 
   CFACTOR  = DefElm( "CFACTOR", real, "Conversion factor for concentration units");
+
+//============================================================================
+// MODIFICATION by Bob Yantosca (28 Apr 2002)
+// Define the Aout variable for returning reaction rates from Fun().
+// This will be done if the "#RETURNRATES on" switch is set.
+//
+  if ( returnRates ) {
+    Aout = DefvElm( "Aout", real, -NREACT,
+		    "Optional argument to return equation rate constants" );
+  }
+//============================================================================
 
   /* Elements of Stochastic simulation*/
   NMLCV = DefvElm( "NmlcV", INT, -NVAR, "No. molecules of variable species" );
@@ -729,45 +740,33 @@ int F_VAR, FSPLIT_VAR;
   if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
        UseFile( functionFile );
 
-  F_VAR      = DefFnc( "Fun",      4, "time derivatives of variables - Aggregate form");
-  FSPLIT_VAR = DefFnc( "Fun_SPLIT", 5, "time derivatives of variables - Split form");
+  //=========================================================================
+  // MODIFICATION by Bob Yantosca (28 Apr 2022)
+  // Tell F_VAR to accept 5 arguments when the "#RETURNRATES on"
+  // option is used.  Otherwise default to 4.
+  if ( returnRates )
+    F_VAR = DefFnc( "Fun", 5,
+		    "time derivatives of variables - Aggregate form");
+  else
+    F_VAR = DefFnc( "Fun", 4,
+		    "time derivatives of variables - Aggregate form");
+  //=========================================================================
+
+  FSPLIT_VAR = DefFnc( "Fun_SPLIT", 5,
+		       "time derivatives of variables - Split form");
+
 
   if( useAggregate ) {
-    //===========================================================================
-    // MODIFICATION FOR GEOS-CHEM: Bob Yantosca (11 Feb 2021)
-    // Manually declare Aout as an optional variable.  We cannot use
-    // routine FunctionBegin, because this has no way of defining
-    // optional Fortran90 arguments.  Therefore we will just
-    // write this using C-language fprintf statements.
-    if ( rootFileName == "gckpp" ) {
-      fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-      fprintf(functionFile, "!\n");
-      fprintf(functionFile, "! Fun - time derivatives of variables - Aggregate form\n");
-      fprintf(functionFile, "!   Arguments :\n");
-      fprintf(functionFile, "!      V         - Concentrations of variable species (local)\n");
-      fprintf(functionFile, "!      F         - Concentrations of fixed species (local)\n");
-      fprintf(functionFile, "!      RCT       - Rate constants (local)\n");
-      fprintf(functionFile, "!      Vdot      - Time derivative of variable species concentrations\n");
-      fprintf(functionFile, "!      Aout      - Array to return rxn rates for diagnostics (OPTIONAL)\n");
-      fprintf(functionFile, "!\n");
-      fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
-      fprintf(functionFile, "SUBROUTINE Fun ( V, F, RCT, Vdot, Aout )\n\n");
-      fprintf(functionFile, "! V - Concentrations of variable species (local)\n");
-      fprintf(functionFile, "  REAL(kind=dp) :: V(NVAR)\n");
-      fprintf(functionFile, "! F - Concentrations of fixed species (local)\n");
-      fprintf(functionFile, "  REAL(kind=dp) :: F(NFIX)\n");
-      fprintf(functionFile, "! RCT - Rate constants (local)\n");
-      fprintf(functionFile, "  REAL(kind=dp) :: RCT(NREACT)\n");
-      fprintf(functionFile, "! Vdot - Time derivative of variable species concentrations\n");
-      fprintf(functionFile, "  REAL(kind=dp) :: Vdot(NVAR)\n");
-      fprintf(functionFile, "!### MODIFICATION, Bob Yantosca (11 Feb 2021)\n");
-      fprintf(functionFile, "!### Aout - Array for returning KPP reaction rates for diagnostics\n");
-      fprintf(functionFile, "  REAL(kind=dp), OPTIONAL :: Aout(NREACT)\n");
+    //=======================================================================
+    // MODIFICATION by Bob Yantosca (28 Apr 2022)
+    // If this mechanism uses the "#RETURNRATES on" option, then add
+    // Aout as an extra argument.  This facilitates archiving diagnostics.
+    if ( returnRates ) {
+      FunctionBegin( F_VAR, V, F, RCT, Vdot, Aout );
+    //=======================================================================
     } else {
-      // If not GEOS-Chem, use FunctionBegin
       FunctionBegin( F_VAR, V, F, RCT, Vdot );
     }
-    //===========================================================================
   } else {
     FunctionBegin( FSPLIT_VAR, V, F, RCT, P_VAR, D_VAR );
   }
@@ -815,13 +814,11 @@ int F_VAR, FSPLIT_VAR;
 
   if( useAggregate ) {
     //===========================================================================
-    // MODIFICATION FOR GEOS-CHEM: Bob Yantosca (11 Feb 2021)
+    // MODIFICATION FOR GEOS-CHEM: Bob Yantosca (28 Feb 2022)
     // Copy A to Aout to return reaction rates outside of KPP
     //
-    if ( rootFileName == "gckpp" ) {
-      fprintf(functionFile,
-	      "\n\n!### KPP 2.3.2_gc, Bob Yantosca (11 Feb 2021)\n");
-      fprintf(functionFile, "\!### Use Aout to return reaction rates\n");
+    if ( returnRates ) {
+      fprintf(functionFile, "\n!### Use Aout to return equation rates\n");
       fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n\n");
     }
     //===========================================================================
