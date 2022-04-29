@@ -35,7 +35,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#define MAX_LINE 300
+#define MAX_LINE 300   // NOTE: Same as MAX_PATH in gdata.h
 
 /* Setting LEN=32 avoids problems with long species names and long 
    equation tags. A consistent change in F90_DeclareData (see below) 

@@ -114,8 +114,8 @@ FILE *oldf;
 
 void OpenFile( FILE **fpp, char *name, char * ext, char * identity )
 {
-char bufname[MAX_PATHLEN];
-char buf[MAX_PATHLEN];
+char bufname[MAX_PATH];
+char buf[MAX_PATH];
 time_t t;
 int blength;
 
@@ -154,7 +154,7 @@ int blength;
 // files as new files that need to be committed.
 //
 //  WriteComment("%-20s : %s", "Time", buf );
-//  WriteComment("%-20s : %s", "Working directory", getcwd(buf, MAX_PATHLEN) );
+//  WriteComment("%-20s : %s", "Working directory", getcwd(buf, MAX_PATH) );
 //===========================================================================
   WriteComment("%-20s : %s", "Equation file", eqFileName );
   WriteComment("%-20s : %s", "Output root filename", rootFileName );

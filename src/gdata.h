@@ -51,12 +51,11 @@
 #define MAX_ATOMS        10     // Max number of atoms
 #define MAX_ATNAME       10     // Max char length of atom name
 #define MAX_ATNR        250     // Max number of atom tables
-#define MAX_PATH        250     // Max char length of directory paths
+#define MAX_PATH        300     // Max char length of directory paths
 #define MAX_FILES        20     // Max number of files to open
 #define MAX_FAMILIES    300     // Max number of family definitions
 #define MAX_MEMBERS     150     // Max number of family members
 #define MAX_EQNLEN      200     // Max char length of equations
-#define MAX_PATHLEN     300     // Max length of a directory or file name
 
 #define NO_CODE 	-1
 #define max( x, y ) (x) > (y) ? (x) : (y)
