@@ -112,6 +112,7 @@ FILE *oldf;
     return oldf;
 }
 
+
 void OpenFile( FILE **fpp, char *name, char * ext, char * identity )
 {
 char bufname[MAX_PATH];
@@ -258,6 +259,7 @@ void IncludeCode( char* fmt, ... )
 Va_list args;
 char buf[MAX_PATH];
 char cmd[500];
+char tmp[500];
 static char tmpfile[] = "kppfile.tmp";
 FILE * fp;
 int isMakefile;
@@ -274,27 +276,31 @@ int isMakefile;
   // naming convention util.f90, etc.
   //
   // The only exception is when upperCaseF90 == 1, then we need to include
-  // util/Makefile.F90 instead of util/Makefile.f90.  
+  // util/Makefile.F90 instead of util/Makefile.f90.
+  //
+  // Also, we cannot use sprintf to write a string to itself, as this
+  // produces undefined behavior.  We have replaced instances of this
+  // with strncat, which concatenat<es strings.
   //=========================================================================
   isMakefile = ( strstr( buf, "Makefile" ) != NULL );  // Is it a makefile?
 
   switch( useLang ) {
     case F90_LANG:
       if ( upperCaseF90 )
-	if ( isMakefile ) { sprintf( buf, "%s_F90", buf ); break; }
-        else              { sprintf( buf, "%s.f90", buf ); break; }
+	if ( isMakefile ) { strncat( buf, "_F90", 5 ); break; }
+        else              { strncat( buf, ".f90", 5 ); break; }
       else
-	if ( isMakefile ) { sprintf( buf, "%s_f90", buf ); break; }
-        else              { sprintf( buf, "%s.f90", buf ); break; }
+	if ( isMakefile ) { strncat( buf, "_f90", 5 ); break; }
+        else              { strncat( buf, ".f90", 5 ); break; }
     case F77_LANG:
-      if ( isMakefile )   { sprintf( buf, "%s_f",   buf ); break; }
-      else                { sprintf( buf, "%s.f",   buf ); break; }
+      if ( isMakefile )   { strncat( buf, "_f",   3 ); break; }
+      else                { strncat( buf, ".f",   3 ); break; }
     case C_LANG:
-      if ( isMakefile )   { sprintf( buf, "%s_c",   buf ); break; }
-      else                { sprintf( buf, "%s.c",   buf ); break; }
+      if ( isMakefile )   { strncat( buf, "_c",   3 ); break; }
+      else                { strncat( buf, ".c",   3 ); break; }
     case MATLAB_LANG:
-      if ( isMakefile )   { sprintf( buf, "%s_m",   buf ); break; }
-      else                { sprintf( buf, "%s.m",   buf ); break; }
+      if ( isMakefile )   { strncat( buf, "_m",   3 ); break; }
+      else                { strncat( buf, ".m",   3 ); break; }
     default:
       printf("\n Language '%d' not implemented!\n",useLang); exit(1);
   }
@@ -304,35 +310,55 @@ int isMakefile;
     FatalError(3,"%s: Can't read file", buf );
   fclose(fp);
 
-  strcpy( cmd, "sed " );
+  strncpy( cmd, "sed ", 5 );
 
-  sprintf( cmd, "%s -e 's/KPP_ROOT/%s/g'", cmd, rootFileName );
-  sprintf( cmd, "%s -e 's/KPP_NVAR/%d/g'", cmd, VarNr );
-  sprintf( cmd, "%s -e 's/KPP_NFIX/%d/g'", cmd, FixNr );
-  sprintf( cmd, "%s -e 's/KPP_NSPEC/%d/g'", cmd,SpcNr );
-  sprintf( cmd, "%s -e 's/KPP_NREACT/%d/g'", cmd, EqnNr );
-  sprintf( cmd, "%s -e 's/KPP_NONZERO/%d/g'", cmd, Jac_NZ );
-  sprintf( cmd, "%s -e 's/KPP_LU_NONZERO/%d/g'", cmd, LU_Jac_NZ );
-  sprintf( cmd, "%s -e 's/KPP_NHESS/%d/g'", cmd, Hess_NZ );
+  sprintf( tmp, " -e 's/KPP_ROOT/%s/g'", rootFileName );
+  strncat( cmd, tmp, strlen(tmp)+1 );
+
+  sprintf( tmp, " -e 's/KPP_NVAR/%d/g'", VarNr );
+  strncat( cmd, tmp, strlen(tmp)+1 );
+
+  sprintf( tmp, " -e 's/KPP_NFIX/%d/g'", FixNr );
+  strncat( cmd, tmp, strlen(tmp)+1 );
+
+  sprintf( tmp, " -e 's/KPP_NSPEC/%d/g'", SpcNr );
+  strncat( cmd, tmp, strlen(tmp)+1 );
+
+  sprintf( tmp, " -e 's/KPP_NREACT/%d/g'", EqnNr );
+  strncat( cmd, tmp, strlen(tmp)+1 );
+
+  sprintf( tmp, " -e 's/KPP_NONZERO/%d/g'", Jac_NZ );
+  strncat( cmd, tmp, strlen(tmp)+1 );
+
+  sprintf( tmp, " -e 's/KPP_LU_NONZERO/%d/g'", LU_Jac_NZ );
+  strncat( cmd, tmp, strlen(tmp)+1 );
+
+  sprintf( tmp, " -e 's/KPP_NHESS/%d/g'", Hess_NZ );
+  strncat( cmd, tmp, strlen(tmp)+1 );
 
   switch( useLang ) {
     case F77_LANG:
-                 sprintf( cmd, "%s -e 's/KPP_REAL/%s/g'", cmd, F77_types[real] );
-                 break;
+      sprintf( tmp, " -e 's/KPP_REAL/%s/g'", F77_types[real] );
+      strncat( cmd, tmp, strlen(tmp)+1 );
+      break;
     case F90_LANG:
-                 sprintf( cmd, "%s -e 's/KPP_REAL/%s/g'", cmd, F90_types[real] );
-                 break;
+      sprintf( tmp, " -e 's/KPP_REAL/%s/g'", F90_types[real] );
+      strncat( cmd, tmp, strlen(tmp)+1 );
+      break;
     case C_LANG:
-                 sprintf( cmd, "%s -e 's/KPP_REAL/%s/g'", cmd, C_types[real] );
-                 break;
+      sprintf( tmp, " -e 's/KPP_REAL/%s/g'", C_types[real] );
+      strncat( cmd, tmp, strlen(tmp)+1 );
+      break;
     case MATLAB_LANG:
-                 break;
-    default: printf("\n Language '%d' not implemented!\n",useLang);
-                 exit(1);
+      break;
+    default:
+      printf("\n Language '%d' not implemented!\n",useLang);
+      exit(1);
   }
 
-  sprintf( cmd, "%s %s > %s", cmd, buf, tmpfile );
-
+  sprintf( tmp, "%s %s > %s", cmd, buf, tmpfile );
+  strncpy( cmd, tmp, strlen(tmp)+1 );
+  
   system( cmd );
   IncludeFile( tmpfile );
   sprintf( cmd, "rm %s", tmpfile );

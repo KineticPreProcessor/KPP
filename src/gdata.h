@@ -35,6 +35,7 @@
 #define _GDATA_H_
 
 #include <stdio.h>
+#include <string.h>
 
 /* - Many limits can be changed here by adjusting the MAX_* constants      */
 /* - To increase the max size of inlined code (F90_GLOBAL etc.),           */
@@ -176,7 +177,7 @@ extern int useLang;
 extern int useStochastic;
 extern int doFlux;
 extern int upperCaseF90;
-extern char f90Suffix[3];
+extern char f90Suffix[4];
 extern char minKppVersion[30]; // size [30] must be the same as in scanner.c
 
 /* if useValues=1 KPP replaces parameters like NVAR etc.

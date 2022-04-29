@@ -43,6 +43,7 @@
 
 %{
   #include <string.h> /* strcpy, strlen */
+  #include <ctype.h>  /* toupper, isspace */
   #include "gdata.h" 
   #include "scan.h" 
   #include "y.tab.h"
