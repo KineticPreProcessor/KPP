@@ -22,8 +22,11 @@ RUN sed -i 's/#define MAX_EQN .*/#define MAX_EQN 1023/g' /kpp/src/gdata.h \
     && sed -i 's/#define MAX_SPECIES .*/#define MAX_SPECIES 1023/g' /kpp/src/gdata.h
 
 # switch compiler to use gfortran instead of ifort
-RUN sed -i 's/COMPILER = INTEL/#COMPILER = INTEL/g' /kpp/util/Makefile.f90 \
-    && sed -i 's/#COMPILER = GFORTRAN/COMPILER = GFORTRAN/g' /kpp/util/Makefile.f90
+# do this in both Makefile_f90 and Makefile_F90
+RUN sed -i 's/COMPILER = INTEL/#COMPILER = INTEL/g' /kpp/util/Makefile_f90 \
+    && sed -i 's/#COMPILER = GFORTRAN/COMPILER = GFORTRAN/g' /kpp/util/Makefile_f90
+RUN sed -i 's/COMPILER = INTEL/#COMPILER = INTEL/g' /kpp/util/Makefile_F90 \
+    && sed -i 's/#COMPILER = GFORTRAN/COMPILER = GFORTRAN/g' /kpp/util/Makefile_F90
 
 # Build kpp executable update ensure testing script is executable
 RUN make && chmod +x /kpp/.ci-pipelines/ci-testing-script.sh 
