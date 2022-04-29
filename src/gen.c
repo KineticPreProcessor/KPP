@@ -880,15 +880,15 @@ int i, j;
 int FLUX_VAR;
 
   if( VarNr == 0 ) return;
-  /*  if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
-  /*     UseFile( functionFile ); */
+  // if (useLang != MATLAB_LANG)  // Matlab generates an additional file per function
+  //     UseFile( functionFile );
 
   FLUX_VAR = DefFnc( "Flux", 3, "calculate production & loss terms from reaction flux");
 
   FunctionBegin( FLUX_VAR, RR, P_VAR, D_VAR );
 
-  /*if ( (useLang==MATLAB_LANG)&&(!useAggregate) )
-    printf("\nWarning: in the flux definition move P_VAR to output vars\n");*/
+  //if ( (useLang==MATLAB_LANG)&&(!useAggregate) )
+  //  printf("\nWarning: in the flux definition move P_VAR to output vars\n");
 
   NewLines(1);
   WriteComment("Production function");
@@ -912,7 +912,7 @@ int FLUX_VAR;
   }
 
 
-  /*MATLAB_Inline("\n   P_VAR = P_VAR(:);\n   D_VAR = D_VAR(:);\n");*/
+  //MATLAB_Inline("\n   P_VAR = P_VAR(:);\n   D_VAR = D_VAR(:);\n");
 
   FunctionEnd( FLUX_VAR );
   FreeVariable( FLUX_VAR );
@@ -2389,7 +2389,9 @@ int j,dummy_species;
   WriteComment("  VAR(ind_spc) = C(ind_spc)");
   NewLines(1);
   for( i = 0; i < VarNr; i++) {
-    sprintf( name, "ind_%s", SpeciesTable[ Code[i] ].name );
+    sprintf( name, "%s", "ind_" );
+    strncat( name, SpeciesTable[ Code[i] ].name,
+	     strlen(SpeciesTable[ Code[i] ].name)+1 );
     spc = DefConst( name, INT, 0 );
     DeclareConstant( spc, ascii( Index(i) ) );
     FreeVariable( spc );
@@ -2413,7 +2415,9 @@ int j,dummy_species;
   WriteComment("  C(ind_spc)");
   NewLines(1);
   for( i = 0; i < FixNr; i++) {
-    sprintf( name, "ind_%s", SpeciesTable[ Code[i + VarNr] ].name );
+    sprintf( name, "%s", "ind_" );
+    strncat( name, SpeciesTable[ Code[i + VarNr] ].name,
+	     strlen(SpeciesTable[ Code[i + VarNr] ].name)+1 );
     spc = DefConst( name, INT, 0 );
     DeclareConstant( spc, ascii( Index(i+VarNr) ) );
     FreeVariable( spc );
@@ -2429,7 +2433,8 @@ int j,dummy_species;
       for( j = 0; j < MAX_SPECIES; j++)
         if (Code[j] == i) dummy_species = 0;
       if (dummy_species) {
-        sprintf( name, "ind_%s", SpeciesTable[i].name );
+	sprintf( name, "%s", "ind_" );
+	strncat( name, SpeciesTable[i].name, strlen(SpeciesTable[i].name)+1 );
         spc = DefConst( name, INT, 0 );
         DeclareConstant( spc, ascii( 0 ) );
         FreeVariable( spc );
@@ -2442,7 +2447,9 @@ int j,dummy_species;
   WriteComment("   FIX(indf_spc) = C(ind_spc) = C(NVAR+indf_spc)");
   NewLines(1);
   for( i = 0; i < FixNr; i++) {
-    sprintf( name, "indf_%s", SpeciesTable[ Code[i + VarNr] ].name );
+    sprintf( name, "%s", "indf_" );
+    strncat( name, SpeciesTable[ Code[i + VarNr] ].name,
+	     strlen( SpeciesTable[ Code[i + VarNr] ].name)+1 );
     spc = DefConst( name, INT, 0 );
     DeclareConstant( spc, ascii( Index(i) ) );
     FreeVariable( spc );
@@ -2640,7 +2647,8 @@ char s[40];
   for( spc = 0; spc < SpcNr; spc++ )
     if( mat[spc][eq] != 0 ) {
       if( ((mat[spc][eq] == 1)||(mat[spc][eq] == -1)) ) {
-          sprintf(s, "");
+	// Useless function -- Bob Yantosca (29 Apr 2022)
+	//sprintf(s, "");
       } else {
         /* real */
         /*  mz_rs_20050130+ */
@@ -2653,7 +2661,8 @@ char s[40];
         /*for (n= strlen(s) - 1; n >= 0; n--)
           if (s[n] != '0') break; */
         s[strlen(s)]= '\0';
-        sprintf(s, "%s ", s);
+        //sprintf(s, "%s ", s);
+	strncat( s, " ", 2 );
       }
 
       if( first ) {

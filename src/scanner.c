@@ -695,7 +695,9 @@ int err;
       }
       if ( AtomTable[i].check == DO_CHECK ) {
         err = 1;
-        sprintf(errmsg, "%s %s", errmsg, AtomTable[i].name );
+        //sprintf(errmsg, "%s %s", errmsg, AtomTable[i].name );
+	strncat( errmsg, " ", 2 );
+	strncat( errmsg,  AtomTable[i].name, strlen(AtomTable[i].name)+1 );
         continue;
       }
     }
