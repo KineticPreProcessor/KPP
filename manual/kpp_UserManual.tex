@@ -1,4 +1,4 @@
-\def\myfiledate{2022-04-27} % "\myfiledate" because packages may change \filedate
+\def\myfiledate{2022-04-29} % "\myfiledate" because packages may change \filedate
 \def\thiskppversion{2.2.3}
 
 \documentclass[twoside]{article}
@@ -647,14 +647,14 @@ name & see Sect.\\
 \code{#LANGUAGE}     & \ref{sec:command-language}\\
 \code{#LOOKATALL}    & \ref{sec:command-shorthand}\\
 \code{#MEX}          & \ref{sec:command-mex}\\
+\code{#MINVERSION}   & \ref{sec:command-minversion}\\
 \code{#MODEL}        & \ref{sec:command-model}\\
 \code{#REORDER}      & \ref{sec:command-reorder}\\
+\code{#RETURNRATES}  & \ref{sec:command-returnrates}\\
 \code{#STOCHASTIC}   & \ref{sec:command-stochastic}\\
 \code{#STOICMAT}     & \ref{sec:command-stoicmat}\\
 \code{#TRANSPORTALL} & \ref{sec:command-shorthand}\\
 \code{#UPPERCASEF90} & \ref{sec:command-uppercasef90}\\
-\code{#MINVERSION}   & \ref{sec:command-minversion}\\
-\code{#RETURNRATES}  & \ref{sec:command-returnrates}\\
 \hhline
 \end{tabular}
 \end{center}
@@ -865,6 +865,21 @@ and Fortran90.  The default is \code{ON}. With \code{OFF}, no Mex files
 are generated.
 
 %-----------------------------------------------------------------------------
+\subsubsection{Specify a minimum KPP version to use ({\tt\#MINVERSION})}
+\label{sec:command-minversion}
+%-----------------------------------------------------------------------------
+
+You may restrict a chemical mechanism to use a given version of KPP or
+later. To do this, add \code{#MINVERSION x.y.z}. The version number
+\code{x.y.z} adheres to the Semantic Versioning style
+(\url{https://semver.org}), where \code{x} is the major version number,
+\code{y} is the minor version number, and \code{z} is the bugfix (aka
+``patch'') version number.
+
+For example, if \code{#MINVERSION 2.4.0} is specified, then KPP will
+quit with an error message unless you are using KPP 2.4.0 or later.
+
+%-----------------------------------------------------------------------------
 \subsubsection{Selcting a chemical model ({\tt\#MODEL})}
 \label{sec:command-model}
 %-----------------------------------------------------------------------------
@@ -899,6 +914,17 @@ diagonal markowitz algorithm. The details are explained in
 \citet{IMPLEMENTATION}. The default is \code{ON}. \code{OFF} means that
 KPP does not reorder the species. The order of the variables is the
 order in which the species are declared in the \code{#DEFVAR} section.
+
+%-----------------------------------------------------------------------------
+\subsubsection{Return equation rates from the {\tt Fun()} routine
+  ({\tt\#RETURNRATES})}
+\label{sec:command-returnrates}
+%-----------------------------------------------------------------------------
+
+In some modeling contexts, it is desirable to return the equation rates
+for diagnostic purposes. The \code{#RETURNRATES} switch allows you to
+return the equation rates (the \code{A} variable in solver routine
+\code{Fun}) via the optional \code{Aout} variable.
 
 %-----------------------------------------------------------------------------
 \subsubsection{Stochastic simulation ({\tt\#STOCHASTIC})}
@@ -941,30 +967,6 @@ If you have selected the \code{#LANGUAGE Fortran90} option, KPP will
 generate source code ending in `\code{.f90}' by default. Setting
 {\tt\#UPPERCASEF90 ON} will tell KPP to generate Fortran90 code ending
 in `\code{.F90}' instead.
-
-%-----------------------------------------------------------------------------
-\subsubsection{Specify a minimum KPP version to use ({\tt\#MINVERSION})}
-\label{sec:command-minversion}
-%-----------------------------------------------------------------------------
-
-You may restrict a chemical mechanism to use a given version of KPP or later.
-to do this, add \code{#MINVERSION x.y.z} to the definition file.  The version
-number \{x.y.z} adheres to the Semantic Versioning style, where \code{x} is
-the major version number, \code{y}, is the minor version number, and
-\code{z} is the bugfix (aka "patch") version number.
-
-For example, if \code{#MINVERSION 2.4.0} is specified, then KPP will
-quit with an error message unless you are using KPP 2.4.0 or later.
-
-%-----------------------------------------------------------------------------
-\subsubsection{Return equation rates from the \code{Fun()} routine ({\tt\#RETURNRATES})}
-\label{sec:command-returnrates}
-%-----------------------------------------------------------------------------
-
-In some modeling contexts, it is desirable to return the equation rates for
-diagnostic purposes.  The \code{#RETURNRATES} switch allows you to return
-the equation rates (the \code{A}) variable in solver routine \code{Fun})
-via the optional \code{Aout} variable.
 
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 \subsection{Inlined code}
@@ -3185,14 +3187,14 @@ Following is the BNF-like specification of the language:
                    & \code{#LANGUAGE} \verb![ Fortran90 | Fortran77 | C | Matlab ]!      & $|$\\
                    & \code{#LOOKATALL}                                                   & $|$\\
                    & \code{#MEX} \verb![ ON | OFF ]!                                     & $|$\\
+                   & \code{#MINVERSION} {\it minimum\_version\_number}                   & $|$\\
                    & \code{#MODEL} {\it model\_name}                                     & $|$\\
                    & \code{#REORDER} \verb![ ON | OFF ]!                                 & $|$\\
+                   & \code{#RETURNRATES} \verb![ ON | OFF ]!                             & $|$\\
                    & \code{#STOCHASTIC} \verb![ ON | OFF ]!                              & $|$\\
                    & \code{#STOICMAT} \verb![ ON | OFF ]!                                & $|$\\
                    & \code{#TRANSPORTALL}                                                & $|$\\
-                   & \code{#UPPERCASEF90} \verb![ ON | OFF ]!                            & $|$\\
-                   & \code{#MINVERSION} {\it minimum_version_number}                     & $|$\\
-		   & \code{#RETURNRATES} \verb![ ON | OFF ]!                             &\\[3mm]
+                   & \code{#UPPERCASEF90} \verb![ ON | OFF ]!                            &\\[3mm]
 {\it inline\_code} ::= & \code{#INLINE} {\it inline\_type}\\
                        & {\it inline\_code}\\
                        & \code{#ENDINLINE}
