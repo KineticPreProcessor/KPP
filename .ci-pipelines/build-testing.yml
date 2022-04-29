@@ -10,10 +10,7 @@
 trigger:
   branches:
     include:
-      - dev*
-      - patch*
-      - bugfix*
-      - MECCA*
+      - '*'
 pr:
   branches:
     include:
