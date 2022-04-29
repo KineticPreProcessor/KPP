@@ -117,7 +117,8 @@ int useDeclareValues = 0;         // if useValues=1 KPP replaces parameters
                                   // or matrix declarations
 int upperCaseF90       = 0;
 char f90Suffix[3]      = "f90";
-char minKppVersion[30] = "none";
+char minKppVersion[30] = "none";  // size [30] must be the same as in gdata.h
+
 
 char integrator[ MAX_PATH ] = "none";
 char driver[ MAX_PATH ] = "none";
