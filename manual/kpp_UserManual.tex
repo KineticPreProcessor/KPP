@@ -1,5 +1,4 @@
 \def\myfiledate{2022-04-29} % "\myfiledate" because packages may change \filedate
-\def\thiskppversion{2.2.3}
 
 \documentclass[twoside]{article}
 \usepackage[obeyspaces]{url}
@@ -39,12 +38,14 @@
 \markboth{\mypageheader}{\mypageheader}
 \pagestyle{myheadings}
 
+\input{kpp_info.tex} % \def\kppversion{...}
+
 \begin{document}
 \thispagestyle{empty}
 \vspace*{-2cm}
 \begin{center}
   {\includegraphics[width=0.7\textwidth]{Figures/kpp-logo}}\\[9mm]
-  {\Huge\bf KPP-\thiskppversion\ User's Manual}\\[9mm]
+  {\Huge\bf KPP-\kppversion\ User's Manual}\\[9mm]
   {\huge\em The Kinetic PreProcessor KPP.}\\[5mm]
   {\huge\em An Environment for the}\\[3mm]
   {\huge\em Simulation of Chemical Kinetic Systems}\\[9mm]
@@ -62,7 +63,7 @@
   \vfill
 
   {\large This manual is available at:
-    \url{https://github.com/KineticPreProcessor/KPP/blob/main/doc/kpp_UserManual.pdf}}
+    \url{https://github.com/KineticPreProcessor/KPP/blob/main/manual/kpp_UserManual.pdf}}
 
 \end{center}
 
@@ -3027,11 +3028,23 @@ Only the major new features are listed here. For a detailed description
 of the changes, read the file \verb|$KPP_HOME/CHANGELOG|.
 
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-\subsection{KPP-\thiskppversion}
+\subsection{KPP-2.5.0}
+%+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+\todo{add text here}
+
+%+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsection{KPP-2.4.0}
+%+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+\todo{add text here}
+
+%+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsection{KPP-2.2.3}
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 %-----------------------------------------------------------------------------
-\subsubsection{New features of KPP-\thiskppversion}
+\subsubsection{New features of KPP-2.2.3}
 %-----------------------------------------------------------------------------
 
 \begin{itemize}
@@ -3076,46 +3089,6 @@ overview about the recent changes:
 \item The dummy index allows to test if a certain species occurs in the
   current chemistry mechanism. (see Sect.~\ref{sec:command-dummyindex}).
 \item Lines starting with ``\code{//}'' are comment lines.
-\end{itemize}
-
-%-----------------------------------------------------------------------------
-\subsubsection{Upgrading KPP input files from previous versions to
-  KPP-\thiskppversion}
-%-----------------------------------------------------------------------------
-
-KPP users who want to upgrade from previous versions to
-KPP-\thiskppversion\ need to make a few modifications to their input
-files.
-
-\begin{itemize}
-\item To select the target language, change the previous command name
-  ``\code{#USE}'' to ``\code{#LANGUAGE}''.
-\item To access global variables, change ``\code{USE gdata}'' to
-  ``\code{USE} \kpproot\code{_global}''.
-\item Rename all inline types ``\code{*_DECL}'' and ``\code{*_DATA}'' to
-  ``\code{*_GLOBAL}''.
-\end{itemize}
-
-If you have already used the Fortran90 output of the preliminary version
-``1.1-f90-alpha12'' from \citet{1666}, these changes are also necessary:
-
-\begin{itemize}
-\item Change ``\code{#USE} \code{Fortran95}'' to ``\code{#LANGUAGE}
-  \code{Fortran90}''.
-\item Change the names of the indices of the species from
-  ``\code{kpp_*}'' to ``\code{ind_*}''.
-\item Rename all inline types from ``\code{F95_*}'' to ``\code{F90_*}''.
-\item Since the name of the initialization subroutine has changed,
-  replace
-\begin{verbatim}
-USE ROOT_Init, ONLY: initval
-CALL initval
-\end{verbatim}
-  by
-\begin{verbatim}
-USE ROOT_Initialize, ONLY: initialize
-CALL initialize
-\end{verbatim}
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
