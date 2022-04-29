@@ -256,38 +256,49 @@ void IncludeCode( char* fmt, ... )
 {
 
 Va_list args;
-char buf[200];
+char buf[MAX_PATH];
 char cmd[500];
 static char tmpfile[] = "kppfile.tmp";
 FILE * fp;
+int isMakefile;
 
   Va_start( args, fmt );
   vsprintf( buf, fmt, args );
   va_end( args );
 
   //=========================================================================
-  // MODIFICATION by Bob Yantosca (22 Apr 2022)
+  // MODIFICATION by Bob Yantosca (29 Apr 2022)
   //
-  // NOTE: Do not change .f90 to .F90 in this CASE statement.  Here the .f90
-  // defines the extension of the template files that will be inlined into
-  // the KPP-generated code (which all end in .f90).
+  // Update the switch statement so that it looks for Makefiles with the
+  // naming convention Makefile_f90, etc., but for other files with the
+  // naming convention util.f90, etc.
   //
   // The only exception is when upperCaseF90 == 1, then we need to include
-  // util/Makefile.F90 instead of util/Makefile.f90, since we have to list
-  // all the source code files ending in *.F90.   Add some logic here.
+  // util/Makefile.F90 instead of util/Makefile.f90.  
   //=========================================================================
+  isMakefile = ( strstr( buf, "Makefile" ) != NULL );  // Is it a makefile?
+
   switch( useLang ) {
     case F90_LANG:
-      if ( upperCaseF90 && ( strstr( buf, "Makefile" ) != NULL ) )
-	   {           sprintf( buf, "%s.F90", buf ); break; }
+      if ( upperCaseF90 )
+	if ( isMakefile ) { sprintf( buf, "%s_F90", buf ); break; }
+        else              { sprintf( buf, "%s.f90", buf ); break; }
       else
-           {           sprintf( buf, "%s.f90", buf ); break; }
-    case F77_LANG:     sprintf( buf, "%s.f",   buf ); break;
-    case C_LANG:       sprintf( buf, "%s.c",   buf ); break;
-    case MATLAB_LANG:  sprintf( buf, "%s.m",   buf ); break;
+	if ( isMakefile ) { sprintf( buf, "%s_f90", buf ); break; }
+        else              { sprintf( buf, "%s.f90", buf ); break; }
+    case F77_LANG:
+      if ( isMakefile )   { sprintf( buf, "%s_f",   buf ); break; }
+      else                { sprintf( buf, "%s.f",   buf ); break; }
+    case C_LANG:
+      if ( isMakefile )   { sprintf( buf, "%s_c",   buf ); break; }
+      else                { sprintf( buf, "%s.c",   buf ); break; }
+    case MATLAB_LANG:
+      if ( isMakefile )   { sprintf( buf, "%s_m",   buf ); break; }
+      else                { sprintf( buf, "%s.m",   buf ); break; }
     default:
       printf("\n Language '%d' not implemented!\n",useLang); exit(1);
   }
+
   fp = fopen( buf, "r" );
   if ( fp == 0 )
     FatalError(3,"%s: Can't read file", buf );
