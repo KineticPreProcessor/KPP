@@ -260,16 +260,26 @@ char maxj[20];
 		}
 
 		//=============================================================
-		// MODIFICATION by Bob Yantosca (25 Apr 2022)
+		// MODIFICATION by Bob Yantosca (28 Apr 2022)
 		//
 		// Modify the IF block so that F90 variables can be declared
-		// with either the POINTER or TARGET attribute if needed.
+		// with either the POINTER, TARGET, or OPTIONAL attribute.
 		//
 		if ( var->attr == ATTR_F90_PTR )
-		  sprintf( buf, "%s, POINTER :: %s(:)", baseType, var->name );
+		  sprintf( buf, "%s, POINTER :: %s(:)", baseType,
+			                                var->name );
 		else if ( var->attr == ATTR_F90_TGT )
 		  sprintf( buf, "%s, TARGET :: %s(%s)", baseType,
-			                                var->name, maxi );
+			                                var->name,
+			                                maxi );
+		else if ( var->attr == ATTR_F90_OPT )
+		  sprintf( buf, "%s, OPTIONAL :: %s(%s)", baseType,
+			                                  var->name,
+			                                  maxi );
+		else if ( var->attr == ATTR_F90_OPT_PTR )
+		  sprintf( buf, "%s, OPTIONAL, POINTER :: %s(%s)", baseType,
+			                                           var->name,
+			                                           maxi );
 		else
 		  sprintf( buf, "%s :: %s(%s)", baseType, var->name, maxi );
 		//=============================================================
@@ -385,16 +395,24 @@ int maxCols = MAX_COLS;
 	bprintf( "  %s, " , baseType);
         if( n>0 ) bprintf( "PARAMETER, " ); /* if values are assigned now */
 	//====================================================================
-	// MODIFICATION by Bob Yantosca (25 Apr 2002)
+	// MODIFICATION by Bob Yantosca (28 Apr 2002)
 	//
-	// Add the POINTER or TARGET attributes to F90 variables, if needed.
+	// Add the POINTER, TARGET, or OPTIONAL attributes to F90 variables.
 	//
 	if ( var->attr == ATTR_F90_PTR ) {
-          bprintf( ", POINTER :: %s(:)", var->name) ;
+          bprintf( ", POINTER :: %s(:)", var->name ) ;
 	  if( n<=0 ) break;
 	}
 	if ( var->attr == ATTR_F90_TGT ) {
-          bprintf( ", TARGET :: %s(%s)", var->name, maxi) ;
+          bprintf( ", TARGET :: %s(%s)", var->name, maxi ) ;
+	  if( n<=0 ) break;
+        }
+	if ( var->attr == ATTR_F90_OPT ) {
+          bprintf( ", OPTIONAL :: %s(%s)", var->name, maxi ) ;
+	  if( n<=0 ) break;
+        }
+	if ( var->attr == ATTR_F90_OPT_PTR ) {
+          bprintf( ", OPTIONAL, POINTER :: %s(%s)", var->name, maxi ) ;
 	  if( n<=0 ) break;
         }
 	//====================================================================
