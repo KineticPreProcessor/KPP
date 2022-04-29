@@ -198,8 +198,16 @@ int noext;
       *p++ = *crtpath++;
     }
   }
+
+  // Use strncat to append to pathname, as we cannot sprintf
+  // a string unto itself -- Bob Yantosca (29 Apr 2022)
+  //sprintf(pathname, "%s/%s/%s", Home, dir, name);
+  sprintf( pathname, "%s", Home            );
+  strncat( pathname, "/",  2               );
+  strncat( pathname, dir,  strlen(dir)+1   );
+  strncat( pathname, "/",  2               );
+  strncat( pathname, name, strlen(name)+1  );
   
-  sprintf(pathname, "%s/%s/%s", Home, dir, name);
   fp = fopen(pathname,"r");
   if( fp ) {
     fclose(fp);
