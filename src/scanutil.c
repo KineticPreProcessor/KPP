@@ -180,7 +180,11 @@ int noext;
       }
       if((*crtpath == ':')||(*crtpath==0)) {
         *p = 0;
-        sprintf(pathname,"%s/%s",pathname,name);
+	// We can't sprint a file to itself, we can use strncat to append.
+	//  -- Bob Yantosca (29 Apr 2022)
+        //sprintf(pathname,"%s/%s",pathname,name);
+	strncat( pathname, "/", 2 );
+	strncat( pathname, name, strlen(name)+1 );
         fp = fopen(pathname,"r");
         if( fp ) {
           fclose(fp);

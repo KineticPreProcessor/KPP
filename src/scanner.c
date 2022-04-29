@@ -1083,15 +1083,17 @@ void ScanEquations( MEMBER crtMbr ) {
     /* ---------------------------------------------------------------------------------------------*/
     /*switch( type ) {
     case LOSS_FAM:
-      if ( Stoich_Left[ crtCode ][ i ] > 0 ) { /* Then this species is part of this equations's LHS */
-    /*tmpval = 1;
+      if ( Stoich_Left[ crtCode ][ i ] > 0 ) {
+        // Then this species is part of this equations's LHS
+        tmpval = 1;
 	coeff = Stoich_Left[ crtCode ][ i ] * crtMbr.coeff;
 	Loss_Coeff[ FamilyNr ][ i ] += Stoich_Left[ crtCode ][ i ] * crtMbr.coeff;
 	break; }
       else break;
     case PROD_FAM:
-      if ( Stoich_Right[ crtCode ][ i ] > 0 ) { /* Then this species is part of this equations's RHS */
-    /*tmpval = 1;
+      if ( Stoich_Right[ crtCode ][ i ] > 0 ) {
+      // Then this species is part of this equations's RHS
+      tmpval = 1;
 	coeff = Stoich_Right[ crtCode ][ i ] * crtMbr.coeff;
 	Prod_Coeff[ FamilyNr ][ i ] += Stoich_Right[ crtCode ][ i ] * crtMbr.coeff;
 	break; }
@@ -1145,10 +1147,10 @@ void FinalizeFamily()
 	if ( (Loss_Coeff[ FamilyNr ][ i ] - Prod_Coeff[ FamilyNr ][ i ]) > 0. ) {
 	  sprintf(eqNr, "%d", FamilyNr );
 	  strcpy( spstr, FamilyTable[ FamilyNr ].name );
-	  /*strcat( spstr, eqNr );
-	  /* -- -- Scan all species to see if RR_<i> exists. -- -- */
+	  //strcat( spstr, eqNr );
+	  // -- -- Scan all species to see if RR_<i> exists. -- --
 	  newSpcCode = FindSpecies( spstr );
-	  /* -- -- If not, then declare it                   -- -- */
+	  // -- -- If not, then declare it                   -- --
 	  if ( newSpcCode < 0 ){
 	    DeclareSpecies( VAR_SPC, spstr );
 	  } 
@@ -1162,14 +1164,14 @@ void FinalizeFamily()
 	if ( (Prod_Coeff[ FamilyNr ][ i ] - Loss_Coeff[ FamilyNr ][ i ]) > 0. ) {
 	  sprintf(eqNr, "%d", FamilyNr );
 	  strcpy( spstr, FamilyTable[ FamilyNr ].name );
-	  /*strcat( spstr, eqNr );
-	  /* -- -- Scan all species to see if RR_<i> exists. -- -- */
+	  //strcat( spstr, eqNr );
+	  // -- -- Scan all species to see if RR_<i> exists. -- --
 	  newSpcCode = FindSpecies( spstr );
-	  /* -- -- If not, then declare it                   -- -- */
+	  // -- -- If not, then declare it                   -- --
 	  if ( newSpcCode < 0 ){
 	    DeclareSpecies( VAR_SPC, spstr );
 	  } 
-	  /* -- -- Now, add this species to the appropriate Stoich* arrays -- */
+	  // -- -- Now, add this species to the appropriate Stoich* arrays --
 	  sprintf(Coef,"%f",Prod_Coeff[ FamilyNr ][ i ] - Loss_Coeff[ FamilyNr ][ i ]);
 	  ProcessProdLossTerm( PROD_FAM, i, "+", Coef, spstr );
 	  Prod_Spc[ i ] = &ReverseCode[ FindSpecies( spstr ) ];

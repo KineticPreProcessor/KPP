@@ -113,7 +113,8 @@ static char s[40];
   if (useDouble && (useLang==F77_LANG))
     s[strlen(s)-4] = 'd';
   if (useDouble && (useLang==F90_LANG))
-    sprintf(s, "%s_dp",s);
+    //sprintf(s, "%s_dp",s);
+    strncat( s, "_dp", 4 );
   return s;
 }
 
