@@ -290,17 +290,8 @@ int i,j;
 
   CFACTOR  = DefElm( "CFACTOR", real, "Conversion factor for concentration units");
 
-//============================================================================
-// MODIFICATION by Bob Yantosca (28 Apr 2002)
-// Define the Aout variable with the OPTIONAL attribute) for returning
-// reaction rates from Fun().  This will be done if the "#RETURNRATES on"
-// switch is set.
-//
-  if ( returnRates ) {
-    Aout = DefvElmO( "Aout", real, -NREACT,
-		    "Optional argument to return equation rate constants" );
-  }
-//============================================================================
+  Aout = DefvElmO( "Aout", real, -NREACT,
+		   "Optional argument to return equation rate constants" );
 
   /* Elements of Stochastic simulation*/
   NMLCV = DefvElm( "NmlcV", INT, -NVAR, "No. molecules of variable species" );
@@ -741,36 +732,20 @@ int F_VAR, FSPLIT_VAR;
   if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
        UseFile( functionFile );
 
-  //=========================================================================
-  // MODIFICATION by Bob Yantosca (28 Apr 2022)
-  // Tell F_VAR to accept 5 arguments when the "#RETURNRATES on"
-  // option is used.  Otherwise default to 4.
-  if ( returnRates )
-    F_VAR = DefFnc( "Fun", 5,
-		    "time derivatives of variables - Aggregate form");
-  else
-    F_VAR = DefFnc( "Fun", 4,
-		    "time derivatives of variables - Aggregate form");
-  //=========================================================================
+  F_VAR = DefFnc( "Fun", 5,
+		  "time derivatives of variables - Aggregate form");
 
   FSPLIT_VAR = DefFnc( "Fun_SPLIT", 5,
 		       "time derivatives of variables - Split form");
 
 
-  if( useAggregate ) {
-    //=======================================================================
-    // MODIFICATION by Bob Yantosca (28 Apr 2022)
-    // If this mechanism uses the "#RETURNRATES on" option, then add
-    // Aout as an extra argument.  This facilitates archiving diagnostics.
-    if ( returnRates ) {
-      FunctionBegin( F_VAR, V, F, RCT, Vdot, Aout );
-    //=======================================================================
-    } else {
-      FunctionBegin( F_VAR, V, F, RCT, Vdot );
-    }
-  } else {
+  // We have added the capability to return equation rates from Fun
+  // via optional argument Aout (when useAggregate=1)
+  //   -- Bob Yantosca (29 Apr 2022)
+  if( useAggregate )
+    FunctionBegin( F_VAR, V, F, RCT, Vdot, Aout );
+  else 
     FunctionBegin( FSPLIT_VAR, V, F, RCT, P_VAR, D_VAR );
-  }
 
   if ( (useLang==MATLAB_LANG)&&(!useAggregate) )
      printf("\nWarning: in the function definition move P_VAR to output vars\n");
@@ -814,15 +789,11 @@ int F_VAR, FSPLIT_VAR;
   }
 
   if( useAggregate ) {
-    //===========================================================================
-    // MODIFICATION FOR GEOS-CHEM: Bob Yantosca (28 Feb 2022)
-    // Copy A to Aout to return reaction rates outside of KPP
-    //
-    if ( returnRates ) {
-      fprintf(functionFile, "\n!### Use Aout to return equation rates\n");
-      fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n\n");
-    }
-    //===========================================================================
+    // Add code to return equation rates via optional argument Aout
+    //   -- Bob Yantosca (29 Apr 2022)
+    NewLines(1);
+    fprintf(functionFile, "  !### Use Aout to return equation rates\n");
+    fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n");
 
     NewLines(1);
     WriteComment("Aggregate function");

@@ -48,6 +48,7 @@
 #define ATTR_F90_PTR      1  // F90 variable has the POINTER attribute
 #define ATTR_F90_TGT      2  // F90 variable has the TARGET attribute
 #define ATTR_F90_OPT      3  // F90 variable has the OPTIONAL attribute
+#define ATTR_F90_OPT_PTR  4  // F90 variable has OPTIONAL and POINTER attrs
                              //  -- Bob Yantosca (28 Apr 2022)
 
 #define WriteAll bprintf
@@ -134,11 +135,13 @@ void FreeVariable( int n );
 #define DefeElm( name, cmt ) DefineVariable( name, EELM, 0, 0, 0, cmt, 0 )
 #define DefFnc( name, n, cmt ) DefineVariable( name, FNC, 0, n, 0, cmt, 0 )
 
-// Define new macros to declare F90 variables with as TARGET, POINTER, or OPTIONAL
+// Define new macros to declare F90 variables with as TARGET, POINTER,
+// OPTIONAL, or OPTIONAL and POINTER
 // -- Bob Yantosca (28 Apr 2002)
 #define DefvElmP( name, bt, cmt ) DefineVariable( name, VELM, bt, 0, 0, cmt, ATTR_F90_PTR )
 #define DefvElmT( name, bt, n, cmt ) DefineVariable( name, VELM, bt, n, 0, cmt, ATTR_F90_TGT )
 #define DefvElmO( name, bt, n, cmt ) DefineVariable( name, VELM, bt, n, 0, cmt, ATTR_F90_OPT )
+#define DefvElmOP( name, bt, n, cmt ) DefineVariable( name, VELM, bt, n, 0, cmt, ATTR_F90_OPT_PTR )
 
 typedef struct {
 		 int var;

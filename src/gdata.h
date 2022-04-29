@@ -29,7 +29,7 @@
 
 ******************************************************************************/
 
-#define KPP_VERSION "2.4.0"
+#define KPP_VERSION "2.5.0"
 
 #ifndef _GDATA_H_
 #define _GDATA_H_
@@ -179,7 +179,6 @@ extern int doFlux;
 extern int upperCaseF90;
 extern char f90Suffix[3];
 extern char minKppVersion[30];
-extern int returnRates;
 
 /* if useValues=1 KPP replaces parameters like NVAR etc.
        by their values in vector/matrix declarations */

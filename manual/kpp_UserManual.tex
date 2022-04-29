@@ -650,7 +650,6 @@ name & see Sect.\\
 \code{#MINVERSION}   & \ref{sec:command-minversion}\\
 \code{#MODEL}        & \ref{sec:command-model}\\
 \code{#REORDER}      & \ref{sec:command-reorder}\\
-\code{#RETURNRATES}  & \ref{sec:command-returnrates}\\
 \code{#STOCHASTIC}   & \ref{sec:command-stochastic}\\
 \code{#STOICMAT}     & \ref{sec:command-stoicmat}\\
 \code{#TRANSPORTALL} & \ref{sec:command-shorthand}\\
@@ -914,17 +913,6 @@ diagonal markowitz algorithm. The details are explained in
 \citet{IMPLEMENTATION}. The default is \code{ON}. \code{OFF} means that
 KPP does not reorder the species. The order of the variables is the
 order in which the species are declared in the \code{#DEFVAR} section.
-
-%-----------------------------------------------------------------------------
-\subsubsection{Return equation rates from the {\tt Fun()} routine
-  ({\tt\#RETURNRATES})}
-\label{sec:command-returnrates}
-%-----------------------------------------------------------------------------
-
-In some modeling contexts, it is desirable to return the equation rates
-for diagnostic purposes. The \code{#RETURNRATES} switch allows you to
-return the equation rates (the \code{A} variable in solver routine
-\code{Fun}) via the optional \code{Aout} variable.
 
 %-----------------------------------------------------------------------------
 \subsubsection{Stochastic simulation ({\tt\#STOCHASTIC})}
@@ -3190,7 +3178,6 @@ Following is the BNF-like specification of the language:
                    & \code{#MINVERSION} {\it minimum\_version\_number}                   & $|$\\
                    & \code{#MODEL} {\it model\_name}                                     & $|$\\
                    & \code{#REORDER} \verb![ ON | OFF ]!                                 & $|$\\
-                   & \code{#RETURNRATES} \verb![ ON | OFF ]!                             & $|$\\
                    & \code{#STOCHASTIC} \verb![ ON | OFF ]!                              & $|$\\
                    & \code{#STOICMAT} \verb![ ON | OFF ]!                                & $|$\\
                    & \code{#TRANSPORTALL}                                                & $|$\\

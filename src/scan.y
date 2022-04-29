@@ -99,7 +99,6 @@
 %type <str> PLSPC
 %token UPPERCASEF90
 %token MINVERSION
-%token RETURNRATES
 %%
 
 program		: section
@@ -217,8 +216,6 @@ section	        : JACOBIAN PARAMETER
 		  { CmdUpperCaseF90( $2 ); }
                 | MINVERSION PARAMETER
 		  { CmdMinVersion( $2 ); }
-                | RETURNRATES PARAMETER
-		{ CmdReturnRates( $2 ); }
                 ;  
 semicolon       : semicolon ';'
                   { ScanWarning("Unnecessary ';'");
