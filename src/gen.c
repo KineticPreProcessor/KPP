@@ -1969,7 +1969,6 @@ int *irow;
 int *icol;
 int *crow;
 int *diag;
-int nElm;
 int ibgn, iend;
 int useLangOld;
 int dim;
@@ -1985,7 +1984,7 @@ int dim;
 
   useLangOld = useLang;
   useLang = C_LANG;
-  nElm = NonZero( LU, 0, VarNr, irow, icol, crow, diag );
+  NonZero( LU, 0, VarNr, irow, icol, crow, diag );
   useLang = useLangOld;
 
   UseFile( linalgFile );
@@ -2038,7 +2037,6 @@ int *irow;
 int *icol;
 int *crow;
 int *diag;
-int nElm;
 int ibgn, iend;
 int useLangOld;
 int **pos;
@@ -2056,7 +2054,7 @@ int dim;
 
   useLangOld = useLang;
   useLang = C_LANG;
-  nElm = NonZero( LU, 0, VarNr, irow, icol, crow, diag );
+  NonZero( LU, 0, VarNr, irow, icol, crow, diag );
   useLang = useLangOld;
 
   UseFile( linalgFile );

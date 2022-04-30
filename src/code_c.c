@@ -39,13 +39,18 @@
 
 int fncPrototipe = 0;
 
-char *C_types[] = { "void",     /* VOID */ 
+char *C_types[] = { "void",   /* VOID */
                     "int",    /* INT */
                     "float",  /* FLOAT */
                     "double", /* DOUBLE */
                     "char *", /* STRING */
                     "char *"  /* DOUBLESTRING */
                   }; 
+
+// Local definitions of function prototypes just for code_c.c
+// This will avoid "implicit function declaration" warnings
+//   -- Bob Yantosca (29 Apr 2022)
+void Message( char *fmt, ...  );
 
 void C_WriteElm( NODE * n )
 {
@@ -367,7 +372,7 @@ char dummy_val[100];           /* used just to avoid strange behaviour of
     case CONST: bprintf("#define %-20s %-10s ", var->name, val );
                 break;       
     default:
-                printf( "Invalid constant", var->type );
+                printf( "Invalid constant: %d", var->type );
                 break;
   }
   if( varTable[ v ]->comment )

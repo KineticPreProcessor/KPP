@@ -37,25 +37,22 @@
 #include <string.h>
 #include <math.h>
 
-int AtomNr    = 0;
-int SpeciesNr = 0;
-int FamilyNr  = 0;
-int EqnNr     = 0;
-int SpcNr     = 0;
-int VarNr     = 0;
+int AtomNr       = 0;
+int SpeciesNr    = 0;
+int FamilyNr     = 0;
+int EqnNr        = 0;
+int SpcNr        = 0;
+int VarNr        = 0;
 int VarActiveNr  = 0;
-int FixNr     = 0;
+int FixNr        = 0;
 int VarStartNr   = 0;
 int FixStartNr   = 0;
 int plNr         = 0;
-
-
-int initNr = -1;
-int xNr = 0;
-int yNr = 0;
-int zNr = 0;
-
-int falseSpcNr = 0;
+int initNr       = -1;
+int xNr          = 0;
+int yNr          = 0;
+int zNr          = 0;
+int falseSpcNr   = 0;
 
 ATOM_DEF AtomTable[ MAX_ATNR ];
 SPECIES_DEF SpeciesTable[ MAX_SPECIES ];
@@ -1060,19 +1057,16 @@ int i;
 void ScanEquations( MEMBER crtMbr ) {
   int crtCode;
   int i;
-  float coeff;
   
   crtCode = ReverseCode[crtMbr.code];
   /* -- Loop through equations -- */
   /* -- -- Set coeff. values   -- */
   for( i=0; i<EqnNr; i++ ) {
-    if ( Stoich_Left[ crtCode ][ i ] > 0 ) { /* Then this species is part of this equations's LHS */
-      coeff = Stoich_Left[ crtCode ][ i ] * crtMbr.coeff;
+    if ( Stoich_Left[ crtCode ][ i ] > 0 ) {
       Loss_Coeff[ FamilyNr ][ i ] += Stoich_Left[ crtCode ][ i ] * crtMbr.coeff;
       /*printf("\nAdded %s to loss family eq. %i ... %f",crtMbr.name,i,Stoich_Left[ crtCode ][ i ]);*/
     }
-    if ( Stoich_Right[ crtCode ][ i ] > 0 ) { /* Then this species is part of this equations's RHS */
-      coeff = Stoich_Right[ crtCode ][ i ] * crtMbr.coeff;
+    if ( Stoich_Right[ crtCode ][ i ] > 0 ) {
       Prod_Coeff[ FamilyNr ][ i ] += Stoich_Right[ crtCode ][ i ] * crtMbr.coeff;
       /*printf("\nAdded %s to prod family eq. %i ... %f",crtMbr.name,i,Stoich_Right[ crtCode ][ i ]);*/
     }

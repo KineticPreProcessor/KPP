@@ -38,6 +38,7 @@
 /*            NONE, ADD, SUB, MUL, DIV, POW, CONST, ELM, VELM, MELM, EELM  */
 int PRI[] = {   10,   1,   1,   2,   2,   3,    10,  10,   10,   10,   10 };
 
+// Function prototpyes
 void (*WriteElm)( NODE *n );
 void (*WriteSymbol)( int op );
 void (*WriteAssign)( char* lval, char* rval );
@@ -52,6 +53,12 @@ void (*FunctionStart)( int f, int *vars );
 void (*FunctionPrototipe)( int f, ... );
 void (*FunctionBegin)( int f, ... );
 void (*FunctionEnd)( int f );
+
+// Local definitions of function prototypes just for code.c
+// This will avoid "implicit function declaration" warnings
+//   -- Bob Yantosca (29 Apr 2022)
+void FatalError( int status, char *fmt, ... );
+void Message( char *fmt, ...  );
 
 NODE * substList;
 int substENABLED = 1;
@@ -278,38 +285,43 @@ int isMakefile;
   // The only exception is when upperCaseF90 == 1, then we need to include
   // util/Makefile.F90 instead of util/Makefile.f90.
   //
-  // Also, we cannot use sprintf to write a string to itself, as this
-  // produces undefined behavior.  We have replaced instances of this
-  // with strncat, which concatenat<es strings.
+  // Also, We cannot use self-referential sprintf statements such as
+  // "sprintf( buf, "%s", buf );", as this is considered undefined
+  // behavior by the C language standard.  Replace instances of these
+  // with strncat or strncpy statements.  (NOTE: For srncat/strncpy,
+  // the number of characters must be one more than the text to allow
+  // for the null string `\0', which terminates the string.)
   //=========================================================================
   isMakefile = ( strstr( buf, "Makefile" ) != NULL );  // Is it a makefile?
 
   switch( useLang ) {
     case F90_LANG:
       if ( upperCaseF90 )
-	if ( isMakefile ) { strncat( buf, "_F90", 5 ); break; }
-        else              { strncat( buf, ".f90", 5 ); break; }
+	if ( isMakefile ) { strncat( buf, "_F90", 5 ); break; } // Makefile_F90
+        else              { strncat( buf, ".f90", 5 ); break; } // *.f90
       else
-	if ( isMakefile ) { strncat( buf, "_f90", 5 ); break; }
-        else              { strncat( buf, ".f90", 5 ); break; }
+	if ( isMakefile ) { strncat( buf, "_f90", 5 ); break; } // Makefile_f90
+        else              { strncat( buf, ".f90", 5 ); break; } // *.f90
     case F77_LANG:
-      if ( isMakefile )   { strncat( buf, "_f",   3 ); break; }
-      else                { strncat( buf, ".f",   3 ); break; }
+      if ( isMakefile )   { strncat( buf, "_f",   3 ); break; } // Makefile_f
+      else                { strncat( buf, ".f",   3 ); break; } // *.f
     case C_LANG:
-      if ( isMakefile )   { strncat( buf, "_c",   3 ); break; }
-      else                { strncat( buf, ".c",   3 ); break; }
+      if ( isMakefile )   { strncat( buf, "_c",   3 ); break; } // Makefile_c
+      else                { strncat( buf, ".c",   3 ); break; } // *.c
     case MATLAB_LANG:
-      if ( isMakefile )   { strncat( buf, "_m",   3 ); break; }
-      else                { strncat( buf, ".m",   3 ); break; }
+      if ( isMakefile )   { strncat( buf, "_m",   3 ); break; } // Makefile_m
+      else                { strncat( buf, ".m",   3 ); break; } // *.m
     default:
       printf("\n Language '%d' not implemented!\n",useLang); exit(1);
   }
 
+  // Open Makefile
   fp = fopen( buf, "r" );
   if ( fp == 0 )
     FatalError(3,"%s: Can't read file", buf );
   fclose(fp);
 
+  // Create sed command to replace KPP_ROOT w/ the model name
   strncpy( cmd, "sed ", 5 );
 
   sprintf( tmp, " -e 's/KPP_ROOT/%s/g'", rootFileName );
@@ -336,6 +348,7 @@ int isMakefile;
   sprintf( tmp, " -e 's/KPP_NHESS/%d/g'", Hess_NZ );
   strncat( cmd, tmp, strlen(tmp)+1 );
 
+  // Also replace KPP_REAL with the selected precision
   switch( useLang ) {
     case F77_LANG:
       sprintf( tmp, " -e 's/KPP_REAL/%s/g'", F77_types[real] );
@@ -356,12 +369,18 @@ int isMakefile;
       exit(1);
   }
 
-  sprintf( tmp, "%s %s > %s", cmd, buf, tmpfile );
-  strncpy( cmd, tmp, strlen(tmp)+1 );
-  
+  // Write final sed command using safe string functions
+  sprintf( tmp, "%s",    cmd                );
+  strncat( tmp, " ",     2                  );
+  strncat( tmp, buf,     strlen(buf)+1      );
+  strncat( tmp, " > ",   4                  );
+  strncat( tmp, tmpfile, strlen(tmpfile)+ 1 );
+  strncpy( cmd, tmp,     strlen(tmp)+1      );
+
+  // Run sed command
   system( cmd );
   IncludeFile( tmpfile );
-  sprintf( cmd, "rm %s", tmpfile );
+  sprintf( cmd, "rm -f %s", tmpfile );
   system( cmd );
 }
 
@@ -855,10 +874,8 @@ void CommentFunctionBegin( int f, ... )
 Va_list args;
 int i;
 int vars[20];
-char * name;
 int narg;
 
-  name = varTable[ f ]->name;
   narg = varTable[ f ]->maxi;
 
   Va_start( args, f );

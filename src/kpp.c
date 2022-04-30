@@ -276,7 +276,7 @@ void ReorderSpecies( int criteria )
 CODE *var;
 CODE *fix;
 CODE *dummy;
-CODE *PrLo;
+//CODE *PrLo;
 EQ_VECT *tmpStoich_Left;
 EQ_VECT *tmpStoich_Right;
 EQ_VECT *tmpStoich;
@@ -313,7 +313,7 @@ int dummyNr;
   var = (CODE*)malloc( SpcNr * sizeof(CODE) );
   fix = (CODE*)malloc( SpcNr * sizeof(CODE) );
   dummy = (CODE*)malloc( 5 * sizeof(CODE) );
-  PrLo  = (CODE*)malloc( EqnNr * sizeof(CODE) );
+//PrLo  = (CODE*)malloc( EqnNr * sizeof(CODE) );
   tmpStoich_Left = (EQ_VECT*)malloc( SpcNr * sizeof(EQ_VECT) );
   tmpStoich_Right = (EQ_VECT*)malloc( SpcNr * sizeof(EQ_VECT) );
   tmpStoich = (EQ_VECT*)malloc( SpcNr * sizeof(EQ_VECT) );
