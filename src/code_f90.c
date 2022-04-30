@@ -395,7 +395,7 @@ int maxCols = MAX_COLS;
 	bprintf( "  %s, " , baseType);
         if( n>0 ) bprintf( "PARAMETER, " ); /* if values are assigned now */
 	//====================================================================
-	// MODIFICATION by Bob Yantosca (28 Apr 2002)
+	// MODIFICATION by Bob Yantosca (28 Apr 2022)
 	//
 	// Add the POINTER, TARGET, or OPTIONAL attributes to F90 variables.
 	//
