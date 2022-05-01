@@ -2645,8 +2645,7 @@ char s[40];
   for( spc = 0; spc < SpcNr; spc++ )
     if( mat[spc][eq] != 0 ) {
       if( ((mat[spc][eq] == 1)||(mat[spc][eq] == -1)) ) {
-	// Useless function -- Bob Yantosca (29 Apr 2022)
-	//sprintf(s, "");
+	s[0] = '\0'; // necessary to remove old contents
       } else {
         /* real */
         /*  mz_rs_20050130+ */
@@ -2659,8 +2658,7 @@ char s[40];
         /*for (n= strlen(s) - 1; n >= 0; n--)
           if (s[n] != '0') break; */
         s[strlen(s)]= '\0';
-        //sprintf(s, "%s ", s);
-	strncat( s, " ", 2 );
+	strcat( s, " " );
       }
 
       if( first ) {
@@ -2672,10 +2670,6 @@ char s[40];
                           else sprintf(buf, "%s - %s", buf, s);
       }
       sprintf(buf, "%s%s", buf, SpeciesTable[ Code[spc] ].name);
-      if (strlen(buf)>MAX_EQNLEN/2) { /* truncate if eqn string too long */
-         sprintf(buf, "%s ... etc.",buf);
-	 break;
-      }
     }
 
   return strlen(buf);
@@ -2686,6 +2680,7 @@ int EqnString( int eq, char * buf )
 {
 static int lhs = 0;
 static int rhs = 0;
+int len_rhsbuf;
 
 int i, l;
 char lhsbuf[MAX_EQNLEN], rhsbuf[MAX_EQNLEN];
@@ -2697,14 +2692,26 @@ char lhsbuf[MAX_EQNLEN], rhsbuf[MAX_EQNLEN];
 
   if(rhs == 0) for( i = 0; i < EqnNr; i++ ) {
                  l = EqnStr( i, rhsbuf, Stoich_Right);
-                 rhs = (rhs > l) ? lhs : l;
+                 rhs = (rhs > l) ? rhs : l;
                }
 
 
   EqnStr( eq, lhsbuf, Stoich_Left);
-  EqnStr( eq, rhsbuf, Stoich_Right);
+  len_rhsbuf=EqnStr( eq, rhsbuf, Stoich_Right);
 
-  sprintf(buf, "%*s --> %-*s", lhs, lhsbuf, rhs, rhsbuf);
+  if(lhs+5+len_rhsbuf>100) // 100 = len of EQN_NAMES string; 5 = len of " --> "
+    {
+      // truncate the list of products in kpp_monitor file:
+      rhsbuf[100-5-lhs-8]=0; // 8 = len of "... etc."
+      sprintf(buf, "%*s --> ", lhs, lhsbuf);
+      strcat(buf, rhsbuf);
+      strcat(buf, "... etc.");
+    }
+  else
+    {
+      sprintf(buf, "%*s --> %-*s", lhs, lhsbuf, rhs, rhsbuf);
+    }
+  
   return strlen(buf);
 }
 
