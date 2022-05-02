@@ -29,7 +29,7 @@ RUN sed -i 's/COMPILER = INTEL/#COMPILER = INTEL/g' /kpp/util/Makefile_F90 \
     && sed -i 's/#COMPILER = GFORTRAN/COMPILER = GFORTRAN/g' /kpp/util/Makefile_F90
 
 # Build kpp executable update ensure testing script is executable
-RUN make && chmod +x /kpp/.ci-pipelines/ci-testing-script.sh 
+RUN cd /kpp/src/ && make && chmod +x /kpp/.ci-pipelines/ci-testing-script.sh 
 
 # Run Tests
 RUN /kpp/.ci-pipelines/ci-testing-script.sh
