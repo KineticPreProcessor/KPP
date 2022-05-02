@@ -2639,6 +2639,7 @@ int spc, first;
 
 /* bugfix if stoichiometric factor is not an integer */
 char s[40];
+char tmpStr[MAX_EQNLEN];
 
   first = 1;
   *buf = 0;
@@ -2661,15 +2662,47 @@ char s[40];
 	strcat( s, " " );
       }
 
+// Remove self-referential sprintf statements
+//  -- Bob Yantosca (02 May 2022)
+//      if( first ) {
+//        if( mat[spc][eq] > 0 ) sprintf(buf, "%s%s", buf, s);
+//                          else sprintf(buf, "%s- %s", buf, s);
+//        first = 0;
+//      } else {
+//        if( mat[spc][eq] > 0 ) sprintf(buf, "%s + %s", buf, s);
+//                          else sprintf(buf, "%s - %s", buf, s);
+//      }
+//      sprintf(buf, "%s%s", buf, SpeciesTable[ Code[spc] ].name);
+//    }
+
       if( first ) {
-        if( mat[spc][eq] > 0 ) sprintf(buf, "%s%s", buf, s);
-                          else sprintf(buf, "%s- %s", buf, s);
+        if( mat[spc][eq] > 0 ) {
+	  sprintf( tmpStr, "%s", s );
+	  strncat( buf, tmpStr, strlen(tmpStr)+1 );
+	} else {
+	  sprintf( tmpStr, "%s",   buf              );
+	  strncat( tmpStr, "- ",   3                );
+	  strncat( tmpStr, s,      strlen(s)+1      );
+	  strncpy( buf,    tmpStr, strlen(tmpStr)+1 );
+	}
         first = 0;
       } else {
-        if( mat[spc][eq] > 0 ) sprintf(buf, "%s + %s", buf, s);
-                          else sprintf(buf, "%s - %s", buf, s);
+        if( mat[spc][eq] > 0 ) {
+	  sprintf( tmpStr, "%s",   buf              );
+	  strncat( tmpStr, " + ",  4                );
+	  strncat( tmpStr, s,      strlen(s)+1      );
+	  strncpy( buf,    tmpStr, strlen(tmpStr)+1 );
+        } else {
+	  sprintf( tmpStr, "%s",   buf              );
+	  strncat( tmpStr, " - ",  4                );
+	  strncat( tmpStr, s,      strlen(s)+1      );
+	  strncpy( buf,    tmpStr, strlen(tmpStr)+1 );
+	}
       }
-      sprintf(buf, "%s%s", buf, SpeciesTable[ Code[spc] ].name);
+      sprintf( tmpStr, "%s", buf );
+      strncat( tmpStr, SpeciesTable[ Code[spc] ].name,
+	       strlen(  SpeciesTable[ Code[spc] ].name )+1 );
+      strncpy( buf, tmpStr, strlen(tmpStr)+1 );
     }
 
   return strlen(buf);
@@ -2694,7 +2727,6 @@ char lhsbuf[MAX_EQNLEN], rhsbuf[MAX_EQNLEN];
                  l = EqnStr( i, rhsbuf, Stoich_Right);
                  rhs = (rhs > l) ? rhs : l;
                }
-
 
   EqnStr( eq, lhsbuf, Stoich_Left);
   len_rhsbuf=EqnStr( eq, rhsbuf, Stoich_Right);
