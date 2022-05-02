@@ -56,7 +56,7 @@
 #define MAX_FILES        20     // Max number of files to open
 #define MAX_FAMILIES    300     // Max number of family definitions
 #define MAX_MEMBERS     150     // Max number of family members
-#define MAX_EQNLEN      200     // Max char length of equations
+#define MAX_EQNLEN      300     // Max char length of equations
 
 #define NO_CODE 	-1
 #define max( x, y ) (x) > (y) ? (x) : (y)
