@@ -1,7 +1,8 @@
 .. _install:
 
+############
 Installation
-============
+############
 
 This section can be skipped if KPP is already installed on your system.
 If you work under Linux, you can probably use the precompiled executable
@@ -46,7 +47,7 @@ in effect.
 4. Make sure that the fast lexical analyzer generator is installed on
    your machine. To test this, type:
 
-.. code_block:: console
+.. code-block:: console
 
    $ which flex
 
