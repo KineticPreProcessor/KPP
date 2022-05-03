@@ -1,5 +1,15 @@
 # Requirements for building the KPP documentation
-sphinx
-sphinx_rtd_theme
-sphinxcontrib-bibtex 
+#
+# NOTE: There are issues with sphinx 4.0.0+ and sphinx-rtd-theme 1.0.0
+# so we'll use older versions (Bob Yantosca, 03 May 2022)
+#
+# ALSO NOTE: A recent update to jinja2 has broken backwards c
+# compatibility with the older ReadTheDocs package, so we need to
+# use a version of jinja2 prior to 3.1.0. (Bob Yantosca, 03 May 2022)
+#
+sphinx<4.0.0
+sphinx_rtd_theme<1.0.0
+sphinxcontrib-bibtex==2.2.0
 recommonmark
+docutils==0.16
+jinja2<3.1.0
