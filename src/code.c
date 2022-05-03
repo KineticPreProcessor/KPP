@@ -276,14 +276,16 @@ int isMakefile;
   va_end( args );
 
   //=========================================================================
-  // MODIFICATION by Bob Yantosca (29 Apr 2022)
+  // MODIFICATION by Bob Yantosca (03 May 2022)
   //
   // Update the switch statement so that it looks for Makefiles with the
   // naming convention Makefile_f90, etc., but for other files with the
   // naming convention util.f90, etc.
   //
   // The only exception is when upperCaseF90 == 1, then we need to include
-  // util/Makefile.F90 instead of util/Makefile.f90.
+  // util/Makefile_upper_F90 instead of util/Makefile_f90.  Rename the
+  // Makefile_F90 to Makefile_upper_F90 to avoid issues on case-insensitive
+  // operating systems such as MacOS X.
   //
   // Also, We cannot use self-referential sprintf statements such as
   // "sprintf( buf, "%s", buf );", as this is considered undefined
@@ -297,7 +299,7 @@ int isMakefile;
   switch( useLang ) {
     case F90_LANG:
       if ( upperCaseF90 )
-	if ( isMakefile ) { strncat( buf, "_F90", 5 ); break; } // Makefile_F90
+	if ( isMakefile ) { strncat( buf, "_upper_F90", 11 ); break; }
         else              { strncat( buf, ".f90", 5 ); break; } // *.f90
       else
 	if ( isMakefile ) { strncat( buf, "_f90", 5 ); break; } // Makefile_f90
