@@ -53,7 +53,7 @@ int DC;
 int ARP, JVRP, NJVRP, CROW_JVRP, IROW_JVRP, ICOL_JVRP;
 int V, F, VAR, FIX, FLUX;
 int RCONST, RCT;
-int Vdot, P_VAR, D_VAR, Aout;
+int Vdot, P_VAR, D_VAR, Aout, Vdotout;
 int StoichNum;
 int KR, A, BV, BR, IV, RR;
 int JV, UV, JUV, JTUV, JVS;
@@ -293,6 +293,9 @@ int i,j;
 
   Aout = DefvElmO( "Aout", real, -NREACT,
 		   "Optional argument to return equation rate constants" );
+
+  Vdotout = DefvElmO( "Vdotout", real, -NREACT,
+       "Optional argument to return time derivative of variable species" );
 
   /* Elements of Stochastic simulation*/
   NMLCV = DefvElm( "NmlcV", INT, -NVAR, "No. molecules of variable species" );
@@ -733,18 +736,19 @@ int F_VAR, FSPLIT_VAR;
   if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
        UseFile( functionFile );
 
-  F_VAR = DefFnc( "Fun", 5,
+  F_VAR = DefFnc( "Fun", 6,
 		  "time derivatives of variables - Aggregate form");
 
   FSPLIT_VAR = DefFnc( "Fun_SPLIT", 5,
 		       "time derivatives of variables - Split form");
 
 
-  // We have added the capability to return equation rates from Fun
-  // via optional argument Aout (when useAggregate=1)
-  //   -- Bob Yantosca (29 Apr 2022)
+  // We have added the capability to return equation rates and the
+  // time derivative of variable species from Fun via optional arguments
+  // Aout and VdotOut (when useAggregate=1)
+  //   -- Bob Yantosca (03 May 2022)
   if( useAggregate )
-    FunctionBegin( F_VAR, V, F, RCT, Vdot, Aout );
+    FunctionBegin( F_VAR, V, F, RCT, Vdot, Aout, Vdotout );
   else 
     FunctionBegin( FSPLIT_VAR, V, F, RCT, P_VAR, D_VAR );
 
@@ -811,6 +815,12 @@ int F_VAR, FSPLIT_VAR;
         sum = Add( sum, Mul( Const( Stoich[i][j] ), Elm( A, j ) ) );
       Assign( Elm( Vdot, i ), sum );
     }
+
+    // Add code to return equation rates via optional argument Aout
+    //   -- Bob Yantosca (03 May 2022)
+    NewLines(1);
+    fprintf(functionFile, "  !### Use Vdotout to return equation rates\n");
+    fprintf(functionFile, "  IF ( PRESENT( Vdotout ) ) Vdotout = Vdot\n");
 
   } else {
 
