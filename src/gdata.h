@@ -37,14 +37,31 @@
 #include <stdio.h>
 #include <string.h>
 
-/* - Many limits can be changed here by adjusting the MAX_* constants      */
-/* - To increase the max size of inlined code (F90_GLOBAL etc.),           */
-/*   change MAX_INLINE in scan.h                                           */
-/*                                                                         */
-/*   Note: MAX_EQN or MAX_SPECIES over 1023 causes a seg fault in CI build */
-/*    -- Lucas Estrada, 10/13/2021                                         */
+// - Many limits can be changed here by adjusting the MAX_* constants
+// - To increase the max size of inlined code (F90_GLOBAL etc.),
+//   change MAX_INLINE in scan.h.
+//
+//   NOTES:
+//   ------
+//   (1) Note: MAX_EQN or MAX_SPECIES over 1023 causes a seg fault in CI build
+//         -- Lucas Estrada, 10/13/2021
+//
+//   (2) MacOS has a hard limit of 65332 bytes for stack memory.  To make
+//       sure that you are using this max amount of stack memory, add
+//       "ulimit -s 65532" in your .bashrc or .bash_aliases script.  We must
+//       also set smaller limits for MAX_EQN and MAX_SPECIES here so that we
+//       do not exceed the avaialble stack memory (which will result in the
+//       infamous "Segmentation fault 11" error).  If you are stll having
+//       problems on MacOS then consider reducing MAX_EQN and MAX_SPECIES
+//       to smaller values than are listed below.
+//         -- Bob Yantosca (03 May 2022)
+#ifdef MACOS
+#define MAX_EQN        2000     // Max number of equations (MacOS only)
+#define MAX_SPECIES    1000     // Max number of species   (MacOS only)
+#else
 #define MAX_EQN       11000     // Max number of equations
 #define MAX_SPECIES    6000     // Max number of species
+#endif
 #define MAX_SPNAME       30     // Max char length of species name
 #define MAX_IVAL         40     // Max char length of species ID ?
 #define MAX_EQNTAG       32     // Max length of equation ID in eqn file
