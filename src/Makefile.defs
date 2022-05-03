@@ -92,7 +92,7 @@ HOST   := $(shell hostname)
 # but to /usr/local/Cellar/flex/X.Y.Z/lib.
 #  --  Bob Yantosca (01 Nov 2021)
 ifeq ($(SYSTEM),Darwin)
-  CC_FLAGS     += -DMACOS -O -Wno-implicit-function-declaration
+  CC_FLAGS     += -DMACOS -O
   FLEX_LIB_DIR := /usr/local/Cellar/flex/2.6.4_2/lib
 endif
 

@@ -2181,7 +2181,7 @@ int UPDATE_RCONST;
   F77_Inline("      INCLUDE '%s_Global.h'", rootFileName);
   MATLAB_Inline("global SUN TEMP RCONST");
 
-  if ( (useLang==F77_LANG) )
+  if ( useLang==F77_LANG )
       IncludeCode( "%s/util/UserRateLaws_FcnHeader", Home );
 
   NewLines(1);
@@ -3108,9 +3108,9 @@ char buf[100], suffix[5];
   // depending on the value of the #UPPERCASEF90 switch.
   //   -- Bob Yantosca (22 Apr 2022)
   switch( useLang ) {
-    case F77_LANG: sprintf( suffix, "f"       ); break;
-    case F90_LANG: sprintf( suffix, f90Suffix ); break;
-    case C_LANG:   sprintf( suffix, "c"       ); break;
+    case F77_LANG: sprintf( suffix, "%s", "f"       ); break;
+    case F90_LANG: sprintf( suffix, "%s", f90Suffix ); break;
+    case C_LANG:   sprintf( suffix, "%s", "c"       ); break;
     default:
       printf("\nCannot create mex files for language %d\n", useLang);
       exit(1);
