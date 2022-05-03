@@ -17,13 +17,18 @@
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
-;; start kpp-mode automatically when loading a *.eqn, *.spc, or *.kpp file
+;; auto-start kpp-mode when loading a *.def, *.eqn, *.kpp, or *.spc file
+(setq auto-mode-alist
+  (cons '("\\.def\\'" . kpp-mode) auto-mode-alist))
 (setq auto-mode-alist
   (cons '("\\.eqn\\'" . kpp-mode) auto-mode-alist))
 (setq auto-mode-alist
-  (cons '("\\.spc\\'" . kpp-mode) auto-mode-alist))
-(setq auto-mode-alist
   (cons '("\\.kpp\\'" . kpp-mode) auto-mode-alist))
+(setq auto-mode-alist
+  (cons '("\\.spc\\'" . kpp-mode) auto-mode-alist))
+
+;; Turn on font-lock-mode for KPP
+(add-hook 'kpp-mode-hook 'font-lock-mode)
 
 (setq kpp-font-lock-keywords
  (list
