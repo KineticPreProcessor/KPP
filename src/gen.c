@@ -294,7 +294,7 @@ int i,j;
   Aout = DefvElmO( "Aout", real, -NREACT,
 		   "Optional argument to return equation rate constants" );
 
-  Vdotout = DefvElmO( "Vdotout", real, -NREACT,
+  Vdotout = DefvElmO( "Vdotout", real, -NVAR,
        "Optional argument to return time derivative of variable species" );
 
   /* Elements of Stochastic simulation*/
