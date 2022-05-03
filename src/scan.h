@@ -138,5 +138,6 @@ void LookAtAll();
 int ParseEquationFile( char * filename );
 void SparseData( char *cmd );
 void TransportAll();
+int yylex();
 
 #endif

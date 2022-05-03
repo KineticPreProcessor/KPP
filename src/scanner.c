@@ -1103,7 +1103,7 @@ void ScanEquations( MEMBER crtMbr ) {
 void AddMember( char *mbrname, char *nr )
 {
 int code;
- 
+
   code = FindSpecies( mbrname );
   if ( code < 0 ) {
     ScanError("Undefined member %s.", mbrname );
@@ -1113,7 +1113,7 @@ int code;
   strcpy( crtMembers[ crtMemberNr ].name, mbrname );
   crtMembers[ crtMemberNr ].nr        = (unsigned char)atoi(nr);
   crtMembers[ crtMemberNr ].coeff     = (unsigned char)atof(nr);
-  crtMembers[ crtMemberNr ].coeff_str = nr;
+  crtMembers[ crtMemberNr ].coeff_str = *nr;
   crtMembers[ crtMemberNr ].code      = code;
   crtMemberNr++;
 

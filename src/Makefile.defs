@@ -66,7 +66,7 @@
 
 # The defaults are:
 CC           = gcc
-CC_FLAGS     = -g -Wall
+CC_FLAGS     = -g -Wall -Wno-unused-function
 FLEX         = flex
 FLEX_LIB_DIR = /usr/lib
 BISON        = bison
