@@ -1,8 +1,21 @@
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html) [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/geoschem/KPP/blob/GC_updates/LICENSE.txt)
 
 # KPP
+
+This is the repository for the Kinetic PreProcessor (KPP).
+
+We are in the process of updating this repository.  We will post
+updated documentation to our ReadTheDocs site:
+https://kpp.readthedocs.io in the near future.
+
+
 ## Versions
-  KPP - symbolic chemistry Kinetics PreProcessor, [Version 2.2.3](http://www.cs.vt.edu/~asandu/Software/KPP)
+KPP - symbolic chemistry Kinetics PreProcessor:
+
+- Current: Version 2.4.0 (in the **main** branch)
+- In development: Version 2.5.0 (in the **dev** branch)
+
+## License
 
   KPP is distributed under GPL, the [general public license](http://www.gnu.org/copyleft/gpl.html)
   
@@ -59,13 +72,17 @@ environment to:
 
 	geos-chem-support@g.harvard.edu
 
-   ## Branches of development
+## Branches of development
 
 ### main
 
 This is the default branch, which corresponds to the unmodified KPP version 2.2.3_01 as published by A. Sandu et al.  For more information, [see the KPP website](https://people.cs.vt.edu/~asandu/Software/Kpp/).
 
 * NOTE: In keeping with Github best practices, we have renamed "master" to "main".
+
+### dev
+
+This is the development branch for KPP 3.0.0.
 
 ### GC_updates
 

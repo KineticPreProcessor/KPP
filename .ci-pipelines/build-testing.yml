@@ -3,17 +3,11 @@
 # This pipeline runs several example mechanisms to check for errors
 # impacting basic functionality of kpp
 
-# This pipeline triggers on commits to dev for now, but main may be
-# added in the future. Commits to feature branches do not trigger 
-# this pipeline, but open pull requests and commits to pull requests 
-# do trigger a pipeline build.
+# Run a C-I test when a push to any branch is made.
 trigger:
   branches:
     include:
-      - dev*
-      - patch*
-      - bugfix*
-      - MECCA*
+      - '*'
 pr:
   branches:
     include:

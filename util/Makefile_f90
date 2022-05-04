@@ -5,16 +5,12 @@
 
 # Pick a default compiler if not supplied
 ifndef COMPILER
-#COMPILER = G95
 #COMPILER = LAHEY
-COMPILER = INTEL
+#COMPILER = INTEL
 #COMPILER = PGF
 #COMPILER = HPUX
-#COMPILER = GFORTRAN
+COMPILER = GFORTRAN
 endif
-
-FC_G95     = g95
-FOPT_G95   = -cpp -O -pg -fbounds-check -fimplicit-none  -Wall -ftrace=full
 
 FC_LAHEY   = lf95
 # More aggressive for production runs:
@@ -27,7 +23,7 @@ FC_INTEL   = ifort
 #FOPT_INTEL = -cpp -O -fp-model precise -pc80 -prec_div
 # More checking for debugging:
 FOPT_INTEL = -cpp -O0 -fp-model strict -implicitnone -ftrapuv \
-              -debug all -check all -warn all
+              -debug all -check all -warn all -g
 
 FC_PGF     = pgf90
 # More aggressive for production runs:
@@ -40,7 +36,7 @@ FC_HPUX    = f90
 FOPT_HPUX  = -O -u +Oall +check=on
 
 FC_GFORTRAN     = gfortran
-FOPT_GFORTRAN   = -cpp -O
+FOPT_GFORTRAN   = -cpp -O -g
 
 # define FULL_ALGEBRA for non-sparse integration
 FC   = $(FC_$(COMPILER))
@@ -118,7 +114,8 @@ clean:
 distclean:
 	rm -f KPP_ROOT*.o KPP_ROOT*.mod \
 	KPP_ROOT*.dat KPP_ROOT.exe KPP_ROOT.map \
-	KPP_ROOT_*.f90 KPP_ROOT_*.mexglx
+	KPP_ROOT_*.f90 KPP_ROOT_*.F90 KPP_ROOT_*.mexglx \
+	results*.m
 
 KPP_ROOT_Precision.o: KPP_ROOT_Precision.f90
 	$(FC) $(FOPT) -c $<

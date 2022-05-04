@@ -19,6 +19,7 @@
 # results from ci-tests:
 /ci-tests/**/*.m
 /ci-tests/**/*results*
+/ci-tests/**/*.exe
 
 # keep empty directory for executables, but not its contents:
 /bin/*
@@ -55,6 +56,9 @@ Makefile_*
 /manual/*.blg
 /manual/*.log
 /manual/*.toc
+
+# ReadTheDocs files
+docs/build/*
 
 # are there any *.dat files to exclude?
 *.dat

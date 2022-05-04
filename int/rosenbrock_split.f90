@@ -17,7 +17,7 @@
 
 MODULE KPP_ROOT_Integrator
 
-  USE KPP_ROOT_Parameters, ONLY: NVAR, NFIX, NSPEC, LU_NONZERO
+  USE KPP_ROOT_Parameters
   USE KPP_ROOT_Global
 
   IMPLICIT NONE
@@ -27,9 +27,9 @@ MODULE KPP_ROOT_Integrator
 !~~~> Flags to determine if we should call the UPDATE_* routines from within 
 !~~~> the integrator.  If using KPP in an external model, you might want to
 !~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
-  LOGICAL :: Do_Update_RCONST
-  LOGICAL :: Do_Update_PHOTO
-  LOGICAL :: Do_Update_SUN
+  LOGICAL, PRIVATE :: Do_Update_RCONST
+  LOGICAL, PRIVATE :: Do_Update_PHOTO
+  LOGICAL, PRIVATE :: Do_Update_SUN
 
 !~~~>  Statistics on the work performed by the Rosenbrock method
   INTEGER, PARAMETER :: Nfun=1, Njac=2, Nstp=3, Nacc=4, &
@@ -38,8 +38,8 @@ MODULE KPP_ROOT_Integrator
 
 CONTAINS
 
-SUBROUTINE INTEGRATE( TIN, TOUT, &
-  ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, IERR_U )
+SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
+                      ISTATUS_U, RSTATUS_U, IERR_U              )
 
    USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
 
@@ -47,7 +47,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 
    KPP_REAL, INTENT(IN) :: TIN  ! Start Time
    KPP_REAL, INTENT(IN) :: TOUT ! End Time
-   ! Optional input parameters and statistics
+   !~~~> Optional input parameters and statistics
    INTEGER,       INTENT(IN),  OPTIONAL :: ICNTRL_U(20)
    KPP_REAL, INTENT(IN),  OPTIONAL :: RCNTRL_U(20)
    INTEGER,       INTENT(OUT), OPTIONAL :: ISTATUS_U(20)
@@ -79,9 +79,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
       WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
    ENDIF
 
-   ! Determine the settings of the Do_Update_* flags, which determine
-   ! whether or not we need to call Update_* routines in the integrator
-   ! (or not, if we are calling them from a higher-level)
+   !~~~> Determine the settings of the Do_Update_* flags, which determine
+   !~~~> whether or not we need to call Update_* routines in the integrator
+   !~~~> (or not, if we are calling them from a higher-level)
    ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
    !            =  0 ! Status quo
    !            =  1 ! Call Update_RCONST from within the integrator
@@ -96,19 +96,28 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
                                    Do_Update_PHOTO,     &
                                    Do_Update_Sun       )
 
-   ! Call the integrator
-   CALL Rosenbrock(NVAR,VAR,TIN,TOUT,   &
-         ATOL,RTOL,                &
-         RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR)
+   !~~~> In order to remove the prior EQUIVALENCE statements (which
+   !~~~> are not thread-safe), we now have declared VAR and FIX as
+   !~~~> threadprivate pointer variables that can point to C.
+   VAR => C(1:NVAR )
+   FIX => C(NVAR+1:NSPEC)
+
+   !~~~> Call the integrator
+   CALL Rosenbrock( NVAR,   VAR,    TIN,     TOUT,    ATOL, RTOL,  &
+                    RCNTRL, ICNTRL, RSTATUS, ISTATUS, IERR        )
+
+   !~~~> Free pointers
+   VAR => NULL()
+   FIX => NULL()
 
    !~~~> Debug option: show no of steps
-   ! Ntotal = Ntotal + ISTATUS(Nstp)
-   ! PRINT*,'NSTEPS=',ISTATUS(Nstp),' (',Ntotal,')','  O3=', VAR(ind_O3)
+   !Ntotal = Ntotal + ISTATUS(Nstp)
+   !PRINT*,'NSTEPS=',ISTATUS(Nstp),' (',Ntotal,')','  O3=', VAR(ind_O3)
 
    STEPMIN = RSTATUS(Nhexit)
 
-   ! if optional parameters are given for output
-   ! use them to store information in them
+   !~~~> if optional parameters are given for output
+   !~~~> use them to store information in them
    IF ( PRESENT( ISTATUS_U ) ) ISTATUS_U = ISTATUS
    IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
    IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR

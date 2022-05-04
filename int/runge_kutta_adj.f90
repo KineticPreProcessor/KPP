@@ -17,8 +17,8 @@
 MODULE KPP_ROOT_Integrator
 
   USE KPP_ROOT_Precision
-  USE KPP_ROOT_Parameters, ONLY: NVAR, NSPEC, NFIX, LU_NONZERO
-  USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
+  USE KPP_ROOT_Parameters
+  USE KPP_ROOT_Global
   USE KPP_ROOT_Jacobian
   USE KPP_ROOT_LinearAlgebra
 
@@ -26,12 +26,12 @@ MODULE KPP_ROOT_Integrator
   PUBLIC
   SAVE
 
-!~~~> Flags to determine if we should call the UPDATE_* routines from within 
+!~~~> Flags to determine if we should call the UPDATE_* routines from within
 !~~~> the integrator.  If using KPP in an external model, you might want to
 !~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
-  LOGICAL :: Do_Update_RCONST
-  LOGICAL :: Do_Update_PHOTO
-  LOGICAL :: Do_Update_SUN
+  LOGICAL, PRIVATE :: Do_Update_RCONST
+  LOGICAL, PRIVATE :: Do_Update_PHOTO
+  LOGICAL, PRIVATE :: Do_Update_SUN
 
 !~~~>  Statistics on the work performed by the Runge-Kutta method
   INTEGER :: Nfun,Njac,Nstp,Nacc,Nrej,Ndec,Nsol,Nsng
@@ -46,9 +46,7 @@ CONTAINS
              ATOL_adj, RTOL_adj,                        &
              ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, IERR_U )
 
-    USE KPP_ROOT_Parameters, ONLY : NVAR
-    USE KPP_ROOT_Global,     ONLY : ATOL,RTOL
-    USE KPP_ROOT_Util,       ONLY : Integrator_Update_Options
+    USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
 
     IMPLICIT NONE
 
@@ -81,7 +79,7 @@ CONTAINS
     INTEGER       :: ICNTRL(20), ISTATUS(20)
     INTEGER, SAVE :: Ntotal = 0
 
-    ! Zero input and output arrays for safety's sake
+    !~~~> Zero input and output arrays for safety's sake
     ICNTRL     = 0
     RCNTRL     = 0.0_dp
     ISTATUS    = 0
@@ -100,7 +98,7 @@ CONTAINS
     ICNTRL(15) = 7   ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
 
     !~~~> if optional parameters are given, and if they are /= 0,
-    !     then use them to overwrite default settings
+    !~~~> then use them to overwrite default settings
     IF ( PRESENT( ICNTRL_U ) ) THEN
        WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
     ENDIF
@@ -108,9 +106,9 @@ CONTAINS
        WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
     ENDIF
 
-    ! Determine the settings of the Do_Update_* flags, which determine
-    ! whether or not we need to call Update_* routines in the integrator
-    ! (or not, if we are calling them from a higher-level)
+    !~~~> Determine the settings of the Do_Update_* flags, which determine
+    !~~~> whether or not we need to call Update_* routines in the integrator
+    !~~~> (or not, if we are calling them from a higher-level)
     ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
     !            =  0 ! Status quo
     !            =  1 ! Call Update_RCONST from within the integrator
@@ -119,23 +117,34 @@ CONTAINS
     !            =  4 ! Call Update_SUN from within the integrator
     !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
     !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
-    !            =  7 ! Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+    !            =  7 ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
     CALL Integrator_Update_Options( ICNTRL(15),          &
                                     Do_Update_RCONST,    &
                                     Do_Update_PHOTO,     &
                                     Do_Update_Sun       )
 
-    ! Call the integrator
+    !~~~> In order to remove the prior EQUIVALENCE statements (which
+    !~~~> are not thread-safe), we now have declared VAR and FIX as
+    !~~~> threadprivate pointer variables that can point to C.
+    VAR => C(1:NVAR )
+    FIX => C(NVAR+1:NSPEC)
+
+    !~~~> Call the integrator
     T1 = TIN; T2 = TOUT
-    CALL RungeKuttaADJ(NVAR, Y, NADJ, Lambda, T1, T2,   &
-                       RTOL, ATOL, ATOL_adj, RTOL_adj,  &
-                       RCNTRL, ICNTRL, RSTATUS, ISTATUS, IERR  )
+    CALL RungeKuttaADJ( NVAR,   Y,      NADJ,    Lambda,   T1,        &
+                        T2,     RTOL,   ATOL,    ATOL_adj, RTOL_adj,  &
+                        RCNTRL, ICNTRL, RSTATUS, ISTATUS,  IERR      )
 
-    Ntotal = Ntotal + ISTATUS(istp)
-!    PRINT*,'NSTEPS=',ISTATUS(istp),' (',Ntotal,')','  O3=', VAR(ind_O3)
+    !~~~> Free pointers
+    VAR => NULL()
+    FIX => NULL()
 
-    ! if optional parameters are given for output
-    ! use them to store information in them
+    !~~~> Debug option: show number of steps
+    !Ntotal = Ntotal + ISTATUS(istp)
+    !PRINT*,'NSTEPS=',ISTATUS(istp),' (',Ntotal,')','  O3=', VAR(ind_O3)
+
+    !~~~> if optional parameters are given for output
+    !~~~> use them to store information in them
     IF ( PRESENT( ISTATUS_U ) ) ISTATUS_U = ISTATUS
     IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
     IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR
@@ -263,7 +272,7 @@ CONTAINS
 !        =  4 :  Call Update_SUN from within the integrator
 !        =  5 :  Call Update_SUN and Update_RCONST from within the int.
 !        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
-!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO, Update_RCONST w/in the int.
 !
 !~~~>  Real input parameters:
 !
@@ -2667,7 +2676,7 @@ firej:IF (FirstStep.OR.Reject) THEN
     USE KPP_ROOT_Parameters
     USE KPP_ROOT_Global
     USE KPP_ROOT_Function, ONLY: Fun
-    USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
+    USE KPP_ROOT_Rates,    ONLY : Update_SUN, Update_RCONST, Update_PHOTO
 
     IMPLICIT NONE
 
@@ -2693,8 +2702,8 @@ firej:IF (FirstStep.OR.Reject) THEN
     USE KPP_ROOT_Parameters
     USE KPP_ROOT_Global
     USE KPP_ROOT_JacobianSP
-    USE KPP_ROOT_Jacobian, ONLY: Jac_SP
-    USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
+    USE KPP_ROOT_Jacobian, ONLY : Jac_SP
+    USE KPP_ROOT_Rates,    ONLY : Update_SUN, Update_RCONST, Update_PHOTO
 
     IMPLICIT NONE
 

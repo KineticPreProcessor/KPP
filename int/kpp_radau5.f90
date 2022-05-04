@@ -7,16 +7,17 @@
 
 MODULE KPP_ROOT_Integrator
 
-  USE KPP_ROOT_Precision, ONLY: dp
-  USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
-  USE KPP_ROOT_Jacobian, ONLY: LU_DIAG
+  USE KPP_ROOT_Precision,    ONLY : dp
+  USE KPP_ROOT_Parameters
+  USE KPP_ROOT_Global
+  USE KPP_ROOT_Jacobian,     ONLY : LU_DIAG
   USE KPP_ROOT_LinearAlgebra
 
   IMPLICIT NONE
   PUBLIC
   SAVE
   
-!~~~> Flags to determine if we should call the UPDATE_* routines from within 
+!~~~> Flags to determine if we should call the UPDATE_* routines from within
 !~~~> the integrator.  If using KPP in an external model, you might want to
 !~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
   LOGICAL :: Do_Update_RCONST
@@ -51,12 +52,10 @@ CONTAINS
 
   ! **************************************************************************
 
-  SUBROUTINE INTEGRATE( TIN, TOUT, &
-    ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, IERR_U )
+  SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
+                        ISTATUS_U, RSTATUS_U, IERR_U              )
 
-    USE KPP_ROOT_Parameters, ONLY : NVAR
-    USE KPP_ROOT_Global,     ONLY : ATOL,RTOL,VAR
-    USE KPP_ROOT_Util,       ONLY : Integrator_Update_Options
+    USE KPP_ROOT_Util,  ONLY : Integrator_Update_Options
 
     IMPLICIT NONE
 
@@ -98,10 +97,10 @@ CONTAINS
     IF ( PRESENT( RCNTRL_U ) ) THEN
        WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
     ENDIF
-   
-    ! Determine the settings of the Do_Update_* flags, which determine
-    ! whether or not we need to call Update_* routines in the integrator
-    ! (or not, if we are calling them from a higher-level)
+
+    !~~~> Determine the settings of the Do_Update_* flags, which determine
+    !~~~> whether or not we need to call Update_* routines in the integrator
+    !~~~> (or not, if we are calling them from a higher-level)
     ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
     !            =  0 ! Status quo
     !            =  1 ! Call Update_RCONST from within the integrator
@@ -110,20 +109,31 @@ CONTAINS
     !            =  4 ! Call Update_SUN from within the integrator
     !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
     !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
-    !            =  7 ! Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+    !            =  7 ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
     CALL Integrator_Update_Options( ICNTRL(15),          &
                                     Do_Update_RCONST,    &
                                     Do_Update_PHOTO,     &
                                     Do_Update_Sun       )
 
-    ! Call the integrator
-    CALL RADAU5( NVAR,TIN,TOUT,VAR,H,                  &
-                 RTOL,ATOL,                            &
-                 RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR  )
+    !~~~> In order to remove the prior EQUIVALENCE statements (which
+    !~~~> are not thread-safe), we now have declared VAR and FIX as
+    !~~~> threadprivate pointer variables that can point to C.
+    VAR => C(1:NVAR )
+    FIX => C(NVAR+1:NSPEC)
 
-!!$    Ntotal = Ntotal + Nstp
-!!$    PRINT*,'NSTEPS=',Nstp,' (',Ntotal,')'
+    !~~~> Call the integrator
+    CALL RADAU5( NVAR, TIN,    TOUT,   VAR,     H,       RTOL,  &
+                 ATOL, RCNTRL, ICNTRL, RSTATUS, ISTATUS, IERR  )
 
+    !~~~> Free pointers
+    VAR => NULL()
+    FIX => NULL()
+
+    !~~~> Debug option: Show number of steps
+    !Ntotal = Ntotal + Nstp
+    !PRINT*,'NSTEPS=',Nstp,' (',Ntotal,')'
+
+    ! ~~~> Accumulate statistics
     Nfun = Nfun + ISTATUS(1)
     Njac = Njac + ISTATUS(2)
     Nstp = Nstp + ISTATUS(3)
@@ -133,8 +143,8 @@ CONTAINS
     Nsol = Nsol + ISTATUS(7)
     Nsng = Nsng + ISTATUS(8)
 
-    ! if optional parameters are given for output
-    ! use them to store information in them
+    !~~~> if optional parameters are given for output
+    !~~~> use them to store information in them
     IF (PRESENT(ISTATUS_U)) THEN
       ISTATUS_U(:) = 0
       ISTATUS_U(1) = Nfun ! function calls
@@ -269,7 +279,7 @@ CONTAINS
 !        =  4 :  Call Update_SUN from within the integrator
 !        =  5 :  Call Update_SUN and Update_RCONST from within the int.
 !        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
-!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST w/in the int.
 !
 !~~~>  Real input parameters:
 !

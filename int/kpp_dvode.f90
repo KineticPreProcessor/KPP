@@ -1,11 +1,10 @@
 MODULE KPP_ROOT_Integrator
 
   USE KPP_ROOT_Precision
-  USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME, ATOL, RTOL
-  USE KPP_ROOT_Parameters, ONLY: NVAR, NSPEC, NFIX, LU_NONZERO
+  USE KPP_ROOT_Global
+  USE KPP_ROOT_Parameters
   USE KPP_ROOT_JacobianSP
-  USE KPP_ROOT_LinearAlgebra, ONLY: KppDecomp, KppSolve, &
-               Set2zero, WLAMCH
+  USE KPP_ROOT_LinearAlgebra, ONLY: KppDecomp, KppSolve, Set2zero, WLAMCH
   
   IMPLICIT NONE
   PUBLIC
@@ -14,9 +13,9 @@ MODULE KPP_ROOT_Integrator
 !~~~> Flags to determine if we should call the UPDATE_* routines from within 
 !~~~> the integrator.  If using KPP in an external model, you might want to
 !~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
-  LOGICAL :: Do_Update_RCONST
-  LOGICAL :: Do_Update_PHOTO
-  LOGICAL :: Do_Update_SUN
+  LOGICAL, PRIVATE :: Do_Update_RCONST
+  LOGICAL, PRIVATE :: Do_Update_PHOTO
+  LOGICAL, PRIVATE :: Do_Update_SUN
 
   !~~~>  Statistics on the work performed by the VODE method
   INTEGER :: Nfun,Njac,Nstp,Nacc,Nrej,Ndec,Nsol,Nsng
@@ -247,13 +246,11 @@ MODULE KPP_ROOT_Integrator
 
 CONTAINS
 
-SUBROUTINE INTEGRATE( TIN, TOUT, &
-  ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, IERR_U )
+SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  & 
+                      ISTATUS_U, RSTATUS_U, IERR_U              )
 
-   USE KPP_ROOT_Parameters
-   USE KPP_ROOT_Global
    USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
-  
+
    IMPLICIT NONE
 
    KPP_REAL, INTENT(IN) :: TIN  ! Start Time
@@ -281,8 +278,8 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    !~~~> fine-tune the integrator
    ICNTRL(15) = 7      ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
 
-   ! If optional parameters are given, and if they are /= 0, 
-   ! then they overwrite default settings. 
+   !~~~> If optional parameters are given, and if they are /= 0,
+   !~~~> then they overwrite default settings.
    IF ( PRESENT( ICNTRL_U ) ) THEN
      WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
    END IF
@@ -290,9 +287,9 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
      WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
    END IF
 
-   ! Determine the settings of the Do_Update_* flags, which determine
-   ! whether or not we need to call Update_* routines in the integrator
-   ! (or not, if we are calling them from a higher-level)
+   !~~~> Determine the settings of the Do_Update_* flags, which determine
+   !~~~> whether or not we need to call Update_* routines in the integrator
+   !~~~> (or not, if we are calling them from a higher-level)
    ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
    !            =  0 ! Status quo
    !            =  1 ! Call Update_RCONST from within the integrator
@@ -307,13 +304,19 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
                                    Do_Update_PHOTO,     &
                                    Do_Update_Sun       )
 
-   ! Define options for integrator
+   !~~~> Define options for integrator
    OPTIONS = SET_OPTS(USER_SUPPLIED_JACOBIAN=.TRUE., SPARSE_J=.TRUE.,         &
              ABSERR_VECTOR=ATOL, RELERR_VECTOR=RTOL, MXSTEP=100000,           &
              NZSWAG=LU_NONZERO,   METHOD_FLAG=26,                             &
              MA28_ELBOW_ROOM=10, MC19_SCALING=.TRUE., MA28_MESSAGES=.FALSE.,  &
              MA28_EPS=1.0D-4, MA28_RPS=.TRUE.,                                &
               USER_SUPPLIED_SPARSITY=.TRUE.)
+
+   !~~~> In order to remove the prior EQUIVALENCE statements (which
+   !~~~> are not thread-safe), we now have declared VAR and FIX as
+   !~~~> threadprivate pointer variables that can point to C.
+   VAR => C(1:NVAR )
+   FIX => C(NVAR+1:NSPEC)
 
    ! Call the integrator
    CALL USERSETS_IAJA(LU_IROW,LU_NONZERO,LU_ICOL,LU_NONZERO)
@@ -323,9 +326,13 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    T2 = TOUT
    CALL DVODE_F90(FUN_CHEM,NVAR,VAR,T1,T2,ITASK,ISTATE,OPTIONS,J_FCN=JAC_CHEM)
 
+   !~~~> Free pointers
+   VAR => NULL()
+   FIX => NULL()
+
    STEPMIN = RSTATUS(ihexit) ! Save last step
    
-   ! if optional parameters are given for output they to return information
+   !~~~> if optional parameters are given for output they to return information
    IF (PRESENT(ISTATUS_U)) ISTATUS_U(:) = ISTATUS(1:20)
    IF (PRESENT(RSTATUS_U)) RSTATUS_U(:) = RSTATUS(1:20)
    IF (PRESENT(IERR_U)) THEN

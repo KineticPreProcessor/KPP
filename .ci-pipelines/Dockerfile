@@ -21,12 +21,8 @@ ENV F90=$FC F9X=$FC F77=$FC
 RUN sed -i 's/#define MAX_EQN .*/#define MAX_EQN 1023/g' /kpp/src/gdata.h \
     && sed -i 's/#define MAX_SPECIES .*/#define MAX_SPECIES 1023/g' /kpp/src/gdata.h
 
-# switch compiler to use gfortran instead of ifort
-RUN sed -i 's/COMPILER = INTEL/#COMPILER = INTEL/g' /kpp/util/Makefile.f90 \
-    && sed -i 's/#COMPILER = GFORTRAN/COMPILER = GFORTRAN/g' /kpp/util/Makefile.f90
-
 # Build kpp executable update ensure testing script is executable
-RUN make && chmod +x /kpp/.ci-pipelines/ci-testing-script.sh 
+RUN cd /kpp/src/ && make && chmod +x /kpp/.ci-pipelines/ci-testing-script.sh 
 
 # Run Tests
 RUN /kpp/.ci-pipelines/ci-testing-script.sh

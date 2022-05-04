@@ -97,7 +97,8 @@
 %token FLUX
 %token      PLSPC
 %type <str> PLSPC
-
+%token UPPERCASEF90
+%token MINVERSION
 %%
 
 program		: section
@@ -208,11 +209,13 @@ section	        : JACOBIAN PARAMETER
                 | USES uselist  
                   {}
                 | SPARSEDATA PARAMETER
-		  { SparseData( $2 );
-                  }
+		  { SparseData( $2 ); }
                 | FLUX PARAMETER
-		  { CmdFlux( $2 );
-                  }
+		  { CmdFlux( $2 ); }
+                | UPPERCASEF90 PARAMETER
+		  { CmdUpperCaseF90( $2 ); }
+                | MINVERSION PARAMETER
+		  { CmdMinVersion( $2 ); }
                 ;  
 semicolon       : semicolon ';'
                   { ScanWarning("Unnecessary ';'");

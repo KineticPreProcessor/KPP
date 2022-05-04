@@ -113,7 +113,7 @@ void MATLAB_WriteAssign( char *ls, char *rs )
 int start;
 int linelg;
 int i, j;
-int ifound, jfound;
+int jfound;
 char c;
 int first;
 int crtident;
@@ -133,7 +133,7 @@ char op_plus='+', op_minus='-'; /* op_mult='*', op_dot='.', op_div='/';	*/
 
   first = 1;
   while( strlen(rs) > linelg ) {
-    ifound = 0; jfound = 0;
+    jfound = 0;
     if ( number_of_lines >= MAX_NO_OF_LINES ) {
      /* If a new line needs to be started. 
           Note: the approach below will create erroneous code if the +/- is within a subexpression, e.g. for
@@ -146,7 +146,7 @@ char op_plus='+', op_minus='-'; /* op_mult='*', op_dot='.', op_div='/';	*/
     if ( ( number_of_lines < MAX_NO_OF_LINES )||( !jfound ) ) {
      for( i=linelg; i>10; i-- ) /* split row here if operator or comma */
        if ( ( rs[i] & 0x80 )||( rs[i]==',' ) ) {
-        ifound = 1; break;
+         break;
 	}
      if( i <= 10 ) {
       printf("\n Warning: possible error in continuation lines for %s = ...",ls);
@@ -256,8 +256,7 @@ char maxj[20]; */
 char * MATLAB_DeclareData( int v, void * values, int n)
 {
 int i;
-int nlines, nmax;
-int split;
+int nlines;
 static char buf[120];
 VARIABLE *var;
 int * ival;
@@ -269,10 +268,6 @@ char maxj[20];
 int maxCols = MAX_COLS;
 char dsbuf[55];
  
- int splitsize;
- int maxi_mod;
- int maxi_div;
- 
  char mynumber[30];
 
   var = varTable[ v ];
@@ -281,8 +276,6 @@ char dsbuf[55];
   cval = (char **) values;
 
   nlines = 1;
-  nmax = 1;
-  split = 0;
   var -> maxi = max( n, 1 );
 
   baseType = MATLAB_types[ var->baseType ];
@@ -300,9 +293,6 @@ char dsbuf[55];
 		} */
 		break;
      case VELM:
-      splitsize = 36; /*elements*/
-      maxi_mod = var->maxi % splitsize;
-      maxi_div = var->maxi / splitsize;
 
       if( var->maxi > 0 ) sprintf( maxi, "%d", var->maxi );
                   else sprintf( maxi, "%s", varTable[ -var->maxi ]->name );  
@@ -573,10 +563,8 @@ int narg;
 void MATLAB_FunctionPrototipe( int f, ... )
 {
 char * name;
-int narg;
 
   name = varTable[ f ]->name;
-  narg = varTable[ f ]->maxi;
 
   bprintf("      EXTERNAL %s\n", name );
 
@@ -589,12 +577,10 @@ void MATLAB_FunctionBegin( int f, ... )
 Va_list args;
 int i;
 int vars[20];
-char * name;
 int narg;
 char buf[200];
 time_t t;
 
-  name = varTable[ f ]->name;
   narg = varTable[ f ]->maxi;
 
  /*Adi - each Matlab functin requires a separate file*/

@@ -6,7 +6,10 @@
 ########################################################################
 
 # List of tests (add more as necessary; separate each with a space)
-all_tests="radau90 rk rktlm ros rosadj rosenbrock90 rostlm saprc2006 sd sdadj small_f90"
+all_tests="radau90 rk rktlm ros rosadj rosenbrock90 rostlm saprc2006 sd sdadj small_f90 ros_upcase ros_minver"
+
+# Current directory
+this_dir=$(pwd -P)
 
 # Run each test
 # Check status of each individual operation and exit if any do not complete
@@ -26,6 +29,10 @@ for this_test in $all_tests; do
     cd ..
 
 done
+
+# Remove any log files used to store CI-test results
+cd $this_dir
+rm -fv *log*
 
 # Return w/ success
 exit 0

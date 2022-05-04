@@ -45,9 +45,16 @@
 #define MAX_COLS          8
 #define MAX_LINES        20
 
+#define ATTR_F90_PTR      1  // F90 variable has the POINTER attribute
+#define ATTR_F90_TGT      2  // F90 variable has the TARGET attribute
+#define ATTR_F90_OPT      3  // F90 variable has the OPTIONAL attribute
+#define ATTR_F90_OPT_PTR  4  // F90 variable has OPTIONAL and POINTER attrs
+                             //  -- Bob Yantosca (28 Apr 2022)
+
 #define WriteAll bprintf
 
-enum types  { NONE, ADD, SUB, MUL, DIV, POW, CONST, ELM, VELM, MELM, EELM, FNC };
+enum types  { NONE,  ADD, SUB,  MUL,  DIV,  POW,
+              CONST, ELM, VELM, MELM, EELM, FNC  };
 extern int PRI[];
 
 enum signs { O_PAREN = 20, C_PAREN };
@@ -95,6 +102,7 @@ typedef struct {
                  int maxj;
                  int value;
                  char *comment;
+                 int attr;
 	       } VARIABLE;
 
 extern VARIABLE* varTable[];
@@ -109,20 +117,32 @@ void FlushThisBuf( char * buf );
 void NewLines( int n );
 void C_Inline( char *fmt, ... );
 void F77_Inline( char *fmt, ... );
+void F90_Inline( char *fmt, ... );
+void MATLAB_Inline( char *fmt, ... );
 void IncludeFile( char * fname );
 void IncludeCode( char *fmt, ... );
 void MapFunctionComment( int f, int *vars );
       
-int DefineVariable( char * name, int t, int bt, int maxi, int maxj, char * comment );
+// Added attr argument to the function prototype for DefineVariable
+//   -- Bob Yantosca (25 Apr 2002)
+int DefineVariable( char * name, int t, int bt, int maxi, int maxj, char * comment, int attr );
 void FreeVariable( int n );
 
-#define DefConst( name, bt, cmt ) DefineVariable( name, CONST, bt, 0, 0, cmt )
-#define DefElm( name, bt, cmt ) DefineVariable( name, ELM, bt, 0, 0, cmt )
-#define DefvElm( name, bt, n, cmt ) DefineVariable( name, VELM, bt, n, 0, cmt )
-#define DefmElm( name, bt, m, n, cmt ) DefineVariable( name, MELM, bt, m, n, cmt )
-#define DefeElm( name, cmt ) DefineVariable( name, EELM, 0, 0, 0, cmt )
-#define DefFnc( name, n, cmt ) DefineVariable( name, FNC, 0, n, 0, cmt )
-  
+#define DefConst( name, bt, cmt ) DefineVariable( name, CONST, bt, 0, 0, cmt, 0 )
+#define DefElm( name, bt, cmt ) DefineVariable( name, ELM, bt, 0, 0, cmt, 0 )
+#define DefvElm( name, bt, n, cmt ) DefineVariable( name, VELM, bt, n, 0, cmt, 0 )
+#define DefmElm( name, bt, m, n, cmt ) DefineVariable( name, MELM, bt, m, n, cmt, 0)
+#define DefeElm( name, cmt ) DefineVariable( name, EELM, 0, 0, 0, cmt, 0 )
+#define DefFnc( name, n, cmt ) DefineVariable( name, FNC, 0, n, 0, cmt, 0 )
+
+// Define new macros to declare F90 variables with as TARGET, POINTER,
+// OPTIONAL, or OPTIONAL and POINTER
+// -- Bob Yantosca (28 Apr 2002)
+#define DefvElmP( name, bt, cmt ) DefineVariable( name, VELM, bt, 0, 0, cmt, ATTR_F90_PTR )
+#define DefvElmT( name, bt, n, cmt ) DefineVariable( name, VELM, bt, n, 0, cmt, ATTR_F90_TGT )
+#define DefvElmO( name, bt, n, cmt ) DefineVariable( name, VELM, bt, n, 0, cmt, ATTR_F90_OPT )
+#define DefvElmOP( name, bt, n, cmt ) DefineVariable( name, VELM, bt, n, 0, cmt, ATTR_F90_OPT_PTR )
+
 typedef struct {
 		 int var;
 		 union {
