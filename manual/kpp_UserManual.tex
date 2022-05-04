@@ -1,4 +1,4 @@
-\def\myfiledate{2022-04-29} % "\myfiledate" because packages may change \filedate
+\def\myfiledate{2022-05-04} % "\myfiledate" because packages may change \filedate
 
 \documentclass[twoside]{article}
 \usepackage[obeyspaces]{url}
@@ -2207,15 +2207,14 @@ computation performed is attached containing also the meaning of the
 input and output parameters.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{KPP Internal Structure}
-\label{sec:internal-structure}
+\section{Information for KPP Developers}
+\label{sec:developer-info}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-This chapter is mainly concerned with describing the internal
-architecture of the KPP preprocessor. It describes the basic modules and
-their functionalities, and all the preprocessing analysis performed on
-the input files. KPP can be very easily configured to suit a broad class
-of users.
+This chapter is meant for KPP Developers. It describes the internal
+architecture of the KPP preprocessor, the basic modules and their
+functionalities, and the preprocessing analysis performed on the input
+files. KPP can be very easily configured to suit a broad class of users.
 
 %+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 \subsection{KPP directory structure}
@@ -2413,6 +2412,45 @@ initializations, comments, function prototypes, etc. Each of these
 functions produce the code into an output buffer. A language specific
 routine reads from this buffer and splits the statements into lines to
 improve readability of the generated code.
+
+%+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsection{Adding new KPP commands}
+%+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+To add a new KPP command, the source code has to be edited at several
+locations. A short summary is presented here, using the new command
+\code{#NEWCMD} as an example:
+
+\begin{itemize}
+\item Add \code{#NEWCMD} to several files in the \code{src} directory:
+  \begin{itemize}
+  \item \code{scan.h}: \verb|void CmdNEWCMD( char *cmd );|
+  \item \code{scan.l}: \verb|{ "NEWCMD", PRM_STATE, NEWCMD },|
+  \item \code{scanner.c}: \verb|void CmdNEWCMD( char *cmd )|
+  \item \code{scan.y}:
+    \begin{itemize}
+    \item \verb|%token NEWCMD|
+    \item \verb|NEWCMD PARAMETER|
+    \item \verb|{ CmdNEWCMD( $2 ); }|
+    \end{itemize}
+  \end{itemize}
+\item Maybe add a CI-test:
+  \begin{itemize}
+  \item Create a new directory \code{ci-tests/ros_newcmd}
+  \item Add new CI-test to \code{ci-manual-testing-script.sh} and
+    \code{ci-testing-script.sh} in the \code{.ci-pipelines} directory
+  \end{itemize}
+\item Other:
+  \begin{itemize}
+  \item Explain in user manual \code{manual/kpp_UserManual.tex}:
+    \begin{itemize}
+    \item Add to table \code{tab:commands}
+    \item Add a section \code{sec:command-newcmd}
+    \item Add to BNF description table \code{sec:bnf}
+    \end{itemize}
+  \item Add to \code{site-lisp/kpp.el}
+  \end{itemize}
+\end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Numerical methods}
