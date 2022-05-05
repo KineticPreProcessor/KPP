@@ -6,6 +6,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 # Changelog
 
 ## Unreleased
+- New integrators
+  - feuler.f90
+- New C-I tests
+  - ros_minver
+  - ros_upcase
+  - Added scripts to run C-I tests manually (for development/debugging)
+- Code updates
+   - Rewrote code to remove compiler warnings
+   - Fortran-90 makefiles now use GFORTRAN as the default compiler option
+   - Added ReadTheDocs output
+   - Updated top-of-file comment headers to point to the KPP Github
+     site and to acknowledge new authors
+- Brought updates for GEOS-Chem into the main line of development
+  - Added #MINVERSION switch to force KPP to stop unless a minimum
+    version is used
+  - Added #UPPERCASEF90 to generate F90 code with the .F90 suffixes
+  - Removed EQUIVALENCE statements from F90-generated code; VAR and
+    FIX now point to C witihin integrators.  This is to ensure
+    thread-safe operation when using KPP-generated code in an OpenMP
+    parallel environment.
+  - Routine Fun() now returns optional arguments Aout and Vdotout
+- Updates for building on MacOS
+  - Reduce size of MAX_EQN and MAX_SPECIES to get KPP to run within
+    65532 kb of stack memory
 
 ## [2.4.0]
 
