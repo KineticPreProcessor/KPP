@@ -18,9 +18,9 @@ master_doc = 'index'
 
 # -- Project information -----------------------------------------------------
 
-project = 'KPP'
+project = 'KPP: The Kinetic PreProcessor'
 copyright = '2022, The KPP development team'
-author = 'The KPP development team'
+author = 'A. Sandu, R. Sander, M. Long, H. Lin, and R. Yantosca'
 
 # The full version, including alpha/beta/rc tags
 release = '2.5.0'
@@ -32,11 +32,45 @@ release = '2.5.0'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "sphinx_rtd_theme",
+    "sphinx_rtd_theme",   
+    "sphinxcontrib.bibtex",
+    "recommonmark",
 ]
+bibtex_default_style = 'gcrefstyle'
 
-# Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+from pybtex.style.formatting.unsrt import Style as UnsrtStyle
+from pybtex.style.names.lastfirst import NameStyle as LastFirst
+from pybtex.style.template import join, words, optional, sentence
+from pybtex.style.labels import BaseLabelStyle
+
+class LabelStyle(BaseLabelStyle):
+    def format_labels(self, sorted_entries):
+        for entry in sorted_entries:
+            yield entry.key.replace("_", " ").replace("et al.", "et al.,")
+
+class RefStyle(UnsrtStyle):
+    default_name_style = LastFirst
+    default_sort_style = None
+    default_label_style = LabelStyle
+
+    def __init__(self):
+       super().__init__()
+       self.abbreviate_names = True
+      #  self.label_style = KeyLabelStyle()
+      #  self.format_labels = self.label_style.format_labels
+
+    def format_web_refs(self, e):
+       return sentence[ optional[ self.format_doi(e) ], ]
+
+from pybtex.plugin import register_plugin
+register_plugin('pybtex.style.formatting', 'refstyle', RefStyle)
+
+
+bibtex_bibliography_header = ".. rubric:: References"
+bibtex_footbibliography_header = bibtex_bibliography_header
+
+bibtex_bibfiles = ['reference/geos-chem.bib']
+
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -50,21 +84,17 @@ exclude_patterns = []
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
+#html_theme = 'alabaster'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['shared-docs/_static']
+html_static_path = ['_static']
 
-#html_context = {
-#    'css_files': [
-#        'shared-docs/_static/theme_overrides.css',  # overrides for wide tables in RTD theme
-#        ],
-#    }
 
 # Display KPP logo
-html_favicon = 'shared-docs/_static/kpp-favicon.png'
-html_logo = "shared-docs/_static/kpp-logo.png"
+html_favicon = '_static/kpp-favicon.png'
+html_logo = "_static/kpp-logo.png"
 html_theme_options = {
     'logo_only': True,
     'display_version': False,
