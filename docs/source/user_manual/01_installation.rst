@@ -10,7 +10,8 @@ This section can be skipped if KPP is already installed on your system.
 Download KPP from Github
 ========================
 
-Clone the KPP source code from the `KPP Github repository <(https://github.com/KineticPreProcessor/KPP>`_:
+Clone the KPP source code from the `KPP Github repository
+<(https://github.com/KineticPreProcessor/KPP>`_: 
 
 .. code-block:: console
 

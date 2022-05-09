@@ -14,16 +14,16 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-master_doc = 'index'
+master_doc = "index"
 
 # -- Project information -----------------------------------------------------
 
-project = 'KPP: The Kinetic PreProcessor'
-copyright = '2022, The KPP development team'
-author = 'A. Sandu, R. Sander, M. Long, H. Lin, and R. Yantosca'
+project = "KPP: The Kinetic PreProcessor"
+copyright = "2022, The KPP development team"
+author = "A. Sandu, R. Sander, M. Long, H. Lin, and R. Yantosca"
 
 # The full version, including alpha/beta/rc tags
-release = '2.5.0'
+release = "2.5.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -36,7 +36,7 @@ extensions = [
     "sphinxcontrib.bibtex",
     "recommonmark",
 ]
-bibtex_default_style = 'gcrefstyle'
+bibtex_default_style = "gcrefstyle"
 
 from pybtex.style.formatting.unsrt import Style as UnsrtStyle
 from pybtex.style.names.lastfirst import NameStyle as LastFirst
@@ -69,7 +69,10 @@ register_plugin('pybtex.style.formatting', 'refstyle', RefStyle)
 bibtex_bibliography_header = ".. rubric:: References"
 bibtex_footbibliography_header = bibtex_bibliography_header
 
-bibtex_bibfiles = ['reference/geos-chem.bib']
+bibtex_bibfiles = [
+    'reference/rolf.bib',
+    'reference/adrian.bib'
+]
 
 
 # List of patterns, relative to source directory, that match files and
@@ -83,18 +86,23 @@ exclude_patterns = []
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
-#html_theme = 'alabaster'
+html_theme = "sphinx_rtd_theme"
+#html_theme = "alabaster"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
+# These paths are either relative to html_static_path
+# or fully qualified paths (e.g. https://...)
+html_css_files = ["custom.css"]
 
 # Display KPP logo
-html_favicon = '_static/kpp-favicon.png'
+html_favicon = "_static/kpp-favicon.png"
 html_logo = "_static/kpp-logo.png"
+
+# RTD theme settings
 html_theme_options = {
     'logo_only': True,
     'display_version': False,

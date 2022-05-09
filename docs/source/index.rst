@@ -19,6 +19,10 @@ The Kinetic PreProcessor: KPP
    <a href="https://kpp.readthedocs.io/en/latest/"><img src="https://img.shields.io/readthedocs/kpp?label=ReadTheDocs"></a>
    </p>
 
+.. important:: This documentation is still being converted to the
+	       ReadTheDocs format.  Some pages may appear incomplete.
+	       Please bear with us!
+
 This site provides instructions for :program:`KPP`, the Kinetic PreProcessor.
    
 Contributions (e.g., suggestions, edits, revisions) would be greatly
@@ -27,14 +31,24 @@ and our :ref:`contributing guidelines <reference/CONTRIBUTING.rst>`.
 If you find a something hard to understand---let us know!
    
 .. toctree::
-   :maxdepth: 4
-   :caption: Getting Started
+   :caption: User Guide
 
    user_manual/01_installation.rst
+   user_manual/02_running_kpp_sample_mech.rst
+   user_manual/03_input_for_kpp.rst
+   user_manual/04_output_from_kpp.rst
+   user_manual/05_info_for_developers.rst
+   user_manual/06_numerical_methods.rst
+   user_manual/07_revision_history.rst
+   user_manual/08_acknowledgments.rst
+
+.. toctree:: 
+   :caption: Supplemental Guides
+
+   user_manual/A1_bnf_description_of_kpp_lang.rst
 
 .. toctree::
-   :maxdepth: 4
-   :caption: Reference
+   :caption: Help & Reference
 
    reference/known-bugs.rst 
    reference/SUPPORT.rst
