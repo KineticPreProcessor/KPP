@@ -1,10 +1,14 @@
+.. bibliography:: adrian.bib
+
+.. |br| raw:: html
+
+   <br />
+
+.. _numerical-methods:
+
 #################
 Numerical methods
 #################
-
-========
-Overview
-========
 
 The KPP numerical library contains a set of numerical integrators
 selected to be very efficient in the low to medium accuracy regime
@@ -27,15 +31,12 @@ programming templates. Some minimal programming may be required from the
 users in order to construct their own application from the KPP building
 blocks.
 
-
-List of numerical symbols
---------------------------
-
-Symbols used in the description of the numerical methods implemnted in KPP.
+In the following sections we introduce the numerical methods implemented
+in KPP. The symbols used in the formulas are explained in the following table.
 
 +----------------------------------+----------------------------------+
 | Symbol                           | Description                      |
-+----------------------------------+----------------------------------+
++==================================+==================================+
 | :math:`s`                        | Number of stages                 |
 +----------------------------------+----------------------------------+
 | :math:`t^n`                      | Discrete time moment             |
@@ -93,154 +94,7 @@ Symbols used in the description of the numerical methods implemnted in KPP.
 | :math:`e_i`, :math:`m_i`         |                                  |
 +----------------------------------+----------------------------------+
 
-=============================
-Integrator inputs and outputs
-=============================
-
-In order to offer more control over the integrator, the KPP-generated
-subroutine provides the `optional input parameters <optional
-integrator input parameters_>`_. Each of them is an array of 20 elements 
-that allow the fine-tuning of the integrator. 
-
-Similarly, to obtain more information about the integration, the
-subroutine provides the `optional output parameters
-<optional integrator output parameters_>`_, which are also
-also arrays of 20 elements.
-
-Optional integrator input parameters
-------------------------------------
-
-Optional integer (:code:`ICNTRL_U`) and real
-(:code:`RCNTRL_U`) input parameters subroutine :code:`INTEGRATE`.
-Setting any elements to zero will activate their default values. Array
-elements not listed here are either not used or integrator-specific options.
-Details can be found in the comment lines of the individual integrator files 
-:code:`$KPP_HOME/int/*.f90`. 
-
-+----------------------+----------------------------------------------------+
-| Variable             | Description                                        |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(1)`  | = 1: :math:`F = F(y)`, i.e. independent of         |
-|                      | t autonomous)                                      |
-|                      |                                                    |
-|                      | = 0: :math:`F = F(t,y)`, i.e. depends on t         |
-|                      | (non-autonomous)                                   |
-|                      |                                                    |
-|                      | (only available for some of the integrators)       |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(2)`  | The absolute (:code:`ATOL`) and relative           |
-|                      | (:code:`RTOL`) tolerances can be expressed         |
-|                      | by either a scalar or individually for each        |
-|                      | species in a vector:                               |
-|                      |                                                    |
-|                      | = 0 :code:`NVAR`-dimensional vector                |
-|                      |                                                    |
-|                      | = 1: scalar                                        |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(3)`  | Selection of a specific method (only available for |
-|                      | some of the integrators.)                          | 
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(4)`  | Maximum number of integration steps.               |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(5)`  | Maximum number of Newton iterations (only          |
-|                      | available for some of the integrators).            |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(6)`  | Starting values of Newton iterations:              |
-|                      |                                                    |
-|                      | = 0 : Interpolated                                 |
-|                      |                                                    |
-|                      | = 1 : Zero                                         |
-|                      |                                                    |
-|                      | (only available for some of the integrators)       |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(7)`  |                                                    |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(8)`  |                                                    |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(9)`  |                                                    |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(10)` |                                                    |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(11)` |                                                    |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(12)` |                                                    |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(13)` |                                                    |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(14)` |                                                    |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(15)` | This determines which :code:`Update_*` subroutines |
-|                      | are called within the integrator.                  |
-|                      |                                                    |
-|                      | -1 : Do not call any :code:`Update_*` subroutines  |
-|                      |                                                    |
-|                      | 0: Use the integrator-specific default values      |
-|                      |                                                    |
-|                      | >1: A number between 1 and 7, derived by adding    |
-|                      | up bits with values 4, 2, and 1.  The first digit  |
-|                      | (4) activates :code:`Update_SUN`.  The second      |
-|                      | digit (2) activates :code:`Update_PHOTO`. The      |
-|                      | third digit (1) activates :code:`Update_RCONST`.   |
-|                      |                                                    |
-|                      |                                                    |
-|                      | For example :code:`ICNTRL(15)=6)` (4+2) will       |
-|                      | activate the calls to :code:`Update_SUN` and       |
-|                      | :code:`Update_PHOTO`, but not to                   |
-|                      | :code:`Update_RCONST`.                             |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(16)` |                                                    |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(17)` |                                                    |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(18)` |                                                    |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(19)` |                                                    |
-+----------------------+----------------------------------------------------+
-| :code:`ICNTRL_U(20)` |                                                    |
-+----------------------+----------------------------------------------------+
-
-Optional integrator output parameters
--------------------------------------
-
-Optional integer (:code:`ISTATUS_U`) and real (:code:`RSTATUS_U`)
-output parameters of subroutine :code:`INTEGRATE`.  Array elements not
-listed here are either not used or are integrator-specific options.
-Details can be found in the comment lines of the individual integrator files 
-:code:`$KPP_HOME/int/*.f90`. 
-
-+----------------------+----------------------------------------------------+
-| Variable             | Description                                        |
-+----------------------+----------------------------------------------------+
-| :code:`ISTATUS_U(1)` | Number of function calls.                          |
-+----------------------+----------------------------------------------------+
-| :code:`ISTATUS_U(2)` | Number of Jacobian calls.                          |
-+----------------------+----------------------------------------------------+
-| :code:`ISTATUS_U(3)` | Number of steps.                                   |
-+----------------------+----------------------------------------------------+
-| :code:`ISTATUS_U(4)` | Number of accepted steps.                          |
-+----------------------+----------------------------------------------------+
-| :code:`ISTATUS_U(5)` | Number of rejected steps (except at very           |
-|                      | beginning).                                        |
-+----------------------+----------------------------------------------------+
-| :code:`ISTATUS_U(6)` | Number of LU decompositions.                       |
-+----------------------+----------------------------------------------------+
-| :code:`ISTATUS_U(7)` | Number of forward/backward substitutions.          |
-+----------------------+----------------------------------------------------+
-| :code:`ISTATUS_U(8)` | Number of singular matrix decompositions.          |
-+----------------------+----------------------------------------------------+
-| :code:`RSTATUS_U(1)` | :code:`Texit`, the time corresponding to the       |
-|                      | computed :math:`Y` upon return.                    |
-+----------------------+----------------------------------------------------+
-| :code:`RSTATUS_U(2)` | :code:`Hexit`: the last accepted step before exit. |
-+----------------------+----------------------------------------------------+
-| :code:`RSTATUS_U(3)` | :code:`Hnew`: The last predicted step (not yet     |
-|                      | taken.  For multiple restarts, use :code:`Hnew` as |
-|                      | :code:`Hstart` in the subsequent run.              |
-+----------------------+----------------------------------------------------+
-
-In the following sections we introduce the numerical methods implemented
-in KPP. The symbols used in the formulas are explained in the
-following section.
+.. _rosenbrock-methods:
 
 ==================
 Rosenbrock Methods
@@ -275,11 +129,10 @@ systems). It is the scaled identity matrix minus the Jacobian.
 
 The coefficients of the methods implemented in KPP are shown below:
 
-Method comparison
------------------
+.. _rosenbrock-ros-2:
 
-ROS-2
-~~~~~
+Rosenbrock ROS-2
+----------------
 - Stages (:math:`s`): 2
 - Funcion calls: 2
 - Order: 2(1)
@@ -296,8 +149,10 @@ ROS-2
    \gamma_2 = -\gamma
    \end{aligned}
 
-ROS-3
-~~~~~
+.. _rosenbrock-ros-3:
+
+Rosenbrock ROS-3
+----------------
 - Stages (:math:`s`): 3
 - Funcion calls: 2
 - Order: 3(2)
@@ -317,15 +172,17 @@ ROS-3
    \gamma_2 = 0.243  & \qquad & \gamma_3  2.185
    \end{aligned}
 
-ROS-4
-~~~~~
+.. _rosenbrock-ros-4:
+
+Rosenbrock ROS-4
+----------------
 - Stages (:math:`s`): 4
 - Funcion calls: 3
 - Order: 4(3)
 - Stability properties: L-stable
 - Method Coefficients:
 .. math::
- 
+
    \begin{aligned}
    a_{2,1} = 2        & \qquad & a_{3,1} = 1.868     &\\
    a_{3,2} = 0.234    & \qquad & a_{4,1} = a_{3,1}   &\\
@@ -339,12 +196,14 @@ ROS-4
    e_3 = -0.108       & \qquad & e_4 = -1.093        &\\
    \alpha_1 = 0       & \qquad & \alpha_2 = 1.146    &\\
    \alpha_3 = 0.655   & \qquad & \alpha_4 = \alpha_3 &\\
-   \gamma_1 = 0.573   & \qquad & \gamma_2 = -1.769   &\\ 
+   \gamma_1 = 0.573   & \qquad & \gamma_2 = -1.769   &\\
    \gamma_3 = 0.759   & \qquad & \gamma_4 = -0.104
    \end{aligned}
 
-RODAS-3
-~~~~~~~
+.. _rosenbrock-rodas-3:
+
+Rosenbrock RODAS-3
+------------------
 - Stages (:math:`s`): 4
 - Funcion calls: 3
 - Order: 3(2)
@@ -352,9 +211,10 @@ RODAS-3
 - Method Coefficients:
 .. math::
 
+.. _rosenbrock-rodas-4:
 
-RODAS-4
-~~~~~~~
+Rosenbrock RODAS-4
+------------------
 - Stages (:math:`s`): 6
 - Funcion calls: 5
 - Order: 4(3)
@@ -362,8 +222,10 @@ RODAS-4
 - Method Coefficients:
 .. math::
 
-Tangent Linear Model
---------------------
+.. _rosenbrock-tlm:
+
+Rosenbrock Tangent Linear Model
+--------------------------------
 
 The method (`[eqn:altRosenbrock] <#eqn:altRosenbrock>`__) is combined
 with the sensitivity equations. One step of the method reads
@@ -402,8 +264,10 @@ RODAS–3, and RODAS–4). The implementations distinguish between
 sensitivities with respect to initial values and sensitivities with
 respect to parameters for efficiency.
 
-The Discrete Adjoint
---------------------
+.. _rosenbrock-adjoint:
+
+Rosenbrock Discrete Adjoint Model
+---------------------------------
 
 To obtain the adjoint we first differentiate the method with respect to
 :math:`y_n`. Here :math:`J` denotes the Jacobian and :math:`H` the
@@ -432,9 +296,11 @@ KPP contains adjoint models (for direct decoupled sensitivity analysis)
 for each of the Rosenbrock methods (ROS–2, ROS–3, ROS–4, RODAS–3, and
 RODAS–4).
 
-===================
-Runge-Kutta methods
-===================
+.. _rk-methods:
+
+============================
+Runge-Kutta (aka RK) methods
+============================
 
 A general :math:`s`-stage Runge-Kutta method is defined as
 :raw-latex:`\cite[Section II.1]{k:HW1}`
@@ -456,87 +322,61 @@ derivative values :math:`k_i` are defined implicitly, and require
 solving a (set of) nonlinear system(s). Newton-type methods solve
 coupled linear systems of dimension (at most) :math:`n \times s`.
 
-
-Comparison of methods
----------------------
-
 The Runge-Kutta methods implemented in KPP are summarized below:
 
-+-------------+---------------------------+-----------------------------+
-|             | File(s)                   | Description                 |
-+-------------+---------------------------+-----------------------------+
-| Runge-Kutta | :file:`runge_kutta.f90`   | Fully implicit 3-stage      |
-|             |                           | Runge-Kutta methods.        |
-|             |                           | Several variants are        |
-|             |                           | available:                  |
-|             |                           |                             |
-|             |                           | - RADAU-2A: order 5         |
-|             |                           | - RADAU-1A: order 5         |
-|             |                           | - Lobatto-3C: order 4       |
-|             |                           | - Gauss: order 6            |
-+-------------+---------------------------+-----------------------------+
-|
+.. _rk-method-comparison:
 
-|-------------+------------------------------+--------------------------+
-| RADAU5      | :file:`atm_radau5.f`,        | This Runge-Kutta method  |
-|             | :file:`kpp_radau5.f90`       | of order 5 based on      |
-|             |                              | RADAU-IIA quadrature     |
-|             |                              | :raw-latex:`\citep` is   |
-|             |                              | stiffly accurate. The    |
-|             |                              | KPP implementation       |
-|             |                            | follows the original     |
-|             |                          | implementation of        |
-|             |                          | :raw-latex:`\citet`.     |
-|             |                          | While RADAU5 is          |
-|             |                          | relatively expensive     |
-|             |                          | (when compared to the    |
-|             |                          | Rosenbrock methods), it  |
-|             |                          | is more robust and is    |
-|             |                          | useful to obtain         |
-|             |                          | accurate reference       |
-|             |                          | solutions.               |
-+-------------+--------------------------+--------------------------+
-| SDIRK       | :file:`sdirk.f`,             | SDIRK is an L-stable,    |
-|             | :file:`sdirk.f90`            | si                       |
-|             |                          | ngly-diagonally-implicit |
-|             |                          | Runge-Kutta method. The  |
-|             |                          | implementation is based  |
-|             |                          | on :raw-latex:`\citet`.  |
-|             |                          | Several variants are     |
-|             |                          | available:               |
-+-------------+--------------------------+--------------------------+
-|             |                          | Sdirk 2a, 2b: 2 stages,  |
-|             |                          | order 2                  |
-+-------------+--------------------------+--------------------------+
-|             |                          | Sdirk 3a: 3 stages,      |
-|             |                          | order 2, and             |
-+-------------+--------------------------+--------------------------+
-|             |                          | Sdirk 4a, 4b: 5 stages,  |
-|             |                          | order 4                  |
-+-------------+--------------------------+--------------------------+
-| SDIRK4      | ``kpp_sdirk4.f``,        | SDIRK4 is an L-stable,   |
-|             | ``kpp_sdirk4.f90``       | si                       |
-|             |                          | ngly-diagonally-implicit |
-|             |                          | Runge-Kutta method of    |
-|             |                          | order 4. The             |
-|             |                          | implementation is based  |
-|             |                          | on :raw-latex:`\citet`.  |
-+-------------+--------------------------+--------------------------+
-| SEULEX      | :file:`kpp_seulex.f`,  | SEULEX is a variable     |
-|             | :file:`kpp_seulex.f90` | order stiff              |
-|             |                          | extrapolation code able  |
-|             |                          | to produce highly        |
-|             |                          | accurate solutions. The  |
-|             |                          | KPP implementation is    |
-|             |                          | based on the             |
-|             |                          | implementation of        |
-|             |                          | :raw-latex:`\citet`.     |
-+-------------+--------------------------+--------------------------+
-|             |                          |                          |
-+-------------+--------------------------+--------------------------+
+RK 3-stage Runge-Kutta
+-------------------
 
-Tangent Linear Model
---------------------
+**Integrator file:** :file:`int/runge_kutta.f90`
+
+Fully implicit 3-stage Runge-Kutta methods.  Several variants are available:
+
+- RADAU-2A: order 5
+- RADAU-1A: order 5
+- Lobatto-3C: order 4
+- Gauss: order 6
+
+RK RADAU5
+---------
+**Integrator files:** :file:`int/atm_radau5.f`, :file:`int/kpp_radau5.f90`
+
+This Runge-Kutta method of order 5 based on RADAU-IIA quadrature
+is stiffly accurate. The KPP implementation follows the original
+implementation of :raw-latex:`\citet`.    While RADAU5 is  relatively
+expensive (when compared to the  Rosenbrock methods), it  is more
+robust and is useful to obtain accurate reference solutions.                  
+
+RK SDIRK
+--------
+**Integrator files:**  :file:`int/sdirk.f`,          
+
+SDIRK is an L-stable, singly-diagonally-implicit Runge-Kutta method. The    
+implementation is based on :raw-latex:`\citet`. Several variants are       
+available: 
+
+  - Sdirk 2a, 2b: 2 stages, order 2                
+  - Sdirk 3a: 3 stages, order 2
+  - Sdirk 4a, 4b: 5 stages, order 4
+
+RK SDIRK4
+----------
+**Integrator files:** :file:`int/kpp_sdirk4.f`,  :file:`int/kpp_sdirk4.f90` 
+
+SDIRK4 is an L-stable, singly-diagonally-implicit Runge-Kutta method
+of order 4. The implementation is based on :raw-latex:`\citet`.
+
+RK SEULEX
+---------
+**Integrator files:**  :file:`int/kpp_seulex.f`,  :file:`int/kpp_seulex.f90`
+
+ SEULEX is a variable  order stiff extrapolation code able to produce highly accurate solutions. The KPP implementation is based on the implementation of :raw-latex:`\citet`.
+
+.. _rk-tlm:
+
+RK Tangent Linear Model
+------------------------
 
 The tangent linear method associated with the Runge-Kutta method is
 
@@ -558,8 +398,10 @@ require an iterative procedure. However, even for a SDIRK method
 (:math:`a_{ij}=0` for :math:`i>j` and :math:`a_{ii}=\gamma`) each stage
 requires the LU factorization of a different matrix.
 
-Discrete Adjoint Model
-----------------------
+.. _rk-adj:
+
+RK Discrete Adjoint Model
+-------------------------
 
 The first order Runge-Kutta adjoint is
 
@@ -585,6 +427,8 @@ another Runge-Kutta method:
    \nonumber
    \lambda^{n} &=& \lambda^{n+1} +\sum_{j=1}^s b_j \, u_j~.\end{aligned}
 
+.. _back-diff:
+
 =================================
 Backward Differentiation Formulas
 =================================
@@ -606,39 +450,164 @@ The KPP library contains two off-the-shelf, highly popular
 implementations of BDF methods, described in
 Table `[tab:BDF] <#tab:BDF>`__.
 
-.. container:: table*
+LSODE
+-----
+**Integrator file:** :file:`int/kpp_lsode.f90` 
 
-   .. container:: center
+LSODE, the Livermore ODE solver (:cite:`LSODE`), implements backward
+differentiation formula (BDF) methods for stiff problems.  LSODE has
+been translated to Fortran90 for the incorporation into the KPP library.  
 
-      +--------+-------------------+---------------------------------------+
-      |        | File(s)           | Description                           |
-      +--------+-------------------+---------------------------------------+
-      | LSODE  | ``kpp_lsode.f90`` | LSODE, the Livermore ODE solver       |
-      |        |                   | :raw-latex:`\citep`, implements       |
-      |        |                   | backward differentiation formula      |
-      |        |                   | (BDF) methods for stiff problems.     |
-      |        |                   | LSODE has been translated to          |
-      |        |                   | Fortran90 for the incorporation into  |
-      |        |                   | the KPP library.                      |
-      +--------+-------------------+---------------------------------------+
-      | LSODES | ``atm_lsodes.f``  | LSODES :raw-latex:`\citep`, the       |
-      |        |                   | sparse version of the Livermore ODE   |
-      |        |                   | solver LSODE, is modified to          |
-      |        |                   | interface directly with the KPP       |
-      |        |                   | generated code                        |
-      +--------+-------------------+---------------------------------------+
-      | VODE   | ``kpp_dvode.f``   | VODE :raw-latex:`\citep` uses another |
-      |        |                   | formulation of backward               |
-      |        |                   | differentiation formulas. The version |
-      |        |                   | of VODE present in the KPP library    |
-      |        |                   | uses directly the KPP sparse linear   |
-      |        |                   | algebra routines.                     |
-      +--------+-------------------+---------------------------------------+
-      | ODESSA | ``atm_odessa.f``  | The BDF-based direct-decoupled        |
-      |        |                   | sensitivity integrator Odessa         |
-      |        |                   | :raw-latex:`\citep` has been modified |
-      |        |                   | to use the KPP sparse linear algebra  |
-      |        |                   | routines.                             |
-      +--------+-------------------+---------------------------------------+
-      |        |                   |                                       |
-      +--------+-------------------+---------------------------------------+
+LSODES
+-------
+**Integrator file:** :file:`int/atm_lsodes.f`
+
+ LSODES, the sparse version of the Livermore ODE  solver LSODE, is
+ modified to interface directly with the KPP generated code. 
+
+VODE
+-----
+
+**Integrator files:** :file:`int/kpp_dvode.f`, :file:`int/kpp_dvode.f90`
+
+VODE uses another formulation of backward differentiation
+formulas. The version   of VODE present in the KPP library uses
+directly the KPP sparse linear algebra routines.
+
+ODESSA
+------
+** Integrator files:** :file:`atm_odessa.f`
+
+The BDF-based direct-decoupled sensitivity integrator Odessa has been modified to use the KPP sparse linear algebra routines.
+
+.. _integrator-input-output:
+
+=============================
+Integrator inputs and outputs
+=============================
+
+In order to offer more control over the integrator, the KPP-generated
+subroutine provides the `optional input parameters <optional
+integrator input parameters_>`_. Each of them is an array of 20 elements
+that allow the fine-tuning of the integrator.
+
+Similarly, to obtain more information about the integration, the
+subroutine provides the `optional output parameters
+<optional integrator output parameters_>`_, which are also
+also arrays of 20 elements.
+
+Optional integrator input parameters
+------------------------------------
+
+Optional integer (:code:`ICNTRL_U`) and real
+(:code:`RCNTRL_U`) input parameters subroutine :code:`INTEGRATE`.
+Setting any elements to zero will activate their default values. Array
+elements not listed here are either not used or integrator-specific options.
+Details can be found in the comment lines of the individual integrator files
+:code:`$KPP_HOME/int/*.f90`.
+
++----------------------+----------------------------------------------------+
+| Variable             | Description                                        |
++======================+====================================================+
+| :code:`ICNTRL_U(1)`  | = 1: :math:`F = F(y)`, i.e. independent of         |
+|                      | t autonomous)                                      |
+|                      | |br|                                               |
+|                      | |br|                                               |
+|                      | = 0: :math:`F = F(t,y)`, i.e. depends on t         |
+|                      | (non-autonomous)                                   |
+|                      | |br|                                               |
+|                      | |br|                                               |
+|                      | (only available for some of the integrators)       |
++----------------------+----------------------------------------------------+
+| :code:`ICNTRL_U(2)`  | The absolute (:code:`ATOL`) and relative           |
+|                      | (:code:`RTOL`) tolerances can be expressed         |
+|                      | by either a scalar or individually for each        |
+|                      | species in a vector:                               |
+|                      | |br|                                               |
+|                      | |br|                                               |
+|                      | = 0 :code:`NVAR`-dimensional vector                |
+|                      | |br|                                               |
+|                      | |br|                                               |
+|                      | = 1: scalar                                        |
++----------------------+----------------------------------------------------+
+| :code:`ICNTRL_U(3)`  | Selection of a specific method (only available for |
+|                      | some of the integrators.)                          |
++----------------------+----------------------------------------------------+
+| :code:`ICNTRL_U(4)`  | Maximum number of integration steps.               |
++----------------------+----------------------------------------------------+
+| :code:`ICNTRL_U(5)`  | Maximum number of Newton iterations (only          |
+|                      | available for some of the integrators).            |
++----------------------+----------------------------------------------------+
+| :code:`ICNTRL_U(6)`  | Starting values of Newton iterations:              |
+|                      | |br|                                               |
+|                      | |br|                                               |
+|                      | = 0 : Interpolated                                 |
+|                      | |br|                                               |
+|                      | |br|                                               |
+|                      | = 1 : Zero                                         |
+|                      | |br|                                               |
+|                      | |br|                                               |
+|                      | (only available for some of the integrators)       |
++----------------------+----------------------------------------------------+
+| :code:`ICNTRL_U(15)` | This determines which :code:`Update_*` subroutines |
+|                      | are called within the integrator.                  |
+|                      | |br|                                               |
+|                      | |br|                                               |
+|                      | -1 : Do not call any :code:`Update_*` subroutines  |
+|                      | |br|                                               |
+|                      | |br|                                               |
+|                      | 0: Use the integrator-specific default values      |
+|                      | |br|                                               |
+|                      | |br|                                               |
+|                      | >1: A number between 1 and 7, derived by adding    |
+|                      | up bits with values 4, 2, and 1.  The first digit  |
+|                      | (4) activates :code:`Update_SUN`.  The second      |
+|                      | digit (2) activates :code:`Update_PHOTO`. The      |
+|                      | third digit (1) activates :code:`Update_RCONST`.   |
+|                      | |br|                                               |
+|                      | |br|                                               |
+|                      | For example :code:`ICNTRL(15)=6)` (4+2) will       |
+|                      | activate the calls to :code:`Update_SUN` and       |
+|                      | :code:`Update_PHOTO`, but not to                   |
+|                      | :code:`Update_RCONST`.                             |
++----------------------+----------------------------------------------------+
+
+Optional integrator output parameters
+-------------------------------------
+
+Optional integer (:code:`ISTATUS_U`) and real (:code:`RSTATUS_U`)
+output parameters of subroutine :code:`INTEGRATE`.  Array elements not
+listed here are either not used or are integrator-specific options.
+Details can be found in the comment lines of the individual integrator files
+:code:`$KPP_HOME/int/*.f90`.
+
++----------------------+----------------------------------------------------+
+| Variable             | Description                                        |
++======================+====================================================+
+| :code:`ISTATUS_U(1)` | Number of function calls.                          |
++----------------------+----------------------------------------------------+
+| :code:`ISTATUS_U(2)` | Number of Jacobian calls.                          |
++----------------------+----------------------------------------------------+
+| :code:`ISTATUS_U(3)` | Number of steps.                                   |
++----------------------+----------------------------------------------------+
+| :code:`ISTATUS_U(4)` | Number of accepted steps.                          |
++----------------------+----------------------------------------------------+
+| :code:`ISTATUS_U(5)` | Number of rejected steps (except at very           |
+|                      | beginning).                                        |
++----------------------+----------------------------------------------------+
+| :code:`ISTATUS_U(6)` | Number of LU decompositions.                       |
++----------------------+----------------------------------------------------+
+| :code:`ISTATUS_U(7)` | Number of forward/backward substitutions.          |
++----------------------+----------------------------------------------------+
+| :code:`ISTATUS_U(8)` | Number of singular matrix decompositions.          |
++----------------------+----------------------------------------------------+
+| :code:`RSTATUS_U(1)` | :code:`Texit`, the time corresponding to the       |
+|                      | computed :math:`Y` upon return.                    |
++----------------------+----------------------------------------------------+
+| :code:`RSTATUS_U(2)` | :code:`Hexit`: the last accepted step before exit. |
++----------------------+----------------------------------------------------+
+| :code:`RSTATUS_U(3)` | :code:`Hnew`: The last predicted step (not yet     |
+|                      | taken.  For multiple restarts, use :code:`Hnew` as |
+|                      | :code:`Hstart` in the subsequent run.              |
++----------------------+----------------------------------------------------+
+

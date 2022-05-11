@@ -28,7 +28,7 @@ to virtually any kinetic mechanism.
 
 We focus on Fortran90. Particularities of the C, Fortran77, and Matlab
 languages are discussed in `Target language selection
-<target-language-selection_>`_. 
+<language_>`_. 
 
 The KPP input files (with suffix :file:`.kpp`) specify the model, the
 target language, the precision, the integrator and the driver, etc. The file

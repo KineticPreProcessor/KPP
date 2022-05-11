@@ -1,4 +1,5 @@
-.. _`sec:developer-info`:
+
+.. _developer-info:
 
 ##############################
 Information for KPP Developers
@@ -9,7 +10,7 @@ architecture of the KPP preprocessor, the basic modules and their
 functionalities, and the preprocessing analysis performed on the input
 files. KPP can be very easily configured to suit a broad class of users.
 
-.. _`sec:directory-structure`:
+.. _directory-structure:
 
 =======================
 KPP directory structure
@@ -89,53 +90,52 @@ following subdirectories:
 -  **site-lisp/** Contains the file which provides a KPP mode for emacs
    with color highlighting.
 
+.. _kpp-env-vars:
+
 =========================
 KPP environment variables
 =========================
 
-.. container:: table*
-
-   .. container:: center
-
-      +----------------+-------------------------+----------------------+
-      | Variable       | Description             | Default assumed      |
-      +----------------+-------------------------+----------------------+
-      | ``$KPP_HOME``  | Required, stores the    | no default           |
-      |                | absolute path to the    |                      |
-      |                | KPP distribution        |                      |
-      +----------------+-------------------------+----------------------+
-      | ``$KPP_MODEL`` | Optional, specifies     | ``$KPP_HOME/models`` |
-      |                | additional places were  |                      |
-      |                | KPP will look for model |                      |
-      |                | files before searching  |                      |
-      |                | the default             |                      |
-      +----------------+-------------------------+----------------------+
-      | ``$KPP_INT``   | Optional, specifies     | ``$KPP_HOME/int``    |
-      |                | additional places were  |                      |
-      |                | KPP will look for       |                      |
-      |                | integrator files before |                      |
-      |                | searching the default.  |                      |
-      +----------------+-------------------------+----------------------+
-      | ``$KPP_DRV``   | Optional, specifies     | ``$KPP_HOME/drv``    |
-      |                | additional places were  |                      |
-      |                | KPP will look for       |                      |
-      |                | driver files before     |                      |
-      |                | searching the default   |                      |
-      +----------------+-------------------------+----------------------+
-      |                |                         |                      |
-      +----------------+-------------------------+----------------------+
-
 In order for KPP to find its components, it has to know the path to the
 location where the KPP distribution is installed. This is achieved by
-requiring the ``$KPP_HOME`` environment variable to be set to the path
-where KPP is installed.
+requiring the :envvar:`$KPP_HOME` environment variable to be set to the path
+where KPP is installed. 
 
-The PATH variable should be updated to contain the ``$KPP_HOME/bin``
-directory.
+The :envvar:`PATH` variable should be updated to contain the
+:file:`$KPP_HOME/bin` directory.
 
-There are several optional environment variable that control the places
-where KPP looks for module files, integrators, and drivers. They are all
-summarized in Table `[tab:environment] <#tab:environment>`__.
+There are also several optional environment variable that control the places
+where KPP looks for module files, integrators, and drivers.  All KPP
+environment variables are summarized in the subsections below.
+
+KPP_HOME
+--------
+Required, stores the absolute path to the KPP distribution.
+
+Default setting: none
+
+KPP_MODEL
+---------
+Optional, specifies additional places where KPP will look for model
+files before searching the default location.  
+
+Default setting: :file:`$KPP_HOME/models`.
+
+KPP_INT
+-------
+Optional, specifies additional places where KPP will look for integrator files before searching the default.
+
+Default setting: :file:`$KPP_HOME/int`.
+
+KPP_DRV
+-------
+
+Optional specifies additional places where KPP will look for driver
+files before searching the default folder.
+
+Default setting: :file:`$KPP_HOME/drv`
+
+.. _kpp-internal-modules:
 
 ====================
 KPP internal modules
@@ -212,9 +212,8 @@ functions produce the code into an output buffer. A language specific
 routine reads from this buffer and splits the statements into lines to
 improve readability of the generated code.
 
-=======================
 Adding new KPP commands
-=======================
+-----------------------
 
 To add a new KPP command, the source code has to be edited at several
 locations. A short summary is presented here, using the new command as
@@ -222,8 +221,9 @@ an example:
 
 -  Add to several files in the directory:
 
-   -  : ``void CmdNEWCMD( char *cmd );``
-
+.. code-block:: C
+   
+   void CmdNEWCMD( char *cmd );
    -  : ``{ "NEWCMD", PRM_STATE, NEWCMD },``
 
    -  : ``void CmdNEWCMD( char *cmd )``
@@ -251,5 +251,3 @@ an example:
       -  Add a section
 
       -  Add to BNF description table
-
-   -  Add to

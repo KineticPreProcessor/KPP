@@ -36,7 +36,7 @@ extensions = [
     "sphinxcontrib.bibtex",
     "recommonmark",
 ]
-bibtex_default_style = "gcrefstyle"
+bibtex_default_style = "refstyle"
 
 from pybtex.style.formatting.unsrt import Style as UnsrtStyle
 from pybtex.style.names.lastfirst import NameStyle as LastFirst
@@ -63,7 +63,7 @@ class RefStyle(UnsrtStyle):
        return sentence[ optional[ self.format_doi(e) ], ]
 
 from pybtex.plugin import register_plugin
-register_plugin('pybtex.style.formatting', 'refstyle', RefStyle)
+register_plugin("pybtex.style.formatting", "refstyle", RefStyle)
 
 
 bibtex_bibliography_header = ".. rubric:: References"
