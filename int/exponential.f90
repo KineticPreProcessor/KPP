@@ -37,7 +37,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 
    !~~~> fine-tune the integrator:
    ICNTRL(1)  = 0       ! 0 - non-autonomous, 1 - autonomous
-   ICNTRL(2)  = 0	! 0 - vector tolerances, 1 - scalars
+   ICNTRL(2)  = 0       ! 0 - vector tolerances, 1 - scalars
    ICNTRL(15) = 5       ! Call Update_SUN and Update_RCONST from w/in the int. 
 
    !~~~> if optional parameters are given, and if they are /= 0,
