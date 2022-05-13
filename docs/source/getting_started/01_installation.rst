@@ -11,13 +11,13 @@ Download KPP from Github
 ========================
 
 Clone the KPP source code from the `KPP Github repository
-<(https://github.com/KineticPreProcessor/KPP>`_: 
+<(https://github.com/KineticPreProcessor/KPP>`_:
 
 .. code-block:: console
 
    $ git clone https://github.com/KineticPreProcessor/KPP.git
 
-This will create folder named KPP in your disk space. 
+This will create folder named KPP in your disk space.
 
 ========================================
 Define the KPP_HOME environment variable
@@ -104,7 +104,7 @@ Change to the KPP/src directory:
    $ cd $KPP_HOME/src
 
 To clean a previously-built KPP installation, delete the KPP object
-files and all the examples with:    
+files and all the examples with:
 
 .. code-block:: console
 
@@ -118,7 +118,7 @@ To delete a previoulsy-built KPP executable as well, type:
 
 If necessary, edit and enter the name of your C compiler in
 :file:`src/Makefile`.  The default setting is :program:`gcc` (aka the
-GNU Compiler Collection).  
+GNU Compiler Collection).
 
 Create the kpp executable with:
 

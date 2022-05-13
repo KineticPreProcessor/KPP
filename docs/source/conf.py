@@ -66,7 +66,6 @@ from pybtex.plugin import register_plugin
 register_plugin("pybtex.style.formatting", "refstyle", RefStyle)
 
 
-#bibtex_bibliography_header = ".. rubric:: References"
 bibtex_bibliography_header = ""
 bibtex_footbibliography_header = bibtex_bibliography_header
 

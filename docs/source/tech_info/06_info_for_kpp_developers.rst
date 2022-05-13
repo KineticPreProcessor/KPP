@@ -44,7 +44,7 @@ KPP directory structure
          \    evaluate parsed input
          \    flex/bison-generated file
          \    flex/bison-generated header file
-         \    
+         \
          ==== =================================
 
 The KPP distribution will unfold a directory ``$KPP_HOME`` with the
@@ -99,7 +99,7 @@ KPP environment variables
 In order for KPP to find its components, it has to know the path to the
 location where the KPP distribution is installed. This is achieved by
 requiring the :envvar:`$KPP_HOME` environment variable to be set to the path
-where KPP is installed. 
+where KPP is installed.
 
 The :envvar:`PATH` variable should be updated to contain the
 :file:`$KPP_HOME/bin` directory.
@@ -117,7 +117,7 @@ Default setting: none
 KPP_MODEL
 ---------
 Optional, specifies additional places where KPP will look for model
-files before searching the default location.  
+files before searching the default location.
 
 Default setting: :file:`$KPP_HOME/models`.
 
@@ -222,7 +222,7 @@ an example:
 -  Add to several files in the directory:
 
 .. code-block:: C
-   
+
    void CmdNEWCMD( char *cmd );
    -  : ``{ "NEWCMD", PRM_STATE, NEWCMD },``
 

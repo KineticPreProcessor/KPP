@@ -27,8 +27,7 @@ capabilities. However, the software tools are general and can be applied
 to virtually any kinetic mechanism.
 
 We focus on Fortran90. Particularities of the C, Fortran77, and Matlab
-languages are discussed in `Target language selection
-<language_>`_. 
+languages are discussed in the :ref:`#LANGUAGE` section.
 
 The KPP input files (with suffix :file:`.kpp`) specify the model, the
 target language, the precision, the integrator and the driver, etc. The file
@@ -36,7 +35,7 @@ name (without the suffix :file:`.kpp`) serves as the root name for the
 simulation. In this paper we will refer to this name as root. Since
 the root name will be incorporated into Fortran90 module names, it can
 only contain valid Fortran90 characters, i.e. letters, numbers, and the
-underscore. To specify a KPP model, write a root file with the following lines: 
+underscore. To specify a KPP model, write a root file with the following lines:
 
 .. code-block:: console
 
@@ -57,7 +56,7 @@ by KPP) is selected with the command:
    #LANGUAGE Fortran90
 
 Here, we have chosen Fortran90. See `Target language selection
-<target-language-selection_>`_ for other options. 
+<target-language-selection_>`_ for other options.
 
 The data type of the generated model can be switched between
 single/double precision with the command . The command selects a

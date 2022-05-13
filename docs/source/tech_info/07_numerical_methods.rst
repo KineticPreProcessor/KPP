@@ -346,23 +346,23 @@ This Runge-Kutta method of order 5 based on RADAU-IIA quadrature
 is stiffly accurate. The KPP implementation follows the original
 implementation of :raw-latex:`\citet`.    While RADAU5 is  relatively
 expensive (when compared to the  Rosenbrock methods), it  is more
-robust and is useful to obtain accurate reference solutions.                  
+robust and is useful to obtain accurate reference solutions.
 
 RK SDIRK
 --------
-**Integrator files:**  :file:`int/sdirk.f`,          
+**Integrator files:**  :file:`int/sdirk.f`,
 
-SDIRK is an L-stable, singly-diagonally-implicit Runge-Kutta method. The    
-implementation is based on :raw-latex:`\citet`. Several variants are       
-available: 
+SDIRK is an L-stable, singly-diagonally-implicit Runge-Kutta method. The
+implementation is based on :raw-latex:`\citet`. Several variants are
+available:
 
-  - Sdirk 2a, 2b: 2 stages, order 2                
+  - Sdirk 2a, 2b: 2 stages, order 2
   - Sdirk 3a: 3 stages, order 2
   - Sdirk 4a, 4b: 5 stages, order 4
 
 RK SDIRK4
 ----------
-**Integrator files:** :file:`int/kpp_sdirk4.f`,  :file:`int/kpp_sdirk4.f90` 
+**Integrator files:** :file:`int/kpp_sdirk4.f`,  :file:`int/kpp_sdirk4.f90`
 
 SDIRK4 is an L-stable, singly-diagonally-implicit Runge-Kutta method
 of order 4. The implementation is based on :raw-latex:`\citet`.
@@ -452,18 +452,18 @@ Table `[tab:BDF] <#tab:BDF>`__.
 
 LSODE
 -----
-**Integrator file:** :file:`int/kpp_lsode.f90` 
+**Integrator file:** :file:`int/kpp_lsode.f90`
 
 LSODE, the Livermore ODE solver (:cite:`LSODE`), implements backward
 differentiation formula (BDF) methods for stiff problems.  LSODE has
-been translated to Fortran90 for the incorporation into the KPP library.  
+been translated to Fortran90 for the incorporation into the KPP library.
 
 LSODES
 -------
 **Integrator file:** :file:`int/atm_lsodes.f`
 
  LSODES, the sparse version of the Livermore ODE  solver LSODE, is
- modified to interface directly with the KPP generated code. 
+ modified to interface directly with the KPP generated code.
 
 VODE
 -----
@@ -610,4 +610,3 @@ Details can be found in the comment lines of the individual integrator files
 |                      | taken.  For multiple restarts, use :code:`Hnew` as |
 |                      | :code:`Hstart` in the subsequent run.              |
 +----------------------+----------------------------------------------------+
-

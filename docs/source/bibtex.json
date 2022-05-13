@@ -1,10 +1,14 @@
 {
     "cited": {
+        "using_kpp/04_input_for_kpp": [
+            "1996:Sandu_Potra_Damian_and_Carmichael",
+        ],
         "citations/09_acknowledgments": [
             "1996:Damian-Iordache",
         ],
-        "citations/10_kpp_references": [
+        "citations/10_kpp_kreferences": [
             "1996:Damian-Iordache",
+            "1996:Sandu_Potra_Damian_and_Carmichael",
         ],
     }
 }

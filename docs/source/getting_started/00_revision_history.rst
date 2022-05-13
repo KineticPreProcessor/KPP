@@ -30,12 +30,12 @@ KPP-2.4.0
 
 - New integrators: :file:`beuler.f90`, :file:`rosenbrock_mz.f90`,
   :file:`rosenbrock_posdef.f90,  :file:`rosenbrock_posdef_h211b_qssa.f90`
-  
+
 - Several memory sizes (:code:`MAX_EQN`, ...) increased to allow large
-  chemical mechanisms 
-  
+  chemical mechanisms
+
 - new Makefile target: :code:`list`
-  
+
 - LaTeX User Manual added
 
 - Now use :code:`ICNTRL(15)` to decide whether or not to toggle calling the
