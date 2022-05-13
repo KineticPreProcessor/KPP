@@ -19,7 +19,7 @@ master_doc = "index"
 # -- Project information -----------------------------------------------------
 
 project = "KPP: The Kinetic PreProcessor"
-copyright = "2022, The KPP development team"
+copyright = "2022, The KPP Development Team"
 author = "A. Sandu, R. Sander, M. Long, H. Lin, and R. Yantosca"
 
 # The full version, including alpha/beta/rc tags
@@ -66,12 +66,13 @@ from pybtex.plugin import register_plugin
 register_plugin("pybtex.style.formatting", "refstyle", RefStyle)
 
 
-bibtex_bibliography_header = ".. rubric:: References"
+#bibtex_bibliography_header = ".. rubric:: References"
+bibtex_bibliography_header = ""
 bibtex_footbibliography_header = bibtex_bibliography_header
 
 bibtex_bibfiles = [
-    'reference/rolf.bib',
-    'reference/adrian.bib'
+    'citations/rolf.bib',
+    'citations/adrian.bib'
 ]
 
 

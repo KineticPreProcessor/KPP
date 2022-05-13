@@ -1,9 +1,9 @@
-################
-Revision history
-################
+####################
+KPP Revision History
+####################
 
 Only the major new features are listed here. For a detailed description
-of the changes, read the file ``$KPP_HOME/CHANGELOG``.
+of the changes, read the file :file:`$KPP_HOME/CHANGELOG.md`.
 
 =========
 KPP-2.5.0

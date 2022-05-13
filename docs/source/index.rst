@@ -31,26 +31,30 @@ appreciated. See :ref:`editing-this-user-guide` and our
 understand---let us know!  
    
 .. toctree::
+   :caption: Getting Started
+
+   getting_started/00_revision_history.rst
+   getting_started/01_installation.rst
+   getting_started/02_running_kpp_sample_mech.rst
+
+.. toctree::
    :caption: Using KPP
 
-   user_manual/01_installation.rst
-   user_manual/02_running_kpp_sample_mech.rst
-   user_manual/03_input_for_kpp.rst
-   user_manual/04_output_from_kpp.rst
+   using_kpp/04_input_for_kpp.rst
+   using_kpp/05_output_from_kpp.rst
 
 .. toctree::
    :caption: Technical information
 
-   user_manual/05_info_for_kpp_developers.rst
-   user_manual/06_numerical_methods.rst
-   user_manual/A1_bnf_description_of_kpp_lang.rst
+   tech_info/06_info_for_kpp_developers.rst
+   tech_info/07_numerical_methods.rst
+   tech_info/08_bnf_description_of_kpp_lang.rst
 
 .. toctree::
-   :caption: About KPP
+   :caption: Citations
 
-   user_manual/07_revision_history.rst
-   user_manual/08_acknowledgments.rst
-   user_manual/09_references.rst
+   citations/09_acknowledgments.rst
+   citations/10_kpp_references.rst
 
 .. toctree::
    :caption: Help & Reference
