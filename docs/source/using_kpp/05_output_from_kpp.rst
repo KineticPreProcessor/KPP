@@ -19,39 +19,42 @@ the file. The files associated with root are named with a
 corresponding prefix :code:`ROOT_`  A short description of each file
 is contained in the following sections.
 
+.. _figure-1:
+
 .. figure:: ../_static/kpp2_use_diagr.png
    :align: center
-   :alt: Interdependencies of the KPP-generated files.
+   :alt: Figure 1: Interdependencies of the KPP-generated files
 
-   Interdependencies of the KPP-generated files. Each arrow starts at
-   the module that exports a variable or subroutine and points to the
-   module that imports it via the Fortran90 :code:`USE` instruction.
-   The prefix :code:`ROOT_` has been omitted from module names for
-   better readability. Dotted boxes show optional files that are only
-   produced under certain circumstances.
+   Figure 1: Interdependencies of the KPP-generated files. Each arrow
+   starts at the module that exports a variable or subroutine and
+   points to the module that imports it via the Fortran90 :code:`USE`
+   instruction.  The prefix :code:`ROOT_` has been omitted from module
+   names for better readability. Dotted boxes show optional files that
+   are only produced under certain circumstances.
 
 All subroutines and functions, global parameters, variables, and
 sparsity data structures  are encapsulated in modules. There is
 exactly one module in each file, and the name of the module is
 identical to the file name but without  the suffix :code:`.f90` or
-:code:`.F90`. The figure above shows how these  modules are related to
+:code:`.F90`. :ref:`figure-1` shows how these  modules are related to
 each other. The generated code is consistent with the Fortran90
 standard. It will not exceed the maximum number of 39 continuation
 lines. If KPP cannot properly split an expression to keep the number
 of continuation lines below the threshold then it will generate a
 warning message pointing to the location of this expression.
 
+.. tip:: 
 
-.. important:: The default Fortran90 file suffix is :code:`.f90`.  This can be
-   changed to :code:`F90` by setting :command:`#UPPERCASEF90 on` in the KPP
-   definition file.
+   The default Fortran90 file suffix is :code:`.f90`.  To have KPP
+   generate Fortran90 code ending in :file:`.F90` instead, add the
+   command :command:`#UPPERCASEF90 ON` to the KPP definition file.
 
 .. _Main:
 
 ROOT_Main
 ---------
 
-:file:`ROOT_Main.f90` (or :file:`ROOT_Main.F90`) root is the main
+:file:`ROOT_Main.f90` (or :file:`.F90`) root is the main
 Fortran90 program. It contains the driver after modifications by the
 substitution preprocessor. The name of the file is computed by KPP by
 appending the suffix to the root name.
@@ -63,7 +66,7 @@ Using :command:`#DRIVER none` will skip generating this file.
 ROOT_Model
 ----------
 
-The file :file:`ROOT_Model.f90` (or :file:`ROOT_Model.F90`) completely
+The file :file:`ROOT_Model.f90` (or :file:`.F90`) completely
 defines the model by using all the associated modules.
 
 .. _Initialize:
@@ -71,29 +74,29 @@ defines the model by using all the associated modules.
 ROOT_Initialize
 ---------------
 
-The file :file:`ROOT_Initialize.f90` (or :file:`ROOT_Initialize.F9O`)
-contains the subroutine which defines initial values of the chemical
-species. The driver calls the subroutine once before the time
-integration loop starts.
+The file :file:`ROOT_Initialize.f90` (or :file:`.F9O`)
+contains the subroutine :code:`Initialize`, which defines initial
+values of the chemical species. The driver calls the subroutine once
+before the time integration loop starts.
 
 .. _Integrator:
 
 ROOT_Integrator
 ---------------
 
-The file :file:`ROOT_Integrator.f90` (or :file:`ROOT_Integrator.F90`)
-contains the subroutine which is called every time step during the
-integration. The integrator that was chosen with :command:`#INTEGRATOR`
-is also included in this file.  In case of an unsuccessful
-integration, the module root provides a short error message
-in the public variable :code:`IERR_NAME`.
+The file :file:`ROOT_Integrator.f90` (or :file:`.F90`)
+contains the subroutine :code:`Integrate`, which is called every time
+step during the integration. The integrator that was chosen with
+:command:`#INTEGRATOR` is also included in this file.  In case of an
+unsuccessful integration, the module root provides a short error
+message  in the public variable :code:`IERR_NAME`.
 
 .. _Monitor:
 
 ROOT_Monitor
 ------------
 
-The file :file:`ROOT_Monitor.f90` (:file:`ROOT_Monitor.F90`) contains
+The file :file:`ROOT_Monitor.f90` (:file:`.F90`) contains
 arrays with information about the chemical mechanism. The names of all
 species are included in :code:`SPC_NAMES` and the names of all
 equations are included in :code:`EQN_NAMES`.
@@ -115,16 +118,13 @@ KPP-internal eer, this can be used to describe a reaction:
      PRINT *,'is:', &
        EQN_NAMJ1'))
 
-The following bles are also declared in
-:file:`ROOT_Mo:file:`ROOT_Monitor.F90`):
-
 .. _Precision:
 
 ROOT_Precision
 --------------
 
 Fortran90 code uses parameterized real
-types. :code:`ROOT_Precision.f90` (or :code:`ROOT_Precision.F90`) contains the
+types. :file:`ROOT_Precision.f90` (or :file:`.F90`) contains the
 following real kind definitions:
 
 .. code-block:: F90
@@ -147,22 +147,39 @@ for the whole model.
 ROOT_Rates
 ----------
 
-The code to update the rate constants is in :code:`ROOT_Rates.f90` (or
-:code:`ROOT_Rates.F90`). The user defined rate law functions are also
-placed here.
+The code to update the rate constants is in :file:`ROOT_Rates.f90` (or
+:file:`.F90`). The user defined rate law functions (see
+:ref:`table-rat-fun`) are also placed here.
+
+.. _table-rat-fun:
+
+.. table:: Table 4: Fortran90 subrotutines in ROOT_Rates
+   :align: center
+
+   +-----------------------+--------------------------------------+
+   | Function              | Description                          |
+   +=======================+======================================+
+   | :code:`Update_PHOTO`  | Update photolysis rate coefficients  |
+   +-----------------------+--------------------------------------+
+   | :code:`Update_RCONST` | Update all rate coefficients         |
+   +-----------------------+--------------------------------------+
+   | :code:`Update_SUN`    | Update sun intensity                 |
+   +-----------------------+--------------------------------------+
 
 .. _Parameters:
 
 ROOT_Parameters
 ---------------
 
-The global parameters listed below below are defined and
-initialized in :code:`ROOT_Parameters.f90` (or
-:code:`ROOT_Parameters.F90`).  The values listed in the third column
-are taken from the :code:`small_strato` example mechanism, which is
-described in :ref:`running-kpp-with-an-example-mechanism`.
+The global parameters listed in Table 4 are defined and
+initialized in :file:`ROOT_Parameters.f90` (or
+:file:`.F90`).  The values listed in the third column
+of Table 4 are taken from the :code:`small_strato` example mechanism,
+which is described in :ref:`running-kpp-with-an-example-mechanism`.
 
-.. table:: Parameters declared in ROOT_Parameter
+.. _table-par:
+
+.. table:: Table 5: Parameters Declared in ROOT_Parameter
    :align: center
 
    +--------------------+---------------------------------------------+--------+
@@ -215,10 +232,12 @@ Hessian, etc.
 ROOT_Global
 -----------
 
-The global variables listed below are declared in
-:code:`ROOT_Global.f90` (or :code:`ROOT_Global.F90`).
+The global variables listed in :ref:`table-glob` are declared in
+:file:`ROOT_Global.f90` (or :file:`.F90`).
 
-.. table:: Global variables declared in ROOT_Global
+.. _table-glob:
+
+.. table:: Table 6: Global Variables Declared in ROOT_Global
    :align: center
 
    +-------------------------+---------------------------------------------+
@@ -362,7 +381,7 @@ code generated by KPP for the ODE function of our example.
 
    END SUBROUTINE Fun
 
-.. _Jacobian:
+.. _Jacobian-and-JacobianSP:
 
 ROOT_Jacobian and ROOT_JacobianSP
 ---------------------------------
@@ -398,20 +417,30 @@ It defines how the temporal change of each chemical species depends on
 all other species. For example, :math:`\mathbf{J}(5,2)` shows that :math:`NO_2`
 (species number 5) is affected by :math:`O` (species number 2) via
 reaction number R9. The sparse data structures for the Jacobian are
-declared and initialized in :code:`ROOT_JacobianSP.f90` (or
-:code:`ROOT_JacobianSP.F90`). The code for the ODE Jacobian and
-sparse multiplications is in :code:`ROOT_Jacobian.f90` (or
-:code:`ROOT_Jacobian.F90`). The Jacobian of the ODE function is
-automatically constructed by KPP. KPP generates the Jacobian subroutine
-:code:`Jac` or :code:`JacSP`  where the latter is generated when the
-sparse format is required. Using the variable species :code:`V`, the fixed
+declared and initialized in :file:`ROOT_JacobianSP.f90` (or
+:file:`.F90`). The code for the ODE Jacobian and
+sparse multiplications is in :file:`ROOT_Jacobian.f90` (or
+:file:`.F90`).  
+
+.. tip:: 
+
+   Adding either :command:`#JACOBIAN SPARSE_ROW` or 
+   :command:`#JACOBIAN SPARSE_LU_ROW` to the KPP definition file will
+   create the file :file:`ROOT_JacobianSP.f90` (or :file:`.F90`).
+
+The Jacobian of the ODE function is automatically constructed by
+KPP. KPP generates the Jacobian subroutine :code:`Jac` or
+:code:`JacSP`  where the latter is generated when the sparse format is
+required. Using the variable species :code:`V`, the fixed 
 species :code:`F`, and the rate coefficients :code:`RCT` as input, the
 subroutine calculates the Jacobian :code:`JVS`. The default data
 structures for the sparse compressed on rows Jacobian
-representation are shown in the table below (for the case
-where the LU fill-in is accounted for).
+representation are shown in :ref:`table-jac` (for the case where the LU fill-in
+is accounted for).
 
-.. table:: Sparse Jacobian Data Structures
+.. _table-jac:
+
+.. table:: Table 7: Sparse Jacobian Data Structures
    :align: center
 
    +------------------------------+-------------------------------------+
@@ -443,37 +472,68 @@ Jacobian sparse data structure:
    LU_CROW = (/ 1,3,7,12,16,20 /)
    LU_DIAG = (/ 1,4,9,14,19,20 /)
 
-This is visualized the figure below.  The sparsity coordinate
+This is visualized in :ref:`figure-2. The sparsity coordinate
 vectors are computed by KPP and initialized statically. These vectors
 are constant as the sparsity pattern of the Jacobian does not change
 during the computation.
 
+.. _figure-2:
+
 .. figure:: ../_static/small_jac.png
-   :alt: The sparsity pattern of the Jacobian for the small_strato example.
+   :alt: Figure 2: The sparsity pattern of the Jacobian for the
+	 small_strato example.
    :scale: 60%
    :align: center
 
-   The sparsity pattern of the Jacobian for the :code:`small_strato`
+   Figure 2: The sparsity pattern of the Jacobian for the :code:`small_strato`
    example. All non-zero elements are marked with a bullet. Note that
    even though  :math:`\mathbf{J}(3,5)` is zero, it is also included here
    because of the fill-in.
 
 Two other KPP-generated routines, :code:`Jac_SP_Vec` and
-:code:`JacTR_SP_Vec`, are useful for direct and adjoint
-sensitivity analysis. They perform sparse multiplication of
+:code:`JacTR_SP_Vec` (see :ref:`table-jac-fun`) are useful for direct
+and adjoint sensitivity analysis. They perform sparse multiplication of
 :code:`JVS` (or its transpose for :code:`JacTR_SP_Vec`) with the
 user-supplied vector without any indirect addressing.
+
+.. _table-jac-fun:
+
+.. table:: Table 8: Fortran90 subroutines in ROOT_Jacobian
+   :align: center
+
+   +----------------------+----------------------------------------------+
+   | Function             | Description                                  |
+   +======================+==============================================+
+   | :code:`Jac_SP`       | ODE Jacobian in sparse format                |
+   +----------------------+----------------------------------------------+
+   | :code:`Jac_SP_Vec`   | Sparse multiplication                        |
+   +----------------------+----------------------------------------------+
+   | :code:`JacTR_SP_Vec` | Sparse multiplication                        |
+   +----------------------+----------------------------------------------+
+   | :code:`Jac`          | ODE Jacobian in full format                  |
+   +----------------------+----------------------------------------------+
 
 .. _Hessian:
 
 ROOT_Hessian and ROOT_HessianSP
---------------------------------
+-------------------------------
 
 The sparse data structures for the Hessian are declared and initialized
-in :code:`ROOT_Hessian.f90` (or :code:`ROOT_Hessian.F90`). The Hessian
+in :file:`ROOT_Hessian.f90` (or :file:`.F90`). The Hessian
 function and associated sparse multiplications are in
-:code:`ROOT_Hessian.f90` (or :code:`ROOT_Hessian.F90`). The Hessian
-contains the second order derivatives of the time derivative
+:code:`ROOT_HessianSP.f90` (or :code:`.F90`). 
+
+.. tip:: 
+
+   Adding :command:`#HESSIAN ON` to the KPP definition file will
+   create the file :file:`ROOT_Hessian.f90` (or :file:`.F90`)
+
+   Additionally, if either :command:`#JACOBIAN SPARSE ROW` or 
+   :command:`#JACOBIAN SPARSE_LU_ROW` are also added to the KPP
+   definition file, the file :file:`ROOT_HessianSP.f90` (or
+   :file:`.F90`) will also be created.
+
+The Hessian contains the second order derivatives of the time derivative
 functions. More exactly, the Hessian is a 3-tensor such that
 
 .. math::
@@ -482,47 +542,67 @@ functions. More exactly, the Hessian is a 3-tensor such that
      \qquad 1 \le i,j,k \le N_{\rm var}~.
    \label{eqn:Hessian1}
 
-KPP generates the routine :code:`Hessian`. Using the variable species
-:code:`V`, the fixed species :code:`F`, and the rate coefficients
-:code:`RCT` as input, the subroutine calculates the Hessian. The
-Hessian is a very sparse tensor. The sparsity of the Hessian for our
-example is visualized in the figure below:
+KPP generates the routine :code:`Hessian` (see :ref:`table-hess-fun`) below:
 
-   .. figure:: ../_static/small_hess1.png
-      :alt: The Hessian of the small_strato example
-      :align: center
+.. _table-hess-fun:
 
-      The Hessian of the small_strato example.
+.. table:: Table 9: Fortran90 functions in ROOT_Hessian
+   :align: center
+
+   +--------------------+--------------------------------------+
+   | Function           | Description                          |
+   +====================+======================================+
+   | :code:`Hessian`    | ODE Hessian in sparse format         |
+   +--------------------+--------------------------------------+
+   | :code:`Hess_Vec`   | Hessian action on vectors            |
+   +--------------------+--------------------------------------+
+   | :code:`HessTR_Vec` | Transposed Hessian action on vectors |
+   +--------------------+--------------------------------------+
+
+Using the variable species :code:`V`, the fixed species :code:`F`, and
+the rate coefficients :code:`RCT` as input, the subroutine
+:code:`Hessian` calculates the Hessian. The Hessian is a very sparse
+tensor.  The sparsity of the Hessian for our example is visualized in
+:ref:`figure-3`
+
+.. _figure-3:
+
+.. figure:: ../_static/small_hess1.png
+   :alt: Figure 3: The Hessian of the small_strato example
+   :align: center
+
+   Figure 3: The Hessian of the small_strato example.
 
 KPP computes the number of nonzero Hessian entries and saves it in the
 variable :code:`NHESS`. The Hessian itself is represented in
 coordinate sparse format. The real vector :code:`HESS` holds the values, and the
 integer vectors :code:`IHESS_I`, :code:`IHESS_J`, and :code:`IHESS_K`
-hold the indices of nonzero entries as illustrated in the table below.
+hold the indices of nonzero entries as illustrated in :ref:`table-hess`.
 
-.. table:: Sparse Hessian Data
+.. _table-hess:
+
+.. table:: Table 10: Sparse Hessian Data
    :align: center
 
    +-------------------------+----------------------------------------------+
    | Variable                | Represents                                   |
    +=========================+==============================================+
-   | :code:`HESS(NHESS)`     | Hessian nonzero elements :math:`_{i,j,k}`    |
+   | :code:`HESS(NHESS)`     | Hessian nonzero elements :math:`H_{i,j,k}`   |
    +-------------------------+----------------------------------------------+
-   | :code:`IHESS_I(NHESS)`  | Index :math:`i` of element :math:`_{i,j,k}`  |
+   | :code:`IHESS_I(NHESS)`  | Index :math:`i` of element :math:`H_{i,j,k}` |
    +-------------------------+----------------------------------------------+
-   | :code:`IHESS_J(NHESS)`  | Index :math:`j` of element :math:`_{i,j,k}`  |
+   | :code:`IHESS_J(NHESS)`  | Index :math:`j` of element :math:`H_{i,j,k}` |
    +-------------------------+----------------------------------------------+
-   | :code:`IHESS_J(NHESS)`  | Index :math:`k` of element :math:`_{i,j,k}`  |
+   | :code:`IHESS_J(NHESS)`  | Index :math:`k` of element :math:`H_{i,j,k}` |
    +-------------------------+----------------------------------------------+
 
-Since the time
-derivative function is smooth, these Hessian matrices are symmetric,
-:math:`_{i,j,k}`\ =\ :math:`_{i,k,j}`. KPP stores only those entries
-:math:`_{i,j,k}` with :math:`j \le k`. The sparsity coordinate vectors ,
-, and are computed by KPP and initialized statically. They are constant
-as the sparsity pattern of the Hessian does not change during the
-computation.
-
+Since the time derivative function is smooth, these Hessian matrices
+are symmetric, :math:`\tt HESS_{i,j,k}`\ =\ :math:`\tt HESS_{i,k,j}`.
+KPP stores only  those entries :math:`\tt HESS_{i,j,k}` with
+:math:`j \le k`. The sparsity coordinate vectors :code:`IHESS_1`,
+:code:`IHESS_J` and :code:`IHESS_K` are computed by KPP and
+initialized statically. They are constant as the sparsity pattern of
+the Hessian does not change during the computation.
 
 The routines and compute the action of the Hessian (or its transpose) on
 a pair of user-supplied vectors and . Sparse operations are employed to
@@ -530,12 +610,13 @@ produce the result vector.
 
 .. _LinearAlgebra:
 
-root\ ``_LinearAlgebra.f90``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ROOT_LinearAlgebra
+------------------
 
-Sparse linear algebra routines are in the file root. To numerically
-solve for the chemical concentrations one must employ an implicit
-timestepping technique, as the system is usually stiff. Implicit
+Sparse linear algebra routines are in the file
+:file:`ROOT_LinearAlgebra.f90` (or :file:`.F90`). To
+numerically solve for the chemical concentrations one must employ an
+implicit timestepping technique, as the system is usually stiff. Implicit
 integrators solve systems of the form
 
 .. math:: P\, x = (I - h \gamma J)\, x = b
@@ -547,166 +628,277 @@ the method, and :math:`J` the system Jacobian. The vector :math:`b` is
 the system right hand side and the solution :math:`x` typically
 represents an increment to update the solution.
 
-The chemical Jacobians are typically sparse, i.e. only a relatively
+The chemical Jacobians are typically sparse, i.e. only a relatively
 small number of entries are nonzero. The sparsity structure of :math:`P`
 is given by the sparsity structure of the Jacobian, and is produced by
 KPP (with account for the fill-in) as discussed above.
 
-KPP generates the sparse linear algebra subroutine which performs an
-in-place, non-pivoting, sparse LU decomposition of the prediction matrix
-:math:`P`. Since the sparsity structure accounts for fill-in, all
-elements of the full LU decomposition are actually stored. The output
-argument returns a value that is nonzero if singularity is detected.
+KPP generates the sparse linear algebra subroutine :code:`KppDecomp`
+(see :ref:`table-la-fun`) which performs an in-place, non-pivoting,
+sparse LU decomposition of the prediction matrix :math:`P`. Since the
+sparsity structure accounts for fill-in, all elements of the full LU
+decomposition are actually stored. The output argument :code:`IER`
+returns a value that is nonzero if singularity is detected.
 
-The subroutines and use the in-place LU factorization :math:`P` as
-computed by and perform sparse backward and forward substitutions (using
-:math:`P` or its transpose). The sparse linear algebra routines and are
-extremely efficient, as shown by :raw-latex:`\citep{IMPLEMENTATION}`.
+.. _table-la-fun:
 
-.. _Stoichiom-and_StoichiomSP:
+.. table:: Table 11: Fortran90 functions in ROOT_LinearAlgebra
+   :align: center
 
-root_Stoichiom.f90 and root_StoichiomSP.f90 (or .F90)
------------------------------------------------------
+   +--------------------+--------------------------------------+
+   | Function           | Description                          |
+   +====================+======================================+
+   | :code:`KppDecomp`  | Sparse LU decomposition              |
+   +--------------------+--------------------------------------+
+   | :code:`KppSolve`   | Sparse back subsitution              |
+   +--------------------+--------------------------------------+
+   | :code:`KppSolveTR` | Transposed sparse back substitution  |
+   +--------------------+--------------------------------------+
 
-These files contain a description of the chemical mechanism in
-stoichiometric form. The file root contains the functions for reactant
+The subroutines :code:`KppSolve` and :code:`KppSolveTr` and use the
+in-place LU factorization :math:`P` as computed by and perform sparse
+backward and forward substitutions (using :math:`P` or its
+transpose). The sparse linear algebra routines and are extremely
+efficient, as shown by :cite:`1996:Sandu_Potra_Damian_and_Carmichael`.
+
+.. _Stoichiom-and-StoichiomSP:
+
+ROOT_Stoichiom and ROOT_StoichiomSP
+-----------------------------------
+
+These files contain contain a description of the chemical mechanism in
+stoichiometric form. The file  :file:`ROOT_Stoichiom.f90` (or
+:file:`.F90`) contains the functions for reactant
 products and its Jacobian, and derivatives with respect to rate
 coefficients. The declaration and initialization of the stoichiometric
-matrix and the associated sparse data structures is done in root.
+matrix and the associated sparse data structures is done in
+:file:`ROOT_StochiomSP.f90` (or :file:`.F90`)/
+
+.. tip:: 
+
+   Adding :command:`#STOICMAT ON` to the KPP definition file will
+   create the file :file:`ROOT_Stoichiom.f90` (or :file:`.F90`)
+
+   Additionally, if either :command:`#JACOBIAN SPARSE ROW` or 
+   :command:`#JACOBIAN SPARSE_LU_ROW` are also added to the KPP
+   definition file, the file :file:`ROOT_StoichiomSP.f90` (or
+   :file:`.F90`) will also be created.
 
 The stoichiometric matrix is constant sparse. For our example the matrix
-has 22 nonzero entries out of 50 entries. KPP produces the
+:code:`NSTOICM=22` has 22 nonzero entries out of 50 entries. KPP produces the
 stoichiometric matrix in sparse, column-compressed format, as shown in
-Table `7 <#tab:sparse-stoicm>`__. Elements are stored in columnwise
-order in the one-dimensional vector of values . Their row and column
-indices are stored in and respectively. The vector contains pointers to
-the start of each column. For example column starts in the sparse vector
-at position and ends at . The last value simplifies the handling of
+:ref:`table-sto`. Elements are stored in columnwise order in the
+one-dimensional vector of values :code:`STOICM`. Their row and column indices
+are stored in :code:`ICOL_STOICHM` and :code:`JCOL_STOICHM`
+respectively. The vector :code:`CCOL_STOICHM` contains pointers to
+the start of each column. For example column :code:`j` starts in the sparse
+vector at position :code:`CCOL_STOICHM(j)` and ends at
+:code:`CCOL_STOICHM(j+1)-1`. The last value
+:code:`CCOL_STOICHM(NVAR)=NSTOICHM+1` simplifies the handling of
 sparse data structures.
 
-.. container::
-   :name: tab:sparse-stoicm
+.. _table-sto:
 
-   .. table:: Sparse Stoichiometric Matrix
+.. table:: Table 12: Sparse Stoichiometric Matrix
+   :align: center
 
-      =============== =====================
-      Global variable Represents
-      \               Stoichiometric matrix
-      \               Row indices
-      \               Column indices
-      \               Start of columns
-      \
-      =============== =====================
+   +-------------------------------+-----------------------------------------+
+   | Variable                      | Represents                              |
+   +===============================+=========================================+
+   | :code:`STOICM(NSTOICM)`       | Stoichiometric matrix                   |
+   +-------------------------------+-----------------------------------------+
+   | :code:`IROW_STOICM(NSTOICM)`  | Row indices                             |
+   +-------------------------------+-----------------------------------------+
+   | :code:`ICOL_STOICM(NSTOICM)`  | Column indices                          |
+   +-------------------------------+-----------------------------------------+
+   | :code:`CCOL_STOICM(NREACT+1)` | Start of columns                        |
+   +-------------------------------+-----------------------------------------+
 
-The subroutine computes the reactant products for each reaction, and the
-subroutine computes the Jacobian of reactant products vector, i.e.:
+.. _table-sto-fun:
 
-.. math:: {\tt JVRP} = \partial {\tt ARP} / \partial {\tt V}
+.. table:: Table 13: Fortran90 functions in ROOT_Stoichiom
+   :align: center
+
+   +-------------------------+--------------------------------------------+
+   | Variable                | Represents                                 |
+   +=========================+============================================+
+   | :code:`dFun_dRcoeff`    | Derivatives of Fun w/r/t rate coefficients |
+   +-------------------------+--------------------------------------------+
+   | :code:`dJac_dRcoeff`    | Derivatives of Jac w/r/t rate coefficients |
+   +-------------------------+--------------------------------------------+
+   | :code:`ReactantProd`    | Reactant products                          |
+   +-------------------------+--------------------------------------------+
+   | :code:`JacReactantProd` | Jacobian of reactant products              |
+   +-------------------------+--------------------------------------------+
+
+The subroutine :code:`ReactantProd` (see :ref:`table-sto-fun`)
+computes the reactant products :code:`ARP` for each reaction, and the
+subroutine :code:`JacReactantProd`  computes the Jacobian of reactant products
+vector, i.e.:
+
+.. math::
+
+   \begin{aligned}
+   \tt JVRP = \frac{\partial{\tt ARP}}{\partial{\tt V}}
+   \end{aligned}
 
 The matrix is sparse and is computed and stored in row compressed sparse
-format, as shown in Table `8 <#tab:sparse-jvrp>`__. The parameter holds
-the number of nonzero elements. For our example:
+format, as shown in :ref:`table-9`. The parameter :code:`NJVRP` holds
+the number of nonzero elements. For our :code:`small_strato` example:
 
-::
+.. code-block:: F90
 
    NJVRP = 13
    CROW_JVRP = (/ 1,1,2,3,5,6,7,9,11,13,14 /)
    ICOL_JVRP = (/ 2,3,2,3,3,1,1,3,3,4,2,5,4 /)
 
-.. container::
-   :name: tab:sparse-jvrp
+.. _table-jvrp:
 
-   .. table:: Sparse Data for Jacobian of Reactant Products
+.. table:: Table 14:. Sparse Data for Jacobian of Reactant Products
+   :align: center
 
-      =============== ========================
-      Global variable Represents
-      \               Nonzero elements of JVRP
-      \               Column indices in JVRP
-      \               Row indices in JVRP
-      \               Start of rows in JVRP
-      \
-      =============== ========================
+   +-------------------------------+-----------------------------------------+
+   | Variable                      | Represents                              |
+   +===============================+=========================================+
+   | :code:`JVRP(NJVRP)`           | Nonzero elements of :code:`JVRP`        |
+   +-------------------------------+-----------------------------------------+
+   | :code:`ICOL_JVRP(NJVRP)`      | Column indices of :code:`JVRP`          |
+   +-------------------------------+-----------------------------------------+
+   | :code:`IROW_JVRP(NJVRP)`      | Row indices of :code:`JVRP`             |
+   +-------------------------------+-----------------------------------------+
+   | :code:`CROW_JVRP(NREACT+1)`   | Start of rows in :code:`JVRP`           |
+   +-------------------------------+-----------------------------------------+
 
-If is set to , the stoichiometric formulation allows a direct
-computation of the derivatives with respect to rate coefficients.
+If :command:`#STOICMAT` is set to :command:`ON`, the stoichiometric
+formulation allows a direct computation of the derivatives with
+respect to rate coefficients.
 
-The subroutine computes the partial derivative of the ODE function with
-respect to a subset of reaction coefficients, whose indices are
-specifies in the array
+The subroutine :code:`dFun_dRcoeff` computes the partial derivative
+:code:`DFDR` of the ODE function with respect to a subset of
+:code:`NCOEFF` reaction coefficients, whose indices are specified in the array
 
-.. math:: {\tt DFDR} = \partial {\tt Vdot} / \partial {\tt RCT(JCOEFF)}
+.. math::
+
+   \begin{aligned}
+   \tt DFDR = \frac{\partial{\tt Vdot}}{\partial{\tt RCT(JCOEFF)}}
+   \end{aligned}
 
 Similarly one can obtain the partial derivative of the Jacobian with
 respect to a subset of the rate coefficients. More exactly, KPP
-generates the subroutine which calculates , the product of this partial
-derivative with a user-supplied vector:
+generates the subroutine :code:`dJacR_dCoeff`, which calculates
+:code:`DJDR`, the product of this partial derivative with a
+ user-supplied vector:
 
-.. math:: {\tt DJDR} = [ \partial {\tt JVS} / \partial {\tt RCT(JCOEFF)} ] \times {\tt U}
+.. math::
+
+   \begin{aligned}
+   \tt DJDR = [ \frac{\partial{\tt JVS}}{\partial{\tt RCT(JCOEFF)}}]
+   \times {\tt U}
+   \end{aligned}
 
 .. _Stochastic:
 
-root_Stochastic.f90 (or .F90)
------------------------------
+ROOT_Stochastic
+---------------
 
-If the generation of stochastic functions is switched on, KPP produces
-the file root with the following functions:
+If the generation of stochastic functions is switched on (i.e. when
+the command :command:`#STOCHASTIC ON` is added to the KPP definition
+file), KPP produces the file :code:`ROOT_Stochastic.f90` (or :code:`.F90`),
+with the following functions: 
 
-calculates the propensity vector. The propensity function uses the
-number of molecules of variable () and fixed () species, as well as the
-stochastic rate coefficients () to calculate the vector of propensity
-rates (). The propensity :math:`_j` defines the probability that the
-next reaction in the system is the :math:`j^{th}` reaction.
+:code:`Propensity` calculates the propensity vector. The propensity
+function uses the number of molecules of variable (:code:`Nmlcv`) and
+fixed (:code:`Nmlcf`) species, as well as the stochastic rate
+coefficients (:code:`SCT`) to calculate the vector of propensity rates
+(:code:`Propensity`). The propensity :math:`\tt Prop_j` defines the
+probability that the next reaction in the system is the :math:`j^{th}`
+reaction.
 
-converts deterministic rates to stochastic. The stochastic rate
-coefficients () are obtained through a scaling of the deterministic rate
-coefficients (). The scaling depends on the of the reaction container
-and on the number of molecules which react.
+:code:`StochasticRates` converts deterministic rates to
+stochastic. The stochastic rate coefficients (:code:`SCT`) are
+obtained through a scaling of the deterministic rate
+coefficients (:code:`RCT`). The scaling depends on the :code:`Volume`
+of the reaction container and on the number of molecules which react.
 
-calculates changes in the number of molecules. When the reaction with
-index takes place, the number of molecules of species involved in that
-reaction changes. The total number of molecules is updated by the
-function.
+:code:`MoleculeChange` calculates changes in the number of
+molecules. When the reaction with index :code:`IRCT` takes place, the
+number of molecules of species involved in that reaction changes. The
+total number of molecules is updated by the function.
 
 These functions are used by the Gillespie numerical integrators (direct
 stochastic simulation algorithm). These integrators are provided in both
-Fortran90 and C implementations (the template file name is ). Drivers
-for stochastic simulations are also implemented (the template file name
-is ).
+Fortran90 and C implementations (the template file name is
+:file:`gillespie`). Drivers for stochastic simulations are also
+implemented (the template file name is :code:`general_stochastic`.).
 
 .. _Util:
 
-root_Util.f90 (or .F90)
------------------------
+ROOT_Util
+---------
 
-The utility and input/output functions are in root. In addition to the
-chemical system description routines discussed above, KPP generates
-several utility routines, some of which are summarized in
-Table `[tab:functions] <#tab:functions>`__.
+The utility and input/output functions are in :file:`ROOT_Util.f90`
+(or :file:`ROOT_Util.F90`).  In addition to the chemical system
+description routines discussed above, KPP generates several utility
+routines, some of which are summarized in :ref:`table-util-fun`.
 
-The subroutines , , and can be used to print the concentration of the
-species that were selected with to the file root.
+.. _table-util-fun:
+
+.. table:: Table 15: Fortran90 subrotutines in ROOT_Util
+   :align: center
+
+   +---------------------------+---------------------------------------------+
+   | Function                  | Description                                 |
+   +===========================+=============================================+
+   | :code:`GetMass`           | Check mass balance for selected atoms       |
+   +---------------------------+---------------------------------------------+
+   | :code:`Shuffle_kpp2user`  | Shuffle concentration vector                |
+   +---------------------------+---------------------------------------------+
+   | :code:`Shuffle_user2kpp`  | Shuffle concentration vector                |
+   +---------------------------+---------------------------------------------+
+   | :code:`InitSaveData`      | Utility for :command:`#LOOKAT` command      |
+   +---------------------------+---------------------------------------------+
+   | :code:`SaveData`          | Utility for :command:`#LOOKAT` command      |
+   +---------------------------+---------------------------------------------+
+   | :code:`CloseSaveData`     | Utility for :command:`#LOOKAT` command      |
+   +---------------------------+---------------------------------------------+
+   | :code:`tag2num`           | Calculate reaction number from equation tag |
+   +---------------------------+---------------------------------------------+
+
+The subroutines :code:`InitSaveData`, :code:`SaveData`, and
+:code:`CloseSaveData` can be used to print the concentration of the
+species that were selected with :command:`#LOOKAT` to the file
+:file:`ROOT.dat`.
 
 .. _Mex-code:
 
-root_mex_Fun.f90, root_mex_Jac_SP.f90, and root_mex_Hessian.f90 (or .F90)
--------------------------------------------------------------------------
+ROOT_mex_Fun, ROOT_mex_Jac_SP, and ROOT_mex_Hessian
+---------------------------------------------------
 
-Mex is a *M*\ atlab *ex*\ tension. KPP generates the mex routines for
-the ODE function, Jacobian, and Hessian, for the target languages C,
-Fortran77, and Fortran90. After compilation (using Matlab’s mex
-compiler) the mex functions can be called instead of the corresponding
-Matlab m-functions. Since the calling syntaxes are identical, the user
-only has to insert the string within the corresponding function name.
-Replacing m-functions by mex-functions gives the same numerical results,
-but the computational time could be considerably smaller, especially for
-large kinetic systems.
+:program:`Mex` is a Matlab extension. KPP generates the mex
+routines for the ODE function, Jacobian, and Hessian, for the target
+languages C, Fortran77, and Fortran90. 
 
-If possible we recommend to build mex files using the C language, as
-Matlab offers most mex interface options for the C language. Moreover,
-Matlab distributions come with a native C compiler (lcc) for building
-executable functions from mex files. Fortran77 mex files work well on
-most platforms without additional efforts. However, the mex files built
-using Fortran90 may require further platform-specific tuning of the mex
+.. tip::
+
+   To generate Mex files, add the command :command:`#MEX ON` to the KPP 
+   definition file.
+
+After compilation (using
+Matlab’s mex compiler) the mex functions can be called instead of the
+corresponding Matlab m-functions. Since the calling syntaxes are
+identical, the user only has to insert the :program:`mex` string
+within the corresponding function name. Replacing m-functions by
+mex-functions gives the same numerical results, but the computational
+time could be considerably smaller, especially for large kinetic
+systems.
+
+If possible we recommend to build mex files using the C
+language, as Matlab offers most mex interface options for the C
+language. Moreover,Matlab distributions come with a native C
+compiler (:program:`lcc`) for building executable functions from mex
+files. Fortran77 mex files work well on most platforms without
+additional efforts. However, the mex files built using Fortran90 may
+require further platform-specific tuning of the mex
 compiler options.
 
 .. _Makefile:
@@ -715,12 +907,12 @@ compiler options.
 The Makefile
 ============
 
-
 KPP produces a Makefile that allows for an easy compilation of all
-KPP-generated source files. The file name is . The Makefile assumes that
-the selected driver contains the main program. However, if no driver was
-selected (i.e. ), it is necessary to add the name of the main program
-file manually to the Makefile.
+KPP-generated source files. The file name is
+:file:`Makefile_ROOT`. The Makefile assumes that  the selected driver
+contains the main program. However, if no driver was selected
+(i.e. :command:`#DRIVER none`), it is necessary to add the name of the
+main program file manually to the Makefile.
 
 .. _C-code:
 
@@ -728,48 +920,55 @@ file manually to the Makefile.
 The C Code
 ==========
 
-The driver file root contains the main (driver) and numerical integrator
-functions, as well as declarations and initializations of global
-variables. The generated C code includes three header files which are -d
-in other files as appropriate. The global parameters
-(Table `3 <#tab:parameters>`__) are -d in the header file root. The
-global variables (Table `4 <#tab:global>`__) are extern-declared in
-root, and declared in the driver file root. The header file root
-contains extern declarations of sparse data structures for the Jacobian
-(Table `5 <#tab:sparse-jac>`__), Hessian
-(Table `6 <#tab:sparse-hess>`__), stoichiometric matrix
-(Table `7 <#tab:sparse-stoicm>`__), and the Jacobian of reaction
-products (Table `8 <#tab:sparse-jvrp>`__). The actual declarations of
-each data structures is done in the corresponding files.
+The driver file :file:`ROOT.c` contains the main (driver) and
+numerical integrator functions, as well as declarations and
+initializations of global variables.
 
-The code for the ODE function (Sect. `4.1.10 <#sec:output-ode-fun>`__)
-is in root. The code for the ODE Jacobian and sparse multiplications
-(Sect. `4.1.11 <#sec:output-ode-jac>`__) is in root, and the declaration
-and initialization of the Jacobian sparse data structures
-(Table `5 <#tab:sparse-jac>`__) is in the file root. Similarly, the
-Hessian function and associated sparse multiplications
-(Section `4.1.12 <#sec:output-ode-hess>`__) are in root, and the
-declaration and initialization of Hessian sparse data structures (Table
-`6 <#tab:sparse-hess>`__) in root.
+The generated C code includes
+three header files which are :code:`#include`-d in other files as
+appropriate.
 
-The file root contains the functions for reactant products and its
-Jacobian, and derivatives with respect to rate coefficients
-(Sect. `4.1.14 <#sec:output-stoichiom>`__). The declaration and
+#. The global parameters (see :ref:`table-par`) are :code:`#include`-d in
+   the header file :file:`ROOT_Parameters.h`
+
+#. The global variables (see :ref:`table-glob`) are extern-declared in
+   :file:`ROOT_Global.h` and declared in the driver file :file:`ROOT.c`.
+
+#. The header file :file:`ROOT_Sparse.h` contains extern declarations
+   of sparse data structures for the Jacobian (see
+   :ref:`table-jac`),Hessian (see :ref:`table-hess`) and stoichiometric
+   matrix (see :ref:`table-sto`), and the Jacobian of reaction
+   products (see :ref:`table-jvrp`). The actual declarations of each
+   datastructures is done in the corresponding files.
+
+The code for the ODE function (see section :ref:`Function`) is in
+:file:`ROOT_Function.c`.  The code for the ODE Jacobian and sparse
+multiplications (see :ref:`Jacobian-and-JacobianSP`) is in
+:file:`ROOT_Jacobian.c`, and the declaration and initialization of the
+Jacobian sparse data structures is in the file
+:file:`ROOT_JacobianSP.c`.  Similarly, the Hessian function and
+associated sparse multiplications  (see :ref:`Hessian-and-HessianSP`)
+are in :file:`ROOT_Hessian.c`, and the declaration and initialization
+of Hessian sparse data structures are in :file:`ROOT_HessianSP.c`.
+
+The file :file:`ROOT_Stoichiom.c` contains the functions for reactant
+products and its Jacobian, and derivatives with respect to rate coefficients
+(see :ref:`Stoichiom-and-StoichiomSP`) . The declaration and
 initialization of the stoichiometric matrix and the associated sparse
-data structures (Tables `7 <#tab:sparse-stoicm>`__ and
-`8 <#tab:sparse-jvrp>`__) is done in root.
+data structures (see :ref:`table-sto`) is done in :file:`ROOT_StoichiomSP.c`.
 
-Sparse linear algebra routines (Sect. `4.1.13 <#sec:output-la>`__) are
-in the file root. The code to update the rate constants and user defined
-code for rate laws is in root.
+Sparse linear algebra routines (see :ref:`LinearAlgebra`) are
+in the file :file:`ROOT_LinearAlgebra.c`.  The code to update the rate
+constants and user defined code for rate laws is in :file:`ROOT_Rates.c`.
 
-Various utility and input/output functions
-(Sect. `4.1.16 <#sec:output-utility>`__) are in root and root.
+Various utility and input/output functions (see :ref:`Util`) are in
+:file:`ROOT_Util.c` and :file:`ROOT_Monitor.c`.
 
 Finally, mex gateway routines that allow the C implementation of the ODE
 function, Jacobian, and Hessian to be called directly from Matlab
-(Sect. `4.1.17 <#sec:output-mexcode>`__) are also generated (in the
-files root, root, and root).
+(see :ref:`Mex-code`) are also generated (in the files
+:file:`ROOT_mex_Fun.c`, :file:`ROOT_mex_Jac_SP.c`, and
+:file:`ROOT_mex_Hessian.c`).
 
 .. _f77-code:
 
@@ -778,45 +977,52 @@ The Fortran77 Code
 ==================
 
 The general layout of the Fortran77 code is similar to the layout of the
-C code. The driver file root contains the main (driver) and numerical
+C code. The driver file :file:`ROOT.f` contains the main (driver) and numerical
 integrator functions.
 
-The generated Fortran77 code includes three header files. The global
-parameters (Table `3 <#tab:parameters>`__) are defined as parameters and
-initialized in the header file root. The global variables
-(Table `4 <#tab:global>`__) are declared in root as common block
-variables. There are global common blocks for real (), integer (), and
-character () global data. They can be accessed from within each program
-unit that includes the global header file.
+The generated Fortran77 code includes three header files.
 
-The header file root contains common block declarations of sparse data
-structures for the Jacobian (Table `5 <#tab:sparse-jac>`__), Hessian
-(Table `6 <#tab:sparse-hess>`__), stoichiometric matrix
-(Table `7 <#tab:sparse-stoicm>`__), and the Jacobian of reaction
-products (Table `8 <#tab:sparse-jvrp>`__). These sparse data structures
-are initialized in four named block data statements: (in root), (in
-root), and (in root).
+#. The global parameters (see :ref:`table-par`) are defined as
+   parameters and initialized in the header file
+   :file:`ROOT_Parameters.h`.
 
-The code for the ODE function (Sect. `4.1.10 <#sec:output-ode-fun>`__)
-is in root. The code for the ODE Jacobian and sparse multiplications
-(Sect. `4.1.11 <#sec:output-ode-jac>`__) is in root. The Hessian
-function and associated sparse multiplications
-(Sect. `4.1.12 <#sec:output-ode-hess>`__) are in root.
+#. The global variables (see :ref:`table-glob`) are declared in root as
+   common block variables. There are global common blocks for real
+   (:code:`GDATA`), integer (:code:`INTGDATA`), and character
+   (:code:`CHARGDATA`) global data. They can be accessed from
+   within each program unit that includes the global header file.
 
-The file root contains the functions for reactant products and its
-Jacobian, and derivatives with respect to rate coefficients
-(Sect. `4.1.14 <#sec:output-stoichiom>`__). The declaration and
+#. The header file :file:`ROOT_Sparse.h` contains common block
+   declarations of sparse data structures for the Jacobian (see
+   :ref:`table-jac`), Hessian (see :ref:`table-hess`), stoichiometric
+   matrix (see :ref:`table-sto`), and the Jacobian of reaction products
+   (see :ref:`table-jvrp`). These sparse data structures are initialized
+   in four named block data statements: :code:`JACOBIAN_SPARSE_DATA`
+   (in :file:`ROOT_JacobianSP.f`, :code:`HESSIAN_SPARSE_DATA` (in
+   :file:`ROOT_HessianSP.f`), :code:`JVRP_SPARSE_DATA`, and
+   :file:`STOICH_MATRIX` (in :file:`ROOT_StoichiomSP.f`).
+
+The code for the ODE function (see :ref:`Function`) is in
+:file:`ROOT_Function.f`.  The code for the ODE Jacobian and sparse
+multiplications (see :ref:`Jacobian-and-JacobianSP`) is in
+:file:`ROOT_Jacobian.f`.  The Hessian function and associated sparse
+multiplications (see :ref:`Hessian-and-HessianSP`) are in
+:file:`ROOT_Hessian.f`.
+
+The file :file:`ROOT_Stoichiom.f` contains the functions for reactant
+products and its Jacobian, and derivatives with respect to rate coefficients
+(see :ref:`Stoichiom-and-StoichiomSP`). The declaration and
 initialization of the stoichiometric matrix and the associated sparse
-data structures (Tables `7 <#tab:sparse-stoicm>`__ and
-`8 <#tab:sparse-jvrp>`__) is done in the block data statement.
+data structures (see :ref:`table-sto` and :ref:`table-jvrp`) is done in the
+block data statement.
 
-Sparse linear algebra routines (Sect. `4.1.13 <#sec:output-la>`__) are
-in the file root. The code to update the rate constants is in root, and
-the utility and input/output functions
-(Sect. `4.1.16 <#sec:output-utility>`__) are in root and root.
+Sparse linear algebra routines (see :ref:`LinearAlgebra`) are
+in the file :file:`ROOT_LinearAlgebra.f`. The code to update the rate
+constants is in :file:`ROOT_Rates.f`, and uhe utility and input/output functions
+(see :ref:`Util`) are in :file:`ROOT_Util.f` and :file:`ROOT_Monitor.f`.
 
 Matlab-mex gateway routines for the ODE function, Jacobian, and Hessian
-are discussed in Sect. `4.1.17 <#sec:output-mexcode>`__.
+are discussed in the section entitled :ref:`Mex-code`.
 
 .. _matlab-code:
 
@@ -824,7 +1030,7 @@ are discussed in Sect. `4.1.17 <#sec:output-mexcode>`__.
 The Matlab Code
 ===============
 
-Matlab (http://www.mathworks.com/products/matlab/) provides a high-level
+`Matlab <http://www.mathworks.com/products/matlab/>`_ provides a high-level
 programming environment that allows algorithm development, numerical
 computations, and data analysis and visualization. The KPP-generated
 Matlab code allows for a rapid prototyping of chemical kinetic schemes,
@@ -840,12 +1046,11 @@ numerical simulations.
 Each Matlab function has to reside in a separate m-file. Function calls
 use the m-function-file names to reference the function. Consequently,
 KPP generates one m-function-file for each of the functions discussed in
-Sections `4.1.10 <#sec:output-ode-fun>`__,
-`4.1.11 <#sec:output-ode-jac>`__, `4.1.12 <#sec:output-ode-hess>`__,
-`4.1.13 <#sec:output-la>`__, `4.1.14 <#sec:output-stoichiom>`__, and
-`4.1.16 <#sec:output-utility>`__. The names of the m-function-files are
-the same as the names of the functions (prefixed by the model name
-root).
+the sections entitled :ref:`Function` ,
+:ref:`Jacobian-and-JacobianSP`, :ref:`Hessian-and-HessianSP`,
+:ref:`Stoichiom-and-StoichiomSP`, :ref:`Util`.  The names of the
+m-function-files are the same as the names of the functions (prefixed
+by the model name :code:`ROOT`.
 
 The Matlab syntax for calling each function is
 
@@ -855,61 +1060,88 @@ The Matlab syntax for calling each function is
    [JVS ] = Jac_SP (V, F, RCT);
    [HESS] = Hessian(V, F, RCT);
 
-The global parameters (Table `3 <#tab:parameters>`__) are defined as
-Matlab variables and initialized in the file root. The variables of
-Table `4 <#tab:global>`__ are declared as Matlab variables in the file
-root. They can be accessed from within each Matlab function by using
-declarations of the variables of interest.
+The variables of :ref:`table-par` are defined as Matlab :code:`global` variables and
+initialized in the file :file:`ROOT_parameter_defs.m`. The variables of
+:ref:`table-glob` are declared as Matlab :code:`global` variables in the file
+:file:`ROOT_global_defs.m`. They can be accessed from within each
+Matlab function by using declarations of the variables of interest.
 
-The sparse data structures for the Jacobian
-(Table `5 <#tab:sparse-jac>`__), the Hessian
-(Table `6 <#tab:sparse-hess>`__), the stoichiometric matrix
-(Table `7 <#tab:sparse-stoicm>`__), and the Jacobian of reaction
-products (Table `8 <#tab:sparse-jvrp>`__) are declared as Matlab
-variables in the file root. They are initialized in separate m-files,
-namely root root, and root respectively.
+The sparse data structures for the Jacobian (see :ref:`table-jac`), the Hessian
+(see :ref:`table-hess`), the stoichiometric matrix (see :ref:`table-sto`),
+and the Jacobian of reaction (see :ref:`table-jvrp`) are declared as
+Matlab :code:`global` variables in the file
+:file:`ROOT_Sparse_defs.m`.  They are initialized in separate m-files,
+namely :file:`ROOT_JacobianSP.m`, :file:`ROOT_HessianSP.m`, and
+:file:`ROOT_StoichiomSP.m` respectively.
 
-Two wrappers (root and root) are provided for interfacing the ODE
-function and the sparse ODE Jacobian with Matlab’s suite of ODE
-integrators. Specifically, the syntax of the wrapper calls matches the
-syntax required by Matlab’s integrators like ode15s. Moreover, the
-Jacobian wrapper converts the sparse KPP format into a Matlab sparse
-matrix.
+Two wrappers (:file:`ROOT_Fun_Chem.m` and :file:`ROOT_Jac_SP_Chem.m`) are
+provided for interfacing the ODE function and the sparse ODE Jacobian
+with Matlab’s suite of ODE integrators. Specifically, the syntax of
+the wrapper calls matches the syntax required by Matlab’s integrators
+like ode15s. Moreover, the Jacobian wrapper converts the sparse KPP
+format into a Matlab sparse matrix.
 
-.. container:: table*
+.. _table-matlab:
 
-   .. container:: center
+.. table:: Table 16: List of Matlab model files
+   :align: center
 
-      ==== ============================================================
-      File Description
-      root driver
-      root Global parameters
-      root Global variables
-      root Global monitor variables
-      root Global sparsity data
-      root Template for ODE function
-      root ODE function
-      root Template for ODE Jacobian
-      root ODE Jacobian in sparse format
-      root Sparsity data structures
-      root ODE Hessian in sparse format
-      root Sparsity data structures
-      root Hessian action on vectors
-      root Transposed Hessian action on vectors
-      root Derivatives of Fun and Jac with respect to rate coefficients
-      root Sparse data
-      root Reactant products
-      root Jacobian of reactant products
-      root User-defined reaction rate laws
-      root Update photolysis rate coefficients
-      root Update all rate coefficients
-      root Update solar intensity
-      root Check mass balance for selected atoms
-      root Set initial values
-      root Shuffle concentration vector
-      root Shuffle concentration vector
-      \
-      ==== ============================================================
+   +----------------------------------+-------------------------------------+
+   | Function                         | Description                         |
+   +==================================+=====================================+
+   | :file:`ROOT.m`                   | Driver                              |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_parameter_defs.m`    | Global parameters                   |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_global_defs.m`       | Global variables                    |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_sparse_defs.m`       | Global sparsity data                |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_Fun_Chem.m`          | Template for ODE function           |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_Fun.m`               | ODE function                        |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_Jac_Chem.m`          | Template for ODE Jacobian           |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_Jac_SP.m`            | Jacobian in sparse format           |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_JacobianSP.m`        | Sparsity data structures            |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_Hessian.m`           | ODE Hessian in sparse format        |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_HessianSP.m`         | Sparsity data structures            |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_Hess_Vec.m`          | Hessian action on vectors           |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_HessTR_Vec.m`        | Transposed Hessian action on        |
+   |                                  | vectors                             |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_stoichiom.m`         | Derivatives of Fun and Jac w/r/t    |
+   |                                  | rate coefficients                   |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_stochiomSP.m`        | Sparse data                         |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_ReactantProd.m`      | Reactant products                   |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_JacReactantProd.m`   | Jacobian of reactant products       |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_Rates.m`             | User-defined rate reaction laws     |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_Update_PHOTO.m`      | Update photolysis rate coefficients |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_Update_RCONST.m`     | Update all rate coefficients        |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_Update_SUN.m`        | Update sola intensity               |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_GetMass.m`           | Check mass balance for selected     |
+   |                                  | atoms                               |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_Initialize.m`        | Set initial values                  |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_Shuffle_kpp2user.m`  | Shuffle concentration vector        |
+   +----------------------------------+-------------------------------------+
+   | :file:`ROOT_Shuffle_user2kpp.m`  | Shuffle concentration vector        |
+   +----------------------------------+-------------------------------------+
 
 .. _Map:
 
@@ -917,9 +1149,9 @@ matrix.
 The map file
 ============
 
-The map file root contains a summary of all the functions, subroutines
-and data structures defined in the code file, plus a summary of the
-numbering and category of the species involved.
+The map file :file:`ROOT.map` contains a summary of all the functions,
+subroutines and data structures defined in the code file, plus a
+summary of the numbering and category of the species involved.
 
 This file contains supplementary information for the user. Several
 statistics are listed here, like the total number equations, the total

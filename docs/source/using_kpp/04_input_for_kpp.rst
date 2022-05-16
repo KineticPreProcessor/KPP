@@ -51,7 +51,7 @@ mechanism.
 KPP sections
 ============
 
-A sign at the beginning of a line followed by a section name starts a
+A :code:`#` sign at the beginning of a line followed by a section name starts a
 new KPP section. Then a list of items separated by semicolons follows. A
 section ends when another KPP section or command occurs, i.e. when
 another sign occurs at the beginning of a line. The syntax of an item
@@ -173,10 +173,7 @@ parameterize organic reactions that branch into several side reactions:
 .. code-block:: console
 
    CH4 + O1D = .75 CH3O2 + .75 OH + .25 HCHO
-               + .4 H + .05 H2 : k_CH4_O1D;
-
-**((TODO: CHECK IF THE FOLLOWING DESCRIPTION OF PROD AND HV IS
-CORRECT))**
+               + 0.4 H + .05 H2 : k_CH4_O1D;
 
 KPP provides two pre-defined dummy species: and . Using dummy species
 does not affect the numerics of the integrators. It only serves to
@@ -333,7 +330,7 @@ included in the transport calculations.
 KPP commands
 ============
 
-A command begins on a new line with a sign, followed by a command name
+A command begins on a new line with a :code:`#` sign, followed by a command name
 and one or more parameters.  Details about each command are given in
 the following subsections.
 
@@ -656,10 +653,9 @@ more lines of code follow, written in the target language (Fortran90,
 Fortran77, C, or Matlab) as specified by the *inline_type*. The
 inlined code ends with :command:`#ENDINLINE`. The code is inserted
 into the KPP output at a position which is also
-determined by *inline_type* as explained in the table
-:ref:`list-of-inlined-types` below.  If two inline commands with the
-same inline type are declared, then the contents of the second is
-appended to the first one.
+determined by *inline_type* as explained in :ref:`table-inl-type`. If two
+inline commands with the same inline type are declared, then the
+contents of the second is appended to the first one.
 
 .. _list-of-inlined-types:
 
@@ -668,9 +664,12 @@ List of inlined types
 
 In this manual, we show the inline types for Fortran90. The inline
 types for the other languages are produced by replacing :code:`F90_`
-by :code:`F77`, :code:`C`, or :code:`matlab`, respectively.
+by :code:`F77`, :code:`C`, or :code:`matlab`, respectively, as shown
+in Table 1:
 
-.. table:: KPP inlined types
+.. _table-inl-type:
+
+.. table:: Table 1: KPP inlined types
    :align: center
 
    +---------------------+------+---------------------+---------------------+
@@ -838,9 +837,12 @@ in the generated Fortran90 output file.
 List of auxiliary files for Fortran 90
 ---------------------------------------
 
-KPP inline codes or other instructions contained in the following files:
+KPP inline codes or other instructions contained in the following
+files, as shown in :ref:`table-aux-files`.
 
-.. table:: Auxiliary files for Fortran90
+.. _table-aux-files:
+
+.. table:: Table 2: Auxiliary files for Fortran90
    :align: center
 
    +-----------------------------+--------------------------------------------+
@@ -878,9 +880,11 @@ List of symbols replaced by the substitution preprocessor
 ----------------------------------------------------------
 
 The following symbols in KPP-generated source code will be replaced
-with corresponding values, as highlighted in the table below.
+with corresponding values, as highlighted in :ref:`table-sym-repl`.
 
-.. table:: Symbols and their replacements
+.. _table-sym-repl:
+
+.. table:: Table 3: Symbols and their replacements
    :align: center
 
    +--------------------+-------------------------------+---------------------+
