@@ -19,10 +19,6 @@ The Kinetic PreProcessor: KPP
    <a href="https://kpp.readthedocs.io/en/latest/"><img src="https://img.shields.io/readthedocs/kpp?label=ReadTheDocs"></a>
    </p>
 
-.. important:: This documentation is still being converted to the
-	       ReadTheDocs format.  Some pages may appear incomplete.
-	       Please bear with us!
-
 This site provides instructions for :program:`KPP`, the Kinetic PreProcessor.
    
 Contributions (e.g., suggestions, edits, revisions) would be greatly
