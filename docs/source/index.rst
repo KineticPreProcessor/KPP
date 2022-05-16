@@ -51,13 +51,13 @@ understand---let us know!
    tech_info/08_bnf_description_of_kpp_lang.rst
 
 .. toctree::
-   :caption: Citations
+   :caption: KPP Reference
 
    citations/09_acknowledgments.rst
    citations/10_kpp_references.rst
 
 .. toctree::
-   :caption: Help & Reference
+   :caption: Help and Support
 
    reference/known-bugs.rst 
    reference/SUPPORT.rst

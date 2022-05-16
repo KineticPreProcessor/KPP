@@ -37,6 +37,7 @@ extensions = [
     "recommonmark",
 ]
 bibtex_default_style = "refstyle"
+bibtex_reference_style = "author_year"
 
 from pybtex.style.formatting.unsrt import Style as UnsrtStyle
 from pybtex.style.names.lastfirst import NameStyle as LastFirst
@@ -65,15 +66,9 @@ class RefStyle(UnsrtStyle):
 from pybtex.plugin import register_plugin
 register_plugin("pybtex.style.formatting", "refstyle", RefStyle)
 
-
 bibtex_bibliography_header = ""
 bibtex_footbibliography_header = bibtex_bibliography_header
-
-bibtex_bibfiles = [
-    'citations/rolf.bib',
-    'citations/adrian.bib'
-]
-
+bibtex_bibfiles = ["citations/kpp.bib"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

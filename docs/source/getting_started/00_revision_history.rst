@@ -48,7 +48,7 @@ KPP 2.2.3
 
 -  A new function called :code:`k_3rd_iupac` is available, calculating
    third-order rate coefficients using the formula used by IUPAC
-   :raw-latex:`\citep{1610}`.
+   :cite:`2004:IUPAC`.
 
 -  While previous versions of KPP were using :program:`yacc` (yet another
    compiler compiler), the current version has been modified to be
@@ -58,8 +58,7 @@ KPP 2.2.3
 -  The new Runge-Kutta integrators :code:`kpp_sdirk4`, :code`runge_kutta`, and
    :code:`sdirk` were added.
 
--  The new KPP command :code:`#DECLARE` was added (see
-   Sect. `3.2.1 <#sec:command-declare>`__).
+-  The new KPP command :code:`#DECLARE` was added (see :ref:`declare`).
 
 =======
 KPP 2.1
@@ -70,7 +69,7 @@ those which have been available for a longer period. Here we give an
 overview about the recent changes:
 
 -  Fortran90 output has been available since the preliminary version
-   “1.1-f90-alpha12” provided in :raw-latex:`\citet{1666}`.
+   “1.1-f90-alpha12” provided in :cite:`2005:Sander_et_al`.
 
 -  Matlab is a new target language (see Sect. `4.4 <#sec:matlab>`__).
 
@@ -78,17 +77,15 @@ overview about the recent changes:
    integrator, and the corresponding tangent linear and adjoint methods.
 
 -  The KPP-generated Fortran90 code has a different file structure than
-   the C or Fortran77 output (see Sects. `4.2 <#sec:c>`__ and
-   `4.3 <f77>`__).
+   the C or Fortran77 output (see :ref:`f90-code`).
 
 -  An automatically generated Makefile facilitates the compilation of
-   the KPP-generated code (see Sect. `4.1.18 <#sec:output-makefile>`__).
+   the KPP-generated code (see :ref:`Makefile`).
 
 -  Equation tags provide a convenient way to refer to specific chemical
-   reactions (see Sect. `4.1.5 <#sec:output-monitor>`__).
+   reactions (see :ref:`lookat-and-monitor`.
 
 -  The dummy index allows to test if a certain species occurs in the
-   current chemistry mechanism. (see
-   Sect. `3.2.4 <#sec:command-dummyindex>`__).
+   current chemistry mechanism. (see :ref:`dummyindex`)
 
 -  Lines starting with :code:`//` are comment lines.

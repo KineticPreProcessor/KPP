@@ -26,16 +26,24 @@ We use the mechanism with the purpose of illustrating the KPP
 capabilities. However, the software tools are general and can be applied
 to virtually any kinetic mechanism.
 
-We focus on Fortran90. Particularities of the C, Fortran77, and Matlab
-languages are discussed in the :ref:`#LANGUAGE` section.
+We focus on Fortran90. Particularities of the C and Matlab
+languages are discussed in the :ref:`language` section.
+
+.. important::
+
+   Most of the recent KPP developments described in this manual have
+   been added into the Fortran90 language. We look to other members of
+   the KPP user community to spearhead development in C, Matlab, and
+   other languages.
 
 The KPP input files (with suffix :file:`.kpp`) specify the model, the
 target language, the precision, the integrator and the driver, etc. The file
 name (without the suffix :file:`.kpp`) serves as the root name for the
-simulation. In this paper we will refer to this name as root. Since
+simulation. In this paper we will refer to this name as :code:`ROOT`.  Since
 the root name will be incorporated into Fortran90 module names, it can
 only contain valid Fortran90 characters, i.e. letters, numbers, and the
-underscore. To specify a KPP model, write a root file with the following lines:
+underscore. To specify a KPP model, write a :file:`ROOT.kpp` file with
+the following lines:
 
 .. code-block:: console
 
@@ -48,23 +56,23 @@ underscore. To specify a KPP model, write a root file with the following lines:
    #HESSIAN    ON
    #STOICMAT   ON
 
-The target language Fortran90 (i.e. the language of the code generated
+The target language Fortran90 (i.e. the language of the code generated
 by KPP) is selected with the command:
 
 .. code-block:: console
 
    #LANGUAGE Fortran90
 
-Here, we have chosen Fortran90. See `Target language selection
-<target-language-selection_>`_ for other options.
+See the section entitled :ref:`language` for other options.
 
 The data type of the generated model can be switched between
-single/double precision with the command . The command selects a
-specific numerical integration routine (from the templates provided by
-KPP or implemented by the user) and the command selects a specific main
-program. The command selects a specific kinetic mechanism. In our
-example the model definition file includes the species and the equation
-files,
+single/double precision with the command :ref:`double`. The
+:ref:`integrator-and-intfile` commands select a specific numerical
+integration routine (from the templates provided by KPP or implemented
+by the user) and the :ref:`driver` command selects a specific main
+program. The :ref:`model-cmd` command selects a specific kinetic
+mechanism. In our example the model definition file includes the
+species and the equation files,
 
 .. code-block:: console
 
@@ -72,13 +80,15 @@ files,
    #INCLUDE small_strato.eqn
 
 The species file lists all the species in the model. Some of them are
-variable (defined with ), meaning that their concentrations change
-according to the law of mass action kinetics. Others are fixed (defined
-with ), with the concentrations determined by physical and not chemical
-factors. For each species its atomic composition is given (unless the
-user chooses to ignore it). The atom file lists the periodic table of
-elements in an section. The equation file contains the description of
-the equations in an section.
+variable, meaning that their concentrations change according to the
+law of mass action kinetics. Others are fixed, with the concentrations
+determined by physical and not chemical factors. (See
+:ref:`defvar-and-deffix` for more information about variable and fixed
+species.)   For each species its atomic composition is given (unless
+the user chooses to ignore it). The atom file lists the periodic table
+of elements in an :command:`ATOM` section (cf :ref:`atoms`).  The
+equation file contains the description of the equations in an
+:ref:`equations` section.
 
 .. code-block:: console
 
@@ -94,9 +104,10 @@ the equations in an section.
      O2  = O + O;
 
 The chemical kinetic mechanism is specified in the KPP language in the
-file . Each reaction is described as “the sum of reactants equals the
-sum of products” and is followed by its rate coefficient. is the
-normalized sunlight intensity, equal to one at noon and zero at night.
+file :file:`small_strato.eqn`. Each reaction is described as “the sum
+of reactants equals the sum of products” and is followed by its rate
+coefficient. is the normalized sunlight intensity, equal to one at
+noon and zero at night.
 
 .. code-block:: console
 
@@ -124,3 +135,13 @@ Next, compile and run the Fortran90 code:
 
    $ make -f Makefile_small_strato
    $ ./small_strato.exe
+
+This will run a "box-model" simulation forward several steps in time.
+You will see the concentrations of selected species at several
+timesteps displayed to the screen (aka the Unix stdout stream).  You
+can also pipe the output to a log file by using the :command:`tee`
+command, such as:
+
+.. code-block:: console
+
+   $ ./small_strato.exe | tee small_strato.log

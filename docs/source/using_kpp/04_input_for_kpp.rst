@@ -10,7 +10,7 @@ described in the following sections.  Auxiliary files are described in
 the section entitled :ref:`auxiliary-files-and-the-substitution-preprocessor`.
 
 KPP kinetic description files specify the chemical equations, the
-initial values of each of the  pecies involved, the integration
+initial values of each of the species involved, the integration
 parameters, and many other options. The KPP preprocessor parses the
 kinetic description files and generates several output files. Files
 that are written in KPP syntax have one of the suffixes :file:`.kpp`,
@@ -48,7 +48,7 @@ mechanism.
 .. _kpp-sections:
 
 ============
-KPP sections
+KPP Sections
 ============
 
 A :code:`#` sign at the beginning of a line followed by a section name starts a
@@ -209,6 +209,36 @@ These reactions must be merged by adding the rate coefficients:
 
    N2O5 + H2O = 2 HNO3 : k_gas+k_aerosol;
 
+.. _families:
+
+#FAMILIES
+---------
+
+Chemical families (for diagnostic purposes) may be specified in the
+:command:`#FAMILIES` section as shown below.  Family names beginning
+with a :code:`P` denote production, and those beginning with an
+:code:`L` denote loss.
+
+.. code-block:: console
+
+   #FAMILIES
+     POx : O3 + NO2 + 2NO3 + HNO3 + ... etc. add more species as needed ...
+     LOx : O3 + NO2 + 2NO3 + HNO3 + ... etc. add more species as needed ...
+     PCO : CO;
+     LCO : CO;
+     PSO4 : SO4;
+     LCH4 : CH4;
+     PH2O2 : H2O2;
+
+KPP will examine the chemical mechanism and create a dummy species for
+each defined family.  Each dummy species will archive the production
+and loss for the family.  For example, each molecule of CO that is
+produced will be added to the :code:`PCO` dummy species.  Likewise,
+each molecule of CO that is consumed will be added to the :code:`LCO`
+dummy species. This will allow the :code:`PCO` and :code:`LCO` species
+to be later archived for diagnostic purposes. Dummy species for chemical
+families will not be included as active species in the mechanism.
+
 .. _initvalues:
 
 #INITVALUES
@@ -235,7 +265,7 @@ the initial values will be multiplied by this factor before being
 used. If is omitted, it defaults to one.
 
 The information gathered in this section is used to generate the
-subroutine (see the section entitled :ref:`Initialize`). In more complex 3D
+subroutine (cf  :ref:`Initialize`). In more complex 3D
 models, the initial values are usually taken from some input files or
 some global data structures. In this case, may not be needed.
 
@@ -327,7 +357,7 @@ included in the transport calculations.
 .. _kpp-commands:
 
 ============
-KPP commands
+KPP Commands
 ============
 
 A command begins on a new line with a :code:`#` sign, followed by a command name
@@ -358,8 +388,8 @@ arithmetic. :command:`ON` (the default) means use double precision,
 .. important::
 
    We recommend using double precision whenever possible.  Using
-   single precision may lead to integer non-convergence errors caused
-   by roundoff and/or underflow.
+   single precision may lead to integration non-convergence errors
+   caused by roundoff and/or underflow.
 
 .. _driver:
 
@@ -368,7 +398,7 @@ arithmetic. :command:`ON` (the default) means use double precision,
 
 The :command:`#DRIVER` command selects the driver, i.e., the file from
 which the main function is to be taken. The parameter is a file name,
-without suffix. The appropriate suffix (:code:`.f90`, :code:`F90`, :code:`f`,
+without suffix. The appropriate suffix (:code:`.f90`, :code:`F90`,
 :code:`c`, or :code:`m`) is automatically appended.
 
 Normally, KPP tries to find the selected driver file in the directory
@@ -522,7 +552,7 @@ the number of nonzeros to account for the fill-in due to the LU decomposition.
 
 The :command:`#LANGUAGE` command selects the target language in which the
 code file is to be generated. Available options are :command:`Fortran90`,
-:command:`Fortran77`, :command:`C`, or :command:`matlab`.
+:command:`C`, or :command:`matlab`.
 
 .. tip::
 
@@ -564,7 +594,7 @@ bugfix (aka “patch”) version number.
 For example, if :command:`#MINVERSION 2.4.0` is specified, then KPP will
 quit with an error message unless you are using KPP 2.4.0 or later.
 
-.. _model:
+.. _model-cmd:
 
 #MODEL
 ------
@@ -596,9 +626,10 @@ Reordering of the species is performed in order to minimize the fill-in
 during the LU factorization, and therefore preserve the sparsity
 structure and increase efficiency. The reordering is done using a
 diagonal markowitz algorithm. The details are explained in
-:cite:`1996:Sandu_Potra_Damian_and_Carmichael`. The default is
-:command:`ON`.  :command:`OFF` means that KPP does not reorder the
-species. The order of the variables is the order in which the species are declared in the section.
+:cite:`1996:Sandu_et_al`. The default is :command:`ON`.
+:command:`OFF` means that KPP does not reorder the species. The order
+of the variables is the order in which the species are
+declared in the section.
 
 .. _stochastic-simulation:
 
@@ -643,7 +674,7 @@ ending in :code:`.F90` instead.
 .. _inlined-code:
 
 ============
-Inlined code
+Inlined Code
 ============
 
 In order to offer maximum flexibility, KPP allows the user to include
@@ -663,35 +694,35 @@ List of inlined types
 ---------------------
 
 In this manual, we show the inline types for Fortran90. The inline
-types for the other languages are produced by replacing :code:`F90_`
-by :code:`F77`, :code:`C`, or :code:`matlab`, respectively, as shown
-in Table 1:
+types for the other languages are produced by replacing :code:`F90`
+by :code:`C`, or :code:`matlab`, respectively, as shown in
+:ref:`table-inl-type`:
 
 .. _table-inl-type:
 
 .. table:: Table 1: KPP inlined types
    :align: center
 
-   +---------------------+------+---------------------+---------------------+
-   | Inline_type         | File | Placement           | Usage               |
-   +=====================+======+=====================+=====================+
-   | :code:`F90_DATA`    | root | specification       | (obsolete)          |
-   |                     |      | section             |                     |
-   +---------------------+------+---------------------+---------------------+
-   | :code:`F90_GLOBAL`  | root | specification       | global variables    |
-   |                     |      | section             |                     |
-   +---------------------+------+---------------------+---------------------+
-   | :code:`F90_INIT`    | root | subroutine          | integration         |
-   |                     |      |                     | parameters          |
-   +---------------------+------+---------------------+---------------------+
-   | :code:`F90_RATES`   | root | executable section  | rate law functions  |
-   +---------------------+------+---------------------+---------------------+
-   | :code:`F90_RCONST`  | root | subroutine          | statements and      |
-   |                     |      |                     | definitions of rate |
-   |                     |      |                     | coefficients        |
-   +---------------------+------+---------------------+---------------------+
-   | :code:`F90_UTIL`    | root | executable section  | utility functions   |
-   +---------------------+------+---------------------+---------------------+
+   +-----------------+-------------------+---------------------+---------------------+
+   | Inline_type     | File              | Placement           | Usage               |
+   +=================+===================+=====================+=====================+
+   | ``F90_DATA``    | :ref:`Monitor`    | specification       | (obsolete)          |
+   |                 |                   | section             |                     |
+   +-----------------+-------------------+---------------------+---------------------+
+   | ``F90_GLOBAL``  | :ref:`Global`     | specification       | global variables    |
+   |                 |                   | section             |                     |
+   +-----------------+-------------------+---------------------+---------------------+
+   | ``F90_INIT``    | :ref:`Initialize` | subroutine          | integration         |
+   |                 |                   |                     | parameters          |
+   +-----------------+-------------------+---------------------+---------------------+
+   | ``F90_RATES``   | :ref:`Rates`      | executable section  | rate law functions  |
+   +-----------------+-------------------+---------------------+---------------------+
+   | ``F90_RCONST``  | :ref:`Rates`      | subroutine          | statements and      |
+   |                 |                   |                     | definitions of rate |
+   |                 |                   |                     | coefficients        |
+   +-----------------+-------------------+---------------------+---------------------+
+   | ``F90_UTIL``    | :ref:`Util`       | executable section  | utility functions   |
+   +-----------------+-------------------+---------------------+---------------------+
 
 .. _f90-data:
 
@@ -778,7 +809,7 @@ This inline type can be used to define utility subroutines.
 .. _auxiliary-files-and-the-substitution-preprocessor:
 
 =================================================
-Auxiliary files and the substitution preprocessor
+Auxiliary Files and the Substitution Preprocessor
 =================================================
 
 The `auxiliary files <auxiliary-files-for-fortran-90_>`_ are
@@ -788,8 +819,8 @@ preprocessor. This preprocessor replaces `several placeholder symbols
 <list-of-symbols-replaced_>`_ in the template files
 with their particular values in the model at hand. Usually, only
 :code:`KPP_ROOT` and :code:`KPP_REAL` are needed because the other
-values can also be obtained via the variables listed in the :ref:`List
-of inline types` table.
+values can also be obtained via the variables listed in
+:ref:`table-inl-type`.
 
 :code:`KPP_REAL` is replaced by the appropriate single or double
 precision declaration  type. Depending on the target language KPP will
@@ -834,8 +865,8 @@ in the generated Fortran90 output file.
 
 .. _auxiliary-files-for-fortran-90:
 
-List of auxiliary files for Fortran 90
----------------------------------------
+List of Auxiliary Files for Fortran90
+--------------------------------------
 
 KPP inline codes or other instructions contained in the following
 files, as shown in :ref:`table-aux-files`.
@@ -876,7 +907,7 @@ files, as shown in :ref:`table-aux-files`.
 
 .. _list-of-symbols-replaced:
 
-List of symbols replaced by the substitution preprocessor
+List of Symbols Replaced by the Substitution Preprocessor
 ----------------------------------------------------------
 
 The following symbols in KPP-generated source code will be replaced

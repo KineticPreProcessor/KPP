@@ -38,8 +38,6 @@ following subdirectories:
    +-----------------------+-------------------------------------+
    | :file:`code_c.c`      | Generation of C code                |
    +-----------------------+-------------------------------------+
-   | :file:`code_f77.c`    | Generation of F77 code              |
-   +-----------------------+-------------------------------------+
    | :file:`code_f90.c`    | Generation of F90 code              |
    +-----------------------+-------------------------------------+
    | :file:`code_matlab.c` | Generation of Matlab code           |
@@ -78,10 +76,11 @@ following subdirectories:
 
    Contains different function templates useful for the
    simulation. Each template file has a suffix that matches the
-   appropriate target language (:code:`Fortran90`, :code:`Fortran77`,
-   :code:`C`, or :code:`Matlab`). KPP will run the template
-   files through the substitution preprocessor. The user can define
-   their own auxiliary functions by inserting them into the files.
+   appropriate target language (:code:`Fortran90`, :code:`C`, or
+   :code:`Matlab`). KPP will run the template files through the
+   substitution preprocessor (cf. :ref:`list-of-symbols-replaced`).
+   The user can define their own auxiliary functions by inserting them
+   into the files.
 
 .. option:: models/
 
@@ -95,11 +94,11 @@ following subdirectories:
 
    Contains driver templates for chemical simulations. Each
    driver has a suffix that matches the appropriate target language
-   (:code:`Fortran90`, :code:`Fortran77`, :code:`C`, or
-   :code:`Matlab`). JPP will run the appropriate driver through the
-   substitution  preprocessor. The driver template provided with the
-   distribution  works with any example. Users can define here their
-   own driver templates.
+   (:code:`Fortran90`, :code:`C`, or :code:`Matlab`). KPP will run the
+   appropriate driver through the substitution preprocessor
+   (cf. :ref:`list-of-symbols-replaced`). The driver template provided
+   with the distribution works with any example. Users can define here
+   their own driver templates.
 
 .. option:: int/
 
@@ -109,10 +108,10 @@ following subdirectories:
    routine (with the command) and sets the function type, the Jacobian
    sparsity type, the target language, etc. Each integrator template is
    found in a file that ends with the appropriate suffix
-   (:code:`.f90`, :code:`.F90`, :code:`f`, :code:`c`, or
-   :code:`matlab`).  The selected template is processed by the
-   substitution preprocessor. Users can define here their own
-   numerical integration routines.
+   (:code:`.f90`, :code:`.F90`, :code:`c`, or :code:`matlab`).  The
+   selected template is processed by the
+   substitution preprocessor (cf. :ref:`list-of-symbols-replaced`).
+   Users can define here their own numerical integration routines.
 
 .. option:: examples/
 
@@ -298,7 +297,7 @@ an example:
 
       -  ``{ CmdNEWCMD( $2 ); }``
 
--  Maybe add a CI-test:
+-  Add a :ref:`ci-tests`:
 
    -  Create a new directory
 
@@ -307,7 +306,7 @@ an example:
 
 -  Other:
 
-   -  Explain in user manual :
+   -  Explain in user manual:
 
       -  Add to table
 
@@ -419,7 +418,7 @@ Running continuous integration tests on Azure DevOps Pipelines
 
 The files that are needed to run the C-I tests are located in the
 :file:`$KPP_HOME/.ci-pipelines` folder.  They are summarized in
-:ref:`table-ci-pipelines:`:
+:ref:`table-ci-pipelines`.
 
 .. _table-ci-pipelines:
 
@@ -447,12 +446,14 @@ The files that are needed to run the C-I tests are located in the
    |                                     | computer                           |
    +-------------------------------------+------------------------------------+
 
-The :file:`Dockerfile` contains the software environment for Azure Dev
-Pipelines.  You should not have to update this.
+The :file:`Dockerfile` contains the software environment for `Azure
+DevOps Pipelines
+<https://azure.microsoft.com/en-us/services/devops/pipelines/>`_.  You
+should not have to update this file.
 
 File :file:`build_testing.yml` defines the runtime options for Azure
-Dev Pipelines.  The following settings which branches will trigger C-I
-tests:
+DevOps Pipelines.  The following settings determine which branches
+will trigger C-I tests:
 
 .. code-block:: yaml
 
@@ -470,12 +471,13 @@ Currently this is set to trigger the C-I tests when a commit or pull
 request is made to any branch of
 `https://github.com/KineticPreProcessor/KPP
 <https://github.com/KineticPreProcessor/KPP>`_.  This is the
-recommended setting.
+recommended setting.  But you can restrict this so that only pushes or
+pull requests to certain branches will trigger the C-I tests.
 
 File :file:`ci-testing-script.sh` executes all of the C-I tests
-whenever a push or a pull request is made to the KPP Github
-repository.  If you add a new C-I tests, be sure to update the
-:code:`for` loop in this file.
+whenever a push or a pull request is made to the selected branches
+in the KPP Github repository.  If you add new C-I tests, be sure to
+update the:code:`for` loop in this file.
 
 .. _running-ci-tests-locally:
 

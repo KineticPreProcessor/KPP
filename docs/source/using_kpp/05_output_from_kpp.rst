@@ -19,8 +19,6 @@ the file. The files associated with root are named with a
 corresponding prefix :code:`ROOT_`  A short description of each file
 is contained in the following sections.
 
-.. _figure-1:
-
 .. figure:: ../_static/kpp2_use_diagr.png
    :align: center
    :alt: Figure 1: Interdependencies of the KPP-generated files
@@ -36,14 +34,14 @@ All subroutines and functions, global parameters, variables, and
 sparsity data structures  are encapsulated in modules. There is
 exactly one module in each file, and the name of the module is
 identical to the file name but without  the suffix :code:`.f90` or
-:code:`.F90`. :ref:`figure-1` shows how these  modules are related to
-each other. The generated code is consistent with the Fortran90
-standard. It will not exceed the maximum number of 39 continuation
+:code:`.F90`. `Figure 1 (above) <The Fortran90 code_>`_ shows how these modules
+are related to  each other. The generated code is consistent with the
+Fortran90 standard. It will not exceed the maximum number of 39 continuation
 lines. If KPP cannot properly split an expression to keep the number
 of continuation lines below the threshold then it will generate a
 warning message pointing to the location of this expression.
 
-.. tip:: 
+.. tip::
 
    The default Fortran90 file suffix is :code:`.f90`.  To have KPP
    generate Fortran90 code ending in :file:`.F90` instead, add the
@@ -420,18 +418,18 @@ reaction number R9. The sparse data structures for the Jacobian are
 declared and initialized in :file:`ROOT_JacobianSP.f90` (or
 :file:`.F90`). The code for the ODE Jacobian and
 sparse multiplications is in :file:`ROOT_Jacobian.f90` (or
-:file:`.F90`).  
+:file:`.F90`).
 
-.. tip:: 
+.. tip::
 
-   Adding either :command:`#JACOBIAN SPARSE_ROW` or 
+   Adding either :command:`#JACOBIAN SPARSE_ROW` or
    :command:`#JACOBIAN SPARSE_LU_ROW` to the KPP definition file will
    create the file :file:`ROOT_JacobianSP.f90` (or :file:`.F90`).
 
 The Jacobian of the ODE function is automatically constructed by
 KPP. KPP generates the Jacobian subroutine :code:`Jac` or
 :code:`JacSP`  where the latter is generated when the sparse format is
-required. Using the variable species :code:`V`, the fixed 
+required. Using the variable species :code:`V`, the fixed
 species :code:`F`, and the rate coefficients :code:`RCT` as input, the
 subroutine calculates the Jacobian :code:`JVS`. The default data
 structures for the sparse compressed on rows Jacobian
@@ -472,7 +470,7 @@ Jacobian sparse data structure:
    LU_CROW = (/ 1,3,7,12,16,20 /)
    LU_DIAG = (/ 1,4,9,14,19,20 /)
 
-This is visualized in :ref:`figure-2. The sparsity coordinate
+This is visualized in :ref:`figure-2`. The sparsity coordinate
 vectors are computed by KPP and initialized statically. These vectors
 are constant as the sparsity pattern of the Jacobian does not change
 during the computation.
@@ -513,7 +511,7 @@ user-supplied vector without any indirect addressing.
    | :code:`Jac`          | ODE Jacobian in full format                  |
    +----------------------+----------------------------------------------+
 
-.. _Hessian:
+.. _Hessian-and-HessianSP:
 
 ROOT_Hessian and ROOT_HessianSP
 -------------------------------
@@ -521,14 +519,14 @@ ROOT_Hessian and ROOT_HessianSP
 The sparse data structures for the Hessian are declared and initialized
 in :file:`ROOT_Hessian.f90` (or :file:`.F90`). The Hessian
 function and associated sparse multiplications are in
-:code:`ROOT_HessianSP.f90` (or :code:`.F90`). 
+:code:`ROOT_HessianSP.f90` (or :code:`.F90`).
 
-.. tip:: 
+.. tip::
 
    Adding :command:`#HESSIAN ON` to the KPP definition file will
    create the file :file:`ROOT_Hessian.f90` (or :file:`.F90`)
 
-   Additionally, if either :command:`#JACOBIAN SPARSE ROW` or 
+   Additionally, if either :command:`#JACOBIAN SPARSE ROW` or
    :command:`#JACOBIAN SPARSE_LU_ROW` are also added to the KPP
    definition file, the file :file:`ROOT_HessianSP.f90` (or
    :file:`.F90`) will also be created.
@@ -659,7 +657,7 @@ The subroutines :code:`KppSolve` and :code:`KppSolveTr` and use the
 in-place LU factorization :math:`P` as computed by and perform sparse
 backward and forward substitutions (using :math:`P` or its
 transpose). The sparse linear algebra routines and are extremely
-efficient, as shown by :cite:`1996:Sandu_Potra_Damian_and_Carmichael`.
+efficient, as shown by :cite:`1996:Sandu_et_al`.
 
 .. _Stoichiom-and-StoichiomSP:
 
@@ -674,12 +672,12 @@ coefficients. The declaration and initialization of the stoichiometric
 matrix and the associated sparse data structures is done in
 :file:`ROOT_StochiomSP.f90` (or :file:`.F90`)/
 
-.. tip:: 
+.. tip::
 
    Adding :command:`#STOICMAT ON` to the KPP definition file will
    create the file :file:`ROOT_Stoichiom.f90` (or :file:`.F90`)
 
-   Additionally, if either :command:`#JACOBIAN SPARSE ROW` or 
+   Additionally, if either :command:`#JACOBIAN SPARSE ROW` or
    :command:`#JACOBIAN SPARSE_LU_ROW` are also added to the KPP
    definition file, the file :file:`ROOT_StoichiomSP.f90` (or
    :file:`.F90`) will also be created.
@@ -743,7 +741,7 @@ vector, i.e.:
    \end{aligned}
 
 The matrix is sparse and is computed and stored in row compressed sparse
-format, as shown in :ref:`table-9`. The parameter :code:`NJVRP` holds
+format, as shown in :ref:`table-hess-fun`. The parameter :code:`NJVRP` holds
 the number of nonzero elements. For our :code:`small_strato` example:
 
 .. code-block:: F90
@@ -787,7 +785,7 @@ Similarly one can obtain the partial derivative of the Jacobian with
 respect to a subset of the rate coefficients. More exactly, KPP
 generates the subroutine :code:`dJacR_dCoeff`, which calculates
 :code:`DJDR`, the product of this partial derivative with a
- user-supplied vector:
+user-supplied vector:
 
 .. math::
 
@@ -804,7 +802,7 @@ ROOT_Stochastic
 If the generation of stochastic functions is switched on (i.e. when
 the command :command:`#STOCHASTIC ON` is added to the KPP definition
 file), KPP produces the file :code:`ROOT_Stochastic.f90` (or :code:`.F90`),
-with the following functions: 
+with the following functions:
 
 :code:`Propensity` calculates the propensity vector. The propensity
 function uses the number of molecules of variable (:code:`Nmlcv`) and
@@ -876,11 +874,11 @@ ROOT_mex_Fun, ROOT_mex_Jac_SP, and ROOT_mex_Hessian
 
 :program:`Mex` is a Matlab extension. KPP generates the mex
 routines for the ODE function, Jacobian, and Hessian, for the target
-languages C, Fortran77, and Fortran90. 
+languages C, Fortran77, and Fortran90.
 
 .. tip::
 
-   To generate Mex files, add the command :command:`#MEX ON` to the KPP 
+   To generate Mex files, add the command :command:`#MEX ON` to the KPP
    definition file.
 
 After compilation (using
@@ -969,60 +967,6 @@ function, Jacobian, and Hessian to be called directly from Matlab
 (see :ref:`Mex-code`) are also generated (in the files
 :file:`ROOT_mex_Fun.c`, :file:`ROOT_mex_Jac_SP.c`, and
 :file:`ROOT_mex_Hessian.c`).
-
-.. _f77-code:
-
-==================
-The Fortran77 Code
-==================
-
-The general layout of the Fortran77 code is similar to the layout of the
-C code. The driver file :file:`ROOT.f` contains the main (driver) and numerical
-integrator functions.
-
-The generated Fortran77 code includes three header files.
-
-#. The global parameters (see :ref:`table-par`) are defined as
-   parameters and initialized in the header file
-   :file:`ROOT_Parameters.h`.
-
-#. The global variables (see :ref:`table-glob`) are declared in root as
-   common block variables. There are global common blocks for real
-   (:code:`GDATA`), integer (:code:`INTGDATA`), and character
-   (:code:`CHARGDATA`) global data. They can be accessed from
-   within each program unit that includes the global header file.
-
-#. The header file :file:`ROOT_Sparse.h` contains common block
-   declarations of sparse data structures for the Jacobian (see
-   :ref:`table-jac`), Hessian (see :ref:`table-hess`), stoichiometric
-   matrix (see :ref:`table-sto`), and the Jacobian of reaction products
-   (see :ref:`table-jvrp`). These sparse data structures are initialized
-   in four named block data statements: :code:`JACOBIAN_SPARSE_DATA`
-   (in :file:`ROOT_JacobianSP.f`, :code:`HESSIAN_SPARSE_DATA` (in
-   :file:`ROOT_HessianSP.f`), :code:`JVRP_SPARSE_DATA`, and
-   :file:`STOICH_MATRIX` (in :file:`ROOT_StoichiomSP.f`).
-
-The code for the ODE function (see :ref:`Function`) is in
-:file:`ROOT_Function.f`.  The code for the ODE Jacobian and sparse
-multiplications (see :ref:`Jacobian-and-JacobianSP`) is in
-:file:`ROOT_Jacobian.f`.  The Hessian function and associated sparse
-multiplications (see :ref:`Hessian-and-HessianSP`) are in
-:file:`ROOT_Hessian.f`.
-
-The file :file:`ROOT_Stoichiom.f` contains the functions for reactant
-products and its Jacobian, and derivatives with respect to rate coefficients
-(see :ref:`Stoichiom-and-StoichiomSP`). The declaration and
-initialization of the stoichiometric matrix and the associated sparse
-data structures (see :ref:`table-sto` and :ref:`table-jvrp`) is done in the
-block data statement.
-
-Sparse linear algebra routines (see :ref:`LinearAlgebra`) are
-in the file :file:`ROOT_LinearAlgebra.f`. The code to update the rate
-constants is in :file:`ROOT_Rates.f`, and uhe utility and input/output functions
-(see :ref:`Util`) are in :file:`ROOT_Util.f` and :file:`ROOT_Monitor.f`.
-
-Matlab-mex gateway routines for the ODE function, Jacobian, and Hessian
-are discussed in the section entitled :ref:`Mex-code`.
 
 .. _matlab-code:
 
