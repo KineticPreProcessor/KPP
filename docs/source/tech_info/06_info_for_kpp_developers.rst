@@ -1,4 +1,3 @@
-
 .. _developer-info:
 
 ##############################
@@ -16,79 +15,132 @@ files. KPP can be very easily configured to suit a broad class of users.
 KPP directory structure
 =======================
 
-.. container:: center
-
-   .. container::
-      :name: tab:source
-
-      .. table:: Source code files
-
-         ==== =================================
-         File Description
-         \    main program
-         \    generic code generation functions
-         \    header file
-         \    generation of C code
-         \    generation of Fortran77 code
-         \    generation of Fortran90 code
-         \    generation of matlab code
-         \    debugging output
-         \    header file
-         \    header file
-         \    generic code generation functions
-         \    flex/bison-generated file
-         \    input for flex and bison
-         \    input for flex
-         \    input for bison
-         \    evaluate parsed input
-         \    evaluate parsed input
-         \    flex/bison-generated file
-         \    flex/bison-generated header file
-         \
-         ==== =================================
-
-The KPP distribution will unfold a directory ``$KPP_HOME`` with the
+The KPP distribution will unfold a directory :envvar:`$KPP_HOME` with the
 following subdirectories:
 
--  **src/** Contains the KPP source code files, as listed in
-   Table `9 <#tab:source>`__.
+.. option:: src/
 
--  **bin/** Contains the KPP executable. The path to this directory
+   Contains the KPP source code files, as listed in :ref:`table-kpp-dirs`.
+
+.. _table-kpp-dirs:
+
+.. table:: Table 17. KPP source code files
+   :align: center
+
+   +-----------------------+-------------------------------------+
+   | File                  | Description                         |
+   +=======================+=======+=============================+
+   | :file:`kpp.c`         | Main program                        |
+   +-----------------------+-------------------------------------+
+   | :file:`code.c`        | generic code generation functions   |
+   +-----------------------+-------------------------------------+
+   | :file:`code.h`        | Header file                         |
+   +-----------------------+-------------------------------------+
+   | :file:`code_c.c`      | Generation of C code                |
+   +-----------------------+-------------------------------------+
+   | :file:`code_f77.c`    | Generation of F77 code              |
+   +-----------------------+-------------------------------------+
+   | :file:`code_f90.c`    | Generation of F90 code              |
+   +-----------------------+-------------------------------------+
+   | :file:`code_matlab.c` | Generation of Matlab code           |
+   +-----------------------+-------------------------------------+
+   | :file:`debug.c`       | Debugging output                    |
+   +-----------------------+-------------------------------------+
+   | :file:`gdata.h`       | Header file                         |
+   +-----------------------+-------------------------------------+
+   | :file:`gdef.h`        | Header file                         |
+   +-----------------------+-------------------------------------+
+   | :file:`gen.c`         | Generic code generation functions   |
+   +-----------------------+-------------------------------------+
+   | :file:`lex.yy.c`      | Flex/Bison generated file           |
+   +-----------------------+-------------------------------------+
+   | :file:`scan.h`        | Input for Flex and Bison            |
+   +-----------------------+-------------------------------------+
+   | :file:`scan.l`        | Input for Flex                      |
+   +-----------------------+-------------------------------------+
+   | :file:`scan.y`        | Input for Bison                     |
+   +-----------------------+-------------------------------------+
+   | :file:`scanner.c`     | Evaluate parsed input               |
+   +-----------------------+-------------------------------------+
+   | :file:`scanutil.c`    | Evaluate parsed input               |
+   +-----------------------+-------------------------------------+
+   | :file:`y.tab.c`       | Flex/Bison generated file           |
+   +-----------------------+-------------------------------------+
+   | :file:`y.tab.h`       | Flex/Bison generated header file    |
+   +-----------------------+-------------------------------------+
+
+.. option:: bin/
+
+   Contains the KPP executable. The path to this directory
    needs to be added to the environment variable.
 
--  **util/** Contains different function templates useful for the
+.. option:: util/
+
+   Contains different function templates useful for the
    simulation. Each template file has a suffix that matches the
-   appropriate target language (, , , or ). KPP will run the template
+   appropriate target language (:code:`Fortran90`, :code:`Fortran77`,
+   :code:`C`, or :code:`Matlab`). KPP will run the template
    files through the substitution preprocessor. The user can define
    their own auxiliary functions by inserting them into the files.
 
--  **models/** Contains the description of the chemical models. Users
+.. option:: models/
+
+   Contains the description of the chemical models. Users
    can define their own models by placing the model description files in
    this directory. The KPP distribution contains several models from
    atmospheric chemistry which can be used as templates for model
    definitions.
 
--  **drv/** Contains driver templates for chemical simulations. Each
-   driver has a suffix that matches the appropriate target language (, ,
-   , or ). KPP will run the appropriate driver through the substitution
-   preprocessor. The driver template provided with the distribution
-   works with any example. Users can define here their own driver
-   templates.
+.. option:: drv/
 
--  **int/** Contains numerical time stepping (integrator) routines. The
+   Contains driver templates for chemical simulations. Each
+   driver has a suffix that matches the appropriate target language
+   (:code:`Fortran90`, :code:`Fortran77`, :code:`C`, or
+   :code:`Matlab`). JPP will run the appropriate driver through the
+   substitution  preprocessor. The driver template provided with the
+   distribution  works with any example. Users can define here their
+   own driver templates.
+
+.. option:: int/
+
+   Contains numerical time stepping (integrator) routines. The
    command “*integrator*” will force KPP to look into this directory for
    a definition file *integrator*. This file selects the numerical
    routine (with the command) and sets the function type, the Jacobian
    sparsity type, the target language, etc. Each integrator template is
-   found in a file that ends with the appropriate suffix (, , , or ).
-   The selected template is processed by the substitution preprocessor.
-   Users can define here their own numerical integration routines.
+   found in a file that ends with the appropriate suffix
+   (:code:`.f90`, :code:`.F90`, :code:`f`, :code:`c`, or
+   :code:`matlab`).  The selected template is processed by the
+   substitution preprocessor. Users can define here their own
+   numerical integration routines.
 
--  **examples/** Contains several model description examples ( files)
+.. option:: examples/
+
+   Contains several model description examples (:file:`.kpp` files)
    which can be used as templates for building simulations with KPP.
 
--  **site-lisp/** Contains the file which provides a KPP mode for emacs
-   with color highlighting.
+.. option:: site-lisp/
+
+   Contains the file which provides a KPP mode for emacs with color
+   highlighting.
+
+.. option:: ci-tests
+
+   Folders that define several continuous integraton test.  Each
+   folder contains the following files (or symbolic links):
+
+   For more information, please see :ref:`ci-tests`.
+
+.. option:: .ci-pipelines/
+
+   Hidden folder containing a YAML file with settings for automatically
+   running the continuous integration tests on `Azure DevOps Pipelines
+   <https://azure.microsoft.com/en-us/services/devops/pipelines/>`_
+
+   Also contains bash scripts (ending in :file:`.sh`) for running the
+   continuous integration tests either automatically in Azure Dev
+   Pipelines, or manually from the command line.  For more
+   information, please see :ref:`ci-tests`.
 
 .. _kpp-env-vars:
 
@@ -108,38 +160,40 @@ There are also several optional environment variable that control the places
 where KPP looks for module files, integrators, and drivers.  All KPP
 environment variables are summarized in the subsections below.
 
-KPP_HOME
---------
-Required, stores the absolute path to the KPP distribution.
+.. option:: KPP_HOME
+
+   Required, stores the absolute path to the KPP distribution.
 
 Default setting: none
 
-KPP_MODEL
----------
-Optional, specifies additional places where KPP will look for model
-files before searching the default location.
+.. option:: KPP_MODEL
 
-Default setting: :file:`$KPP_HOME/models`.
+   Optional, specifies additional places where KPP will look for model
+   files before searching the default location.
 
-KPP_INT
--------
-Optional, specifies additional places where KPP will look for integrator files before searching the default.
+   Default setting: :file:`$KPP_HOME/models`.
 
-Default setting: :file:`$KPP_HOME/int`.
+.. option:: KPP_INT
 
-KPP_DRV
--------
+   Optional, specifies additional places where KPP will look for
+   integrator files before searching the default.
 
-Optional specifies additional places where KPP will look for driver
-files before searching the default folder.
+   Default setting: :file:`$KPP_HOME/int`.
 
-Default setting: :file:`$KPP_HOME/drv`
+.. option:: KPP_DRV
+
+   Optional specifies additional places where KPP will look for driver
+   files before searching the default folder.
+
+   Default setting: :file:`$KPP_HOME/drv`
 
 .. _kpp-internal-modules:
 
 ====================
 KPP internal modules
 ====================
+
+.. _scanner-parser:
 
 Scanner and Parser
 ------------------
@@ -170,6 +224,8 @@ cause of the error can be identified, therefore the error messages are
 very precise. Some other errors like mass balance, and equation
 duplicates, are tested at the end of this phase.
 
+.. _species-reordering:
+
 Species reordering
 ------------------
 
@@ -183,6 +239,8 @@ structure of the Jacobian is required, it might be better to reorder the
 species in such a way that the factorization of the Jacobian will
 preserve the sparsity. This reordering is done using a Markovitz type of
 algorithm.
+
+.. _expression-trees:
 
 Expression trees computation
 ----------------------------
@@ -200,6 +258,8 @@ constant vector. At the end these expression trees are simplified.
 Similar approaches are applied to function declaration and prototypes,
 data declaration and initialization.
 
+.. _code-generation:
+
 Code generation
 ---------------
 
@@ -211,6 +271,8 @@ initializations, comments, function prototypes, etc. Each of these
 functions produce the code into an output buffer. A language specific
 routine reads from this buffer and splits the statements into lines to
 improve readability of the generated code.
+
+.. _adding-new-commands:
 
 Adding new KPP commands
 -----------------------
@@ -240,7 +302,8 @@ an example:
 
    -  Create a new directory
 
-   -  Add new CI-test to and in the directory
+   -  Add new :ref:`ci-tests` to the :file:`ci-tests` folder and
+      update the scripts in :file:`.ci-pipelines` folder.
 
 -  Other:
 
@@ -251,3 +314,194 @@ an example:
       -  Add a section
 
       -  Add to BNF description table
+
+.. _ci-tests:
+
+============================
+Continuous Integration Tests
+============================
+
+In KPP 2.4.0 and later, we have added several continuous integration
+(aka C-I) tests.  These are tests which compile the KPP source code into
+an executable, build a sample chemistry mechanism, and run
+a short "box model" simulation.  This helps to ensure that new
+features and updates added to KPP will not break any existing
+functionality.
+
+The continuous integration tests will run automatically on `Azure
+DevOps Pipelines
+<https://azure.microsoft.com/en-us/services/devops/pipelines/>`_ each time a
+commit is pushed to the `KPP Github repository
+<https://github.com/KineticPreProcessor/KPP>`_.  You can also run the
+integration tests locally on your own computer, as shown in the
+following section.
+
+.. _list-of-ci-tests:
+
+List of continuous integration tests
+------------------------------------
+
+:ref:`table-ci-tests` lists the C-I tests that are available in KPP
+2.5.0.  All of the tests use the Fortran90 language.
+
+.. _table-ci-tests:
+
+.. table:: Table 18. Continuous integration tests
+   :align: center
+
+   +-----------------------+------------------------------------------------+
+   | C-I test              | Description                                    |
+   +=======================+================================================+
+   | :file:`radau90`       | Uses the Runge-Kutta radau5 integrator         |
+   |                       | with the SAPRC99 chemical mechanism.           |
+   +-----------------------+------------------------------------------------+
+   | :file:`rk`            | Uses the Runge-Kutta integrator                |
+   |                       | with the small_strato chemical mechanism.      |
+   +-----------------------+------------------------------------------------+
+   | :file:`rktlm`         | Same as :file:`rk`, but uses the Runge-Kutta   |
+   |                       | tangent-linear-model integrator.               |
+   +-----------------------+------------------------------------------------+
+   | :file:`ros`           | Uses the Rosenbrock integrator                 |
+   |                       | with the small_strato chemical mechanism.      |
+   +-----------------------+------------------------------------------------+
+   | :file:`rosadj`        | Same as :file:`ros`, but uses the Rosenbrock   |
+   |                       | adjoint integrator.                            |
+   +-----------------------+------------------------------------------------+
+   | :file:`rostlm`        | Same as :file:`ros`, but uses the Rosenbrock   |
+   |                       | tangent linear method integrator.              |
+   +-----------------------+------------------------------------------------+
+   | :file:`rosenbrock90`  | Uses the Rosenbrock integrator with the        |
+   |                       | SAPRC99 chemical mechanism.                    |
+   +-----------------------+------------------------------------------------+
+   | :file:`ros_minver`    | Same as :file:`rosenbrock90`, but tests the    |
+   |                       | :command:`#MINVERSION` command. This test      |
+   |                       | is successful if the bulding of the            |
+   |                       | mechanism fails with a "KPP version too old"   |
+   |                       | error.                                         |
+   +-----------------------+------------------------------------------------+
+   | :file:`ros_upcase`    | Same as :file:`rosenbrock90`, but tests if     |
+   |                       | KPP can generate Fortran90 code with the       |
+   |                       | :file:`.F90` suffix (i.e. with                 |
+   |                       | :command:`#UPPERCASE ON`.                      |
+   +-----------------------+------------------------------------------------+
+   | :file:`saprc2006`     | Uses the Rosenbrock integrator with the        |
+   |                       | SAPRCNOV chemical mechanism.                   |
+   +-----------------------+------------------------------------------------+
+   | :file:`sd`            | Uses the Runge-Kutta SDIRK integrator          |
+   |                       | with the small_strato chemical mechanism.      |
+   +-----------------------+------------------------------------------------+
+   | :file:`sdadj`         | Same as :file:`sdadj`, but uses the            |
+   |                       | Runge-Kutta SDIRK Adjoint integrator.          |
+   +-----------------------+------------------------------------------------+
+   | :file:`small_f90`     | Uses the LSODE integrator with the             |
+   |                       | small_strato chemical mechanism.               |
+   +-----------------------+------------------------------------------------+
+
+Each continuous integration test is contained in a subfolder of
+:file:`$KPP_HOME/ci-tests` and contains the following files (or
+symbolic links to files):
+
+   - A KPP definition file (ending in :file:`.kpp`) from
+     :file:`$KPP_HOME/models/`;
+
+   - Mechanism  definition files (ending in :file:`.def`,
+     :file:`.eqn`, and :file:`.spc`) from  :file:`$KPP_HOME/examples`;
+
+   - A KPP integrator and integrator definition file (ending in
+     :file:`.def`) from :file:`$KPP_HOME/int/`
+
+   - A driver program from :file:`$KPP_HOME/drv`;
+
+.. _running-ci-tests-on-azure:
+
+Running continuous integration tests on Azure DevOps Pipelines
+--------------------------------------------------------------
+
+The files that are needed to run the C-I tests are located in the
+:file:`$KPP_HOME/.ci-pipelines` folder.  They are summarized in
+:ref:`table-ci-pipelines:`:
+
+.. _table-ci-pipelines:
+
+.. table:: Table 19. Files needed to execute C-I tests
+   :align: center
+
+   +-------------------------------------+------------------------------------+
+   | File                                | Description                        |
+   +=====================================+====================================+
+   | :file:`Dockerfile`                  | Docker container with software     |
+   |                                     | libraries for Azure DevOps         |
+   |                                     | Pipelines                          |
+   +-------------------------------------+------------------------------------+
+   | :file:`build_testing.yml`           | Options for triggering C-I tests   |
+   |                                     | on Azure DevOps Pipelines          |
+   +-------------------------------------+------------------------------------+
+   | :file:`ci-testing-script.sh`        | Driver script for running C-I      |
+   |                                     | tests on Azure DevOps Pipelines    |
+   +-------------------------------------+------------------------------------+
+   | :file:`ci-manual-testing-script.sh` | Driver script for running C-I      |
+   |                                     | tests on a local computer          |
+   +-------------------------------------+------------------------------------+
+   | :file:`ci-manual-cleanup-script.sh` | Script to remove files generated   |
+   |                                     | when running C-I tests on a local  |
+   |                                     | computer                           |
+   +-------------------------------------+------------------------------------+
+
+The :file:`Dockerfile` contains the software environment for Azure Dev
+Pipelines.  You should not have to update this.
+
+File :file:`build_testing.yml` defines the runtime options for Azure
+Dev Pipelines.  The following settings which branches will trigger C-I
+tests:
+
+.. code-block:: yaml
+
+   # Run a C-I test when a push to any branch is made.
+   trigger:
+     branches:
+       include:
+          - '*'
+   pr:
+     branches:
+       include:
+         - '*'
+
+Currently this is set to trigger the C-I tests when a commit or pull
+request is made to any branch of
+`https://github.com/KineticPreProcessor/KPP
+<https://github.com/KineticPreProcessor/KPP>`_.  This is the
+recommended setting.
+
+File :file:`ci-testing-script.sh` executes all of the C-I tests
+whenever a push or a pull request is made to the KPP Github
+repository.  If you add a new C-I tests, be sure to update the
+:code:`for` loop in this file.
+
+.. _running-ci-tests-locally:
+
+Running continuous integration tests locally
+--------------------------------------------
+
+To run the C-I tests on a local computer system, use these commands:
+
+.. code-block:: console
+
+   $ cd $KPP_HOME/.ci-pipelines
+   ./ci-manual-testing-script.sh | tee ci-tests.log
+
+This will run all of the C-I tests listed in :ref:`table-ci-tests` on
+your own computer system and pipe the results to a log file.  This
+will easily allow you to check if the results of the C-I tests are
+identical to C-I tests that were run on a prior commit or pull
+request.
+
+To remove the files generated by the continuous integration tests, use
+this command:
+
+.. code-block :: console
+
+   $ ./ci-manual-cleanup-script.sh
+
+If you add new C-I tests, be sure to add the name of the new tests to
+the :code:`for` loops in :file:`ci-manual-testing-script.sh` and
+:file:`ci-manual-cleanup-script.sh`.
