@@ -321,7 +321,7 @@ Continuous Integration Tests
 ============================
 
 In KPP 2.4.0 and later, we have added several continuous integration
-(aka C-I) tests.  These are tests which compile the KPP source code into
+(aka C-I) tests.  These are tests that compile the KPP source code into
 an executable, build a sample chemistry mechanism, and run
 a short "box model" simulation.  This helps to ensure that new
 features and updates added to KPP will not break any existing
@@ -333,7 +333,7 @@ DevOps Pipelines
 commit is pushed to the `KPP Github repository
 <https://github.com/KineticPreProcessor/KPP>`_.  You can also run the
 integration tests locally on your own computer, as shown in the
-following section.
+following sections.
 
 .. _list-of-ci-tests:
 

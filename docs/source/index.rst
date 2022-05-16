@@ -5,11 +5,12 @@ The Kinetic PreProcessor: KPP
 .. raw:: html
 
    <h3>An Environment for the<br/>Simuation of Chemical Kinetic Systems</h3>
-   <p><strong>Adrian Sandu<sup>1</sup>, Rolf Sander<sup>2</sup>, Michael Long<sup>3</sup>, Haipeng Lin<sup>3</sup>, and Robert Yantosca<sup>3</sup></strong></p>
+   <p><strong>Adrian Sandu<sup>1</sup>, Rolf Sander<sup>2</sup>, Michael Long<sup>3</sup>, Haipeng Lin<sup>4</sup>, and Robert Yantosca<sup>4</sup></strong></p>
    <p><em>
      <sup>1</sup> Virginia Polytechnic Institute and State University, Blacksburg, VA, USA<br/>
      <sup>2</sup> Max-Planck Institute of Chemistry, Mainz, Germany<br/>
-     <sup>3</sup> Harvard University, Cambridge, MA, USA</em>
+     <sup>3</sup> Renaissance Fiber, LLC, North Carolina, USA.<br/>
+     <sup>4</sup> Harvard University, Cambridge, MA, USA</em>
    </p>
    </hr>
    <p>
