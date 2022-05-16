@@ -537,7 +537,7 @@ char buf[ 200 ];
 
 int KppVersionIsTooOld() {
   //
-  // Deterine if the current KPP version is older than the minimum
+  // Determine if the current KPP version is older than the minimum
   // version number (specified by #MINVERSION in the equation file).
   //
   // Return value: 0 = Version is the same or later than min. version
