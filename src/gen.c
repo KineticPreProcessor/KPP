@@ -3241,7 +3241,11 @@ case 'h':
     if ( useDeclareValues )
       F90_Inline("  USE %s_Precision", rootFileName );
     else
-      F90_Inline("  USE %s_Parameters, ONLY: dp, NSPEC, NVAR, NFIX, NREACT", rootFileName);
+      if ( useDouble )
+	F90_Inline("  USE %s_Parameters, ONLY: dp, NSPEC, NVAR, NFIX, NREACT", rootFileName);
+      else
+	F90_Inline("  USE %s_Parameters, ONLY: sp, NSPEC, NVAR, NFIX, NREACT", rootFileName);
+
     F90_Inline("  PUBLIC\n  SAVE\n");
 
   UseFile( functionFile );

@@ -8,18 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ## [2.5.0]
+
+### Added
 - New integrators
   - feuler.f90
 - New C-I tests
   - ros_minver
   - ros_upcase
   - Added scripts to run C-I tests manually (for development/debugging)
-- Code updates
-   - Rewrote code to remove compiler warnings
-   - Fortran-90 makefiles now use GFORTRAN as the default compiler option
-   - Added ReadTheDocs output
-   - Updated top-of-file comment headers to point to the KPP Github
-     site and to acknowledge new authors
 - Brought updates for GEOS-Chem into the main line of development
   - Added #MINVERSION switch to force KPP to stop unless a minimum
     version is used
@@ -28,12 +24,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     FIX now point to C witihin integrators.  This is to ensure
     thread-safe operation when using KPP-generated code in an OpenMP
     parallel environment.
-  - Routine Fun() now returns optional arguments Aout and Vdotout
+- Bug fixes:
+  - Make sure to inline parameter "sp" into the _Global.F90 file
+    when the "#DOUBLE off" option is used.
+
+### Changed
+- Code updates
+   - Rewrote code to remove compiler warnings
+   - Fortran-90 makefiles now use GFORTRAN as the default compiler option
+   - Added ReadTheDocs output
+   - Updated top-of-file comment headers to point to the KPP Github
+     site and to acknowledge new authors
+   - Routine Fun() now returns optional arguments Aout and Vdotout
 - Updates for building on MacOS
   - Reduce size of MAX_EQN and MAX_SPECIES to get KPP to run within
     65532 kb of stack memory
 
 ## [2.4.0]
+
+### Added
 
 - Brought updates from the MECCA branch into the main line of
   development:
