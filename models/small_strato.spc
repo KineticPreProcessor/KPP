@@ -1,4 +1,4 @@
-#include atoms
+#include atoms.kpp
 
 #DEFVAR
 O   = O;    	    { Oxygen atomic ground state }	
