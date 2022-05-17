@@ -11,7 +11,8 @@
 !    (C)  Adrian Sandu, August 2004                                       !
 !    Virginia Polytechnic Institute and State University                  !
 !    Contact: sandu@cs.vt.edu                                             !
-!    Revised by Philipp Miehe and Adrian Sandu, May 2006                  !                               !
+!    Revised by Philipp Miehe and Adrian Sandu, May 2006                  !
+!                                                                         !
 !    This implementation is part of KPP - the Kinetic PreProcessor        !
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 
@@ -19,12 +20,11 @@ MODULE KPP_ROOT_Integrator
 
   USE KPP_ROOT_Parameters
   USE KPP_ROOT_Global
-
   IMPLICIT NONE
   PUBLIC
   SAVE
-  
-!~~~> Flags to determine if we should call the UPDATE_* routines from within 
+
+!~~~> Flags to determine if we should call the UPDATE_* routines from within
 !~~~> the integrator.  If using KPP in an external model, you might want to
 !~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
   LOGICAL, PRIVATE :: Do_Update_RCONST
@@ -48,11 +48,11 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
    KPP_REAL, INTENT(IN) :: TIN  ! Start Time
    KPP_REAL, INTENT(IN) :: TOUT ! End Time
    !~~~> Optional input parameters and statistics
-   INTEGER,       INTENT(IN),  OPTIONAL :: ICNTRL_U(20)
+   INTEGER,  INTENT(IN),  OPTIONAL :: ICNTRL_U(20)
    KPP_REAL, INTENT(IN),  OPTIONAL :: RCNTRL_U(20)
-   INTEGER,       INTENT(OUT), OPTIONAL :: ISTATUS_U(20)
+   INTEGER,  INTENT(OUT), OPTIONAL :: ISTATUS_U(20)
    KPP_REAL, INTENT(OUT), OPTIONAL :: RSTATUS_U(20)
-   INTEGER,       INTENT(OUT), OPTIONAL :: IERR_U
+   INTEGER,  INTENT(OUT), OPTIONAL :: IERR_U
 
    KPP_REAL :: RCNTRL(20), RSTATUS(20)
    INTEGER       :: ICNTRL(20), ISTATUS(20), IERR
@@ -66,9 +66,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
    RSTATUS    = 0.0_dp
 
    !~~~> fine-tune the integrator:
-   ICNTRL(1)  = 0       ! 0 - non-autonomous, 1 - autonomous
-   ICNTRL(2)  = 0       ! 0 - vector tolerances, 1 - scalars
-   ICNTRL(15) = 5       ! Call Update_SUN and Update_RCONST from w/in the int. 
+   ICNTRL(15) = 5       ! Call Update_SUN and Update_RCONST from w/in the int.
 
    !~~~> if optional parameters are given, and if they are /= 0,
    !     then use them to overwrite default settings
@@ -88,7 +86,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
    !            =  2 ! Call Update_PHOTO from within the integrator
    !            =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
    !            =  4 ! Call Update_SUN from within the integrator
-   !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
+   !            =  5 ! Call Update_SUN and Update_RCONST from within the int.
    !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
    !            =  7 ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
    CALL Integrator_Update_Options( ICNTRL(15),          &
@@ -110,7 +108,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
    VAR => NULL()
    FIX => NULL()
 
-   !~~~> Debug option: show no of steps
+   !~~~> Debug option: show number of steps
    !Ntotal = Ntotal + ISTATUS(Nstp)
    !PRINT*,'NSTEPS=',ISTATUS(Nstp),' (',Ntotal,')','  O3=', VAR(ind_O3)
 
@@ -148,7 +146,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !    (C)  Adrian Sandu, August 2004
 !    Virginia Polytechnic Institute and State University
 !    Contact: sandu@cs.vt.edu
-!    Revised by Philipp Miehe and Adrian Sandu, May 2006                  
+!    Revised by Philipp Miehe and Adrian Sandu, May 2006
 !    This implementation is part of KPP - the Kinetic PreProcessor
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
@@ -196,7 +194,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !        = 5 :    Rodas4
 !
 !    ICNTRL(4)  -> maximum number of integration steps
-!        For ICNTRL(4)=0) the default value of 100000 is used
+!        For ICNTRL(4)=0) the default value of 200000 is used
 !
 !    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
 !        = -1 :  Do not call Update_* functions within the integrator
@@ -207,7 +205,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !        =  4 :  Call Update_SUN from within the integrator
 !        =  5 :  Call Update_SUN and Update_RCONST from within the int.
 !        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
-!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO, Update_RCONST w/in the int.
 !
 !    RCNTRL(1)  -> Hmin, lower bound for the integration step size
 !          It is strongly recommended to keep Hmin = ZERO
@@ -248,7 +246,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !                     computed Y upon return
 !    RSTATUS(2)  -> Hexit, last accepted step before exit
 !    RSTATUS(3)  -> Hnew, last predicted step (not yet taken)
-!                   For multiple restarts, use Hnew as Hstart 
+!                   For multiple restarts, use Hnew as Hstart
 !                     in the subsequent run
 !
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -316,7 +314,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
      CASE (6)
        CALL Rang3
      CASE DEFAULT
-       PRINT * , 'Unknown Rosenbrock method: ICNTRL(3)=',ICNTRL(3) 
+       PRINT * , 'Unknown Rosenbrock method: ICNTRL(3)=',ICNTRL(3)
        CALL ros_ErrorMsg(-2,Tstart,ZERO,IERR)
        RETURN
    END SELECT
@@ -429,45 +427,45 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CONTAINS !  SUBROUTINES internal to Rosenbrock
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  SUBROUTINE ros_ErrorMsg(Code,T,H,IERR)
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !    Handles all error messages
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
-  
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
    KPP_REAL, INTENT(IN) :: T, H
    INTEGER, INTENT(IN)  :: Code
    INTEGER, INTENT(OUT) :: IERR
-   
+
    IERR = Code
    PRINT * , &
-     'Forced exit from Rosenbrock due to the following error:' 
-     
+     'Forced exit from Rosenbrock due to the following error:'
+
    SELECT CASE (Code)
-    CASE (-1)    
+    CASE (-1)
       PRINT * , '--> Improper value for maximal no of steps'
-    CASE (-2)    
+    CASE (-2)
       PRINT * , '--> Selected Rosenbrock method not implemented'
-    CASE (-3)    
+    CASE (-3)
       PRINT * , '--> Hmin/Hmax/Hstart must be positive'
-    CASE (-4)    
+    CASE (-4)
       PRINT * , '--> FacMin/FacMax/FacRej must be positive'
-    CASE (-5) 
+    CASE (-5)
       PRINT * , '--> Improper tolerance values'
-    CASE (-6) 
+    CASE (-6)
       PRINT * , '--> No of steps exceeds maximum bound'
-    CASE (-7) 
+    CASE (-7)
       PRINT * , '--> Step size too small: T + 10*H = T', &
             ' or H < Roundoff'
-    CASE (-8)    
+    CASE (-8)
       PRINT * , '--> Matrix is repeatedly singular'
     CASE DEFAULT
       PRINT *, 'Unknown Error code: ', Code
    END SELECT
-   
+
    PRINT *, "T=", T, "and H=", H
-     
+
  END SUBROUTINE ros_ErrorMsg
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -505,7 +503,7 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
 ! ~~~~ Local variables
    KPP_REAL :: Ynew(N), Fcn0(N), Fcn(N)
    KPP_REAL :: K(N*ros_S), dFdT(N)
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
    KPP_REAL :: Jac0(N,N), Ghimj(N,N)
 #else
    KPP_REAL :: Jac0(LU_NONZERO), Ghimj(LU_NONZERO)
@@ -562,12 +560,11 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
 
 !~~~>  Compute the function derivative with respect to T
    IF (.NOT.Autonomous) THEN
-      CALL ros_FunTimeDerivative ( T, Roundoff, Y, &
-                Fcn0, dFdT )
+      CALL ros_FunTimeDerivative ( T, Roundoff, Y, Fcn0, dFdT )
    END IF
 
 !~~~>   Compute the Jacobian at current time
-   CALL JacTemplate(T,Y,Jac0)
+   CALL JacTemplate( T, Y, Jac0 )
    ISTATUS(Njac) = ISTATUS(Njac) + 1
 
 !~~~>  Repeat step calculation until current step accepted
@@ -710,8 +707,7 @@ Stage: DO istage = 1, ros_S
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE ros_FunTimeDerivative ( T, Roundoff, Y, &
-                Fcn0, dFdT )
+  SUBROUTINE ros_FunTimeDerivative ( T, Roundoff, Y, Fcn0, dFdT )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~> The time partial derivative of the function by finite differences
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -735,7 +731,7 @@ Stage: DO istage = 1, ros_S
   END SUBROUTINE ros_FunTimeDerivative
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE ros_PrepareMatrix ( H, Direction, gam, &
              Jac0, Ghimj, Pivot, Singular )
 ! --- --- --- --- --- --- --- --- --- --- --- --- ---
@@ -749,25 +745,25 @@ Stage: DO istage = 1, ros_S
    IMPLICIT NONE
 
 !~~~> Input arguments
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
    KPP_REAL, INTENT(IN) ::  Jac0(N,N)
 #else
    KPP_REAL, INTENT(IN) ::  Jac0(LU_NONZERO)
-#endif   
+#endif
    KPP_REAL, INTENT(IN) ::  gam
    INTEGER, INTENT(IN) ::  Direction
 !~~~> Output arguments
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
    KPP_REAL, INTENT(OUT) :: Ghimj(N,N)
 #else
    KPP_REAL, INTENT(OUT) :: Ghimj(LU_NONZERO)
-#endif   
+#endif
    LOGICAL, INTENT(OUT) ::  Singular
    INTEGER, INTENT(OUT) ::  Pivot(N)
 !~~~> Inout arguments
    KPP_REAL, INTENT(INOUT) :: H   ! step size is decreased when LU fails
 !~~~> Local variables
-   INTEGER  :: i, ISING, Nconsecutive
+   INTEGER  :: i, ising, Nconsecutive
    KPP_REAL :: ghinv
    KPP_REAL, PARAMETER :: ONE  = 1.0_dp, HALF = 0.5_dp
 
@@ -777,7 +773,7 @@ Stage: DO istage = 1, ros_S
    DO WHILE (Singular)
 
 !~~~>    Construct Ghimj = 1/(H*gam) - Jac0
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
      !slim: CALL WCOPY(N*N,Jac0,1,Ghimj,1)
      !slim: CALL WSCAL(N*N,(-ONE),Ghimj,1)
      Ghimj = -Jac0
@@ -793,49 +789,49 @@ Stage: DO istage = 1, ros_S
      DO i=1,N
        Ghimj(LU_DIAG(i)) = Ghimj(LU_DIAG(i))+ghinv
      END DO
-#endif   
+#endif
 !~~~>    Compute LU decomposition
-     CALL ros_Decomp( Ghimj, Pivot, ISING )
-     IF (ISING == 0) THEN
+     CALL ros_Decomp( Ghimj, Pivot, ising )
+     IF (ising == 0) THEN
 !~~~>    If successful done
         Singular = .FALSE.
-     ELSE ! ISING .ne. 0
+     ELSE ! ising .ne. 0
 !~~~>    If unsuccessful half the step size; if 5 consecutive fails then return
         ISTATUS(Nsng) = ISTATUS(Nsng) + 1
         Nconsecutive = Nconsecutive+1
         Singular = .TRUE.
-        PRINT*,'Warning: LU Decomposition returned ISING = ',ISING
+        PRINT*,'Warning: LU Decomposition returned ising = ',ising
         IF (Nconsecutive <= 5) THEN ! Less than 5 consecutive failed decompositions
            H = H*HALF
         ELSE  ! More than 5 consecutive failed decompositions
            RETURN
         END IF  ! Nconsecutive
-      END IF    ! ISING
+      END IF    ! ising
 
    END DO ! WHILE Singular
 
   END SUBROUTINE ros_PrepareMatrix
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE ros_Decomp( A, Pivot, ISING )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  SUBROUTINE ros_Decomp( A, Pivot, ising )
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the LU decomposition
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    IMPLICIT NONE
 !~~~> Inout variables
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
    KPP_REAL, INTENT(INOUT) :: A(N,N)
-#else   
+#else
    KPP_REAL, INTENT(INOUT) :: A(LU_NONZERO)
 #endif
 !~~~> Output variables
-   INTEGER, INTENT(OUT) :: Pivot(N), ISING
+   INTEGER, INTENT(OUT) :: Pivot(N), ising
 
-#ifdef FULL_ALGEBRA    
-   CALL  DGETRF( N, N, A, N, Pivot, ISING )
-#else   
-   CALL KppDecomp ( A, ISING )
+#ifdef FULL_ALGEBRA
+   CALL  DGETRF( N, N, A, N, Pivot, ising )
+#else
+   CALL KppDecomp ( A, ising )
    Pivot(1) = 1
 #endif
    ISTATUS(Ndec) = ISTATUS(Ndec) + 1
@@ -843,29 +839,30 @@ Stage: DO istage = 1, ros_S
   END SUBROUTINE ros_Decomp
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE ros_Solve( A, Pivot, b )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-!  Template for the forward/backward substitution (using pre-computed LU decomposition)
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!  Template for the forward/backward substitution
+!  (using pre-computed LU decomposition)
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    IMPLICIT NONE
 !~~~> Input variables
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
    KPP_REAL, INTENT(IN) :: A(N,N)
-   INTEGER :: ISING
-#else   
+   INTEGER :: ising
+#else
    KPP_REAL, INTENT(IN) :: A(LU_NONZERO)
 #endif
    INTEGER, INTENT(IN) :: Pivot(N)
 !~~~> InOut variables
    KPP_REAL, INTENT(INOUT) :: b(N)
 
-#ifdef FULL_ALGEBRA    
-   CALL  DGETRS( 'N', N , 1, A, N, Pivot, b, N, ISING )
+#ifdef FULL_ALGEBRA
+   CALL  DGETRS( 'N', N , 1, A, N, Pivot, b, N, ising )
    IF ( Info < 0 ) THEN
-      PRINT*,"Error in DGETRS. ISING=",ISING
-   END IF  
-#else   
+      PRINT*,"Error in DGETRS. ising=",ising
+   END IF
+#else
    CALL KppSolve( A, b )
 #endif
 
@@ -875,11 +872,11 @@ Stage: DO istage = 1, ros_S
 
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Ros2
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ! --- AN L-STABLE METHOD, 2 stages, order 2
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
    DOUBLE PRECISION g
@@ -923,11 +920,11 @@ Stage: DO istage = 1, ros_S
  END SUBROUTINE Ros2
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Ros3
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ! --- AN L-STABLE METHOD, 3 stages, order 3, 2 function evaluations
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
    rosMethod = RS3
@@ -977,12 +974,12 @@ Stage: DO istage = 1, ros_S
 
   END SUBROUTINE Ros3
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Ros4
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !     L-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 4 STAGES
 !     L-STABLE EMBEDDED ROSENBROCK METHOD OF ORDER 3
 !
@@ -990,7 +987,7 @@ Stage: DO istage = 1, ros_S
 !      EQUATIONS II. STIFF AND DIFFERENTIAL-ALGEBRAIC PROBLEMS.
 !      SPRINGER SERIES IN COMPUTATIONAL MATHEMATICS,
 !      SPRINGER-VERLAG (1990)
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
 
@@ -1052,11 +1049,11 @@ Stage: DO istage = 1, ros_S
 
   END SUBROUTINE Ros4
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Rodas3
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ! --- A STIFFLY-STABLE METHOD, 4 stages, order 3
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
 
@@ -1119,16 +1116,16 @@ Stage: DO istage = 1, ros_S
 
   END SUBROUTINE Rodas3
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Rodas4
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !     STIFFLY-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 6 STAGES
 !
 !      E. HAIRER AND G. WANNER, SOLVING ORDINARY DIFFERENTIAL
 !      EQUATIONS II. STIFF AND DIFFERENTIAL-ALGEBRAIC PROBLEMS.
 !      SPRINGER SERIES IN COMPUTATIONAL MATHEMATICS,
 !      SPRINGER-VERLAG (1996)
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
 
@@ -1222,19 +1219,19 @@ Stage: DO istage = 1, ros_S
     ros_ELO = 4.0_dp
 
   END SUBROUTINE Rodas4
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Rang3
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ! STIFFLY-STABLE W METHOD OF ORDER 3, WITH 4 STAGES
 !
 ! J. RANG and L. ANGERMANN
 ! NEW ROSENBROCK W-METHODS OF ORDER 3
 ! FOR PARTIAL DIFFERENTIAL ALGEBRAIC
-!        EQUATIONS OF INDEX 1                                             
+!        EQUATIONS OF INDEX 1
 ! BIT Numerical Mathematics (2005) 45: 761-787
 !  DOI: 10.1007/s10543-005-0035-y
 ! Table 4.1-4.2
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
 
@@ -1291,25 +1288,26 @@ Stage: DO istage = 1, ros_S
     ros_ELO = 3.0_dp
 
   END SUBROUTINE Rang3
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !   End of the set of internal Rosenbrock subroutines
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 END SUBROUTINE Rosenbrock
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SUBROUTINE FunSplitTemplate( T, Y, Ydot, P_VAR, D_VAR )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the ODE function call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
- USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
- USE KPP_ROOT_Function, ONLY: Fun_SPLIT
- USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ USE KPP_ROOT_Parameters, ONLY : NVAR, LU_NONZERO
+ USE KPP_ROOT_Global,     ONLY : FIX, RCONST, TIME
+ USE KPP_ROOT_Function,   ONLY : Fun_SPLIT
+ USE KPP_ROOT_Rates,      ONLY : Update_SUN, Update_RCONST
+
 !~~~> Input variables
    KPP_REAL :: T, Y(NVAR)
 !~~~> Output variables
@@ -1325,43 +1323,43 @@ SUBROUTINE FunSplitTemplate( T, Y, Ydot, P_VAR, D_VAR )
    CALL Fun_SPLIT( Y, FIX, RCONST, P, D )
    Ydot = P - D*y
    TIME = Told
-   
+
    IF (Present(P_VAR)) P_VAR=P
    IF (Present(D_VAR)) D_VAR=D
 
  END SUBROUTINE FunSplitTemplate
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SUBROUTINE JacTemplate( T, Y, Jcb )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the ODE Jacobian call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
- USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
- USE KPP_ROOT_Jacobian, ONLY: Jac_SP, LU_IROW, LU_ICOL
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ USE KPP_ROOT_Parameters,    ONLY : NVAR, LU_NONZERO
+ USE KPP_ROOT_Global,        ONLY : FIX, RCONST, TIME
+ USE KPP_ROOT_Jacobian,      ONLY : Jac_SP, LU_IROW, LU_ICOL
  USE KPP_ROOT_LinearAlgebra
- USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST
+ USE KPP_ROOT_Rates,         ONLY : Update_SUN, Update_RCONST
 !~~~> Input variables
     KPP_REAL :: T, Y(NVAR)
 !~~~> Output variables
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
     KPP_REAL :: JV(LU_NONZERO), Jcb(NVAR,NVAR)
 #else
     KPP_REAL :: Jcb(LU_NONZERO)
-#endif   
+#endif
 !~~~> Local variables
     KPP_REAL :: Told
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
     INTEGER :: i, j
-#endif   
+#endif
 
     Told = TIME
     TIME = T
     IF ( Do_Update_SUN    ) CALL Update_SUN()
     IF ( Do_Update_RCONST ) CALL Update_RCONST()
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
     CALL Jac_SP(Y, FIX, RCONST, JV)
     DO j=1,NVAR
       DO i=1,NVAR
@@ -1373,13 +1371,9 @@ SUBROUTINE JacTemplate( T, Y, Jcb )
     END DO
 #else
     CALL Jac_SP( Y, FIX, RCONST, Jcb )
-#endif   
+#endif
     TIME = Told
 
 END SUBROUTINE JacTemplate
 
 END MODULE KPP_ROOT_Integrator
-
-
-
-
