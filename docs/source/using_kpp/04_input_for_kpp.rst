@@ -35,15 +35,15 @@ description file:
 The kinetic description files contain a detailed specification of the
 chemical model, information about the integration method and the desired
 type of results. KPP accepts only one of these files as input, but using
-the command, code from separate files can be combined. The include files
-can be nested up to 10 levels. KPP will parse these files as if they
-were a single big file. By carefully splitting the chemical description,
-KPP can be configured for a broad range of users. In this way the users
-can have direct access to that part of the model that they are
-interested in, and all the other details can be hidden inside several
-include files. Often, a file with atom definitions is included first,
-then species definitions, and finally the equations of the chemical
-mechanism.
+the :ref:`include-cmd` command, code from separate files can be
+combined. The include files can be nested up to 10 levels. KPP will
+parse these files as if they were a single big file. By carefully
+splitting the chemical description, KPP can be configured for a broad
+range of users. In this way the users can have direct access to that
+part of the model that they are interested in, and all the other
+details can be hidden inside several include files. Often, a file with
+atom definitions is included first, then species definitions, and
+finally the equations of the chemical mechanism.
 
 .. _kpp-sections:
 
@@ -51,11 +51,12 @@ mechanism.
 KPP Sections
 ============
 
-A :code:`#` sign at the beginning of a line followed by a section name starts a
-new KPP section. Then a list of items separated by semicolons follows. A
-section ends when another KPP section or command occurs, i.e. when
-another sign occurs at the beginning of a line. The syntax of an item
-definition is different for each particular section.
+A :literal:`#` sign at the beginning of a line followed by a section
+name starts a new KPP section. Then a list of items separated by
+semicolons follows. A section ends when another KPP section or command
+occurs, i.e. when another :literal:`#` sign occurs at the beginning of
+a line. The syntax of an item definition is different for each
+particular section.
 
 .. _atoms:
 
@@ -63,7 +64,7 @@ definition is different for each particular section.
 ------
 
 The atoms that will be further used to specify the components of a
-species must be declared in an section, e.g.:
+species must be declared in an :command:`#ATOMS` section, e.g.:
 
 .. code-block:: console
 
@@ -75,7 +76,7 @@ all definitions that can be used by the command:
 
 .. code-block:: console
 
-   #INCLUDE atoms
+   #INCLUDE atoms.kpp
 
 This should be the first line in a KPP input file, because it allows to
 use any atom in the periodic table of elements throughout the kinetic
@@ -90,15 +91,16 @@ KPP is able to do a mass balance checking for all equations. Some
 chemical equations are not balanced for all atoms, and this might still
 be correct from a chemical point of view. To accommodate for this, KPP
 can perform mass balance checking only for the list of atoms specified
-in the section, e.g.:
+in the :command:`#CHECK` section, e.g.:
 
 .. code-block:: console
 
    #CHECK N; C; O;
 
-The balance checking for all atoms can be enabled by using the command.
-Without or , no checking is performed. The atom can also be used to
-control mass balance checking.
+The balance checking for all atoms can be enabled by using the
+:command:`#CHECKALL` command. Without :command:`#CHECK` or
+:command:`#CHECKALL`, no checking is performed. The :literal:`IGNORE`
+atom can also be used to control mass balance checking.
 
 .. _defvar-and-deffix:
 
@@ -107,20 +109,20 @@ control mass balance checking.
 
 There are two ways to declare new species together with their atom
 composition: :command:`#DEFVAR` and :command:`#DEFFIX`. These sections
-define all the species that will be
-used in the chemical mechanism. Species can be variable or fixed. The
-type is implicitly specified by defining the species in the appropriate
-sections. A species can be considered fixed if its concentration does
-not vary too much. The variable species are medium or short lived
-species and their concentrations vary in time. This division of species
-into different categories is helpful for integrators that benefit from
-treating them differently.
+define all the species that will be used in the chemical
+mechanism. Species can be variable or fixed. The type is implicitly
+specified by defining the species in the appropriate sections. A
+species can be considered fixed if its concentration does not vary too
+much. The variable species are medium or short lived species and their
+concentrations vary in time. This division of species into different
+categories is helpful for integrators that benefit from treating them
+differently.
 
 For each species the user has to declare the atom composition. This
 information is used for mass balance checking. If the species is a
 lumped species without an exact composition, it can be ignored. To do
-this one can declare the predefined atom as being part of the species
-composition. Examples for these sections are:
+this one can declare the predefined atom :command:`IGNORE` as being
+part of the species composition. Examples for these sections are:
 
 .. code-block:: console
 
@@ -151,8 +153,9 @@ chemist would write it, e.g.:
 Only the names of already defined species can be used. The rate
 coefficient has to be placed at the end of each equation, separated by a
 colon. The rate coefficient does not necessarily need to be a numerical
-value. Instead, it can be a valid expression in the target language. If
-there are several sections in the input, their contents will be
+value. Instead, it can be a valid expression in the
+`target language <language-cmd_>`_. If there are several
+:command:`#EQUATIONS` sections in the input, their contents will be
 concatenated.
 
 A minus sign in an equation shows that a species is consumed in a
@@ -175,28 +178,30 @@ parameterize organic reactions that branch into several side reactions:
    CH4 + O1D = .75 CH3O2 + .75 OH + .25 HCHO
                + 0.4 H + .05 H2 : k_CH4_O1D;
 
-KPP provides two pre-defined dummy species: and . Using dummy species
-does not affect the numerics of the integrators. It only serves to
-improve the readability of the equations. For photolysis reactions, can
-be specified as one of the reagents to indicate that light
-(:math:`h\nu`) is needed for this reaction, e.g.:
+KPP provides two pre-defined dummy species: :math:`h\nu` and
+:math:`\tt PROD`. Using dummy species does not affect the numerics of
+the integrators. It only serves to improve the readability of the
+equations. For photolysis reactions, :literal:`hv` can be specified as
+one of the reagents to indicate that light (:math:`h\nu`) is needed for this
+reaction, e.g.:
 
 .. code-block:: console
 
    NO2 + hv = NO + O : J_NO2;
 
-When the products of a reaction are not known oder not important, the
-dummy species should be used as a product. This is necessary because the
-KPP syntax does not allow an empty list of products. For example, the
-dry deposition of atmospheric ozone to the surface can be written as:
+When the products of a reaction are not known or not important, the
+dummy species :literal:`PROD` should be used as a product. This is
+necessary because the KPP syntax does not allow an empty list of
+products. For example, the dry deposition of atmospheric ozone to the
+surface can be written as:
 
 .. code-block:: console
 
    O3 = PROD : v_d_O3;
 
-The same equation must not occur twice in the section. For example, you
-may have both the gas-phase reaction of with water in your mechanism and
-also the heterogeneous reaction on aerosols:
+The same equation must not occur twice in the :command:`#EQUATIONS`
+section. For example, you may have both the gas-phase reaction of with
+water in your mechanism and also the heterogeneous reaction on aerosols:
 
 .. code-block:: console
 
@@ -262,12 +267,13 @@ to use coherent units for concentration and rate coefficients, it is
 sometimes necessary to multiply each value by a constant factor. This
 factor can be set by using the generic name :code:`CFACTOR`. Each of
 the initial values will be multiplied by this factor before being
-used. If is omitted, it defaults to one.
+used. If :code:`CFACTOR` is omitted, it defaults to one.
 
 The information gathered in this section is used to generate the
 subroutine (cf  :ref:`Initialize`). In more complex 3D
 models, the initial values are usually taken from some input files or
-some global data structures. In this case, may not be needed.
+some global data structures. In this case, :command:`#INITVALUES` may
+not be needed.
 
 .. _lookat-and-monitor:
 
@@ -279,21 +285,24 @@ There are two sections in this category: :command:`#LOOKAT` and
 
 The section instructs the preprocessor what are the species for which
 the evolution of the concentration, should be saved in a data file. By
-default, if no section is present, all the species are saved. If an atom
-is specified in the list then the total mass of the particular atom is
-reported. This allows to check how the mass of a specific atom was
-conserved by the integration method. The command can be used to specify
-all the species. Output of can be directed to the file root using the
-utility subroutines described in the section entitled :ref:`Util`.
+default, if no :command:`#LOOKAT` section is present, all the species
+are saved. If an atom is specified in the :command:`#LOOKAT` list then
+the total mass of the particular atom is reported. This allows to
+check how the mass of a specific atom was conserved by the integration
+method. The :command:`#LOOKATALL` command can be used to specify all
+the species. Output of :command:`#LOOKAT` can be directed to the file
+:file:`ROOT.dat` using the utility subroutines described in the
+section entitled :ref:`Util`.
 
-The section defines a different list of species and atoms. This list is
-used by the driver to display the concentration of the elements in the
-list during the integration. This may give us a feedback of the
-evolution in time of the selected species during the integration. The
-syntax is similar to the section. With the driver :code:`general`,
-output of goes to the screen (STDOUT). The order of the output is:
-first variable species, then fixes species, finally atoms. It is not
-the order in the command.
+The :command:`#MONITOR` section defines a different list of species
+and atoms. This list is used by the driver to display the
+concentration of the elements in the list during the integration. This
+may give us a feedback of the evolution in time of the selected
+species during the integration. The syntax is similar to the
+:command:`#LOOKAT` section. With the driver :code:`general`,
+output of :command:`#MONITOR` goes to the screen (STDOUT). The order
+of the output is: first variable species, then fixed species, finally
+atoms. It is not the order in the :command:`MONITOR` command.
 
 Examples for these sections are:
 
@@ -340,9 +349,9 @@ also allowed. Examples for these sections are:
 #TRANSPORT
 ----------
 
-The section is only used for transport chemistry models. It specifies
-the list of species that needs to be included in the transport model,
-e.g.:
+The :command:`#TRANSPORT` section is only used for transport chemistry
+models. It specifies the list of species that needs to be included in
+the transport model, e.g.:
 
 .. code-block:: console
 
@@ -360,22 +369,23 @@ included in the transport calculations.
 KPP Commands
 ============
 
-A command begins on a new line with a :code:`#` sign, followed by a command name
-and one or more parameters.  Details about each command are given in
-the following subsections.
+A command begins on a new line with a :code:`#` sign, followed by a
+command name and one or more parameters.  Details about each command
+are given in the following subsections.
 
-.. _declare:
+.. _declare-cmd:
 
 #DECLARE
 --------
 
 The :command:`#DECLARE` command determines how constants like
 :code:`dp`, :code:`NSPEC`, :code:`NVAR`, :code:`NFIX`, and
-:code:`NREACT` are inserted into the KPP-generated code. (the default)
-means that they are referenced by their names (e.g. :code:`C(NSPEC)`),
-whereas means that their values are inserted (e.g. :code:`C(7)`).
+:code:`NREACT` are inserted into the KPP-generated
+code. :command:`SYMBOL` (the default) means that they are referenced
+by their names (e.g. :code:`C(NSPEC)`), whereas :command:`VALUE` means
+that their values are inserted (e.g. :code:`C(7)`).
 
-.. _double:
+.. _double-cmd:
 
 #DOUBLE
 -------
@@ -391,7 +401,7 @@ arithmetic. :command:`ON` (the default) means use double precision,
    single precision may lead to integration non-convergence errors
    caused by roundoff and/or underflow.
 
-.. _driver:
+.. _driver-cmd:
 
 #DRIVER
 -------
@@ -404,30 +414,30 @@ without suffix. The appropriate suffix (:code:`.f90`, :code:`F90`,
 Normally, KPP tries to find the selected driver file in the directory
 :file:`$KPP_HOME/drv/`. However, if the supplied file name contains a slash,
 it is assumed to be absolute. To access a driver in the current
-directory, the prefix can be used, e.g.:
+directory, the prefix :file:`./` can be used, e.g.:
 
 .. code-block:: console
 
    #DRIVER ./mydriver
 
-It is possible to choose the empty dummy driver :code:`none`, if the
+It is possible to choose the empty dummy driver :command:`none`, if the
 user wants to include the KPP generated modules into a larger model
 (e.g. a general circulation or a chemical transport model) instead of
 creating a stand-alone version of the chemical integrator. The driver
-is also selected when the command is missing. If the command occurs
-twice, the second replaces the first.
+:command:`none` is also selected when the :command:`#DRIVER` command
+is missing. If the command occurs twice, the second replaces the first.
 
-.. _dummyindex:
+.. _dummyindex-cmd:
 
 #DUMMYINDEX
 -----------
 
-It is possible to declare species in the :command:`#SPECIES` section that
-are not used in :command:`#EQUATIONS` section. If your model needs to
-check at run-time if a certain species is included in the current
-mechanism, you can set to :command:`#DUMMYINDEX on`. Then, KPP will set
-the indices to zero for all species that do not occur in any
-reaction. With :command:`#DUMMYINDEX off` (the default), those are
+It is possible to declare species in the :ref:`defvar-and-deffix`
+sections that are not used in the :ref:`equations` section. If your
+model needs to check at run-time if a certain species is included in
+the current mechanism, you can set to :command:`#DUMMYINDEX ON`. Then,
+KPP will set the indices to zero for all species that do not occur in
+any reaction. With :command:`#DUMMYINDEX OFF` (the default), those are
 undefined variables. For example, if you frequently switch between
 mechanisms with and without sulfuric acid, you can use this code:
 
@@ -439,7 +449,7 @@ mechanisms with and without sulfuric acid, you can use this code:
      PRINT *, 'c(H2SO4) =', C(ind_H2SO4)
    ENDIF
 
-.. _eqntags:
+.. _eqntags-cmd:
 
 #EQNTAGS
 --------
@@ -451,11 +461,12 @@ enclosed in angle brackets, e.g.:
 
    <J1> NO2 + hv = NO + O : 0.533*SUN;
 
-With :command:`#EQNTAGS on` this equation tag can be used to refer to a specific
-equation, as described in the section entitled
-:ref:`lookat-and-monitor`. The default is :command:`#EQNTAGS off`.
+With :command:`#EQNTAGS` set to :command:`ON`, this equation tag can
+be used to refer to a specific equation
+(cf. :ref:`lookat-and-monitor`). The default for :command:`#EQNTAGS`
+is :command:`OFF`.
 
-.. _function:
+.. _function-cmd:
 
 #FUNCTION
 ---------
@@ -466,7 +477,7 @@ species. :command:`AGGREGATE` generates one function that computes the
 normal derivatives. :command:`SPLIT` generates two functions
 for the derivatives in production and destruction forms.
 
-.. _hessian:
+.. _hessian-cmd:
 
 #HESSIAN
 --------
@@ -475,7 +486,7 @@ The option :command:`ON` (the default) of the :command:`#HESSIAN` command
 turns the Hessian generation on (see the section entitled
 :ref:`Hessian`).  With :command:`OFF` it is switched off.
 
-.. _include:
+.. _include-cmd:
 
 #INCLUDE
 --------
@@ -488,10 +499,10 @@ between several models. Moreover this allows for custom configuration
 of KPP to accommodate various classes of users. Include files can be
 either in one of the KPP directories or in the current directory.
 
-.. _integrator-and-intfile:
+.. _integrator-cmd:
 
-#INTEGRATOR and #INTFILE
--------------------------
+#INTEGRATOR
+-----------
 
 The :command:`#INTEGRATOR` command selects the integrator definition
 file. The parameter is the file name of an integrator, without
@@ -507,6 +518,16 @@ is similar to:
 
    $KPP_HOME/int/integrator-name.def
 
+.. _intfile-cmd:
+
+#INTFILE
+--------
+
+.. attention::
+
+   :command:`#INTFILE` is deprecated. Using :ref:`integrator-cmd`
+   alone suffices to specify an integrator.
+
 The integrator definition file selects an integrator file with
 :command:`#INTFILE` and also defines some suitable options for it. The
 :command:`#INTFILE` command selects the file that contains the integrator
@@ -520,16 +541,17 @@ place. All integrators have to conform to the same specific calling
 sequence. Normally, KPP tries to find the selected integrator file in
 the directory :file:`$KPP_HOME/int/`. However, if the supplied file name
 contains a slash, it is assumed to be absolute. To access an integrator
-in the current directory, the prefix can be used, e.g.:
+in the current directory, the prefix :file:`./` can be used, e.g.:
 
 .. code-block:: console
 
    #INTEGRATOR ./mydeffile
    #INTFILE ./myintegrator
 
-If the command occurs twice, the second replaces the first.
+If the :command:`#INTEGRATOR` the command occurs twice, the second
+replaces the first.
 
-.. _jacobian:
+.. _jacobian-cmd:
 
 #JACOBIAN
 ---------
@@ -545,7 +567,7 @@ should be used if the integrator needs the whole Jacobian, but in a
 sparse form. The format used is compressed on rows. With , KPP extends
 the number of nonzeros to account for the fill-in due to the LU decomposition.
 
-.. _language:
+.. _language-cmd:
 
 #LANGUAGE
 ---------
@@ -557,10 +579,9 @@ code file is to be generated. Available options are :command:`Fortran90`,
 .. tip::
 
    You can select the suffix (:code:`.F90` or :code:`.f90`) to use for
-   Fortran90 source code generated by KPP.  See the section entitled
-   :ref:`uppercasef90` for more details.
+   Fortran90 source code generated by KPP (cf. :ref:`uppercasef90`).
 
-.. _mex:
+.. _mex-cmd:
 
 #MEX
 ----
@@ -572,7 +593,7 @@ ODE function, Jacobian, and Hessian, for the target languages C,
 Fortran77, and Fortran90. The default is :command:`#MEX ON`. With
 :command:`#MEX OFF`, no Mex files are generated.
 
-.. _minversion:
+.. _inversion-cmd:
 
 #MINVERSION
 -----------
@@ -617,7 +638,7 @@ The :command:`#MODEL` command is optional, and intended for using a
 predefined model. Users who supply their own reaction mechanism do not
 need it.
 
-.. _reorder:
+.. _reorder-cmd:
 
 #REORDER
 --------
@@ -629,9 +650,9 @@ diagonal markowitz algorithm. The details are explained in
 :cite:`1996:Sandu_et_al`. The default is :command:`ON`.
 :command:`OFF` means that KPP does not reorder the species. The order
 of the variables is the order in which the species are
-declared in the section.
+declared in the :command:`#DEFVAR` section.
 
-.. _stochastic-simulation:
+.. _stochastic-cmd:
 
 #STOCHASTIC
 -----------
@@ -640,7 +661,7 @@ The option :command:`ON` of the :command:`#STOCHASTIC` command turns
 on the generation of code for stochastic kinetic simulations (see the
 section entitled :ref:`Stochastic`.  The default option is :command:`OFF`.
 
-.. _stoicmat:
+.. _stoicmat-cmd:
 
 #STOICMAT
 ---------
@@ -648,10 +669,10 @@ section entitled :ref:`Stochastic`.  The default option is :command:`OFF`.
 Unless the :command:`#STOICMAT` command is set to :command:`OFF`, KPP
 generates code for the stoichiometric matrix, the vector of reactant
 products in each reaction, and the partial derivative of the time
-derivative function with respect to rate coefficients. These elements
-are discussed in the section entitled :ref:`Stoichiom-and_StoichiomSP`.
+derivative function with respect to rate coefficients
+(cf. :ref:`Stoichiom-and-StoichiomSP`).
 
-.. _checkall-lookatall-transportall:
+.. _checkall-lookatall-transportall-cmd:
 
 #CHECKALL, #LOOKATALL, #TRANSPORTALL
 ------------------------------------
@@ -661,7 +682,7 @@ this category are :command:`#CHECKALL`, :command:`#LOOKATALL`, and
 :command:`#TRANSPORTALL`. All of them have been described in the
 previous sections.
 
-.. _uppercasef90:
+.. _uppercasef90-cmd:
 
 #UPPERCASEF90
 -------------
@@ -681,12 +702,12 @@ In order to offer maximum flexibility, KPP allows the user to include
 pieces of code in the kinetic description file. Inlined code begins on a
 new line with :command:`#INLINE` and the *inline_type*. Next, one or
 more lines of code follow, written in the target language (Fortran90,
-Fortran77, C, or Matlab) as specified by the *inline_type*. The
-inlined code ends with :command:`#ENDINLINE`. The code is inserted
-into the KPP output at a position which is also
-determined by *inline_type* as explained in :ref:`table-inl-type`. If two
-inline commands with the same inline type are declared, then the
-contents of the second is appended to the first one.
+C, or Matlab) as specified by the *inline_type*. The inlined code ends
+with :command:`#ENDINLINE`. The code is inserted into the KPP output
+at a position which is also determined by *inline_type* as explained
+in :ref:`table-inl-type`. If two inline commands with the same inline
+type are declared, then the contents of the second is appended to the
+first one.
 
 .. _list-of-inlined-types:
 
@@ -706,22 +727,22 @@ by :code:`C`, or :code:`matlab`, respectively, as shown in
    +-----------------+-------------------+---------------------+---------------------+
    | Inline_type     | File              | Placement           | Usage               |
    +=================+===================+=====================+=====================+
-   | ``F90_DATA``    | :ref:`Monitor`    | specification       | (obsolete)          |
+   | **F90_DATA**    | :ref:`Monitor`    | specification       | (obsolete)          |
    |                 |                   | section             |                     |
    +-----------------+-------------------+---------------------+---------------------+
-   | ``F90_GLOBAL``  | :ref:`Global`     | specification       | global variables    |
+   | **F90_GLOBAL**  | :ref:`Global`     | specification       | global variables    |
    |                 |                   | section             |                     |
    +-----------------+-------------------+---------------------+---------------------+
-   | ``F90_INIT``    | :ref:`Initialize` | subroutine          | integration         |
+   | **F90_INIT**    | :ref:`Initialize` | subroutine          | integration         |
    |                 |                   |                     | parameters          |
    +-----------------+-------------------+---------------------+---------------------+
-   | ``F90_RATES``   | :ref:`Rates`      | executable section  | rate law functions  |
+   | **F90_RATES**   | :ref:`Rates`      | executable section  | rate law functions  |
    +-----------------+-------------------+---------------------+---------------------+
-   | ``F90_RCONST``  | :ref:`Rates`      | subroutine          | statements and      |
+   | **F90_RCONST**  | :ref:`Rates`      | subroutine          | statements and      |
    |                 |                   |                     | definitions of rate |
    |                 |                   |                     | coefficients        |
    +-----------------+-------------------+---------------------+---------------------+
-   | ``F90_UTIL``    | :ref:`Util`       | executable section  | utility functions   |
+   | **F90_UTIL**    | :ref:`Util`       | executable section  | utility functions   |
    +-----------------+-------------------+---------------------+---------------------+
 
 .. _f90-data:
@@ -731,7 +752,7 @@ F90_DATA
 
 This inline type was introduced in a previous version of KPP to
 initialize variables. It is now obsolete but kept for compatibility. For
-Fortran90, :code:`F90_GLOBAL` should be used instead.
+Fortran90, :command:`F90_GLOBAL` should be used instead.
 
 .. _f90-global:
 
@@ -818,11 +839,11 @@ into the KPP output after being run through the substitution
 preprocessor. This preprocessor replaces `several placeholder symbols
 <list-of-symbols-replaced_>`_ in the template files
 with their particular values in the model at hand. Usually, only
-:code:`KPP_ROOT` and :code:`KPP_REAL` are needed because the other
+:command:`KPP_ROOT` and command:`KPP_REAL` are needed because the other
 values can also be obtained via the variables listed in
 :ref:`table-inl-type`.
 
-:code:`KPP_REAL` is replaced by the appropriate single or double
+:command:`KPP_REAL` is replaced by the appropriate single or double
 precision declaration  type. Depending on the target language KPP will
 select the correct declaration type. For example if one needs to
 declare an array BIG of size 1000, a declaration like the following
@@ -847,7 +868,7 @@ and when used with the option :code:`DOUBLE off`, the same line will become:
 
 in the resulting Fortran90 output file.
 
-:code:`KPP_ROOT` is replaced by the root file name of the main kinetic
+:command:`KPP_ROOT` is replaced by the root file name of the main kinetic
 description file.  In our example where we are processing
 :file:`small_strato.kpp`, a line in an auxiliary Fortran90 file like
 
@@ -921,25 +942,25 @@ with corresponding values, as highlighted in :ref:`table-sym-repl`.
    +--------------------+-------------------------------+---------------------+
    | Symbol             | Replacement                   | Example             |
    +====================+===============================+=====================+
-   | ``KPP_ROOT``       | The ``ROOT`` name             |  ``small_strato``   |
+   | **KPP_ROOT**       | The ``ROOT`` name             |  ``small_strato``   |
    +--------------------+-------------------------------+---------------------+
-   | ``KPP_REAL``       | The real data type            | ``REAL(kind=dp)``   |
+   | **KPP_REAL**       | The real data type            | ``REAL(kind=dp)``   |
    +--------------------+-------------------------------+---------------------+
-   | ``KPP_NSPEC``      | Number of species             | 7                   |
+   | **KPP_NSPEC**      | Number of species             | 7                   |
    +--------------------+-------------------------------+---------------------+
-   | ``KPP_NVAR``       | Number of variable species    | 5                   |
+   | **KPP_NVAR**       | Number of variable species    | 5                   |
    +--------------------+-------------------------------+---------------------+
-   | ``KPP_NFIX``       | Number of fixed species       | 2                   |
+   | **KPP_NFIX**       | Number of fixed species       | 2                   |
    +--------------------+-------------------------------+---------------------+
-   | ``KPP_NREACT``     | Number of chemical            | 10                  |
+   | **KPP_NREACT**     | Number of chemical            | 10                  |
    |                    | reactions                     |                     |
    +--------------------+-------------------------------+---------------------+
-   | ``KPP_NONZERO``    | Number of Jacobian nonzero    | 18                  |
+   | **KPP_NONZERO**    | Number of Jacobian nonzero    | 18                  |
    |                    | elements                      |                     |
    +--------------------+-------------------------------+---------------------+
-   | ``KPP_LU_NONZERO`` | Number of Jacobian nonzero    | 19                  |
+   | **KPP_LU_NONZERO** | Number of Jacobian nonzero    | 19                  |
    |                    | elements, with LU fill-in     |                     |
    +--------------------+-------------------------------+---------------------+
-   | ``KPP_LU_NHESS``   | Number of Hessian nonzero     | 10                  |
+   | **KPP_LU_NHESS**   | Number of Hessian nonzero     | 10                  |
    |                    | elements                      |                     |
    +--------------------+-------------------------------+---------------------+
