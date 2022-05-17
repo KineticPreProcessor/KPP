@@ -395,6 +395,11 @@ List of continuous integration tests
    | :file:`small_f90`     | Uses the LSODE integrator with the             |
    |                       | small_strato chemical mechanism.               |
    +-----------------------+------------------------------------------------+
+   | :file:`small_strato`  | Uses the Rosenbrock integrator with the        |
+   |                       | small_strato chemical mechanism.  This uses    |
+   |                       | the same options as the example described in   |
+   |                       | :ref:`running-kpp-with-an-example-mechanism`.  |
+   +-----------------------+------------------------------------------------+
 
 Each continuous integration test is contained in a subfolder of
 :file:`$KPP_HOME/ci-tests` and contains the following files (or

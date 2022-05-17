@@ -342,7 +342,6 @@ Section II.1 of :cite:`1993:Hairer_Norsett_and_Wanner`)
 .. math::
 
    \begin{aligned}
-   \label{eqn:RungeKutta}
    y^{n+1} &=& y^n + h \sum_{i=1}^s b_i k_i~,\\
    \nonumber
    T_i &=& t^n + c_i h~, \quad
@@ -420,7 +419,6 @@ The tangent linear method associated with the Runge-Kutta method is
 .. math::
 
    \begin{aligned}
-   \label{eqn:RK-TLM}
    %y^{n+1} &=& y^n + h \sum_{i=1}^s b_i k_i~,\\
    \delta y^{n+1} &=& \delta y^n + h \sum_{i=1}^s b_i \ell_i~,\\
    \nonumber
@@ -430,10 +428,10 @@ The tangent linear method associated with the Runge-Kutta method is
    %k_i &=& f\left( \, T_i, \, Y_i \,\right)~,\\
    \ell_i &=& J\left(T_i, \, Y_i \right) \cdot \delta Y_i ~.\end{aligned}
 
-The system (`[eqn:RK-TLM] <#eqn:RK-TLM>`__) is linear and does not
-require an iterative procedure. However, even for a SDIRK method
-(:math:`a_{ij}=0` for :math:`i>j` and :math:`a_{ii}=\gamma`) each stage
-requires the LU factorization of a different matrix.
+The system is linear and does not require an iterative
+procedure. However, even for a SDIRK method (:math:`a_{ij}=0` for
+:math:`i>j` and :math:`a_{ii}=\gamma`) each stage requires the LU
+factorization of a different matrix.
 
 .. _rk-adj:
 
@@ -445,7 +443,6 @@ The first order Runge-Kutta adjoint is
 .. math::
 
    \begin{aligned}
-   \label{RK-adj}
    u_i &=& h \, J^T(T_i,Y_i)\cdot
    \left( b_i \lambda^{n+1} + \sum_{j=1}^s a_{ji} u_j \right)\\ %\quad i = 1 \cdots s\\
    \nonumber
@@ -457,7 +454,6 @@ another Runge-Kutta method:
 .. math::
 
    \begin{aligned}
-   \label{RK-adj-2}
    u_i &=& h \, J^T(T_i,Y_i)\cdot
    \left( \lambda^{n+1} + \sum_{j=1}^s \frac{b_j \,
    a_{ji}}{b_i} u_j \right)\\ %~, \quad i = 1 \cdots s\\
