@@ -25,6 +25,7 @@ for this_test in $all_tests; do
 
     # Also remove other output files from the tests
     rm -f *.m
+    rm -f Makefile.$this_test
 
     cd ..
 

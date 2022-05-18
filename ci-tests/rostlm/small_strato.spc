@@ -1,1 +1,0 @@
-../../models/small_strato.spc
