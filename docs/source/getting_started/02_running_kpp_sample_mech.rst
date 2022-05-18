@@ -100,6 +100,9 @@ example folder:
    (i.e. :command:`INTEGRATOR ON` or :command:`INTEGRATOR on` are
    identical).
 
+We will now look at the following :ref:`kpp-commands` in the
+:file:`small_strato.kpp` definition file:
+
 .. _example-model-ss:
 
 #MODEL small_strato
@@ -157,9 +160,9 @@ KPP language code (cf. :ref:`bnf-description`):
    #ENDINLINE
 
 The *model definition file* (:file:`small_strato.def`) :ref:`include-cmd`-s the
-*species file* species and the *equation file*.  It also specifies
+*species file* and the *equation file*.  It also specifies
 parameters for running a "box-model" simualation, such as species
-initial values (cf. :ref:`initvalues),_ start time, stop, time, and timestep
+initial values (cf. :ref:`initvalues`),_ start time, stop, time, and timestep
 (cf. :ref:`inlined-code`).
 
 The *species file* (:file:`small_strato.spc`) file lists all the
@@ -197,19 +200,19 @@ night.  Equation tags, e.g. :code:`<R1>`, are optional.
 
 .. code-block:: console
 
-#EQUATIONS { Small Stratospheric Mechanism }
+   #EQUATIONS { Small Stratospheric Mechanism }
 
 
-<R1>  O2   + hv = 2O            : (2.643E-10) * SUN*SUN*SUN;
-<R2>  O    + O2 = O3            : (8.018E-17);
-<R3>  O3   + hv = O   + O2      : (6.120E-04) * SUN;
-<R4>  O    + O3 = 2O2           : (1.576E-15);
-<R5>  O3   + hv = O1D + O2      : (1.070E-03) * SUN*SUN;
-<R6>  O1D  + M  = O   + M       : (7.110E-11);
-<R7>  O1D  + O3 = 2O2           : (1.200E-10);
-<R8>  NO   + O3 = NO2 + O2      : (6.062E-15);
-<R9>  NO2  + O  = NO  + O2      : (1.069E-11);
-<R10> NO2  + hv = NO  + O       : (1.289E-02) * SUN;
+   <R1>  O2   + hv = 2O            : (2.643E-10) * SUN*SUN*SUN;
+   <R2>  O    + O2 = O3            : (8.018E-17);
+   <R3>  O3   + hv = O   + O2      : (6.120E-04) * SUN;
+   <R4>  O    + O3 = 2O2           : (1.576E-15);
+   <R5>  O3   + hv = O1D + O2      : (1.070E-03) * SUN*SUN;
+   <R6>  O1D  + M  = O   + M       : (7.110E-11);
+   <R7>  O1D  + O3 = 2O2           : (1.200E-10);
+   <R8>  NO   + O3 = NO2 + O2      : (6.062E-15);
+   <R9>  NO2  + O  = NO  + O2      : (1.069E-11);
+   <R10> NO2  + hv = NO  + O       : (1.289E-02) * SUN;
 
 .. _example-language-f90:
 
@@ -228,9 +231,6 @@ The data type of the generated model can be switched between
 single/double precision with the :ref:`double-cmd` command.  We
 recommend using double-precision in order to avoid integrator errors
 caused by roundoff or underflow/overflow.
-
-We will now look at the following :ref:`kpp-commands` in the
-:file:`small_strato.kpp` definition file:
 
 .. _example-integrator-rosenbrock:
 
@@ -272,7 +272,7 @@ Other options
 The other options listed control internal aspects of the integration
 (cf. :ref:`Jacobian-and-JacobianSP`), as well as activating optional
 outputs (cf. :ref:`Hessian-and-HessianSP` and
-:ref:`Stoichiom-and-Stoichiom.SP`).
+:ref:`Stoichiom-and-StoichiomSP`).
 
 .. _example-step-3:
 
