@@ -392,15 +392,15 @@ following code in  :ref:`Global`:
 
 .. code-block:: F90
 
-! C - Concentration of all species
-  REAL(kind=dp), TARGET :: C(NSPEC)
-  !$OMP THREADPRIVATE( C )
+   ! C - Concentration of all species
+     REAL(kind=dp), TARGET :: C(NSPEC)
+     !$OMP THREADPRIVATE( C )
 
 whereas :command:`#DECLARE VALUE` will generate this code instead:
 
-! C - Concentration of all species
-  REAL(kind=dp), TARGET :: C(7)
-  !$OMP THREADPRIVATE( C )
+   ! C - Concentration of all species
+     REAL(kind=dp), TARGET :: C(7)
+     !$OMP THREADPRIVATE( C )
 
 We recommend using :command:`#DECLARE SYMBOL`, as most modern
 compilers will automatically replace parameter (e.g. :code:`NSPEC`)
