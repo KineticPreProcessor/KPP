@@ -155,14 +155,14 @@ KPP language code (cf. :ref:`bnf-description`):
      M   = 8.120E+16 ;
 
    #INLINE F90_INIT                { Fortran90 code to be inlined            }
-     TSTART = (12*3600)            { into small_strato_Global.F90            }
+     TSTART = (12*3600)
      TEND = TSTART + (3*24*3600)
      DT = 0.25*3600
      TEMP = 270
    #ENDINLINE
 
    #INLINE MATLAB_INIT             { Matlab code to be inlined               }
-     global TSTART TEND DT TEMP    { into small_strato_Global.m              }
+     global TSTART TEND DT TEMP
      TSTART = (12*3600);
      TEND = TSTART + (3*24*3600);
      DT = 0.25*3600;
@@ -170,7 +170,7 @@ KPP language code (cf. :ref:`bnf-description`):
    #ENDINLINE
 
    #INLINE C_INIT                  { C code to be inlined                    }
-     TSTART = (12*3600);           { into small_strato_Global.c              }
+     TSTART = (12*3600);
      TEND = TSTART + (3*24*3600);
      DT = 0.25*3600;
      TEMP = 270;
