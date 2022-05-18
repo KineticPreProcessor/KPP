@@ -816,10 +816,10 @@ int F_VAR, FSPLIT_VAR;
       Assign( Elm( Vdot, i ), sum );
     }
 
-    // Add code to return equation rates via optional argument Aout
+    // Add code to return time derivative of variable species (Vdotout)
     //   -- Bob Yantosca (03 May 2022)
     NewLines(1);
-    fprintf(functionFile, "  !### Use Vdotout to return equation rates\n");
+    fprintf(functionFile, "  !### Use Vdotout to return time deriv. of variable species\n");
     fprintf(functionFile, "  IF ( PRESENT( Vdotout ) ) Vdotout = Vdot\n");
 
   } else {

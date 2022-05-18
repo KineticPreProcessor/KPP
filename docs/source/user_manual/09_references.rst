@@ -1,5 +1,0 @@
-.. _reference-section:
-
-##########
-References
-##########

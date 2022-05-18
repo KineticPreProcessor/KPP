@@ -1,0 +1,36 @@
+{
+    "cited": {
+        "getting_started/00_revision_history": [
+            "2004:IUPAC",
+            "2005:Sander_et_al",
+        ],
+        "using_kpp/04_input_for_kpp": [
+            "1996:Sandu_et_al",
+        ],
+        "using_kpp/05_output_from_kpp": [
+            "1996:Sandu_et_al",
+        ],
+        "tech_info/06_numerical_methods": [
+            "1989:VODE",
+	    "1991:Hairer_and_Wanner",
+	    "1993:Hairer_Norsett_and_Wanner",
+            "1996:Sandu_et_al",
+            "1997:Sandu_et_al_2",
+            "1997:Verwer",
+        ],     
+        "citations/09_acknowledgments": [
+            "1996:Damian-Iordache",
+        ],
+        "citations/10_kpp_references": [
+            "1989:VODE",
+	    "1991:Hairer_and_Wanner",
+	    "1993:Hairer_Norsett_and_Wanner",
+            "1996:Damian-Iordache",
+            "1996:Sandu_et_al",
+            "1997:Sandu_et_al_2",
+            "1997:Verwer",
+            "2004:IUPAC",
+            "2005:Sander_et_al",
+        ],
+    }
+}

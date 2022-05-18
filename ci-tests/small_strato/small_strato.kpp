@@ -1,0 +1,10 @@
+#MODEL      small_strato
+#LANGUAGE   Fortran90
+#DOUBLE     ON
+#INTEGRATOR rosenbrock
+#DRIVER     general
+#JACOBIAN   SPARSE_LU_ROW
+#HESSIAN    ON
+#STOICMAT   ON
+
+{This is the small_strato example from Chapter 2 of the KPP manual}
