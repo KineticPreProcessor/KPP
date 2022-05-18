@@ -65,17 +65,18 @@ KPP 2.3.2_gc
 NOTE: Contains KPP Modifications specific to GEOS-Chem:
 
 - Added workaround for F90 derived-type objects in inlined code
-  (i.e. properly parse State_Het%xArea, etc).
+  (i.e. properly parse :code:`State_Het%xArea`, etc).
 
 - Updated Github issue templates.
 
-- MAX_INLINE (max # of inlined code lines to read) has been increased
-  to 200000.
+- :code:`MAX_INLINE` (max # of inlined code lines to read) has been
+  increased to 200000.
 
-- Commented out the Update_Sun() functions in update_sun.F90,
-  update_sun.F. (NOTE: These have been restored in :ref:`kpp250`).
+- Commented out the :code:`Update_Sun()` functions in :code:`update_sun.F90`,
+  :code:`update_sun.F`. (NOTE: These have been restored in
+  :ref:`kpp250`).
 
-- Default rate law functions are no longer written to gckpp_Rates.F90.
+- Default rate law functions are no longer written to :code:`gckpp_Rates.F90`.
   (NOTE: These have been restored in :ref:`kpp250`).
 
 .. _kpp231gc:
@@ -105,7 +106,7 @@ KPP 2.3.0_gc
 
 NOTE: Contains KPP modifications specific to GEOS-Chem
 
-- Added README.md for the GC_updates branch.
+- Added :file:`README.md` for the GC_updates branch.
 
 - Added MIT license for the GC_updates branch.
 
@@ -135,7 +136,7 @@ KPP 2.2.5_gc
 
 NOTE: Contains KPP modifications specific to GEOS-Chem
 
-- Increase MAX_INLINE from 20000 to 50000
+- Increase :code:`MAX_INLINE` from 20000 to 50000
 
 .. _kpp224gc:
 
@@ -145,7 +146,8 @@ KPP 2.2.4_gc
 
 NOTE: Contains KPP modifications specific to GEOS-Chem
 
-- Add MIT license files for GC_updates branch and update README.md accordingly
+- Add MIT license files for GC_updates branch and update
+  :file:`README.md` accordingly
 
 - Create :file:`README.md` for main branch
 
