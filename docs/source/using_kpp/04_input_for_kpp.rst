@@ -398,6 +398,8 @@ following code in  :ref:`Global`:
 
 whereas :command:`#DECLARE VALUE` will generate this code instead:
 
+.. code-block:: F90
+
    ! C - Concentration of all species
      REAL(kind=dp), TARGET :: C(7)
      !$OMP THREADPRIVATE( C )
