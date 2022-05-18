@@ -75,8 +75,8 @@ Create a KPP definition file in the example folder.  The name
 of this file will always be :file:`ROOT.kpp`, where :file:`ROOT` is
 the name of the chemical mechanism.
 
-Write the following lines into the :file:`small_strato.kpp` in the
-example folder:
+For this example, write the following lines into a file named
+:file:`small_strato.kpp` in the example folder:
 
 .. code-block:: console
 
@@ -100,8 +100,8 @@ example folder:
    (i.e. :command:`INTEGRATOR ON` or :command:`INTEGRATOR on` are
    identical).
 
-We will now look at the following :ref:`kpp-commands` in the
-:file:`small_strato.kpp` definition file:
+We will now look at the following :ref:`kpp-commands` in
+:file:`small_strato.kpp`.
 
 .. _example-model-ss:
 
@@ -109,10 +109,10 @@ We will now look at the following :ref:`kpp-commands` in the
 -------------------
 
 The :ref:`model-cmd` command selects a specific kinetic mechanism (in
-this example, :program:`small_strato`).  KPP will look for the
-*model definition file* in the path
-:file:`KPP_HOME/models/small_strato.def`, which contains the following
-KPP language code (cf. :ref:`bnf-description`):
+this example, :program:`small_strato`).  KPP will look in the path
+:file:`$KPP_HOME/models/` for the *model definition file*
+:file:`small_strato.def`.  This file contains the following
+code in the KPP language (cf. :ref:`bnf-description`):
 
 .. code-block:: console
 
@@ -159,10 +159,10 @@ KPP language code (cf. :ref:`bnf-description`):
      TEMP = 270;
    #ENDINLINE
 
-The *model definition file* (:file:`small_strato.def`) :ref:`include-cmd`-s the
-*species file* and the *equation file*.  It also specifies
-parameters for running a "box-model" simualation, such as species
-initial values (cf. :ref:`initvalues`),_ start time, stop, time, and timestep
+File (:file:`small_strato.def`) :ref:`include-cmd`-s the *species
+file* and the *equation file*.  It also specifies parameters for
+running a "box-model" simualation, such as species initial values
+(cf. :ref:`initvalues`),_ start time, stop, time, and timestep
 (cf. :ref:`inlined-code`).
 
 The *species file* (:file:`small_strato.spc`) file lists all the
@@ -190,13 +190,14 @@ The species file also includes the *atoms file* (:file:`atoms.kpp`), which
 lists the periodic table of elements in an :command:`ATOM` section
 (cf. :ref:`atoms`).
 
-The *equation file* (:file:`small_strato.eqn`) contains the description
-of the equations in an  :ref:`equations` section.  The chemical
-kinetic mechanism is specified in the KPP language (cf. :ref:`bnf-description`).
-Each reaction is described as “the sum of reactants equals the sum of
-products” and is followed by its rate coefficient. :code:`SUN` is the normalized
-sunlight intensity, equal to one at noon and zero at
-night.  Equation tags, e.g. :code:`<R1>`, are optional.
+The *equation file* (:file:`small_strato.eqn`) contains the
+description of the equations in an  :ref:`equations` section.  The
+chemical kinetic mechanism is specified in the KPP language
+(cf. :ref:`bnf-description`). Each reaction is described as “the sum
+of reactants equals the sum of products” and is followed by its rate
+coefficient. :code:`SUN` is the normalized sunlight intensity, equal
+to one at noon and zero at night.  Equation tags, e.g. :code:`<R1>`,
+are optional.
 
 .. code-block:: console
 
