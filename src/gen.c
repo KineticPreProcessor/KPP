@@ -3267,6 +3267,7 @@ case 'h':
       F90_Inline("  USE %s_Parameters", rootFileName );
     F90_Inline("  USE %s_Global", rootFileName );
     F90_Inline("  IMPLICIT NONE", rootFileName );
+    F90_Inline("  INTEGER, PARAMETER :: ASSOC = 1, DISSOC = 2", rootFileName );
     F90_Inline("\nCONTAINS\n\n");
 
   if ( useStochastic ) {
