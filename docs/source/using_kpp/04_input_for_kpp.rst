@@ -178,8 +178,8 @@ parameterize organic reactions that branch into several side reactions:
    CH4 + O1D = .75 CH3O2 + .75 OH + .25 HCHO
                + 0.4 H + .05 H2 : k_CH4_O1D;
 
-KPP provides two pre-defined dummy species: :math:`h\nu` and
-:math:`\tt PROD`. Using dummy species does not affect the numerics of
+KPP provides two pre-defined dummy species: :literal:`hv` and
+:literal:`PROD`. Using dummy species does not affect the numerics of
 the integrators. It only serves to improve the readability of the
 equations. For photolysis reactions, :literal:`hv` can be specified as
 one of the reagents to indicate that light (:math:`h\nu`) is needed for this
@@ -200,7 +200,7 @@ surface can be written as:
    O3 = PROD : v_d_O3;
 
 The same equation must not occur twice in the :command:`#EQUATIONS`
-section. For example, you may have both the gas-phase reaction of with
+section. For example, you may have both the gas-phase reaction of :literal:`N2O5` with
 water in your mechanism and also the heterogeneous reaction on aerosols:
 
 .. code-block:: console
@@ -262,14 +262,14 @@ The initial concentration values for all species can be defined in the
 
 If no value is specified for a particular species, the default value
 zero is used. One can set the default values using the generic species
-names: :code:`VAR_SPEC`, :code:`FIX_SPEC`, and :code:`ALL`. In order
+names: :code:`VAR_SPEC`, :code:`FIX_SPEC`, and :code:`ALL_SPEC`. In order
 to use coherent units for concentration and rate coefficients, it is
 sometimes necessary to multiply each value by a constant factor. This
 factor can be set by using the generic name :code:`CFACTOR`. Each of
 the initial values will be multiplied by this factor before being
 used. If :code:`CFACTOR` is omitted, it defaults to one.
 
-The information gathered in this section is used to generate the
+The information gathered in this section is used to generate the :code:`Initialize`
 subroutine (cf  :ref:`Initialize`). In more complex 3D
 models, the initial values are usually taken from some input files or
 some global data structures. In this case, :command:`#INITVALUES` may
@@ -318,9 +318,10 @@ Examples for these sections are:
 
 To reduce the stiffness of some models, various lumping of species may
 be defined in the :command:`#LUMP` section. The example below shows how
-the concentration of can be replaced by the sum of concentrations for
-and which is considered to be a single variable. At the end of the
-integration, the concentration of is computed by substraction from the
+the concentration of :literal:`NO2` can be replaced by the sum of
+concentrations for :literal:`NO2` and :literal:`NO` which is considered
+to be a single variable. At the end of the integration, the
+concentration of :literal:`NO2` is computed by substraction from the
 lumped variable.
 
 .. code-block:: console
@@ -408,8 +409,8 @@ arithmetic. :command:`ON` (the default) means use double precision,
 
 The :command:`#DRIVER` command selects the driver, i.e., the file from
 which the main function is to be taken. The parameter is a file name,
-without suffix. The appropriate suffix (:code:`.f90`, :code:`F90`,
-:code:`c`, or :code:`m`) is automatically appended.
+without suffix. The appropriate suffix (:code:`.f90`, :code:`.F90`,
+:code:`.c`, or :code:`.m`) is automatically appended.
 
 Normally, KPP tries to find the selected driver file in the directory
 :file:`$KPP_HOME/drv/`. However, if the supplied file name contains a slash,
@@ -454,8 +455,8 @@ mechanisms with and without sulfuric acid, you can use this code:
 #EQNTAGS
 --------
 
-Each reaction in the section may start with an equation tag which is
-enclosed in angle brackets, e.g.:
+Each reaction in the :command:`#EQNTAGS` section may start with an
+equation tag which is enclosed in angle brackets, e.g.:
 
 .. code-block:: console
 
@@ -516,7 +517,10 @@ is similar to:
 
 .. code-block:: console
 
-   $KPP_HOME/int/integrator-name.def
+   #INCLUDE $KPP_HOME/int/integrator-name.def
+
+If the :command:`#INTEGRATOR` the command occurs twice, the second
+replaces the first.
 
 .. _intfile-cmd:
 
@@ -525,8 +529,9 @@ is similar to:
 
 .. attention::
 
-   :command:`#INTFILE` is deprecated. Using :ref:`integrator-cmd`
-   alone suffices to specify an integrator.
+   :command:`#INTFILE` is used internally by KPP but should not be used
+   by the KPP user. Using :ref:`integrator-cmd` alone suffices to
+   specify an integrator.
 
 The integrator definition file selects an integrator file with
 :command:`#INTFILE` and also defines some suitable options for it. The
@@ -548,24 +553,22 @@ in the current directory, the prefix :file:`./` can be used, e.g.:
    #INTEGRATOR ./mydeffile
    #INTFILE ./myintegrator
 
-If the :command:`#INTEGRATOR` the command occurs twice, the second
-replaces the first.
-
 .. _jacobian-cmd:
 
 #JACOBIAN
 ---------
 
 The :command:`#JACOBIAN` command controls which functions are generated
-to compute the Jacobian. The option inhibits the generation of the
-Jacobian routine. The option :command:`OFF` generates the Jacobian as
-a square :code:`NVAR x NVAR` matrix. It should be used if the
-integrator needs the whole Jacobians. The options
-:command:`SPARSE_ROW` and :command:`SPARSE_LU_ROW` (the default)
-both generate the Jacobian in sparse (compressed on rows) format. They
-should be used if the integrator needs the whole Jacobian, but in a
-sparse form. The format used is compressed on rows. With , KPP extends
-the number of nonzeros to account for the fill-in due to the LU decomposition.
+to compute the Jacobian. The option :command:`OFF` inhibits the
+generation of the Jacobian routine. The option :command:`FULL` generates
+the Jacobian as a square :code:`NVAR x NVAR` matrix. It should be used
+if the integrator needs the whole Jacobians. The options
+:command:`SPARSE_ROW` and :command:`SPARSE_LU_ROW` (the default) both
+generate the Jacobian in sparse (compressed on rows) format. They should
+be used if the integrator needs the whole Jacobian, but in a sparse
+form. The format used is compressed on rows. With
+:command:`SPARSE_LU_ROW`, KPP extends the number of nonzeros to account
+for the fill-in due to the LU decomposition.
 
 .. _language-cmd:
 
@@ -839,7 +842,7 @@ into the KPP output after being run through the substitution
 preprocessor. This preprocessor replaces `several placeholder symbols
 <list-of-symbols-replaced_>`_ in the template files
 with their particular values in the model at hand. Usually, only
-:command:`KPP_ROOT` and command:`KPP_REAL` are needed because the other
+:command:`KPP_ROOT` and :command:`KPP_REAL` are needed because the other
 values can also be obtained via the variables listed in
 :ref:`table-inl-type`.
 
