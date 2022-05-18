@@ -16,14 +16,16 @@
   NO2 = 2.240E+08 ;
   M   = 8.120E+16 ;
 
-#INLINE F90_INIT                { Fortran90 code to be inlined            }
+{ Fortran code to be inlined into ROOT_Global }
+#INLINE F90_INIT
   TSTART = (12*3600)
   TEND = TSTART + (3*24*3600)
   DT = 0.25*3600
   TEMP = 270
 #ENDINLINE
 
-#INLINE MATLAB_INIT             { Matlab code to be inlined               }
+{ Matlab code to be inlined into ROOT_Global }
+#INLINE MATLAB_INIT
   global TSTART TEND DT TEMP
   TSTART = (12*3600);
   TEND = TSTART + (3*24*3600);
@@ -31,7 +33,8 @@
   TEMP = 270;
 #ENDINLINE
 
-#INLINE C_INIT                  { C code to be inlined                    }
+{ C code to be inlined into ROOT_GLOBAL }
+#INLINE C_INIT
   TSTART = (12*3600);
   TEND = TSTART + (3*24*3600);
   DT = 0.25*3600;

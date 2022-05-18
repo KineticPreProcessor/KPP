@@ -89,11 +89,6 @@ example folder:
    #HESSIAN    ON
    #STOICMAT   ON
 
-The data type of the generated model can be switched between
-single/double precision with the :ref:`double-cmd` command.  We
-recommend using double-precision in order to avoid integrator errors
-caused by roundoff or underflow/overflow.
-
 .. important::
 
    KPP will look for the relevant files (e.g. mechanism definition,
@@ -103,25 +98,7 @@ caused by roundoff or underflow/overflow.
 
    Also note, KPP command options can be either uppercase or lowercase
    (i.e. :command:`INTEGRATOR ON` or :command:`INTEGRATOR on` are
-   identical.
-
-We will now look at the following :ref:`kpp-commands` in the
-:file:`small_strato.kpp` definition file:
-
-.. _example-integrator-rosenbrock:
-
-#INTEGRATOR rosenbrock
-----------------------
-
-The :ref:`integrator-cmd` command selects a numerical integration routine
-from the templates provided in the :file:`$KPP_HOME/int` folder, or
-implemented by the user.
-
-In this example, the Rosenbrock integrator (cf.
-:ref:`rosenbrock-methods`) and the Fortran90 language have been been
-specified.  Therefore it will use the file
-:file:`$KPP_HOME/int/rosenbrock.f90`.
-
+   identical).
 
 .. _example-model-ss:
 
@@ -154,14 +131,16 @@ KPP language code (cf. :ref:`bnf-description`):
      NO2 = 2.240E+08 ;
      M   = 8.120E+16 ;
 
-   #INLINE F90_INIT                { Fortran90 code to be inlined            }
+   { Fortran code to be inlined into ROOT_Global }
+   #INLINE F90_INIT
      TSTART = (12*3600)
      TEND = TSTART + (3*24*3600)
      DT = 0.25*3600
      TEMP = 270
    #ENDINLINE
 
-   #INLINE MATLAB_INIT             { Matlab code to be inlined               }
+   { Matlab code to be inlined into ROOT_Global }
+   #INLINE MATLAB_INIT
      global TSTART TEND DT TEMP
      TSTART = (12*3600);
      TEND = TSTART + (3*24*3600);
@@ -169,7 +148,8 @@ KPP language code (cf. :ref:`bnf-description`):
      TEMP = 270;
    #ENDINLINE
 
-   #INLINE C_INIT                  { C code to be inlined                    }
+   { C code to be inlined into ROOT_GLOBAL }
+   #INLINE C_INIT
      TSTART = (12*3600);
      TEND = TSTART + (3*24*3600);
      DT = 0.25*3600;
@@ -231,6 +211,41 @@ night.  Equation tags, e.g. :code:`<R1>`, are optional.
 <R9>  NO2  + O  = NO  + O2      : (1.069E-11);
 <R10> NO2  + hv = NO  + O       : (1.289E-02) * SUN;
 
+.. _example-language-f90:
+
+#LANGUAGE Fortran90
+-------------------
+
+The :ref:`language-cmd` selects the language for the KPP-generated
+solver code.  In this example we are using Fortran90.
+
+.. _example-double-on:
+
+#DOUBLE ON
+----------
+
+The data type of the generated model can be switched between
+single/double precision with the :ref:`double-cmd` command.  We
+recommend using double-precision in order to avoid integrator errors
+caused by roundoff or underflow/overflow.
+
+We will now look at the following :ref:`kpp-commands` in the
+:file:`small_strato.kpp` definition file:
+
+.. _example-integrator-rosenbrock:
+
+#INTEGRATOR rosenbrock
+----------------------
+
+The :ref:`integrator-cmd` command selects a numerical integration routine
+from the templates provided in the :file:`$KPP_HOME/int` folder, or
+implemented by the user.
+
+In this example, the Rosenbrock integrator (cf.
+:ref:`rosenbrock-methods`) and the Fortran90 language have been been
+specified.  Therefore it will use the file
+:file:`$KPP_HOME/int/rosenbrock.f90`.
+
 .. _example-driver-general:
 
 
@@ -249,6 +264,15 @@ in the :file:`$KPP_HOME/drv` folder):
 In this example, the :file:`rosenbrock.f90` integrator does not use
 either adjoint or tangent-linear methods, so the
 :file:`$KPP_HOME/drv/general.f90` will be used.
+
+
+Other options
+-------------
+
+The other options listed control internal aspects of the integration
+(cf. :ref:`Jacobian-and-JacobianSP`), as well as activating optional
+outputs (cf. :ref:`Hessian-and-HessianSP` and
+:ref:`Stoichiom-and-Stoichiom.SP`).
 
 .. _example-step-3:
 
