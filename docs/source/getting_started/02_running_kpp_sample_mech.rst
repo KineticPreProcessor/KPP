@@ -157,8 +157,8 @@ The *equation file* (:file:`small_strato.eqn`) contains the description
 of the equations in an  :ref:`equations` section.  The chemical
 kinetic mechanism is specified in the KPP language (cf. :ref:`bnf-description`).
 Each reaction is described as “the sum of reactants equals the sum of
-products” and is followed by its rate coefficient. is the normalized
-sunlight intensity (:code:`SUN`), equal to one at noon and zero at
+products” and is followed by its rate coefficient. :code:`SUN` is the normalized
+sunlight intensity, equal to one at noon and zero at
 night.  Reaction tags, e.g. :code:`<R1>`, are optional.
 
 
