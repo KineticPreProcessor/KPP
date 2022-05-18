@@ -159,7 +159,7 @@ kinetic mechanism is specified in the KPP language (cf. :ref:`bnf-description`).
 Each reaction is described as “the sum of reactants equals the sum of
 products” and is followed by its rate coefficient. :code:`SUN` is the normalized
 sunlight intensity, equal to one at noon and zero at
-night.  Reaction tags, e.g. :code:`<R1>`, are optional.
+night.  Equation tags, e.g. :code:`<R1>`, are optional.
 
 
 .. code-block:: console
