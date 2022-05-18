@@ -22,8 +22,8 @@ KPP 2.5.0
 - Added KPP commands :command:`#MINVERSION` and :command:`#UPPERCASEF90`
   (along with corresponding continuous integration tests).
 
-- Added optional variables :code:`Aout` and :code:`Vdotout` have been added
-  to subroutine Fun() by default.
+- Added optional variables :code:`Aout` and :code:`Vdotout` 
+  to subroutine Fun().
 
 - Replaced Fortran :code:`EQUIVALENCE` statements with thread-safe pointer
   assignments (Fortran90 only).
