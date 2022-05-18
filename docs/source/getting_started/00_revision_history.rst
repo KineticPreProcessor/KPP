@@ -1,5 +1,5 @@
 ####################
-KPP Revision History
+KPP revision history
 ####################
 
 Only the major new features are listed here. For a detailed description

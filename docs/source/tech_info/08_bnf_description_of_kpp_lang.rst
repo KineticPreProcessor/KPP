@@ -1,7 +1,7 @@
 .. _bnf-description:
 
 ###################################
-BNF Description of the KPP Language
+BNF description of the KPP language
 ###################################
 
 Following is the BNF-like specification of the KPP language:

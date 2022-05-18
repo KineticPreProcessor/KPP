@@ -1,7 +1,7 @@
 .. _running-kpp-with-an-example-mechanism:
 
 ###################################################
-Running KPP with an Example Stratospheric Mechanism
+Running KPP with an example stratospheric mechanism
 ###################################################
 
 Here we consider as an example a very simple Chapman-like mechanism for
@@ -68,7 +68,7 @@ In the following sections we will refer to
 .. _example-step-2:
 
 ===============================
-2. Create a KPP definition file
+2. Create a KPP Definition File
 ===============================
 
 Create a KPP definition file in the example folder.  The name

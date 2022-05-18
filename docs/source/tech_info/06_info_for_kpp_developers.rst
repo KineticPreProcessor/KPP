@@ -1,7 +1,7 @@
 .. _developer-info:
 
 ##############################
-Information for KPP Developers
+Information for KPP developers
 ##############################
 
 This chapter is meant for KPP Developers. It describes the internal
@@ -194,7 +194,7 @@ KPP internal modules
 
 .. _scanner-parser:
 
-Scanner and Parser
+Scanner and parser
 ------------------
 
 This module is responsible for reading the kinetic description files and
@@ -317,7 +317,7 @@ an example:
 .. _ci-tests:
 
 ============================
-Continuous Integration Tests
+Continuous integration tests
 ============================
 
 In KPP 2.4.0 and later, we have added several continuous integration
@@ -402,19 +402,8 @@ List of continuous integration tests
    +-----------------------+------------------------------------------------+
 
 Each continuous integration test is contained in a subfolder of
-:file:`$KPP_HOME/ci-tests` and contains the following files (or
-symbolic links to files):
-
-   - A KPP definition file (ending in :file:`.kpp`) from
-     :file:`$KPP_HOME/models/`;
-
-   - Mechanism  definition files (ending in :file:`.def`,
-     :file:`.eqn`, and :file:`.spc`) from  :file:`$KPP_HOME/examples`;
-
-   - A KPP integrator and integrator definition file (ending in
-     :file:`.def`) from :file:`$KPP_HOME/int/`
-
-   - A driver program from :file:`$KPP_HOME/drv`;
+:file:`$KPP_HOME/ci-tests` a KPP definition file (ending in
+:file:`.kpp`) from :file:`$KPP_HOME/models/`.
 
 .. _running-ci-tests-on-azure:
 

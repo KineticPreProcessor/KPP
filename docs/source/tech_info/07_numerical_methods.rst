@@ -98,7 +98,7 @@ in KPP. The symbols used in the formulas are explained in
 .. _rosenbrock-methods:
 
 ==================
-Rosenbrock Methods
+Rosenbrock methods
 ==================
 
 An :math:`s`-stage Rosenbrock method (cf. Section IV.7 in
@@ -258,7 +258,7 @@ RODAS-4
 
 .. _rosenbrock-tlm:
 
-Rosenbrock Tangent Linear Model
+Rosenbrock tangent linear model
 --------------------------------
 
 The Tangent Linear method is combined with the sensitivity
@@ -299,7 +299,7 @@ respect to parameters for efficiency.
 
 .. _rosenbrock-adjoint:
 
-Rosenbrock Discrete Adjoint Model
+Rosenbrock discrete adjoint model
 ---------------------------------
 
 To obtain the adjoint we first differentiate the method with respect to
@@ -411,8 +411,8 @@ implementation of :cite:`1991:Hairer_and_Wanner`.
 
 .. _rk-tlm:
 
-RK Tangent Linear Model
-------------------------
+RK tangent linear model
+-----------------------
 
 The tangent linear method associated with the Runge-Kutta method is
 
@@ -435,7 +435,7 @@ factorization of a different matrix.
 
 .. _rk-adj:
 
-RK Discrete Adjoint Model
+RK discrete adjoint model
 -------------------------
 
 The first order Runge-Kutta adjoint is
@@ -463,7 +463,7 @@ another Runge-Kutta method:
 .. _back-diff:
 
 =================================
-Backward Differentiation Formulas
+Backward differentiation formulas
 =================================
 
 Backward differentiation formulas (BDF) are linear multistep methods

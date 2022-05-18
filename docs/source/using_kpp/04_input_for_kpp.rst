@@ -48,7 +48,7 @@ finally the equations of the chemical mechanism.
 .. _kpp-sections:
 
 ============
-KPP Sections
+KPP sections
 ============
 
 A :literal:`#` sign at the beginning of a line followed by a section
@@ -365,7 +365,7 @@ included in the transport calculations.
 .. _kpp-commands:
 
 ============
-KPP Commands
+KPP commands
 ============
 
 A command begins on a new line with a :code:`#` sign, followed by a
@@ -858,7 +858,7 @@ This inline type can be used to define utility subroutines.
 .. _auxiliary-files-and-the-substitution-preprocessor:
 
 =================================================
-Auxiliary Files and the Substitution Preprocessor
+Auxiliary files and the substitution preprocessor
 =================================================
 
 The `auxiliary files <auxiliary-files-for-fortran-90_>`_ are
@@ -914,7 +914,7 @@ in the generated Fortran90 output file.
 
 .. _auxiliary-files-for-fortran-90:
 
-List of Auxiliary Files for Fortran90
+List of auxiliary files for Fortran90
 --------------------------------------
 
 KPP inline codes or other instructions contained in the following
@@ -956,7 +956,7 @@ files, as shown in :ref:`table-aux-files`.
 
 .. _list-of-symbols-replaced:
 
-List of Symbols Replaced by the Substitution Preprocessor
+List of symbols replaced by the substitution preprocessor
 ----------------------------------------------------------
 
 The following symbols in KPP-generated source code will be replaced
