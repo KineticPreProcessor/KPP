@@ -172,41 +172,40 @@ ROOT_Parameters
 ---------------
 
 The global parameters listed in :ref:`table-par` are defined and
-initialized in :file:`ROOT_Parameters.f90` (or
-:file:`.F90`). 
+initialized in :file:`ROOT_Parameters.f90` (or :file:`.F90`).
 
 .. _table-par:
 
 .. table:: Table 5: Parameters Declared in ROOT_Parameter
    :align: center
 
-   +--------------------+---------------------------------------------+--------+
-   | Parameter          | Represents                                  | Value  |
-   +====================+=============================================+========+
-   | :code:`NSPEC`      | No. chemical species                        | 7      |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`NVAR`       | No. variable species                        | 5      |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`NFIX`       | No. fixed species                           | 2      |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`NREACT`     | No. reactions                               | 10     |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`NONZERO`    | No. nonzero entries Jacobian                | 18     |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`LU_NONZERO` | As above, after LU factorization            | 19     |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`NHESS`      | Length, sparse Hessian                      | 10     |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`NJVRP`      | Length, sparse Jacobian JVRP                | 13     |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`NSTOICM`    | Length, stoichiometric matrix               | 22     |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`ind_spc`    | Index of species *spc* in :code:`C`         |        |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`indf_spc`   | Index of fixed species *spc* in :code:`FIX` |        |
-   +--------------------+---------------------------------------------+--------+
+   +----------------+---------------------------------------------+--------+
+   | Parameter      | Represents                                  | Value  |
+   +================+=============================================+========+
+   | ``NSPEC``      | No. chemical species                        | 7      |
+   +----------------+---------------------------------------------+--------+
+   | ``NVAR``       | No. variable species                        | 5      |
+   +----------------+---------------------------------------------+--------+
+   | ``NFIX``       | No. fixed species                           | 2      |
+   +----------------+---------------------------------------------+--------+
+   | ``NREACT``     | No. reactions                               | 10     |
+   +----------------+---------------------------------------------+--------+
+   | ``NONZERO``    | No. nonzero entries Jacobian                | 18     |
+   +----------------+---------------------------------------------+--------+
+   | ``LU_NONZERO`` | As above, after LU factorization            | 19     |
+   +----------------+---------------------------------------------+--------+
+   | ``NHESS``      | Length, sparse Hessian                      | 10     |
+   +----------------+---------------------------------------------+--------+
+   | ``NJVRP``      | Length, sparse Jacobian JVRP                | 13     |
+   +----------------+---------------------------------------------+--------+
+   | ``NSTOICM``    | Length, stoichiometric matrix               | 22     |
+   +----------------+---------------------------------------------+--------+
+   | ``ind_spc``    | Index of species *spc* in :code:`C`         |        |
+   +----------------+---------------------------------------------+--------+
+   | ``indf_spc``   | Index of fixed species *spc* in :code:`FIX` |        |
+   +----------------+---------------------------------------------+--------+
 
-   NOTE: Values listed the 3rd column of Table 5  are from the
+   NOTE: Values listed the 3rd column of Table 5 are from the
    :command:`small_strato` mechanism
    (cf. :ref:`running-kpp-with-an-example-mechanism`). 
 
