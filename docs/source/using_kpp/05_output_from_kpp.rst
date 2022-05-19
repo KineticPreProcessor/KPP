@@ -64,8 +64,9 @@ Using :command:`#DRIVER none` will skip generating this file.
 ROOT_Model
 ----------
 
-The file :file:`ROOT_Model.f90` (or :file:`.F90`) completely
-defines the model by using all the associated modules.
+The file :file:`ROOT_Model.f90` (or :file:`.F90`) unifies all model
+definitions in a single module. This simplifies inclusion into
+external Fortran programs.
 
 .. _Initialize:
 
@@ -172,9 +173,7 @@ ROOT_Parameters
 
 The global parameters listed in :ref:`table-par` are defined and
 initialized in :file:`ROOT_Parameters.f90` (or
-:file:`.F90`).  The values listed in the third column
-of Table 4 are taken from the :command:`small_strato` example mechanism,
-which is described in :ref:`running-kpp-with-an-example-mechanism`.
+:file:`.F90`). 
 
 .. _table-par:
 
@@ -206,6 +205,10 @@ which is described in :ref:`running-kpp-with-an-example-mechanism`.
    +--------------------+---------------------------------------------+--------+
    | :code:`indf_spc`   | Index of fixed species *spc* in :code:`FIX` |        |
    +--------------------+---------------------------------------------+--------+
+
+   NOTE: Values listed the 3rd column of Table 5  are from the
+   :command:`small_strato` mechanism
+   (cf. :ref:`running-kpp-with-an-example-mechanism`). 
 
 KPP orders the variable species such that the sparsity pattern of the
 Jacobian is maintained after an LU decomposition. For our example there
