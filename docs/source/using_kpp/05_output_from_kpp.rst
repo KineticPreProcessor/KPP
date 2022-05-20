@@ -272,7 +272,7 @@ The global variables listed in :ref:`table-glob` are declared in
    +-------------------------+---------------------------------------------+
 
 Both variable and fixed species are stored in the one-dimensional
-array :code:`C`. The first part (indices from code:`1` to :code:`NVAR`)
+array :code:`C`. The first part (indices from :code:`1` to :code:`NVAR`)
 contains the variable species, and the second part (indices from to
 :code:`NVAR+1` to :code:`NSPEC`) the fixed species. The total number
 of species is the sum of the :code:`NVAR` and :code:`NFIX`. The parts
@@ -330,7 +330,7 @@ equations (ODEs) of dimension . The concentrations of fixed species
 are parameters in the derivative function. The subroutine computes
 first the vector :code:`A` of reaction rates and then the vector
 :code:`Vdot` of variable species time derivatives. The input arguments
-:code:`V`, :code;`F`, :code:`RCT` are the concentrations of variable
+:code:`V`, :code:`F`, :code:`RCT` are the concentrations of variable
 species, fixed species, and the rate coefficients,
 respectively. :code:`A` and :code:`Vdot` may be returned to the
 calling program (for diagnostic purposes) with optional ouptut
