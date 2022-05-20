@@ -665,7 +665,7 @@ Details can be found in the comment lines of the individual integrator files
 
     Number of function calls.
 
-.. option:: ISTATUS_U(2)`
+.. option:: ISTATUS_U(2)
 
    Number of Jacobian calls.
 
