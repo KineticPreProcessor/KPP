@@ -94,7 +94,7 @@ html_static_path = ["_static"]
 html_css_files = ["custom.css"]
 
 # Display KPP logo
-html_favicon = "_static/kpp-favicon.png"
+html_favicon = "_static/kpp-favicon.ico"
 html_logo = "_static/kpp-logo.png"
 
 # RTD theme settings

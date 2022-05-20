@@ -123,9 +123,9 @@ NOTE: Contains KPP modifications specific to GEOS-Chem
 
 - Now create Fortran-90 source code files with :file:`*.F90` instead
   of :file:`*.f90`. (NOTE: In :ref:`kpp250`, this can specified with
-  the :ref:`uppercasef90` command.)
+  the :ref:`uppercasef90-cmd` command.)
 
-- Remove calls to UPDATE_SUN and UPDATE_RCONST from all *.f90
+- Remove calls to UPDATE_SUN and UPDATE_RCONST from all :code:`*.f90`
   integrators. (NOTE: This has been restored in :ref:`kpp250`.)
 
 .. _kpp225gc:
@@ -171,7 +171,7 @@ NOTE: Contains KPP modifications specific to GEOS-Chem
 
 - Added :code:`OMPThreadPrivate` function for F77.
 
-- Added declaration of :code:`A` in :ref:`ROOT_Function`
+- Added declaration of :code:`A` in :ref:`Function`
 
 - Added :code:`OMP THREADPRIVATE` Functionality to F90 output.
 
@@ -212,7 +212,7 @@ KPP 2.2.3
 
 - New Rosebrock method :code:`Rang3` was added.
 
-- The new KPP command :code:`#DECLARE` was added (see :ref:`declare`).
+- The new KPP command :code:`#DECLARE` was added (see :ref:`declare-cmd`).
 
 - Several vector and array functions from :program:`BLAS` (:code:`WCOPY`,
   :code:`WAXPY`, etc.) were replaced by Fortran90 expressions.
@@ -241,6 +241,6 @@ KPP 2.1
   reactions (see :ref:`lookat-and-monitor`.
 
 - The dummy index allows to test if a certain species occurs in the
-  current chemistry mechanism. (see :ref:`dummyindex`)
+  current chemistry mechanism. (see :ref:`dummyindex-cmd`)
 
 - Lines starting with :code:`//` are comment lines.

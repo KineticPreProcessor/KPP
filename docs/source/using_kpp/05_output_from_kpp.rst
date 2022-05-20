@@ -31,15 +31,13 @@ is contained in the following sections.
    are only produced under certain circumstances.
 
 All subroutines and functions, global parameters, variables, and
-sparsity data structures  are encapsulated in modules. There is
-exactly one module in each file, and the name of the module is
-identical to the file name but without  the suffix :code:`.f90` or
-:code:`.F90`. `Figure 1 (above) <The Fortran90 code_>`_ shows how these modules
-are related to  each other. The generated code is consistent with the
-Fortran90 standard. It will not exceed the maximum number of 39 continuation
-lines. If KPP cannot properly split an expression to keep the number
-of continuation lines below the threshold then it will generate a
-warning message pointing to the location of this expression.
+sparsity data structures are encapsulated in modules. There is exactly
+one module in each file, and the name of the module is identical to the
+file name but without the suffix :code:`.f90` or :code:`.F90`. `Figure 1
+(above) <The Fortran90 code_>`_ shows how these modules are related to
+each other. The generated code is consistent with the Fortran90
+standard. It may, however, exceed the official maximum number of 39
+continuation lines.
 
 .. tip::
 
@@ -64,8 +62,9 @@ Using :command:`#DRIVER none` will skip generating this file.
 ROOT_Model
 ----------
 
-The file :file:`ROOT_Model.f90` (or :file:`.F90`) completely
-defines the model by using all the associated modules.
+The file :file:`ROOT_Model.f90` (or :file:`.F90`) unifies all model
+definitions in a single module. This simplifies inclusion into
+external Fortran programs.
 
 .. _Initialize:
 
@@ -171,41 +170,42 @@ ROOT_Parameters
 ---------------
 
 The global parameters listed in :ref:`table-par` are defined and
-initialized in :file:`ROOT_Parameters.f90` (or
-:file:`.F90`).  The values listed in the third column
-of Table 4 are taken from the :command:`small_strato` example mechanism,
-which is described in :ref:`running-kpp-with-an-example-mechanism`.
+initialized in :file:`ROOT_Parameters.f90` (or :file:`.F90`).
 
 .. _table-par:
 
 .. table:: Table 5: Parameters Declared in ROOT_Parameter
    :align: center
 
-   +--------------------+---------------------------------------------+--------+
-   | Parameter          | Represents                                  | Value  |
-   +====================+=============================================+========+
-   | :code:`NSPEC`      | No. chemical species                        | 7      |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`NVAR`       | No. variable species                        | 5      |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`NFIX`       | No. fixed species                           | 2      |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`NREACT`     | No. reactions                               | 10     |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`NONZERO`    | No. nonzero entries Jacobian                | 18     |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`LU_NONZERO` | As above, after LU factorization            | 19     |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`NHESS`      | Length, sparse Hessian                      | 10     |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`NJVRP`      | Length, sparse Jacobian JVRP                | 13     |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`NSTOICM`    | Length, stoichiometric matrix               | 22     |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`ind_spc`    | Index of species *spc* in :code:`C`         |        |
-   +--------------------+---------------------------------------------+--------+
-   | :code:`indf_spc`   | Index of fixed species *spc* in :code:`FIX` |        |
-   +--------------------+---------------------------------------------+--------+
+   +----------------+---------------------------------------------+--------+
+   | Parameter      | Represents                                  | Value  |
+   +================+=============================================+========+
+   | ``NSPEC``      | No. chemical species (``NVAR`` + ``NFIX``)  | 7      |
+   +----------------+---------------------------------------------+--------+
+   | ``NVAR``       | No. variable species                        | 5      |
+   +----------------+---------------------------------------------+--------+
+   | ``NFIX``       | No. fixed species                           | 2      |
+   +----------------+---------------------------------------------+--------+
+   | ``NREACT``     | No. reactions                               | 10     |
+   +----------------+---------------------------------------------+--------+
+   | ``NONZERO``    | No. nonzero entries Jacobian                | 18     |
+   +----------------+---------------------------------------------+--------+
+   | ``LU_NONZERO`` | As above, after LU factorization            | 19     |
+   +----------------+---------------------------------------------+--------+
+   | ``NHESS``      | Length, sparse Hessian                      | 10     |
+   +----------------+---------------------------------------------+--------+
+   | ``NJVRP``      | Length, sparse Jacobian JVRP                | 13     |
+   +----------------+---------------------------------------------+--------+
+   | ``NSTOICM``    | Length, stoichiometric matrix               | 22     |
+   +----------------+---------------------------------------------+--------+
+   | ``ind_spc``    | Index of species *spc* in :code:`C`         |        |
+   +----------------+---------------------------------------------+--------+
+   | ``indf_spc``   | Index of fixed species *spc* in :code:`FIX` |        |
+   +----------------+---------------------------------------------+--------+
+
+Values listed the 3rd column of Table 5 are from the
+:command:`small_strato` mechanism
+(cf. :ref:`running-kpp-with-an-example-mechanism`).
 
 KPP orders the variable species such that the sparsity pattern of the
 Jacobian is maintained after an LU decomposition. For our example there

@@ -16,7 +16,7 @@ The Kinetic PreProcessor: KPP
    <p>
    <a href="https://github.com/KineticPreProcessor/KPP/blob/main/LICENSE.txt"><img
    src="https://img.shields.io/badge/License-GPLv3-blue.svg"></a>
-   <a href="https://doi.org/10.5281/zenodo.4552707"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.4552707.svg"></a>
+   <a href="https://doi.org/10.5281/zenodo.6563908"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.6563908.svg"></a>
    <a href="https://kpp.readthedocs.io/en/latest/"><img src="https://img.shields.io/readthedocs/kpp?label=ReadTheDocs"></a>
    </p>
 

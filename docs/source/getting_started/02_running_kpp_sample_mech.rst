@@ -125,7 +125,7 @@ code in the KPP language (cf. :ref:`bnf-description`):
    #CHECK O; N;                    { Check Mass Balance of oxygen & nitrogen }
 
    #INITVALUES                     { Set initial values of species           }
-     CFACTOR = 1.    ;             { and et units conversion factor to 1     }
+     CFACTOR = 1.    ;             { and set units conversion factor to 1    }
      O1D = 9.906E+01 ;
      O   = 6.624E+08 ;
      O3  = 5.326E+11 ;
