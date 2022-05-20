@@ -8,11 +8,11 @@ Following is the BNF-like specification of the KPP language:
 
 .. code-block:: text
 
-    program ::=              module | module program
+ program ::=                 module | module program
 
-    module ::=               section | command |inline_code
+ module ::=                  section | command |inline_code
 
-    section ::=              #ATOMS atom_definition_list                           |
+ section ::=                 #ATOMS atom_definition_list                           |
                              #CHECK atom_list                                      |
                              #DEFFIX species_definition_list                       |
                              #DEFVAR species_definition_list                       |
@@ -26,7 +26,7 @@ Following is the BNF-like specification of the KPP language:
                              #SETVAR species_list_plus                             |
                              #TRANSPORT species_list
 
-    command ::=              #CHECKALL                                             |
+ command ::=                 #CHECKALL                                             |
                              #DECLARE [ SYMBOL | VALUE ]                           |
                              #DOUBLE [ ON | OFF ]                                  |
                              #DRIVER driver_name                                   |
