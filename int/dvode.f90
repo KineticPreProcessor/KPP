@@ -49,17 +49,17 @@ MODULE KPP_ROOT_Integrator
 !_______________________________________________________________________
   LOGICAL, PARAMETER, PRIVATE :: USE_MA48_FOR_SPARSE=.FALSE.
 !_______________________________________________________________________
-! *****MA48 build change point. Replace the above statement.
-  LOGICAL, PARAMETER, PRIVATE :: USE_MA48_FOR_SPARSE=.TRUE.
+!! *****MA48 build change point. Replace the above statement.
+!!  LOGICAL, PARAMETER, PRIVATE :: USE_MA48_FOR_SPARSE=.TRUE.
 !_______________________________________________________________________
-! *****MA48 build change point. Insert these statements.
-! MA48 type declarations:
- TYPE(ZD01_TYPE) MATRIX
- TYPE(MA48_CONTROL) CONTROL
- TYPE(MA48_FACTORS) FACTORS
- TYPE(MA48_AINFO) AINFO
- TYPE(MA48_FINFO) FINFO
- TYPE(MA48_SINFO) SINFO
+!! *****MA48 build change point. Insert these statements.
+!! MA48 type declarations:
+! TYPE(ZD01_TYPE) MATRIX
+! TYPE(MA48_CONTROL) CONTROL
+! TYPE(MA48_FACTORS) FACTORS
+! TYPE(MA48_AINFO) AINFO
+! TYPE(MA48_FINFO) FINFO
+! TYPE(MA48_SINFO) SINFO
 !_______________________________________________________________________
 ! .. Parameters ..
 !     IPCUTH_MAX - maximum number of times the solver will halve the
@@ -179,7 +179,7 @@ MODULE KPP_ROOT_Integrator
         NSLP, NSRCH, NSRCH1, NST, NSUBS, NSUPS, NUM, NUMNZ, NYH, NZ_ALL,        &
         NZ_SWAG, PREVIOUS_MAXORD, WPD, WPS, MA28AD_CALLS, MA28BD_CALLS,         &
         MA28CD_CALLS, MC19AD_CALLS, MAX_MINIRN, MAX_MINICN, MAX_NNZ, BNGRP
-        MA48AD_CALLS, MA48BD_CALLS, MA48CD_CALLS
+!!        MA48AD_CALLS, MA48BD_CALLS, MA48CD_CALLS
 ! *****MA48 build change point. Insert the above line.
       LOGICAL, PRIVATE :: ABORT, ABORT1, ABORT2, ABORT3, ABORTA, ABORTB,        &
         ALLOW_DEFAULT_TOLS, BUILD_IAJA, BOUNDS, CHANGED_ACOR, GROW, IAJA_CALLED,&
@@ -223,7 +223,7 @@ MODULE KPP_ROOT_Integrator
   XSETUN        , DEGR          , IDO           , NUMSRT        ,  &
   SEQ           , SETR          , SLO           , SRTDAT        ,  &
   FDJS
-  DVJACS48      , DVNLSS48      , DVPREPS48     , DVSOLS48
+!!  DVJACS48      , DVNLSS48      , DVPREPS48     , DVSOLS48
 !_______________________________________________________________________
 ! *****MA48 build change point. Insert the above line.
 !_______________________________________________________________________
@@ -358,10 +358,10 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
       IMPLICIT NONE
 
       INTEGER :: N
-      KPP_REAL :: V(NVAR), FCT(NVAR), T
+      KPP_REAL :: V(NVAR), FCT(NVAR), T, TOLD
       
       TOLD = TIME
-      TIME = T
+      TIME = T 
       IF ( Do_Update_SUN    ) CALL Update_SUN()
       IF ( Do_Update_RCONST ) CALL Update_RCONST()
       IF ( Do_Update_PHOTO  ) CALL Update_PHOTO()
@@ -376,7 +376,6 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       SUBROUTINE JAC_CHEM (N,T,V,IA,JA,NNZ,JF)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
       USE KPP_ROOT_Parameters
       USE KPP_ROOT_Global
       USE KPP_ROOT_JacobianSP
@@ -385,7 +384,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 
       IMPLICIT NONE
 
-      KPP_REAL :: V(NVAR), T
+      KPP_REAL :: V(NVAR), T, TOLD
       INTEGER, INTENT(IN)  :: N
       INTEGER, INTENT(OUT) :: NNZ
 #ifdef FULL_ALGEBRA    
@@ -2270,9 +2269,9 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 ! ..
 ! .. Subroutine Arguments ..
         OPTIONAL :: G_FCN, J_FCN
-!        EXTERNAL J_FCN
-! ..
-! .. Subroutine Interfaces ..
+        EXTERNAL :: J_FCN
+!!!! ..
+!!!! .. Subroutine Interfaces ..
      INTERFACE
        SUBROUTINE F(NEQ,T,Y,YDOT)
          USE KPP_ROOT_Precision
@@ -2303,18 +2302,20 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !    external. The interface for a sparse problem differs
 !    from that for a banded or dense problem. The following
 !    would suffuce for a banded or dense problem.
-!    INTERFACE
-!      SUBROUTINE J_FCN(NEQ,T,Y,ML,MU,PD,NROWPD)
-!        INTEGER, PARAMETER :: WP = KIND(1.0D0)
-!        INTEGER NEQ, ML, MU, NROWPD
-!        KPP_REAL T
-!        KPP_REAL, DIMENSION(NEQ) :: Y
-!        KPP_REAL, DIMENSION(NEQ) :: PD(NROWPD,NEQ)
-!        INTENT(IN)  :: NEQ, T, Y, ML, MU, NROWPD
-!        INTENT(INOUT) :: PD
-!      END SUBROUTINE J_FCN
-!    END INTERFACE
-!    The following would suffice for a sparse problem.
+#ifdef FULL_ALGEBRA
+   INTERFACE
+     SUBROUTINE J_FCN(NEQ,T,Y,ML,MU,PD,NROWPD)
+       INTEGER, PARAMETER :: WP = KIND(1.0D0)
+       INTEGER NEQ, ML, MU, NROWPD
+       KPP_REAL T
+       KPP_REAL, DIMENSION(NEQ) :: Y
+       KPP_REAL, DIMENSION(NEQ) :: PD(NROWPD,NEQ)
+       INTENT(IN)  :: NEQ, T, Y, ML, MU, NROWPD
+       INTENT(INOUT) :: PD
+     END SUBROUTINE J_FCN
+   END INTERFACE
+#else
+!   The following would suffice for a sparse problem.
     INTERFACE
       SUBROUTINE J_FCN(NEQ,T,Y,IA,JA,NZ,P)
         USE KPP_ROOT_Precision
@@ -2326,6 +2327,23 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
         INTENT(INOUT) IA, JA, NZ, P
       END SUBROUTINE J_FCN
     END INTERFACE
+#endif
+!!!     INTERFACE
+!!!      SUBROUTINE J_FCN(NEQ,T,Y,IA,JA,NZ, P)
+!!!        USE KPP_ROOT_Precision
+!!!        INTEGER,  INTENT(IN)    :: NEQ
+!!!        KPP_REAL, INTENT(IN)    :: T
+!!!        KPP_REAL, INTENT(IN)    :: Y(NEQ)
+!!!        INTEGER,  INTENT(INOUT) :: IA(*)  
+!!!        INTEGER,  INTENT(INOUT) :: JA(*)
+!!!        INTEGER,  INTENT(INOUT) :: NZ
+!!!#ifdef FULL_ALGEBRA    
+!!!        KPP_REAL, INTENT(INOUT) :: P(*,*)
+!!!#else
+!!!        KPP_REAL, INTENT(INOUT) :: P(*)
+!!!#endif
+!!!      END SUBROUTINE J_FCN
+!!!     END INTERFACE
 ! ..
 ! .. Local Scalars ..
         INTEGER :: HOWCALL, METH, MFA, MITER, MOSS, NG
@@ -16056,8 +16074,8 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !             Has node iw been on stack already?
               IF (NUMB(IW)==0) GOTO 70
 !             Update value of LOWL(IV) if necessary.
-20          LOWL(IV) = MIN(LOWL(IV),LOWL(IW))
-
+              LOWL(IV) = MIN(LOWL(IV),LOWL(IW))
+20          CONTINUE
 !           There are no more edges leaving node IV.
             ARP(IV) = -1
 !           Is node IV the root of a block.
@@ -16177,7 +16195,8 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !           It does. Copy into current entry.
             ACE = ACEP
             ICE = ICEP
-40        JCE = JCEP + JDISP
+            JCE = JCEP + JDISP
+40        CONTINUE
 
 50      END DO
 
@@ -16430,7 +16449,8 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
           IW(IOLD,1) = IW(IOLD,1) - JJ
           J2 = JJ + LENGTH - 1
           DO 20 J = JJ, J2
-20        IW1(J) = IOLD
+            IW1(J) = IOLD
+20        CONTINUE
           JJ = J2 + 1
 30      END DO
 !       Set inverse permutation to IQ in IW(:,2).
@@ -16473,7 +16493,8 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
             IW1(IPOS) = 0
 !           End of chain loop.
           END DO
-60        A(IPOS) = AVAL
+60        CONTINUE
+          A(IPOS) = AVAL
 70        ICN(IPOS) = IW(JVAL,2)
 !         END OF MAIN LOOP
 80      END DO
@@ -16626,7 +16647,8 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
             IBEG = LICN + 1
 !           Reset pointers to the beginning of the rows.
             DO 100 I = 2, N
-100         IW1(I,1) = IW1(I-1,1) + LENOFF(I-1)
+               IW1(I,1) = IW1(I-1,1) + LENOFF(I-1)
+100         CONTINUE
 
 !           Row IOLD is now split into diagonal and off-diagonal parts.
 110         IROWB = IW1(IOLD,1)
@@ -16727,7 +16749,8 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
           J1 = J0 + LENRL(I) - 1
           WROWL = ZERO
           DO 20 JJ = J0, J1
-20        WROWL = WROWL + ABS(A(JJ))
+             WROWL = WROWL + ABS(A(JJ))
+20        CONTINUE
 !         AMAXL is the maximum norm of columns of L so far found.
           AMAXL = MAX(AMAXL,WROWL)
           J0 = J1 + 1
@@ -16736,8 +16759,10 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
           IF (J0>J2) GOTO 50
           DO 40 JJ = J0, J2
             J = ICN(JJ)
-40        W(J) = MAX(ABS(A(JJ)),W(J))
-50        J0 = J2 + 1
+            W(J) = MAX(ABS(A(JJ)),W(J))
+40        CONTINUE
+50        CONTINUE
+          J0 = J2 + 1
 60      END DO
 !       AMAXU is set to maximum max-norm of columns of U.
         AMAXU = ZERO
