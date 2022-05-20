@@ -372,9 +372,9 @@ A KPP command begins on a new line with a :code:`#` sign, followed by a
 command name and one or more parameters.  Details about each command
 are given in the following subsections.
 
-.. table:: 
+.. table::
    :align: center
-           
+
    +--------------------------+-----------------------+
    | KPP command              | default value         |
    +==========================+=======================+
@@ -650,6 +650,12 @@ for the fill-in due to the LU decomposition.
 
 #LANGUAGE
 ---------
+
+.. attention::
+
+   The :command:`Fortran77` language option is deprecated in
+   :ref:`kpp250` and  later versions. All further KPP development will
+   only support Fortran90.
 
 The :command:`#LANGUAGE` command selects the target language in which the
 code file is to be generated. Available options are :command:`Fortran90`,
