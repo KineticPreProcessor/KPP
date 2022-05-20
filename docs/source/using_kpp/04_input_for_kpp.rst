@@ -559,9 +559,9 @@ for the derivatives in production and destruction forms.
 #HESSIAN
 --------
 
-The option :command:`ON` (the default) of the :command:`#HESSIAN` command
-turns the Hessian generation on (see the section entitled
-:ref:`Hessian`).  With :command:`OFF` it is switched off.
+The option :command:`ON` (the default) of the :command:`#HESSIAN`
+command turns the Hessian generation on (see section
+:ref:`Hessian-and-HessianSP`). With :command:`OFF` it is switched off.
 
 .. _include-cmd:
 
