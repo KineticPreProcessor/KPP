@@ -31,15 +31,13 @@ is contained in the following sections.
    are only produced under certain circumstances.
 
 All subroutines and functions, global parameters, variables, and
-sparsity data structures  are encapsulated in modules. There is
-exactly one module in each file, and the name of the module is
-identical to the file name but without  the suffix :code:`.f90` or
-:code:`.F90`. `Figure 1 (above) <The Fortran90 code_>`_ shows how these modules
-are related to  each other. The generated code is consistent with the
-Fortran90 standard. It will not exceed the maximum number of 39 continuation
-lines. If KPP cannot properly split an expression to keep the number
-of continuation lines below the threshold then it will generate a
-warning message pointing to the location of this expression.
+sparsity data structures are encapsulated in modules. There is exactly
+one module in each file, and the name of the module is identical to the
+file name but without the suffix :code:`.f90` or :code:`.F90`. `Figure 1
+(above) <The Fortran90 code_>`_ shows how these modules are related to
+each other. The generated code is consistent with the Fortran90
+standard. It may, however, exceed the official maximum number of 39
+continuation lines.
 
 .. tip::
 
@@ -182,7 +180,7 @@ initialized in :file:`ROOT_Parameters.f90` (or :file:`.F90`).
    +----------------+---------------------------------------------+--------+
    | Parameter      | Represents                                  | Value  |
    +================+=============================================+========+
-   | ``NSPEC``      | No. chemical species (``NVAR``+``NFIX``)    | 7      |
+   | ``NSPEC``      | No. chemical species (:code:`NVAR+NFIX`)    | 7      |
    +----------------+---------------------------------------------+--------+
    | ``NVAR``       | No. variable species                        | 5      |
    +----------------+---------------------------------------------+--------+
@@ -205,9 +203,9 @@ initialized in :file:`ROOT_Parameters.f90` (or :file:`.F90`).
    | ``indf_spc``   | Index of fixed species *spc* in :code:`FIX` |        |
    +----------------+---------------------------------------------+--------+
 
-   NOTE: Values listed the 3rd column of Table 5 are from the
-   :command:`small_strato` mechanism
-   (cf. :ref:`running-kpp-with-an-example-mechanism`). 
+NOTE: Values listed the 3rd column of Table 5 are from the
+:command:`small_strato` mechanism
+(cf. :ref:`running-kpp-with-an-example-mechanism`). 
 
 KPP orders the variable species such that the sparsity pattern of the
 Jacobian is maintained after an LU decomposition. For our example there

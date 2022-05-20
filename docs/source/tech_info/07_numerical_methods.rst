@@ -373,7 +373,7 @@ Fully implicit 3-stage Runge-Kutta methods.  Several variants are available:
 
 RADAU5
 ------
-**Integrator files:** :file:`int/kpp_radau5.f90`
+**Integrator files:** :file:`int/radau5.f90`
 
 This Runge-Kutta method of order 5 based on RADAU-IIA quadrature
 is stiffly accurate. The KPP implementation follows the original
@@ -396,14 +396,14 @@ variants are available:
 
 SDIRK4
 ------
-**Integrator file:** :file:`int/kpp_sdirk4.f90`
+**Integrator file:** :file:`int/sdirk4.f90`
 
 SDIRK4 is an L-stable, singly-diagonally-implicit Runge-Kutta method
 of order 4. The implementation is based on :cite:`1991:Hairer_and_Wanner`.
 
 SEULEX
 ------
-**Integrator file:** :file:`int/kpp_seulex.f90`
+**Integrator file:** :file:`int/seulex.f90`
 
 SEULEX is a variable  order stiff extrapolation code able to produce
 highly accurate solutions. The KPP implementation is based on the
@@ -484,20 +484,34 @@ implementations of BDF methods, described in the following sections:
 
 LSODE
 -----
-**Integrator file:** :file:`int/kpp_lsode.f90`
+**Integrator file:** :file:`int/lsode.f90`
 
 LSODE, the Livermore ODE solver :cite:`1993:LSODE`, implements backward
 differentiation formula (BDF) methods for stiff problems.  LSODE has
 been translated to Fortran90 for the incorporation into the KPP library.
 
 VODE
------
+----
 
-**Integrator file:** :file:`int/kpp_dvode.f90`
+**Integrator file:** :file:`int/dvode.f90`
 
 VODE :cite:`1989:VODE` uses another formulation of backward
 differentiation formulas. The version of VODE present in the KPP
 library uses directly the KPP sparse linear algebra routines.
+
+BEULER
+------
+
+**Integrator file:** :file:`int/beuler.f90`
+
+=====
+Other
+=====
+
+FEULER
+------
+
+**Integrator file:** :file:`int/feuler.f90`
 
 .. _integrator-input-output:
 

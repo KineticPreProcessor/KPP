@@ -368,9 +368,60 @@ included in the transport calculations.
 KPP commands
 ============
 
-A command begins on a new line with a :code:`#` sign, followed by a
+A KPP command begins on a new line with a :code:`#` sign, followed by a
 command name and one or more parameters.  Details about each command
 are given in the following subsections.
+
+.. table:: 
+   :align: center
+           
+   +--------------------------+-----------------------+
+   | KPP command              | default value         |
+   +==========================+=======================+
+   | :command:`#CHECKALL`     |                       |
+   +--------------------------+-----------------------+
+   | :command:`#DECLARE`      | :code:`SYMBOL`        |
+   +--------------------------+-----------------------+
+   | :command:`#DOUBLE`       | :code:`ON`            |
+   +--------------------------+-----------------------+
+   | :command:`#DRIVER`       | :code:`none`          |
+   +--------------------------+-----------------------+
+   | :command:`#DUMMYINDEX`   | :code:`OFF`           |
+   +--------------------------+-----------------------+
+   | :command:`#EQNTAGS`      | :code:`OFF`           |
+   +--------------------------+-----------------------+
+   | :command:`#FUNCTION`     | :code:`AGGREGATE`     |
+   +--------------------------+-----------------------+
+   | :command:`#HESSIAN`      | :code:`ON`            |
+   +--------------------------+-----------------------+
+   | :command:`#INCLUDE`      |                       |
+   +--------------------------+-----------------------+
+   | :command:`#INTEGRATOR`   |                       |
+   +--------------------------+-----------------------+
+   | :command:`#INTFILE`      |                       |
+   +--------------------------+-----------------------+
+   | :command:`#JACOBIAN`     | :code:`SPARSE_LU_ROW` |
+   +--------------------------+-----------------------+
+   | :command:`#LANGUAGE`     |                       |
+   +--------------------------+-----------------------+
+   | :command:`#LOOKATALL`    |                       |
+   +--------------------------+-----------------------+
+   | :command:`#MEX`          | :code:`ON`            |
+   +--------------------------+-----------------------+
+   | :command:`#MINVERSION`   |                       |
+   +--------------------------+-----------------------+
+   | :command:`#MODEL`        |                       |
+   +--------------------------+-----------------------+
+   | :command:`#REORDER`      | :code:`ON`            |
+   +--------------------------+-----------------------+
+   | :command:`#STOCHASTIC`   | :code:`OFF`           |
+   +--------------------------+-----------------------+
+   | :command:`#STOICMAT`     | :code:`ON`            |
+   +--------------------------+-----------------------+
+   | :command:`#TRANSPORTALL` |                       |
+   +--------------------------+-----------------------+
+   | :command:`#UPPERCASEF90` | :code:`OFF`           |
+   +--------------------------+-----------------------+
 
 .. _declare-cmd:
 
@@ -544,8 +595,18 @@ is similar to:
 
    #INCLUDE $KPP_HOME/int/integrator-name.def
 
-If the :command:`#INTEGRATOR` the command occurs twice, the second
-replaces the first.
+The :command:`#INTEGRATOR` command allows the use of different
+integration techniques on the same model. If it occurs twice, the second
+replaces the first. Normally, KPP tries to find the selected integrator
+files in the directory :file:`$KPP_HOME/int/`. However, if the supplied
+file name contains a slash, it is assumed to be absolute. To access an
+integrator in the current directory, the prefix :file:`./` can be used,
+e.g.:
+
+.. code-block:: console
+
+   #INTEGRATOR ./mydeffile
+   #INTFILE ./myintegrator
 
 .. _intfile-cmd:
 
@@ -561,22 +622,12 @@ replaces the first.
 The integrator definition file selects an integrator file with
 :command:`#INTFILE` and also defines some suitable options for it. The
 :command:`#INTFILE` command selects the file that contains the integrator
-routine. This command allows the use of different integration
-techniques on the same model. The parameter of the
+routine. The parameter of the
 command is a file name, without suffix. The appropriate suffix
 (:code:`.f90`, :code:`.F90`, :code:`.c`, or :code:`.m` is appended and
 the result selects the file from which the integrator
 is taken. This file will be copied into the code file in the appropriate
-place. All integrators have to conform to the same specific calling
-sequence. Normally, KPP tries to find the selected integrator file in
-the directory :file:`$KPP_HOME/int/`. However, if the supplied file name
-contains a slash, it is assumed to be absolute. To access an integrator
-in the current directory, the prefix :file:`./` can be used, e.g.:
-
-.. code-block:: console
-
-   #INTEGRATOR ./mydeffile
-   #INTFILE ./myintegrator
+place.
 
 .. _jacobian-cmd:
 

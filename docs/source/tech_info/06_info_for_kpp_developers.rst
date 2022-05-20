@@ -280,39 +280,40 @@ To add a new KPP command, the source code has to be edited at several
 locations. A short summary is presented here, using the new command as
 an example:
 
--  Add to several files in the directory:
+* Add the new command to several files in the :file:`src/` directory:
+  
+  - :file:`scan.h`: add :code:`void CmdNEWCMD( char *cmd );`
 
-.. code-block:: C
+  - :file:`scan.l`: add :code:`{ "NEWCMD", PRM_STATE, NEWCMD },`
 
-   void CmdNEWCMD( char *cmd );
-   -  : ``{ "NEWCMD", PRM_STATE, NEWCMD },``
+  - :file:`scanner.c`: add :code:`void CmdNEWCMD( char *cmd )`
 
-   -  : ``void CmdNEWCMD( char *cmd )``
+  - :file:`scan.y`:
 
-   -  :
+    - add :code:`%token NEWCMD`
 
-      -  ``%token NEWCMD``
+    - add :code:`| NEWCMD PARAMETER`
 
-      -  ``NEWCMD PARAMETER``
+    - add :code:`{ CmdNEWCMD( $2 ); }`
 
-      -  ``{ CmdNEWCMD( $2 ); }``
+* Add :ref:`ci-tests`:
 
--  Add a :ref:`ci-tests`:
+  - Create a new directory :file:`ci-tests/ros_newcmd/ros_newcmd.kpp`
 
-   -  Create a new directory
+  - Add new :ref:`ci-tests` to the :file:`ci-tests` folder and
+    update the scripts in the :file:`.ci-pipelines` folder.
 
-   -  Add new :ref:`ci-tests` to the :file:`ci-tests` folder and
-      update the scripts in :file:`.ci-pipelines` folder.
+* Other:
 
--  Other:
+  - explain in user manual :file:`manual/kpp_UserManual.tex`:
 
-   -  Explain in user manual:
+    - add to table :code:`tab:commands`
 
-      -  Add to table
+    - add a section :code:`sec:command-newcmd`
 
-      -  Add a section
+    - add to BNF description table :code:`sec:bnf`
 
-      -  Add to BNF description table
+  - add to :file:`site-lisp/kpp.el`
 
 .. _ci-tests:
 
