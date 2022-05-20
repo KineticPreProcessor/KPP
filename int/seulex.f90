@@ -6,6 +6,7 @@
 
 MODULE KPP_ROOT_Integrator
 
+  USE KPP_ROOT_Global
   USE KPP_ROOT_Precision
   USE KPP_ROOT_Parameters
   USE KPP_ROOT_Jacobian,      ONLY: LU_DIAG
