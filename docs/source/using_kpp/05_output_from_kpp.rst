@@ -180,7 +180,7 @@ initialized in :file:`ROOT_Parameters.f90` (or :file:`.F90`).
    +----------------+---------------------------------------------+--------+
    | Parameter      | Represents                                  | Value  |
    +================+=============================================+========+
-   | ``NSPEC``      | No. chemical species (:code:`NVAR+NFIX`)    | 7      |
+   | ``NSPEC``      | No. chemical species (``NVAR`` + ``NFIX``)  | 7      |
    +----------------+---------------------------------------------+--------+
    | ``NVAR``       | No. variable species                        | 5      |
    +----------------+---------------------------------------------+--------+
@@ -203,9 +203,9 @@ initialized in :file:`ROOT_Parameters.f90` (or :file:`.F90`).
    | ``indf_spc``   | Index of fixed species *spc* in :code:`FIX` |        |
    +----------------+---------------------------------------------+--------+
 
-NOTE: Values listed the 3rd column of Table 5 are from the
+Values listed the 3rd column of Table 5 are from the
 :command:`small_strato` mechanism
-(cf. :ref:`running-kpp-with-an-example-mechanism`). 
+(cf. :ref:`running-kpp-with-an-example-mechanism`).
 
 KPP orders the variable species such that the sparsity pattern of the
 Jacobian is maintained after an LU decomposition. For our example there
