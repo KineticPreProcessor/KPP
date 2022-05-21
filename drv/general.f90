@@ -26,7 +26,7 @@ PROGRAM KPP_ROOT_Driver
         ATOL(i) = 1.0d-3
       END DO
 
-!~~~> Set default species conceentrations
+!~~~> Set default species concentrations
       CALL Initialize()
 
 !~~~> Open log file for write

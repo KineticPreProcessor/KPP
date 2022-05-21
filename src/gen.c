@@ -658,73 +658,7 @@ void GenerateStoichNum()
 /*  mz_rs_20160201- */
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-/*mz_dt_20150424+ */
-void GenerateFun_Split()
-{
-  int i, j, k;
-  int used;
-  int l, m;
-  int FSPLIT_VAR;
-
-  if( VarNr == 0 ) return;
-  if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
-    UseFile( functionFile );
-  FSPLIT_VAR = DefFnc( "Fun_SPLIT", 5, "time derivatives of variables - Split form");
-  FunctionBegin( FSPLIT_VAR, V, F, RCT, P_VAR, D_VAR );
-  NewLines(1);
-  WriteComment("Computation of equation rates");
-  for(j=0; j<EqnNr; j++) {
-    used = 0;
-    for (i = 0; i < VarNr; i++)
-      if ( Stoich_Right[i][j] != 0 ) {
-        used = 1;
-        break;
-      }
-    if ( used ) {
-      prod = RConst( j );
-      for (i = 0; i < VarNr; i++)
-        for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
-          prod = Mul( prod, Elm( V, i ) );
-      for ( ; i < SpcNr; i++)
-        for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
-          prod = Mul( prod, Elm( F, i - VarNr ) );
-      Assign( Elm( A, j ), prod );
-    }
-  }
-  NewLines(1);
-  WriteComment("Production function");
-  for (i = 0; i < VarNr; i++) {
-    sum = Const(0);
-    for (j = 0; j < EqnNr; j++)
-      sum = Add( sum, Mul( Const( Stoich_Right[i][j] ), Elm( A, j ) ) );
-    Assign( Elm( P_VAR, i ), sum );
-  }
-  NewLines(1);
-  WriteComment("Destruction function");
-  for (i = 0; i < VarNr; i++) {
-    sum = Const(0);
-    for(j=0; j<EqnNr; j++) {
-      if ( Stoich_Left[i][j] == 0 ) continue;
-      prod = Mul( RConst( j ), Const( Stoich_Left[i][j] ) );
-      for (l = 0; l < VarNr; l++) {
-        m=(int)Stoich_Left[l][j] - (l==i);
-        for (k = 1; k <= m; k++ )
-          prod = Mul( prod, Elm( V, l ) );
-      }
-      for ( ; l < SpcNr; l++)
-        for (k = 1; k <= (int)Stoich_Left[l][j]; k++ )
-          prod = Mul( prod, Elm( F, l - VarNr  ) );
-      sum = Add( sum, prod );
-    }
-    Assign( Elm( D_VAR, i ), sum );
-  }
-  FunctionEnd( FSPLIT_VAR );
-  FreeVariable( FSPLIT_VAR );
-}
-/*mz_dt_20150424- */
-
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-void GenerateFun()
+void GenerateFun( int z_useAggregate )
 {
 int i, j, k;
 int used;
@@ -739,20 +673,20 @@ int F_VAR, FSPLIT_VAR;
   F_VAR = DefFnc( "Fun", 6,
 		  "time derivatives of variables - Aggregate form");
 
-  FSPLIT_VAR = DefFnc( "Fun_SPLIT", 5,
+  FSPLIT_VAR = DefFnc( "Fun_SPLIT", 7,
 		       "time derivatives of variables - Split form");
 
 
   // We have added the capability to return equation rates and the
   // time derivative of variable species from Fun via optional arguments
-  // Aout and VdotOut (when useAggregate=1)
+  // Aout and VdotOut (when z_useAggregate=1)
   //   -- Bob Yantosca (03 May 2022)
-  if( useAggregate )
+  if( z_useAggregate )
     FunctionBegin( F_VAR, V, F, RCT, Vdot, Aout, Vdotout );
   else 
-    FunctionBegin( FSPLIT_VAR, V, F, RCT, P_VAR, D_VAR );
+    FunctionBegin( FSPLIT_VAR, V, F, RCT, Vdot, P_VAR, D_VAR, Aout );
 
-  if ( (useLang==MATLAB_LANG)&&(!useAggregate) )
+  if ( (useLang==MATLAB_LANG)&&(!z_useAggregate) )
      printf("\nWarning: in the function definition move P_VAR to output vars\n");
 
 
@@ -767,7 +701,7 @@ int F_VAR, FSPLIT_VAR;
 
   for(j=0; j<EqnNr; j++) {
     used = 0;
-    if( useAggregate ) {
+    if( z_useAggregate ) {
       for (i = 0; i < VarNr; i++)
         if ( Stoich[i][j] != 0 ) {
           used = 1;
@@ -793,13 +727,13 @@ int F_VAR, FSPLIT_VAR;
     }
   }
 
-  if( useAggregate ) {
-    // Add code to return equation rates via optional argument Aout
-    //   -- Bob Yantosca (29 Apr 2022)
-    NewLines(1);
-    fprintf(functionFile, "  !### Use Aout to return equation rates\n");
-    fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n");
+  // Add code to return equation rates via optional argument Aout
+  //   -- Bob Yantosca (29 Apr 2022)
+  NewLines(1);
+  fprintf(functionFile, "  !### Use Aout to return equation rates\n");
+  fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n");
 
+  if( z_useAggregate ) {
     NewLines(1);
     WriteComment("Aggregate function");
 
@@ -837,15 +771,6 @@ int F_VAR, FSPLIT_VAR;
     NewLines(1);
     WriteComment("Destruction function");
 
-    /* msl_20160421
-    for (i = 0; i < VarNr; i++) {
-      sum = Const(0);
-      for (j = 0; j < EqnNr; j++)
-        sum = Add( sum, Mul( Const( Stoich_Left[i][j] ), Elm( A, j ) ) );
-      Assign( Elm( D_VAR, i ), sum );
-    }
-    */
-
     for (i = 0; i < VarNr; i++) {
       sum = Const(0);
       for(j=0; j<EqnNr; j++) {
@@ -863,14 +788,19 @@ int F_VAR, FSPLIT_VAR;
       }
       Assign( Elm( D_VAR, i ), sum );
     }
+    
+    // Add code to calculate Vdot also for split function:
+    NewLines(1);
+    fprintf(functionFile, "  Vdot = P_VAR - D_VAR*V\n");
+
   }
 
-  if( useAggregate )
+  if( z_useAggregate )
     MATLAB_Inline("\n   Vdot = Vdot(:);\n");
   else
     MATLAB_Inline("\n   P_VAR = P_VAR(:);\n   D_VAR = D_VAR(:);\n");
 
-  if( useAggregate )
+  if( z_useAggregate )
     FunctionEnd( F_VAR );
   else
     FunctionEnd( FSPLIT_VAR );
@@ -2250,9 +2180,30 @@ int UPDATE_PHOTO;
 
   FunctionBegin( UPDATE_PHOTO );
   F77_Inline("      INCLUDE '%s_Global.h'", rootFileName);
-  F90_Inline("   USE %s_Global", rootFileName);
+  /*  mz_rs_20220212+ */
+  /* global is already used in the rates module, don't use it twice */
+  /* F90_Inline("   USE %s_Global", rootFileName); */
+  /*  mz_rs_20220212- */
   MATLAB_Inline("global SUN TEMP RCONST");
+  
+  NewLines(1);
+  WriteComment("Begin INLINED RCONST");
+  NewLines(1);
 
+  switch( useLang ) {
+    case C_LANG:  bprintf( InlineCode[ C_RCONST ].code ); 
+                 break;
+    case F77_LANG: bprintf( InlineCode[ F77_RCONST ].code ); 
+                 break;
+    case F90_LANG: bprintf( InlineCode[ F90_RCONST ].code ); 
+                 break;
+    case MATLAB_LANG: bprintf( InlineCode[ MATLAB_RCONST ].code ); 
+                 break;
+  }
+  FlushBuf();
+
+  NewLines(1);
+  WriteComment("End INLINED RCONST");
   NewLines(1);
 
   for( i = 0; i < EqnNr; i++) {
@@ -3523,8 +3474,8 @@ int n;
     printf("\nKPP is generating the ODE function:");
   }
   printf("\n    - %s_Function",rootFileName);
-  GenerateFun();
-  GenerateFun_Split();
+  GenerateFun(1); /* setting useAggregate=1, generate SUBROUTINE Fun*/
+  GenerateFun(0); /* setting useAggregate=0, generate SUBROUTINE FUN_SPLIT */
   GenerateStoichNum();
   if (doFlux == 1) GenerateFlux();
 

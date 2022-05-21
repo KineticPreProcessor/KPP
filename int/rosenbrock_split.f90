@@ -207,6 +207,10 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
 !        =  7 :  Call Update_SUN, Update_PHOTO, Update_RCONST w/in the int.
 !
+!    ICNTRL(16) -> 
+!        = 0 : allow negative concentrations (default)
+!        = 1 : set negative concentrations to zero
+!
 !    RCNTRL(1)  -> Hmin, lower bound for the integration step size
 !          It is strongly recommended to keep Hmin = ZERO
 !    RCNTRL(2)  -> Hmax, upper bound for the integration step size
@@ -596,8 +600,7 @@ Stage: DO istage = 1, ros_S
             K(N*(j-1)+1),1,Ynew,1)
          END DO
          Tau = T + ros_Alpha(istage)*Direction*H
-         CALL FunSplitTemplate( Tau, Ynew, Fcn )
-         !CALL FunTemplate( Tau, Ynew, Fcn ) msl_20160421 - for split function
+         CALL FunTemplate( Tau, Ynew, Fcn )
          ISTATUS(Nfun) = ISTATUS(Nfun) + 1
        END IF ! if istage == 1 elseif ros_NewF(istage)
        !slim: CALL WCOPY(N,Fcn,1,K(ioffset+1),1)
@@ -638,8 +641,13 @@ Stage: DO istage = 1, ros_S
    ISTATUS(Nstp) = ISTATUS(Nstp) + 1
    IF ( (Err <= ONE).OR.(H <= Hmin) ) THEN  !~~~> Accept step
       ISTATUS(Nacc) = ISTATUS(Nacc) + 1
-      !slim: CALL WCOPY(N,Ynew,1,Y,1)
-      Y(1:N) = Ynew(1:N)
+      IF (ICNTRL(16) == 1) THEN
+        ! new value is non-negative:
+        Y = MAX(Ynew,ZERO)
+      ELSE
+        !slim: CALL WCOPY(N,Ynew,1,Y,1)
+        Y(1:N) = Ynew(1:N)
+      ENDIF      
       T = T + Direction*H
       Hnew = MAX(Hmin,MIN(Hnew,Hmax))
       IF (RejectLastH) THEN  ! No step size increase after a rejected step
@@ -722,8 +730,7 @@ Stage: DO istage = 1, ros_S
    KPP_REAL, PARAMETER :: ONE = 1.0_dp, DeltaMin = 1.0E-6_dp
 
    Delta = SQRT(Roundoff)*MAX(DeltaMin,ABS(T))
-   CALL FunSplitTemplate( T+Delta, Y, dFdT )
-!   CALL FunTemplate( T+Delta, Y, dFdT ) msl_20160421
+   CALL FunTemplate( T+Delta, Y, dFdT )
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
    CALL WAXPY(N,(-ONE),Fcn0,1,dFdT,1)
    CALL WSCAL(N,(ONE/Delta),dFdT,1)
@@ -1298,14 +1305,14 @@ END SUBROUTINE Rosenbrock
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBROUTINE FunSplitTemplate( T, Y, Ydot, P_VAR, D_VAR )
+SUBROUTINE FunTemplate( T, Y, Ydot, P_VAR, D_VAR )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the ODE function call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  USE KPP_ROOT_Parameters, ONLY : NVAR, LU_NONZERO
  USE KPP_ROOT_Global,     ONLY : FIX, RCONST, TIME
- USE KPP_ROOT_Function,   ONLY : Fun_SPLIT
+ USE KPP_ROOT_Function,   ONLY : Fun, Fun_SPLIT
  USE KPP_ROOT_Rates,      ONLY : Update_SUN, Update_RCONST
 
 !~~~> Input variables
@@ -1320,14 +1327,13 @@ SUBROUTINE FunSplitTemplate( T, Y, Ydot, P_VAR, D_VAR )
    TIME = T
    IF ( Do_Update_SUN    ) CALL Update_SUN()
    IF ( Do_Update_RCONST ) CALL Update_RCONST()
-   CALL Fun_SPLIT( Y, FIX, RCONST, P, D )
-   Ydot = P - D*y
+   CALL Fun_SPLIT( Y, FIX, RCONST, Ydot, P, D )
    TIME = Told
 
    IF (Present(P_VAR)) P_VAR=P
    IF (Present(D_VAR)) D_VAR=D
 
- END SUBROUTINE FunSplitTemplate
+END SUBROUTINE FunTemplate
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

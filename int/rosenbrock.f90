@@ -1305,22 +1305,23 @@ END SUBROUTINE Rosenbrock
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBROUTINE FunTemplate( T, Y, Ydot )
+SUBROUTINE FunTemplate( T, Y, Ydot, P_VAR, D_VAR )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the ODE function call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  USE KPP_ROOT_Parameters, ONLY : NVAR, LU_NONZERO
  USE KPP_ROOT_Global,     ONLY : FIX, RCONST, TIME
- USE KPP_ROOT_Function,   ONLY : Fun
+ USE KPP_ROOT_Function,   ONLY : Fun, Fun_SPLIT
  USE KPP_ROOT_Rates,      ONLY : Update_SUN, Update_RCONST
 
 !~~~> Input variables
    KPP_REAL :: T, Y(NVAR)
 !~~~> Output variables
    KPP_REAL :: Ydot(NVAR)
+   KPP_REAL, OPTIONAL :: P_VAR(NVAR), D_VAR(NVAR)
 !~~~> Local variables
-   KPP_REAL :: Told
+   KPP_REAL :: Told, P(NVAR), D(NVAR)
 
    Told = TIME
    TIME = T
@@ -1328,6 +1329,9 @@ SUBROUTINE FunTemplate( T, Y, Ydot )
    IF ( Do_Update_RCONST ) CALL Update_RCONST()
    CALL Fun( Y, FIX, RCONST, Ydot )
    TIME = Told
+
+   IF (Present(P_VAR)) P_VAR=P
+   IF (Present(D_VAR)) D_VAR=D
 
 END SUBROUTINE FunTemplate
 
