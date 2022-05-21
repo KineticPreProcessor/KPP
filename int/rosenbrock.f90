@@ -207,6 +207,10 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
 !        =  7 :  Call Update_SUN, Update_PHOTO, Update_RCONST w/in the int.
 !
+!    ICNTRL(16) -> 
+!        = 0 : allow negative concentrations (default)
+!        = 1 : set negative concentrations to zero
+!
 !    RCNTRL(1)  -> Hmin, lower bound for the integration step size
 !          It is strongly recommended to keep Hmin = ZERO
 !    RCNTRL(2)  -> Hmax, upper bound for the integration step size
@@ -637,8 +641,13 @@ Stage: DO istage = 1, ros_S
    ISTATUS(Nstp) = ISTATUS(Nstp) + 1
    IF ( (Err <= ONE).OR.(H <= Hmin) ) THEN  !~~~> Accept step
       ISTATUS(Nacc) = ISTATUS(Nacc) + 1
-      !slim: CALL WCOPY(N,Ynew,1,Y,1)
-      Y(1:N) = Ynew(1:N)
+      IF (ICNTRL(16) == 1) THEN
+        ! new value is non-negative:
+        Y = MAX(Ynew,ZERO)
+      ELSE
+        !slim: CALL WCOPY(N,Ynew,1,Y,1)
+        Y(1:N) = Ynew(1:N)
+      ENDIF      
       T = T + Direction*H
       Hnew = MAX(Hmin,MIN(Hnew,Hmax))
       IF (RejectLastH) THEN  ! No step size increase after a rejected step
