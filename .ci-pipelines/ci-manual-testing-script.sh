@@ -6,7 +6,7 @@
 ########################################################################
 
 # List of tests (add more as necessary; separate each with a space)
-all_tests="radau90 rk rktlm ros rosadj rosenbrock90 rostlm saprc2006 sd sdadj small_f90 ros_upcase small_strato seulex90"
+all_tests="radau90 rk rktlm ros ros_split rosadj rosenbrock90 rostlm saprc2006 sd sdadj small_f90 ros_upcase small_strato seulex90"
 
 # Run each test
 # Check status of each individual operation and exit if any do not complete

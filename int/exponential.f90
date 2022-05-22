@@ -71,7 +71,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 END SUBROUTINE INTEGRATE
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBROUTINE Exponential(N,Y,NF,F,Tstart,Tend, IERR)
+SUBROUTINE Exponential(N,Y,NF,FIX,Tstart,Tend, IERR)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
 !    Solves the system y'=F(t,y) using a an explicit method defined by
@@ -114,18 +114,18 @@ SUBROUTINE Exponential(N,Y,NF,F,Tstart,Tend, IERR)
 
 !~~~>  Arguments
    INTEGER,       INTENT(IN)    :: N, NF
-   KPP_REAL, INTENT(INOUT) :: Y(N), F(NF)
+   KPP_REAL, INTENT(INOUT) :: Y(N), FIX(NF)
    KPP_REAL, INTENT(IN)    :: Tstart,Tend
    INTEGER, INTENT(OUT)   :: IERR
-!~~~>  Parameters of the Rosenbrock method, up to 6 stages
 !~~~>  Local variables
-   KPP_REAL            :: PROD(N), LOSS(N)
+   KPP_REAL            :: Ydot(N), P(N), D(N)
 !~~~>   Parameters
    KPP_REAL, PARAMETER :: ZERO = 0.0_dp, ONE  = 1.0_dp
    KPP_REAL, PARAMETER :: DeltaMin = 1.0E-5_dp
 
-   CALL Fun_SPLIT(Y,F,RCONST,PROD,LOSS)
-   Y=Y*dexp(-1._dp*LOSS*(Tstart-Tend))+(1._dp-dexp(-1._dp*LOSS*(Tstart-Tend))*(PROD/LOSS))
+   CALL KPP_FUN_OR_FUN_SPLIT
+   
+   Y=Y*dexp(-1._dp*D*(Tstart-Tend))+(1._dp-dexp(-1._dp*D*(Tstart-Tend))*(P/D))
 
    ! Can be rewritten as a linear algebra operation for possible optimization. - MSL
    
