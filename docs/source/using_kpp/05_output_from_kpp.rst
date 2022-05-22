@@ -112,9 +112,9 @@ If the equation tags are switched on, KPP also generates the
 equation tag to the KPP-internal tag number, this can be used to
 describe a reaction:
 
-.. code-block:: F90
+.. code-block:: none
 
-   PRINT*,’Reaction J1 is:’, EQN_NAMES( tag2num( ’J1’ ) )
+   PRINT*, ’Reaction J1 is:’, EQN_NAMES( tag2num( ’J1’ ) )
 
 .. _Precision:
 

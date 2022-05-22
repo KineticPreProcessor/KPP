@@ -27,7 +27,7 @@ capabilities. However, the software tools are general and can be applied
 to virtually any kinetic mechanism.
 
 We focus on Fortran90. Particularities of the C and Matlab
-languages are discussed in the :ref:`language` section.
+languages are discussed in the :ref:`language-cmd` section.
 
 .. important::
 

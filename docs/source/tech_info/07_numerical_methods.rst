@@ -334,7 +334,7 @@ the (non-autonomous) Rosenbrock method is
 KPP contains adjoint models (for direct decoupled sensitivity analysis)
 for each of the Rosenbrock methods (:ref:`rosenbrock-ros-2`,
 :ref:`rosenbrock-ros-3`, :ref:`rosenbrock-ros-4`,
-:ref:`rosenbrock-rodas3`, :ref:`rosenbrock-rodas-4`).
+:ref:`rosenbrock-rodas-3`, :ref:`rosenbrock-rodas-4`).
 
 .. _rk-methods:
 
