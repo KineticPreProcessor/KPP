@@ -402,7 +402,8 @@ List of continuous integration tests
 
 Each continuous integration test is contained in a subfolder of
 :file:`$KPP_HOME/ci-tests` in a KPP definition file (ending in
-:file:`.kpp`) from :file:`$KPP_HOME/models/`.
+:file:`.kpp`) from :file:`$KPP_HOME/models/` or
+:file:`$KPP_HOME/examples/`.
 
 .. _running-ci-tests-on-azure:
 
