@@ -274,6 +274,8 @@ char tmp[500];
 static char tmpfile[] = "kppfile.tmp";
 FILE * fp;
 int isMakefile;
+char *FUNCALL[] = { "FUN_SPLIT( Y, FIX, RCONST, Ydot, P, D )", /* index 0 = split */ 
+                    "FUN( Y, FIX, RCONST, Ydot )"};            /* index 1 = aggregate */
 
   Va_start( args, fmt );
   vsprintf( buf, fmt, args );
@@ -352,6 +354,10 @@ int isMakefile;
   strncat( cmd, tmp, strlen(tmp)+1 );
 
   sprintf( tmp, " -e 's/KPP_NHESS/%d/g'", Hess_NZ );
+  strncat( cmd, tmp, strlen(tmp)+1 );
+
+  // either CALL FUN or CALL FUN_SPLIT, depending on useAggregate:
+  sprintf( tmp, " -e 's/KPP_FUN_OR_FUN_SPLIT/%s/g'", FUNCALL[useAggregate] );
   strncat( cmd, tmp, strlen(tmp)+1 );
 
   // Also replace KPP_REAL with the selected precision

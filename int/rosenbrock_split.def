@@ -3,4 +3,4 @@
 #JACOBIAN SPARSE_LU_ROW
 
 #DOUBLE ON 
-#INTFILE rosenbrock_split
+#INTFILE rosenbrock
