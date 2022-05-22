@@ -1,4 +1,4 @@
-#include atoms.kpp
+#INCLUDE atoms.kpp
 
   #DEFVAR   
      O3        	= 3O ;

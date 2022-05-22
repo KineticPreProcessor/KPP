@@ -1,5 +1,5 @@
-#include small_strato.spc       { Includes file w/ species definitons     }
-#include small_strato.eqn       { Includes file w/ chemical equations     }
+#INCLUDE small_strato.spc       { Includes file w/ species definitons     }
+#INCLUDE small_strato.eqn       { Includes file w/ chemical equations     }
 
 #LOOKATALL                      { Output all species to small_strato.dat}
 #MONITOR O3;N;O2;O;NO;O1D;NO2;  { Print selected species to screen        }

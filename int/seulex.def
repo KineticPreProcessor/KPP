@@ -1,8 +1,3 @@
- 
-#FUNCTION AGGREGATE
-#JACOBIAN SPARSE_LU_ROW
-
-#DOUBLE ON 
 #INTFILE seulex
 
 #INLINE F77_GLOBAL
@@ -18,6 +13,3 @@
         Autonomous = 0
         STEPSTART=STEPMIN
 #ENDINLINE
-
-
-

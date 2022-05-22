@@ -1,9 +1,5 @@
-#include saprcnov.spc
-#include saprcnov.eqn
-
-{#LANGUAGE Fortran77
-#INTEGRATOR rodas3
-#DRIVER general}
+#INCLUDE saprcnov.spc
+#INCLUDE saprcnov.eqn
 
 #LOOKATALL
 #MONITOR O3; NO; NO2; SO2;
