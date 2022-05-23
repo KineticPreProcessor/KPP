@@ -35,6 +35,13 @@ CONTAINS
 
   SUBROUTINE Integrate( TIN,       TOUT,      ICNTRL_U , RCNTRL_U,           &
                         ISTATUS_U, RSTATUS_U, IERR_U                        )
+    ! ICNTRL(16)
+    ! 0 -> do nothing.
+    ! 1 -> set negative values to zero
+    ! 2 -> return with error code
+    ! 3 -> stop at negative
+    !
+    ! ICNTRL(17) = verbose error output
 
     !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     ! User interface routine to the KPP forward Euler integrator
@@ -134,9 +141,6 @@ CONTAINS
     LOGICAL  :: hasNegative
     KPP_REAL :: Ynew(N), dYdt(N)
 
-    ! Initialize
-    hasNegative = .false.
-
     ! Update rates before integration if desired
     IF ( Do_Update_SUN    ) CALL Update_SUN()
     IF ( Do_Update_RCONST ) CALL Update_RCONST()
@@ -147,18 +151,22 @@ CONTAINS
     !~~~> Do the integration
     Ynew = Y + ( dYdt * ( Tend - Tstart ) )
 
-    !~~~> Check for negatives
-    !~~~> Skip check unless otherwise specified by ICNTRL(2)
-    IF ( ICNTRL(2) /= 0 ) THEN
+    ! Check for negatives
+    IF (ICNTRL(16) .gt. 0) THEN ! Don't perform DO() loop if you don't care
        DO i=1,N
           IF (Ynew(i) .lt. 0._dp) THEN
-             hasNegative = .true.
-             IF (ICNTRL(1) /= 0) write(*,*) trim(SPC_NAMES(i)), " is negative."
+             IF (ICNTRL(17) /= 0) THEN
+                write(*,*) trim(SPC_NAMES(i)), " is negative: ", Ynew(i)
+             ENDIF
              IERR = -9
-             IF (ICNTRL(2) /= 0) THEN
-                IERR = -1
-                write(*,*) 'Stopping'
+             IF (ICNTRL(16) == 1) THEN
+                Ynew(i) = 0._dp
+             ELSE IF (ICNTRL(16) == 2) THEN
+                write(*,*) '(ICNTRL(16) = 2) Negative value. Returning.'
                 RETURN
+             ELSE IF (ICNTRL(16) == 3) THEN
+                write(*,*) '(ICNTRL(16) = 3) Negative value. Stopping.'
+                STOP
              ENDIF
           ENDIF
        ENDDO
