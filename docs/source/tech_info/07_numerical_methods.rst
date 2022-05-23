@@ -101,6 +101,8 @@ in KPP. The symbols used in the formulas are explained in
 Rosenbrock methods
 ==================
 
+**Integrator file:** :file:`int/rosenbrock.f90`
+
 An :math:`s`-stage Rosenbrock method (cf. Section IV.7 in
 :cite:`1991:Hairer_and_Wanner`) computes the next-step solution by the
 formulas
@@ -261,6 +263,8 @@ RODAS-4
 Rosenbrock tangent linear model
 --------------------------------
 
+**Integrator file:** :file:`int/rosenbrock_tlm.f90`
+
 The Tangent Linear method is combined with the sensitivity
 equations. One step of the method reads:
 
@@ -302,6 +306,8 @@ respect to parameters for efficiency.
 Rosenbrock discrete adjoint model
 ---------------------------------
 
+**Integrator file:** :file:`int/rosenbrock_adj.f90`
+
 To obtain the adjoint we first differentiate the method with respect to
 :math:`y_n`. Here :math:`J` denotes the Jacobian and :math:`H` the
 Hessian of the derivative function :math:`f`. The discrete adjoint of
@@ -328,7 +334,7 @@ the (non-autonomous) Rosenbrock method is
 KPP contains adjoint models (for direct decoupled sensitivity analysis)
 for each of the Rosenbrock methods (:ref:`rosenbrock-ros-2`,
 :ref:`rosenbrock-ros-3`, :ref:`rosenbrock-ros-4`,
-:ref:`rosenbrock-rodas3`, :ref:`rosenbrock-rodas-4`).
+:ref:`rosenbrock-rodas-3`, :ref:`rosenbrock-rodas-4`).
 
 .. _rk-methods:
 
@@ -373,7 +379,7 @@ Fully implicit 3-stage Runge-Kutta methods.  Several variants are available:
 
 RADAU5
 ------
-**Integrator files:** :file:`int/radau5.f90`
+**Integrator file:** :file:`int/radau5.f90`
 
 This Runge-Kutta method of order 5 based on RADAU-IIA quadrature
 is stiffly accurate. The KPP implementation follows the original

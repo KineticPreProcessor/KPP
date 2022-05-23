@@ -103,13 +103,13 @@ following subdirectories:
 .. option:: int/
 
    Contains numerical time stepping (integrator) routines. The
-   command “*integrator*” will force KPP to look into this directory for
-   a definition file *integrator*. This file selects the numerical
-   routine (with the command) and sets the function type, the Jacobian
-   sparsity type, the target language, etc. Each integrator template is
-   found in a file that ends with the appropriate suffix
-   (:code:`.f90`, :code:`.F90`, :code:`c`, or :code:`matlab`).  The
-   selected template is processed by the
+   :command:`#INTEGRATOR` command will force KPP to look into this
+   directory for a definition file with suffix :code:`.def`. This file
+   selects the numerical routine (with the command) and sets the
+   function type, the Jacobian sparsity type, the target language, etc.
+   Each integrator template is found in a file that ends with the
+   appropriate suffix (:code:`.f90`, :code:`.F90`, :code:`c`, or
+   :code:`matlab`). The selected template is processed by the
    substitution preprocessor (cf. :ref:`list-of-symbols-replaced`).
    Users can define here their own numerical integration routines.
 
@@ -184,7 +184,7 @@ Default setting: none
    Optional specifies additional places where KPP will look for driver
    files before searching the default folder.
 
-   Default setting: :file:`$KPP_HOME/drv`
+   Default setting: :file:`$KPP_HOME/drv`.
 
 .. _kpp-internal-modules:
 
@@ -218,10 +218,8 @@ memory:
 
 Error checking is performed at each step in the scanner and the parser.
 For each syntax error the exact line and input file, along with an
-appropriate error message are produced. In most of the cases the exact
-cause of the error can be identified, therefore the error messages are
-very precise. Some other errors like mass balance, and equation
-duplicates, are tested at the end of this phase.
+appropriate error message are produced. Some other errors like mass
+balance, and equation duplicates, are tested at the end of this phase.
 
 .. _species-reordering:
 
@@ -267,7 +265,7 @@ particularities of the target language. For example, the C module
 includes a function that generates a valid C assignment when given an
 expression tree. Similarly there are functions for data declaration,
 initializations, comments, function prototypes, etc. Each of these
-functions produce the code into an output buffer. A language specific
+functions produce the code into an output buffer. A language-specific
 routine reads from this buffer and splits the statements into lines to
 improve readability of the generated code.
 
@@ -403,8 +401,9 @@ List of continuous integration tests
    +-----------------------+------------------------------------------------+
 
 Each continuous integration test is contained in a subfolder of
-:file:`$KPP_HOME/ci-tests` a KPP definition file (ending in
-:file:`.kpp`) from :file:`$KPP_HOME/models/`.
+:file:`$KPP_HOME/ci-tests` in a KPP definition file (ending in
+:file:`.kpp`) from :file:`$KPP_HOME/models/` or
+:file:`$KPP_HOME/examples/`.
 
 .. _running-ci-tests-on-azure:
 
@@ -472,7 +471,7 @@ pull requests to certain branches will trigger the C-I tests.
 File :file:`ci-testing-script.sh` executes all of the C-I tests
 whenever a push or a pull request is made to the selected branches
 in the KPP Github repository.  If you add new C-I tests, be sure to
-update the:code:`for` loop in this file.
+update the :code:`for` loop in this file.
 
 .. _running-ci-tests-locally:
 

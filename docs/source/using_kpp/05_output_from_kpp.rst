@@ -112,9 +112,9 @@ If the equation tags are switched on, KPP also generates the
 equation tag to the KPP-internal tag number, this can be used to
 describe a reaction:
 
-.. code-block:: F90
+.. code-block:: none
 
-   PRINT*,’Reaction J1 is:’, EQN_NAMES( tag2num( ’J1’ ) )
+   PRINT*, ’Reaction J1 is:’, EQN_NAMES( tag2num( ’J1’ ) )
 
 .. _Precision:
 
@@ -174,38 +174,38 @@ initialized in :file:`ROOT_Parameters.f90` (or :file:`.F90`).
 
 .. _table-par:
 
-.. table:: Table 5: Parameters Declared in ROOT_Parameter
+.. table:: Table 5: Parameters Declared in ROOT_Parameters
    :align: center
 
-   +----------------+---------------------------------------------+--------+
-   | Parameter      | Represents                                  | Value  |
-   +================+=============================================+========+
-   | ``NSPEC``      | No. chemical species (``NVAR`` + ``NFIX``)  | 7      |
-   +----------------+---------------------------------------------+--------+
-   | ``NVAR``       | No. variable species                        | 5      |
-   +----------------+---------------------------------------------+--------+
-   | ``NFIX``       | No. fixed species                           | 2      |
-   +----------------+---------------------------------------------+--------+
-   | ``NREACT``     | No. reactions                               | 10     |
-   +----------------+---------------------------------------------+--------+
-   | ``NONZERO``    | No. nonzero entries Jacobian                | 18     |
-   +----------------+---------------------------------------------+--------+
-   | ``LU_NONZERO`` | As above, after LU factorization            | 19     |
-   +----------------+---------------------------------------------+--------+
-   | ``NHESS``      | Length, sparse Hessian                      | 10     |
-   +----------------+---------------------------------------------+--------+
-   | ``NJVRP``      | Length, sparse Jacobian JVRP                | 13     |
-   +----------------+---------------------------------------------+--------+
-   | ``NSTOICM``    | Length, stoichiometric matrix               | 22     |
-   +----------------+---------------------------------------------+--------+
-   | ``ind_spc``    | Index of species *spc* in :code:`C`         |        |
-   +----------------+---------------------------------------------+--------+
-   | ``indf_spc``   | Index of fixed species *spc* in :code:`FIX` |        |
-   +----------------+---------------------------------------------+--------+
+   +----------------+---------------------------------------------+---------+
+   | Parameter      | Represents                                  | Example |
+   +================+=============================================+=========+
+   | ``NSPEC``      | No. chemical species (``NVAR`` + ``NFIX``)  | 7       |
+   +----------------+---------------------------------------------+---------+
+   | ``NVAR``       | No. variable species                        | 5       |
+   +----------------+---------------------------------------------+---------+
+   | ``NFIX``       | No. fixed species                           | 2       |
+   +----------------+---------------------------------------------+---------+
+   | ``NREACT``     | No. reactions                               | 10      |
+   +----------------+---------------------------------------------+---------+
+   | ``NONZERO``    | No. nonzero entries Jacobian                | 18      |
+   +----------------+---------------------------------------------+---------+
+   | ``LU_NONZERO`` | As above, after LU factorization            | 19      |
+   +----------------+---------------------------------------------+---------+
+   | ``NHESS``      | Length, sparse Hessian                      | 10      |
+   +----------------+---------------------------------------------+---------+
+   | ``NJVRP``      | Length, sparse Jacobian JVRP                | 13      |
+   +----------------+---------------------------------------------+---------+
+   | ``NSTOICM``    | Length, stoichiometric matrix               | 22      |
+   +----------------+---------------------------------------------+---------+
+   | ``ind_spc``    | Index of species *spc* in :code:`C`         |         |
+   +----------------+---------------------------------------------+---------+
+   | ``indf_spc``   | Index of fixed species *spc* in :code:`FIX` |         |
+   +----------------+---------------------------------------------+---------+
 
-Values listed the 3rd column of Table 5 are from the
-:command:`small_strato` mechanism
-(cf. :ref:`running-kpp-with-an-example-mechanism`).
+Example values listed in the 3rd column are taken from the
+:command:`small_strato` mechanism (cf.
+:ref:`running-kpp-with-an-example-mechanism`).
 
 KPP orders the variable species such that the sparsity pattern of the
 Jacobian is maintained after an LU decomposition. For our example there
@@ -272,7 +272,7 @@ The global variables listed in :ref:`table-glob` are declared in
    +-------------------------+---------------------------------------------+
 
 Both variable and fixed species are stored in the one-dimensional
-array :code:`C`. The first part (indices from code:`1` to :code:`NVAR`)
+array :code:`C`. The first part (indices from :code:`1` to :code:`NVAR`)
 contains the variable species, and the second part (indices from to
 :code:`NVAR+1` to :code:`NSPEC`) the fixed species. The total number
 of species is the sum of the :code:`NVAR` and :code:`NFIX`. The parts
@@ -330,7 +330,7 @@ equations (ODEs) of dimension . The concentrations of fixed species
 are parameters in the derivative function. The subroutine computes
 first the vector :code:`A` of reaction rates and then the vector
 :code:`Vdot` of variable species time derivatives. The input arguments
-:code:`V`, :code;`F`, :code:`RCT` are the concentrations of variable
+:code:`V`, :code:`F`, :code:`RCT` are the concentrations of variable
 species, fixed species, and the rate coefficients,
 respectively. :code:`A` and :code:`Vdot` may be returned to the
 calling program (for diagnostic purposes) with optional ouptut

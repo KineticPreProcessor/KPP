@@ -896,7 +896,7 @@ F90_RCONST
 ----------
 
 This inline type can be used to define time-dependent values of rate
-coefficients that were declared with :
+coefficients that were declared with:
 
 .. code-block:: F90
 
