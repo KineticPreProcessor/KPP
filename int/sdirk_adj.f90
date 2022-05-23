@@ -219,7 +219,7 @@ SUBROUTINE INTEGRATE_ADJ( NADJ, Y, Lambda, TIN, TOUT, &
 !    ICNTRL(3) = Method
 !
 !    ICNTRL(4)  -> maximum number of integration steps
-!        For ICNTRL(4)=0 the default value of 1500 is used
+!        For ICNTRL(4)=0 the default value of 200000 is used
 !        Note: use a conservative estimate, since the checkpoint
 !              buffers are allocated to hold Max_no_steps
 !

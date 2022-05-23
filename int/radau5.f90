@@ -262,8 +262,8 @@ CONTAINS
 !        ICNTRL(6)=1 : starting values are zero
 !
 !    ICNTRL(11) -> switch for step size strategy
-!              ICNTRL(8) == 1:  mod. predictive controller (Gustafsson)
-!              ICNTRL(8) == 2:  classical step size control
+!              ICNTRL(11) == 1: mod. predictive controller (Gustafsson)
+!              ICNTRL(11) == 2: classical step size control
 !              the default value (for iwork(8)=0) is iwork(8)=1.
 !              the choice iwork(8) == 1 seems to produce safer results;
 !              for simple problems, the choice iwork(8) == 2 produces

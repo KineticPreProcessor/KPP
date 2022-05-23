@@ -235,7 +235,7 @@ SUBROUTINE RosenbrockTLM(N,Y,NTLM,Y_tlm,                      &
 !        = 5 :  method is  Rodas4
 !
 !    ICNTRL(4)  -> maximum number of integration steps
-!        For ICNTRL(4)=0) the default value of 100000 is used
+!        For ICNTRL(4)=0) the default value of 200000 is used
 !
 !    ICNTRL(12) -> switch for TLM truncation error control
 !        ICNTRL(12) = 0: TLM error is not used

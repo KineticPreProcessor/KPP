@@ -211,7 +211,7 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm, &
 !              = 4:  Radau-1A
 !
 !    ICNTRL(4)  -> maximum number of integration steps
-!        For ICNTRL(4)=0 the default value of 100000 is used
+!        For ICNTRL(4)=0 the default value of 200000 is used
 !
 !    ICNTRL(5)  -> maximum number of Newton iterations
 !        For ICNTRL(5)=0 the default value of 8 is used

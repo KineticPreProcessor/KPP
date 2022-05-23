@@ -270,11 +270,11 @@ CONTAINS
 !              IF ICNTRL(3).NE.0 THEN ICNTRL(3) SHOULD BE  >= 3.
 !
 !    ICNTRL(12)  SWITCH FOR THE STEP SIZE SEQUENCE
-!              IF ICNTRL(4) == 1 THEN 1,2,3,4,6,8,12,16,24,32,48,...
-!              IF ICNTRL(4) == 2 THEN 2,3,4,6,8,12,16,24,32,48,64,...
-!              IF ICNTRL(4) == 3 THEN 1,2,3,4,5,6,7,8,9,10,...
-!              IF ICNTRL(4) == 4 THEN 2,3,4,5,6,7,8,9,10,11,...
-!              THE DEFAULT VALUE (FOR ICNTRL(4)=0) IS ICNTRL(4)=2.
+!              IF ICNTRL(12) == 1 THEN Nsequence = 1,2,3,4,6,8,12,16,24,32,48,...
+!              IF ICNTRL(12) == 2 THEN Nsequence = 2,3,4,6,8,12,16,24,32,48,64,...
+!              IF ICNTRL(12) == 3 THEN Nsequence = 1,2,3,4,5,6,7,8,9,10,...
+!              IF ICNTRL(12) == 4 THEN Nsequence = 2,3,4,5,6,7,8,9,10,11,...
+!              THE DEFAULT VALUE (FOR ICNTRL(12)=0) IS Nsequence=2.
 !
 !    ICNTRL(13)  PARAMETER "LAMBDA" OF DENSE OUTPUT; POSSIBLE VALUES
 !              ARE 0 AND 1; DEFAULT ICNTRL(5)=0.
@@ -292,9 +292,6 @@ CONTAINS
 !        =  5 :  Call Update_SUN and Update_RCONST from within the int.
 !        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
 !        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
-!
-!    ICNTRL(21),...,ICNTRL(NRDENS+20) INDICATE THE COMPONENTS, FOR WHICH
-!              DENSE OUTPUT IS REQUIRED
 !
 !~~~>  Real parameters
 !
@@ -407,7 +404,7 @@ CONTAINS
    IF (ICNTRL(12)==0) THEN
       Nsequence = 2
    ELSEIF ( (ICNTRL(12)>0).AND.(ICNTRL(12)<5) ) THEN
-      Nsequence = ICNTRL(4)
+      Nsequence = ICNTRL(12)
    ELSE
       PRINT * ,'User-selected ICNTRL(12)=',ICNTRL(12)
       CALL SEULEX_ErrorMsg(-3,Tinitial,ZERO,IERR)

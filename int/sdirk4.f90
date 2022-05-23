@@ -200,13 +200,6 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !    ICNTRL(4)  -> maximum number of integration steps
 !        For ICNTRL(4)=0 the default value of 100000 is used
 !
-!    ICNTRL(5)  -> maximum number of Newton iterations
-!        For ICNTRL(5)=0 the default value of 8 is used
-!
-!    ICNTRL(6)  -> starting values of Newton iterations:
-!        ICNTRL(6)=0 : starting values are interpolated (the default)
-!        ICNTRL(6)=1 : starting values are zero
-!
 !    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
 !        = -1 :  Do not call Update_* functions within the integrator
 !        =  0 :  Status quo
