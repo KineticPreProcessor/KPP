@@ -36,8 +36,13 @@ CONTAINS
     INTEGER                              :: ICNTRL(20)
     INTEGER                              :: IERR
 
-    ! ICNTRL(1) = verbose error output
-    ! ICNTRL(2) = stop at negative integration result
+    ! ICNTRL(16)
+    ! 0 -> do nothing.
+    ! 1 -> set negative values to zero
+    ! 2 -> return with error code
+    ! 3 -> stop at negative
+    !
+    ! ICNTRL(17) = verbose error output
 
     !~~~> Zero input and output arrays for safety's sake
     ICNTRL     = 0
@@ -76,17 +81,24 @@ CONTAINS
     Ynew = Y+dYdt*(Tend-Tstart)
 
     ! Check for negatives
-    DO i=1,N
-       IF (Ynew(i) .lt. 0._dp) THEN
-          hasNegative = .true.
-          IF (ICNTRL(1) /= 0) write(*,*) trim(SPC_NAMES(i)), " is negative."
-          IERR = -9
-          IF (ICNTRL(2) /= 0) THEN
-             write(*,*) 'Stopping'
-             RETURN
+    IF (ICNTRL(16) .gt. 0) THEN ! Don't perform DO() loop if you don't care
+       DO i=1,N
+          IF (Ynew(i) .lt. 0._dp) THEN
+             hasNegative = .true.
+             IF (ICNTRL(17) /= 0) write(*,*) trim(SPC_NAMES(i)), " is negative."
+             IERR = -9
+             IF (ICNTRL(16) == 1) THEN
+                Ynew(i) = 0._dp
+             ELSE IF (ICNTRL(16) == 2) THEN
+                write(*,*) '(ICNTRL(16) = 2) Negative value. Returning.'
+                RETURN
+             ELSE IF (ICNTRL(16) == 3) THEN
+                write(*,*) '(ICNTRL(16) = 3) Negative value. Stopping.'
+                STOP
+             ENDIF
           ENDIF
-       ENDIF
-    ENDDO
+       ENDDO
+    ENDIF
 
     Y = Ynew
 
