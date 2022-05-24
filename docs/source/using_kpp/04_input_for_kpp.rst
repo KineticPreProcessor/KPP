@@ -1014,7 +1014,7 @@ files, as shown in :ref:`table-aux-files`.
 .. _list-of-symbols-replaced:
 
 List of symbols replaced by the substitution preprocessor
-----------------------------------------------------------
+---------------------------------------------------------
 
 The following symbols in KPP-generated source code will be replaced
 with corresponding values, as highlighted in :ref:`table-sym-repl`.
@@ -1024,28 +1024,271 @@ with corresponding values, as highlighted in :ref:`table-sym-repl`.
 .. table:: Table 3: Symbols and their replacements
    :align: center
 
-   +--------------------+-------------------------------+---------------------+
-   | Symbol             | Replacement                   | Example             |
-   +====================+===============================+=====================+
-   | **KPP_ROOT**       | The ``ROOT`` name             |  ``small_strato``   |
-   +--------------------+-------------------------------+---------------------+
-   | **KPP_REAL**       | The real data type            | ``REAL(kind=dp)``   |
-   +--------------------+-------------------------------+---------------------+
-   | **KPP_NSPEC**      | Number of species             | 7                   |
-   +--------------------+-------------------------------+---------------------+
-   | **KPP_NVAR**       | Number of variable species    | 5                   |
-   +--------------------+-------------------------------+---------------------+
-   | **KPP_NFIX**       | Number of fixed species       | 2                   |
-   +--------------------+-------------------------------+---------------------+
-   | **KPP_NREACT**     | Number of chemical            | 10                  |
-   |                    | reactions                     |                     |
-   +--------------------+-------------------------------+---------------------+
-   | **KPP_NONZERO**    | Number of Jacobian nonzero    | 18                  |
-   |                    | elements                      |                     |
-   +--------------------+-------------------------------+---------------------+
-   | **KPP_LU_NONZERO** | Number of Jacobian nonzero    | 19                  |
-   |                    | elements, with LU fill-in     |                     |
-   +--------------------+-------------------------------+---------------------+
-   | **KPP_LU_NHESS**   | Number of Hessian nonzero     | 10                  |
-   |                    | elements                      |                     |
-   +--------------------+-------------------------------+---------------------+
+   +--------------------------+-------------------------------+----------------------------+
+   | Symbol                   | Replacement                   | Example                    |
+   +==========================+===============================+============================+
+   | **KPP_ROOT**             | The ``ROOT`` name             |  ``small_strato``          |
+   +--------------------------+-------------------------------+----------------------------+
+   | **KPP_REAL**             | The real data type            | ``REAL(kind=dp)``          |
+   +--------------------------+-------------------------------+----------------------------+
+   | **KPP_NSPEC**            | Number of species             | 7                          |
+   +--------------------------+-------------------------------+----------------------------+
+   | **KPP_NVAR**             | Number of variable species    | 5                          |
+   +--------------------------+-------------------------------+----------------------------+
+   | **KPP_NFIX**             | Number of fixed species       | 2                          |
+   +--------------------------+-------------------------------+----------------------------+
+   | **KPP_NREACT**           | Number of chemical            | 10                         |
+   |                          | reactions                     |                            |
+   +--------------------------+-------------------------------+----------------------------+
+   | **KPP_NONZERO**          | Number of Jacobian nonzero    | 18                         |
+   |                          | elements                      |                            |
+   +--------------------------+-------------------------------+----------------------------+
+   | **KPP_LU_NONZERO**       | Number of Jacobian nonzero    | 19                         |
+   |                          | elements, with LU fill-in     |                            |
+   +--------------------------+-------------------------------+----------------------------+
+   | **KPP_LU_NHESS**         | Number of Hessian nonzero     | 10                         |
+   |                          | elements                      |                            |
+   +--------------------------+-------------------------------+----------------------------+
+   | **KPP_FUN_OR_FUN_SPLIT** | Name of the function to be    | ``FUN(Y,FIX,RCONST,Ydot)`` |
+   |                          | called                        |                            |
+   +--------------------------+-------------------------------+----------------------------+
+
+=================================================================
+Controlling the Integrator with :code:`ICNTRL` and :code:`RCNTRL`
+=================================================================
+
+In order to offer more control over the integrator, KPP provides the
+arrays :code:`ICNTRL` (integer) and :code:`RCNTRL` (real). Each of them
+is an array of 20 elements that allow the fine-tuning of the integrator.
+All integrators (except for :code:`tau_leap` and :code:`gillespie`) use
+:code:`ICNTRL` and :code:`RCNTRL`. Array elements not listed here are
+either not used or are integrator-specific options. Details can be found
+in the comment lines of the individual integrator files in
+:code:`$KPP_HOME/int/`.
+
+ICNTRL
+------
+
+.. table:: Table 4: Summary of ICNTRL usage in the f90 integrators.
+           Here, Y = used, and s = solver-specific usage.
+   :align: center
+
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | ICNTRL          | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 |
+   +=================+===+===+===+===+===+===+===+===+===+====+====+====+====+====+====+====+====+
+   | beuler          |   | Y | Y | Y | Y | Y |   |   |   |    |    |    |    |    | Y  |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | dvode           |   |   |   |   |   |   |   |   |   |    |    |    |    |    | Y  |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | exponential     |   |   |   |   |   |   |   |   |   |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | feuler          |   |   |   |   |   |   |   |   |   |    |    |    |    |    | Y  | Y  | Y  |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | gillespie       |   |   |   |   |   |   |   |   |   |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | lsode           |   | Y |   | Y |   |   |   |   |   | s  |    |    |    |    | Y  |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | radau5          |   | Y |   | Y | Y | Y |   |   |   |    | Y  |    |    |    | Y  |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | rosenbrock_adj  | Y | Y | Y | Y |   | s | s | s |   |    |    |    |    |    | Y  |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | rosenbrock      | Y | Y | Y | Y |   |   |   |   |   |    |    |    |    |    | Y  | Y  |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | rosenbrock_tlm  | Y | Y | Y | Y |   |   |   |   |   |    |    | s  |    |    | Y  |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | runge_kutta_adj |   | Y | Y | Y | Y | s | s | s | s | s  | Y  |    |    |    | Y  |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | runge_kutta     |   | Y | Y | Y | Y | Y |   |   |   | s  | Y  |    |    |    | Y  |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | runge_kutta_tlm |   | Y | Y |   | Y | Y | s |   | s | s  | Y  | s  |    |    | Y  |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | sdirk4          |   | Y |   | Y |   |   |   |   |   |    |    |    |    |    | Y  |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | sdirk_adj       |   | Y | Y | Y | Y | Y | s | s |   |    |    |    |    |    | Y  |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | sdirk           |   | Y | Y | Y | Y | Y |   |   |   |    |    |    |    |    | Y  |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | sdirk_tlm       |   | Y | Y | Y | Y | Y | s |   | s |    |    | s  |    |    | Y  |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | seulex          | Y | Y |   | Y |   |   |   |   |   | s  | s  | s  | s  | s  | Y  |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+   | tau_leap        |   |   |   |   |   |   |   |   |   |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
+
+.. option:: ICNTRL(1)
+
+   :code:`= 1`: :math:`F = F(y)`, i.e. independent of t (autonomous)
+
+   :code:`= 0`: :math:`F = F(t,y)`, i.e. depends on t (non-autonomous)
+
+.. option:: ICNTRL(2)
+
+   The absolute (:code:`ATOL`) and relative (:code:`RTOL`) tolerances
+   can be expressed by either a scalar or individually for each
+   species in a vector:
+
+   :code:`= 0` : :code:`NVAR` -dimensional vector
+
+   :code:`= 1` : scalar
+
+.. option:: ICNTRL(3)
+
+   Selection of a specific method.
+
+.. option:: ICNTRL(4)
+
+   Maximum number of integration steps.
+
+.. option:: ICNTRL(5)
+
+   Maximum number of Newton iterations.
+
+.. option:: ICNTRL(6)
+
+   Starting values of Newton iterations (only avaialble for some of
+   the integrators).
+
+   :code:`= 0` : Interpolated
+
+   :code:`= 1` : Zero
+
+.. option:: ICNTRL(11)
+
+   Gustafsson step size controller
+
+.. option:: ICNTRL(15)
+
+   This determines which :code:`Update_*` subroutines are called
+   within the integrator.
+
+   :code:`= -1` : Do not call any :code:`Update_*` subroutines
+
+   :code:`=  0` :  Use the integrator-specific default values
+
+   :code:`>  1` : A number between 1 and 7, derived by adding up bits
+   with values 4, 2, and 1.  The first digit (4) activates
+   :code:`Update_SUN`.  The second digit (2) activates
+   :code:`Update_PHOTO`.  The third digit (1) activates
+   :code:`Update_RCONST`.    |
+
+   For example :code:`ICNTRL(15)=6)` (4+2) will activate the calls to
+   :code:`Update_SUN` and :code:`Update_PHOTO`, but not to
+   :code:`Update_RCONST`.
+
+.. option:: ICNTRL(16)
+
+   Treatment of negative concentrations:
+            
+   :code:`= 0` : Leave negative values unchanged
+
+   :code:`= 1` : Set negative values to zero
+
+   :code:`= 2` : Print warning and continue
+
+   :code:`= 3` : Print error message and stop
+
+.. option:: ICNTRL(17)
+
+   Verbosity:
+
+   :code:`= 0` : Only return error number
+
+   :code:`= 1` : Verbose error output
+            
+RCNTRL
+------
+
+.. table:: Table 5: Summary of RCNTRL usage in the f90 integrators.
+           Here, Y = used, and s = solver-specific usage.
+   :align: center
+
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | RCNTRL          | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 |
+   +=================+===+===+===+===+===+===+===+===+===+====+====+====+====+====+====+====+====+====+====+
+   | beuler          | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y  | Y  | Y  | Y  | Y  | Y  | Y  | Y  | Y  | Y  |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | dvode           |   |   |   |   |   |   |   |   |   |    |    |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | exponential     |   |   |   |   |   |   |   |   |   |    |    |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | feuler          |   |   |   |   |   |   |   |   |   |    |    |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | gillespie       |   |   |   |   |   |   |   |   |   |    |    |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | lsode           | Y | Y | Y |   |   |   |   |   |   |    |    |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | radau5          |   | Y |   | Y | Y | Y | Y | Y | Y | Y  | Y  |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | rosenbrock_adj  | Y | Y | Y | Y | Y | Y | Y |   |   |    |    |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | rosenbrock      | Y | Y | Y | Y | Y | Y | Y |   |   |    |    |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | rosenbrock_tlm  | Y | Y | Y | Y | Y | Y | Y |   |   |    |    |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | runge_kutta_adj | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y  | Y  |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | runge_kutta     | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y  | Y  |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | runge_kutta_tlm | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y  | Y  |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | sdirk4          | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y  | Y  |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | sdirk_adj       | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y  | Y  |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | sdirk           | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y  | Y  |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | sdirk_tlm       | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y  | Y  |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | seulex          | Y | Y | Y | Y | Y | Y | Y | Y |   | s  | s  | s  | s  | s  | s  | s  | s  | s  | s  |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+   | tau_leap        |   |   |   |   |   |   |   |   |   |    |    |    |    |    |    |    |    |    |    |
+   +-----------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
+
+.. option:: RCNTRL(1)
+
+   :code:`Hmin`, the lower bound of the integration step size. It is
+   not recommended to change the default value of zero.
+
+.. option:: RCNTRL(2)
+
+   :code:`Hmax`, the upper bound of the integration step size.
+
+.. option:: RCNTRL(3)
+
+   :code:`Hstart`, the starting value of the integration step size.
+
+.. option:: RCNTRL(4)
+
+   :code:`FacMin`, lower bound on step decrease factor.
+
+.. option:: RCNTRL(5)
+
+   :code:`FacMax`, upper bound on step increase factor.
+
+.. option:: RCNTRL(6)
+
+   :code:`FacRej`, step decrease factor after multiple rejections.
+
+.. option:: RCNTRL(7)
+
+   :code:`FacSafe`, the factor by which the new step is slightly
+   smaller than the predicted value.
+
+.. option:: RCNTRL(8)
+
+   :code:`ThetaMin`. If the Newton convergence rate is smaller than
+   ThetaMin, the Jacobian is not recomputed.
+
+.. option:: RCNTRL(9)
+
+   :code:`NewtonTol`, the stopping criterion for Newton’s method.
+
+.. option:: RCNTRL(10)
+
+   :code:`Qmin`
+
+.. option:: RCNTRL(11)
+
+   :code:`Qmax`. If :code:`Qmin < Hnew/Hold < Qmax`, then the step
+   size is kept constant and the LU factorization is reused.
+

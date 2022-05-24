@@ -213,8 +213,8 @@ SUBROUTINE RosenbrockADJ( Y, NADJ, Lambda,             &
 !
 !-    Y(NVAR)    -> vector of final states (at T->Tend)
 !-    Lambda(NVAR,NADJ) -> vector of final sensitivities (at T=Tend)
-!-    ICNTRL(11:20)   -> integer output parameters
-!-    RCNTRL(11:20)   -> real output parameters
+!-    ISTATUS(11:20)   -> integer output parameters
+!-    RSTATUS(11:20)   -> real output parameters
 !-    IERR       -> job status upon return
 !       - succes (positive value) or failure (negative value) -
 !           =  1 : Success
@@ -299,10 +299,6 @@ SUBROUTINE RosenbrockADJ( Y, NADJ, Lambda,             &
 !
 !    RCNTRL(7)  -> FacSafe, by which the new step is slightly smaller
 !         than the predicted value  (default=0.9)
-!
-!    RCNTRL(8)  -> ThetaMin. If Newton convergence rate smaller
-!                  than ThetaMin the Jacobian is not recomputed;
-!                  (default=0.001)
 !
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !

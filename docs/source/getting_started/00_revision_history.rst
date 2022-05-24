@@ -8,6 +8,29 @@ of the changes, read the file :file:`$KPP_HOME/CHANGELOG.md`.
 .. _kpp250:
 
 =========
+KPP 3.0.0
+=========
+
+When you are upgrading from an older KPP version to KPP 3.0.0, a few
+minor changes in your code may be necessary:
+
+- The :file:`atoms` file is now called :file:`atoms.kpp`. Thus, you have
+  to change :code:`#INCLUDE atoms` to :code:`#INCLUDE atoms.kpp` in your
+  KPP input file.
+
+- If you have been using :code:`ICNTRL(5)` for maximal order in the
+  :code:`lsode` integrator, you now have to use :code:`ICNTRL(10)`
+  instead. The index 5 in the :code:`ICNTRL` array is now used
+  consistently for the maximum number of Newton iterations in all
+  integrators.
+
+=========
+KPP 2.6.0
+=========
+
+- autoreduce
+
+=========
 KPP 2.5.0
 =========
 
