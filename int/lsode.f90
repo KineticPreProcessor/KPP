@@ -75,7 +75,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
    RSTATUS    = 0.0_dp
 
    !~~~> fine-tune the integrator
-   ICNTRL(5)  = 2      ! maximal order
+   ICNTRL(10) = 2      ! maximal order
    ICNTRL(15) = 7      ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
 
    !~~~> if optional parameters are given, and if they are /= 0,
@@ -171,7 +171,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !    ICNTRL(4)  -> maximum number of integration steps
 !        For ICNTRL(4)=0 the default value of 5000 is used
 !
-!    ICNTRL(5)  -> maximum order of the integration formula allowed
+!    ICNTRL(10) -> maximum order of the integration formula allowed
 !
 !    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
 !        = -1 :  Do not call Update_* functions within the integrator
@@ -234,7 +234,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
          ITOL = 1           ! Abs/RelTol are both scalars
       END IF   
       IWORK(6) = ICNTRL(4)  ! max number of internal steps 
-      IWORK(5) = ICNTRL(5)  ! maximal order
+      IWORK(5) = ICNTRL(10) ! maximal order
 
       MF = 21  !~~~> stiff case, analytic full Jacobian
 
