@@ -334,11 +334,6 @@ CONTAINS
 !    ISTATUS(7) = No. of forward/backward substitutions
 !    ISTATUS(8) = No. of singular matrix decompositions
 !
-!    RSTATUS(1)  -> Texit, the time corresponding to the
-!                   computed Y upon return
-!    RSTATUS(2)  -> Hexit, last accepted step before exit
-!                   For multiple restarts, use Hexit as Hstart 
-!                   in the subsequent run
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       IMPLICIT NONE

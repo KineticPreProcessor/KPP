@@ -1195,6 +1195,10 @@ ICNTRL
 
    :code:`= 1` : Verbose error output
             
+.. option:: ICNTRL(18) ... ICNTRL(20)
+
+   currently not used
+
 RCNTRL
 ------
 
@@ -1291,4 +1295,8 @@ RCNTRL
 
    :code:`Qmax`. If :code:`Qmin < Hnew/Hold < Qmax`, then the step
    size is kept constant and the LU factorization is reused.
+
+.. option:: RCNTRL(12) ... RCNTRL(20)
+
+   currently not used
 
