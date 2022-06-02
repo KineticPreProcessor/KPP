@@ -743,12 +743,16 @@ int F_VAR, FSPLIT_VAR;
         sum = Add( sum, Mul( Const( Stoich[i][j] ), Elm( A, j ) ) );
       Assign( Elm( Vdot, i ), sum );
     }
-    for (i = VarNr; i < VarNr; i++) {
-      sum = Const(0);
-      for (j = 0; j < EqnNr; j++)
-        sum = Add( sum, Mul( Const( Stoich[i][j] ), Elm( A, j ) ) );
-      Assign( Elm( Vdot, i ), sum );
-    }
+    
+    /*  mz_rs_20220602+ ----------------------------------- */
+    /* this block can probably be deleted */
+    /* for (i = VarNr; i < VarNr; i++) { */
+    /*   sum = Const(0); */
+    /*   for (j = 0; j < EqnNr; j++) */
+    /*     sum = Add( sum, Mul( Const( Stoich[i][j] ), Elm( A, j ) ) ); */
+    /*   Assign( Elm( Vdot, i ), sum ); */
+    /* } */
+    /*  mz_rs_20220602- ----------------------------------- */
 
     // Add code to return time derivative of variable species (Vdotout)
     //   -- Bob Yantosca (03 May 2022)
