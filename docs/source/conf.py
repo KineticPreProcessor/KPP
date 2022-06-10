@@ -103,3 +103,18 @@ html_theme_options = {
     'display_version': False,
     'style_nav_header_background': '#FCFCFC',
 }
+
+# -- Options for PDF output via LaTeX ----------------------------------------
+
+# https://www.sphinx-doc.org/en/master/latex.html
+# https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-latex-output
+
+latex_theme = "howto"
+latex_logo = "_static/kpp-logo.png"
+latex_show_pagerefs = True
+latex_show_urls = "footnote"
+
+latex_elements = {
+    "papersize" : "a4paper",
+    "pointsize": "12pt"
+}

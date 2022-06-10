@@ -510,12 +510,15 @@ BEULER
 
 **Integrator file:** :file:`int/beuler.f90`
 
-=====
-Other
-=====
+Backward Euler integration method.
+
+.. _other-methods:
+
+=========================
+Other integration methods
+=========================
 
 FEULER
 ------
 
 **Integrator file:** :file:`int/feuler.f90`
-

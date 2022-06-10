@@ -36,10 +36,10 @@ languages are discussed in the :ref:`language-cmd` section.
    KPP user community to spearhead development in C, Matlab, and other
    languages.
 
-The KPP input files (with suffix :file:`.kpp`) specify the target
-model (:ref:`model-cmd`), the target language (:ref:`language-cmd`),
-the integrator (:ref:`integrator-cmd`) the driver program
-(:ref:`driver-cmd`). etc. The file name (without the suffix
+The KPP input files (with suffix :file:`.kpp`) specify the
+:ref:`target model <model-cmd>`, the :ref:`target language
+<language-cmd>`, the :ref:`integrator <integrator-cmd>` the
+:ref:`driver program <driver-cmd>`. etc. The file name (without the
 :file:`.kpp`) serves as the root name for the simulation. Here we will
 refer to this name as :code:`ROOT`.  Since the root name will  be
 incorporated into Fortran90 module names, it can only contain valid
@@ -112,7 +112,7 @@ The :ref:`model-cmd` command selects a specific kinetic mechanism (in
 this example, :program:`small_strato`).  KPP will look in the path
 :file:`$KPP_HOME/models/` for the *model definition file*
 :file:`small_strato.def`.  This file contains the following
-code in the KPP language (cf. :ref:`bnf-description`):
+code in the :ref:`KPP language <bnf-description>`.
 
 .. code-block:: console
 
@@ -161,8 +161,8 @@ code in the KPP language (cf. :ref:`bnf-description`):
 
 File (:file:`small_strato.def`) :ref:`include-cmd`-s the *species
 file* and the *equation file*.  It also specifies parameters for
-running a "box-model" simualation, such as species initial values
-(cf. :ref:`initvalues`),_ start time, stop, time, and timestep
+running a "box-model" simualation, such as :ref:`species initial
+values <initvalues>`, start time, stop, time, and timestep
 (cf. :ref:`inlined-code`).
 
 The *species file* (:file:`small_strato.spc`) file lists all the
@@ -192,8 +192,8 @@ lists the periodic table of elements in an :command:`ATOM` section
 
 The *equation file* (:file:`small_strato.eqn`) contains the
 description of the equations in an  :ref:`equations` section.  The
-chemical kinetic mechanism is specified in the KPP language
-(cf. :ref:`bnf-description`). Each reaction is described as “the sum
+chemical kinetic mechanism is specified in the :ref:`KPP language
+<bnf-description>`. Each reaction is described as “the sum
 of reactants equals the sum of products” and is followed by its rate
 coefficient. :code:`SUN` is the normalized sunlight intensity, equal
 to one at noon and zero at night.  Equation tags, e.g. :code:`<R1>`,
@@ -220,8 +220,8 @@ are optional.
 #LANGUAGE Fortran90
 -------------------
 
-The :ref:`language-cmd` selects the language for the KPP-generated
-solver code.  In this example we are using Fortran90.
+The :ref:`language-cmd` command selects the language for the
+KPP-generated solver code.  In this example we are using Fortran90.
 
 .. _example-double-on:
 
@@ -242,8 +242,8 @@ The :ref:`integrator-cmd` command selects a numerical integration routine
 from the templates provided in the :file:`$KPP_HOME/int` folder, or
 implemented by the user.
 
-In this example, the Rosenbrock integrator (cf.
-:ref:`rosenbrock-methods`) and the Fortran90 language have been been
+In this example, the :ref:`Rosenbrock integrator
+<rosenbrock-methods>` and the Fortran90 language have been been
 specified.  Therefore it will use the file
 :file:`$KPP_HOME/int/rosenbrock.f90`.
 

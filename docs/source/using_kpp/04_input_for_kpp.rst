@@ -154,7 +154,7 @@ Only the names of already defined species can be used. The rate
 coefficient has to be placed at the end of each equation, separated by a
 colon. The rate coefficient does not necessarily need to be a numerical
 value. Instead, it can be a valid expression in the
-`target language <language-cmd_>`_. If there are several
+:ref:`target language <language-cmd>`. If there are several
 :command:`#EQUATIONS` sections in the input, their contents will be
 concatenated.
 
