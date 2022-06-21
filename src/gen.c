@@ -694,7 +694,7 @@ int F_VAR, FSPLIT_VAR;
     NewLines(1);
     WriteComment("Local variables");
     Declare( A );
-    WriteOMPThreadPrivate("A");
+    if ( useLang==F77_LANG ) WriteOMPThreadPrivate("A");
   }
   NewLines(1);
   WriteComment("Computation of equation rates");
@@ -730,8 +730,10 @@ int F_VAR, FSPLIT_VAR;
   // Add code to return equation rates via optional argument Aout
   //   -- Bob Yantosca (29 Apr 2022)
   NewLines(1);
-  fprintf(functionFile, "  !### Use Aout to return equation rates\n");
-  fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n");
+  if ( useLang!=MATLAB_LANG ) {
+    fprintf(functionFile, "  !### Use Aout to return equation rates\n");
+    fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n");
+  }
 
   if( z_useAggregate ) {
     NewLines(1);
@@ -753,9 +755,11 @@ int F_VAR, FSPLIT_VAR;
     // Add code to return time derivative of variable species (Vdotout)
     //   -- Bob Yantosca (03 May 2022)
     NewLines(1);
-    fprintf(functionFile, "  !### Use Vdotout to return time deriv. of variable species\n");
-    fprintf(functionFile, "  IF ( PRESENT( Vdotout ) ) Vdotout = Vdot\n");
-
+    if ( useLang!=MATLAB_LANG ) {
+      fprintf(functionFile, "  !### Use Vdotout to return time deriv. of variable species\n");
+      fprintf(functionFile, "  IF ( PRESENT( Vdotout ) ) Vdotout = Vdot\n");
+    }
+    
   } else {
 
     NewLines(1);
@@ -791,7 +795,7 @@ int F_VAR, FSPLIT_VAR;
     
     // Add code to calculate Vdot also for split function:
     NewLines(1);
-    fprintf(functionFile, "  Vdot = P_VAR - D_VAR*V\n");
+    if ( useLang!=MATLAB_LANG ) fprintf(functionFile, "  Vdot = P_VAR - D_VAR*V\n");
 
   }
 
@@ -3207,7 +3211,7 @@ case 'h':
       F90_Inline("  USE %s_Parameters", rootFileName );
     F90_Inline("  IMPLICIT NONE\n", rootFileName );
     Declare( A ); /*  mz_rs_20050117 */
-    WriteOMPThreadPrivate(" A "); /* msl_20160419 */
+    if ( useLang == F90_LANG || useLang == F77_LANG ) WriteOMPThreadPrivate(" A "); /* msl_20160419 */
     F90_Inline("\nCONTAINS\n\n");
 
   UseFile( rateFile );
