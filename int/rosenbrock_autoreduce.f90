@@ -583,6 +583,10 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
 
 
 !~~~>  Initial preparations
+   DO_SLV  = .true.
+   DO_FUN  = .true.
+   DO_JVS  = .true.
+   
    T = Tstart
    RSTATUS(Nhexit) = ZERO
    H = MIN( MAX(ABS(Hmin),ABS(Hstart)) , ABS(Hmax) )
