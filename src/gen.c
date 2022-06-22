@@ -917,8 +917,8 @@ int F_VAR, FSPLIT_VAR;
       Assign( Elm( D_VAR, i ), sum );
     }
 
-    fprintf(functionFile, "END SUBROUTINE Fun_SPLITF");
-  }
+    fprintf(functionFile, "END SUBROUTINE Fun_SPLITF\n");
+  } // end if doAutoReduce
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -3618,7 +3618,7 @@ int n;
   GenerateFun(1); /* setting useAggregate=1, generate SUBROUTINE Fun*/
   GenerateFun(0); /* setting useAggregate=0, generate SUBROUTINE FUN_SPLIT */
   GenerateStoichNum();
-  if (doFlux == 1 || doAutoReduce) GenerateFlux();
+  if (doFlux == 1) GenerateFlux();
 
   if ( useStochastic ) {
     printf("\nKPP is generating the Stochastic description:");
