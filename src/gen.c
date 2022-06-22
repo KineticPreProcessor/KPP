@@ -46,7 +46,7 @@ int **LUstructJ;
 
 ICODE InlineCode[ INLINE_OPT ];
 
-int NSPEC, NVAR, NVARP1, NVARACT, NFIX, NREACT; /*, NFLUX;*/
+int NSPEC, NVAR, NVARP1, NVARACT, NFIX, NREACT, NFLUX;
 int NVARST, NFIXST;
 /* int PI; */
 int C_DEFAULT, C;
