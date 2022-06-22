@@ -398,10 +398,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
        Autoreduce = .false.
     ENDIF
 !~~~> Auto-reduction threshold ratio (only if ICNTRL(10) is not zero)
-    AR_thr_ratio = 0.001_dp
-    IF (RCNTRL(10) > ZERO) THEN
-       AR_thr_ratio = RCNTRL(10)
-    ENDIF
+    AR_thr_ratio = RCNTRL(10)
 !~~~>  CALL Auto-reducing Rosenbrock method
     IF ( Autoreduce .and. .not. Autoreduce_Append ) THEN
          ! ros_yIntegrator is the aggressively micro-optimized revision by Haipeng Lin.

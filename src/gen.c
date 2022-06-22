@@ -844,7 +844,7 @@ int F_VAR, FSPLIT_VAR;
   FreeVariable( FSPLIT_VAR );
 
   /** hplin 4/10/22 add FUN_Split2 which overrides DO_FUN. only used for 1st order-autoreduce **/
-  if(doAutoReduce) {
+  if(!z_useAggregate && doAutoReduce) {
     /* add a copy of FSPLIT that does not react to DO_FUN() */
     fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
     fprintf(functionFile, "!\n");
