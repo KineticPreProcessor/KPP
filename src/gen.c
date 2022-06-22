@@ -420,7 +420,7 @@ void GenerateGData()
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateMonitorData()
 {
-int i, j;
+int i;
 int  *lookat;
 int  *moni;
 char *snames[MAX_SPECIES];
@@ -430,7 +430,7 @@ char *seqn[MAX_EQN];
 char *sfam[MAX_FAMILIES];
 char *bufeqn, *p;
 int dim;
-int flxind[MAX_EQN];
+//int flxind[MAX_EQN];
 
 
   /* Allocate local data structures */
