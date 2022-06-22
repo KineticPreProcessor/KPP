@@ -156,9 +156,25 @@ int i,j;
 
   /* PI      = DefConst( "PI",     real, "Value of pi" ); */
 
-  VAR = DefvElm( "VAR", real, -NVAR, "Concentrations of variable species (global)" );
-  FIX = DefvElm( "FIX", real, -NFIX, "Concentrations of fixed species (global)" );
-  /*FLUX = DefvElm( "FLUX", real, -NFLUX, "Captured flux through reactions (global)" );*/
+//============================================================================
+// MODIFICATION by Bob Yantosca (25 Apr 2022)
+//
+// For Fortran-90, declare VAR and FIX as POINTER variables, which will
+// allow us to remove the non-threadsafe EQUIVALENCE statements.
+//
+  if ( useLang == F90_LANG ) {
+    VAR = DefvElmP( "VAR", real,
+        "Concentrations of variable species (global)" );
+    FIX = DefvElmP( "FIX", real,
+        "Concentrations of fixed species (global)" );
+  } else {
+    VAR = DefvElm( "VAR", real, -NVAR,
+       "Concentrations of variable species (global)" );
+    FIX = DefvElm( "FIX", real, -NFIX,
+       "Concentrations of fixed species (global)" );
+}
+//============================================================================
+  FLUX = DefvElm( "FLUX", real, -NFLUX, "Captured flux through reactions (global)" );
 
   V = DefvElm( "V", real, -NVAR, "Concentrations of variable species (local)" );
   F = DefvElm( "F", real, -NFIX, "Concentrations of fixed species (local)" );
