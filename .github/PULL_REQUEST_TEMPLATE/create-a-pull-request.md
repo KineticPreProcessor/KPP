@@ -35,8 +35,8 @@ assignees: ''
 
 ### Compiler used in testing:
 <!--- Place an `x` in all the boxes that apply and write the compiler version number -->
-* [ ] Intel Fortran Compiler (aka ifort), version ___
 * [ ] GNU Fortran Compiler (aka gfortran), version ___
+* [ ] Intel Fortran Compiler (aka ifort), version ___
 
 ### Other information about testing:
 <!--- Please specify any other pertinent information about how this update was tested -->

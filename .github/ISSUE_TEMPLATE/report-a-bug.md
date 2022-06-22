@@ -7,5 +7,5 @@ assignees: ''
 
 ---
 
-# Report a bug or issue with KPP-for-GEOS-Chem:
+# Report a bug or issue with KPP:
 

@@ -7,4 +7,4 @@ assignees: ''
 
 ---
 
-# Request a new KPP-for-GEOS-Chem feature:
+# Request a new KPP feature:
