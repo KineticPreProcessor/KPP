@@ -54,7 +54,8 @@ int DC;
 int ARP, JVRP, NJVRP, CROW_JVRP, IROW_JVRP, ICOL_JVRP;
 int V, F, VAR, FIX; /*, FLUX;*/
 int RCONST, RCT;
-int Vdot, P_VAR, D_VAR;
+int Vdot, P_VAR, D_VAR, Aout, Vdotout;
+int StoichNum;
 int KR, A, BV, BR, IV, RR;
 int JV, UV, JUV, JTUV, JVS;
 int JR, UR, JUR, JRS;
@@ -71,23 +72,17 @@ int SPC_NAMES, EQN_NAMES, FAM_NAMES;
 int EQN_TAGS;
 int NONZERO, LU_NONZERO;
 int TIME, SUN, TEMP;
-int RTOLS, TSTART, TEND, DT;
+int TSTART, TEND, DT;
 int ATOL, RTOL, STEPMIN, STEPMAX, CFACTOR;
 int V_USER, CL;
 int NMLCV, NMLCF, SCT, PROPENSITY, VOLUME, IRCT;
 int FAM,NFAM;
+
 int Jac_NZ, LU_Jac_NZ, nzr;
 
 /* for autoreduce functionality - msl, hplin, 12/8/21 */
-int DO_SLV,DO_JVS,DO_FUN,cLU_IROW,cLU_ICOL,cLU_DIAG,cLU_CROW;
-int SPC_MAP,iSPC_MAP,RMV,JVS_MAP,RNVAR,cNONZERO,keepActive,keepSpcActive;
-
-//===========================================================================
-// KPP 2.3.2_gc, Bob Yantosca (26 Mar 2021)
-// Define extra arrays and scalars
-//
-int MW, SR_MW, SR_TEMP, K300_OVER_TEMP, TEMP_OVER_K300, NUMDEN;
-//===========================================================================
+int DO_SLV, DO_JVS, DO_FUN, cLU_IROW, cLU_ICOL, cLU_DIAG, cLU_CROW;
+int SPC_MAP, iSPC_MAP, RMV, JVS_MAP, RNVAR, cNONZERO, keepActive, keepSpcActive;
 
 NODE *sum, *prod;
 int real;
@@ -99,6 +94,9 @@ char * CommonName;
 
 int Hess_NZ, *iHess_i, *iHess_j, *iHess_k;
 int nnz_stoicm;
+
+// Prototypes
+void GenerateComputeFamilies(void);
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 char * ascii(int x)
@@ -119,7 +117,8 @@ static char s[40];
   if (useDouble && (useLang==F77_LANG))
     s[strlen(s)-4] = 'd';
   if (useDouble && (useLang==F90_LANG))
-    sprintf(s, "%s_dp",s);
+    //sprintf(s, "%s_dp",s);
+    strncat( s, "_dp", 4 );
   return s;
 }
 
@@ -172,9 +171,9 @@ int i,j;
   RCT    = DefvElm( "RCT",    real, -NREACT, "Rate constants (local)" );
 
   Vdot = DefvElm( "Vdot", real, -NVAR, "Time derivative of variable species concentrations" );
-
   P_VAR = DefvElm( "P_VAR", real, -NVAR, "Production term" );
   D_VAR = DefvElm( "D_VAR", real, -NVAR, "Destruction term" );
+  StoichNum = DefmElm( "StoichNum", real, -NVAR, -NREACT, "Stoichiometric numbers" );
 
 
   JVS   = DefvElm( "JVS", real, -LU_NONZERO, "sparse Jacobian of variables" );
@@ -191,8 +190,6 @@ int i,j;
   TIME  = DefElm( "TIME", real, "Current integration time");
   SUN   = DefElm( "SUN", real, "Sunlight intensity between [0,1]");
   TEMP  = DefElm( "TEMP", real, "Temperature");
-
-  RTOLS  = DefElm( "RTOLS", real, "(scalar) Relative tolerance");
   TSTART = DefElm( "TSTART", real, "Integration start time");
   TEND   = DefElm( "TEND", real, "Integration end time");
   DT     = DefElm( "DT", real, "Integration step");
@@ -244,7 +241,18 @@ int i,j;
   IV = DefeElm( "IV", 0 );
 
   C_DEFAULT = DefvElm( "C_DEFAULT", real, -NSPEC, "Default concentration for all species" );
-  C = DefvElm( "C", real, -NSPEC, "Concentration of all species" );
+//============================================================================
+// MODIFICATION by Bob Yantosca (25 Apr 2002)
+// For Fortran-90, declare C with the TARGET attribute.  This will allow
+// VAR and FIX to point to C, which will let us remove the non-threadsafe
+// EQUIVALENCE statements.
+//
+  if ( useLang == F90_LANG ) {
+    C = DefvElmT( "C", real, -NSPEC, "Concentration of all species" );
+  } else {
+    C = DefvElm( "C", real, -NSPEC, "Concentration of all species" );
+  }
+//============================================================================
   CL = DefvElm( "CL", real, -NSPEC, "Concentration of all species (local)" );
   /*DC = DefvElm( "DC", real, -NSPEC, "Fluxes of all species" );*/
   ATOL = DefvElm( "ATOL", real, -NVAR, "Absolute tolerance" );
@@ -289,6 +297,12 @@ int i,j;
   keepSpcActive = DefvElm("KEEPSPCACTIVE", LOGICAL, -NVAR, "");
   keepActive    = DefElm("KEEPACTIVE", LOGICAL,"");
 
+  Aout = DefvElmO( "Aout", real, -NREACT,
+		   "Optional argument to return equation rate constants" );
+
+  Vdotout = DefvElmO( "Vdotout", real, -NVAR,
+       "Optional argument to return time derivative of variable species" );
+
   /* Elements of Stochastic simulation*/
   NMLCV = DefvElm( "NmlcV", INT, -NVAR, "No. molecules of variable species" );
   NMLCF = DefvElm( "NmlcF", INT, -NFIX, "No. molecules of fixed species" );
@@ -296,24 +310,6 @@ int i,j;
   PROPENSITY  = DefvElm( "Prop",  real, -NREACT, "Propensity vector" );
   VOLUME = DefElm( "Volume", real, "Volume of the reaction container" );
   IRCT  = DefElm( "IRCT", INT, "Index of chemical reaction" );
-
-//===========================================================================
-// KPP 2.3.2_gc, Bob Yantosca (26 Mar 2021)
-// Define extra arrays and scalars for gckpp_Global.F90
-//
-  MW = DefvElm( "MW",   real, -NSPEC,
-		"Species molecular weight [g/mole]" );
-  SR_MW = DefvElm( "SR_MW", real, -NSPEC,
-		   "Square root of species molecular weight [g/mole]" );
-  SR_TEMP = DefElm( "SR_TEMP", real,
-		    "Square root of Temperature [K**0.5]" );
-  K300_OVER_TEMP = DefElm( "K300_OVER_TEMP", real,
-			   "300.0 / Temperature [K]" );
-  TEMP_OVER_K300 = DefElm( "TEMP_OVER_K300", real,
-			   "Temperature [K] / 300.0");
-  NUMDEN = DefElm( "NUMDEN", real,
-		   "Air number density [#/cm3]");
-//===========================================================================
 
   for ( i=0; i<EqnNr; i++ )
     for ( j=0; j<SpcNr; j++ )
@@ -362,22 +358,6 @@ int i,j;
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateGData()
 {
-int  i,j,k;
-int  *crow;
-int  *diag;
-int  nElm;
-int  *lookat;
-int  *moni;
-char *snames[MAX_SPECIES];
-int  *trans;
-char *strans[MAX_SPECIES];
-char *smass[MAX_ATOMS];
-char *EQN_NAMES[MAX_EQN];
-char *EQN_TAGS[MAX_EQN];
-char *bufeqn, *p;
-int dim;
-
-/*** NOTE: This is only for C and Matlab, not Fortran ***/
   if ( (useLang != C_LANG)&&(useLang != MATLAB_LANG) ) return;
 
   UseFile( driverFile );
@@ -395,7 +375,6 @@ int dim;
   GlobalDeclare( TIME );
   GlobalDeclare( SUN );
   GlobalDeclare( TEMP );
-  GlobalDeclare( RTOLS );
   GlobalDeclare( TSTART );
   GlobalDeclare( TEND );
   GlobalDeclare( DT );
@@ -425,15 +404,11 @@ int dim;
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateMonitorData()
 {
-int  i,j,k;
-int  *crow;
-int  *diag;
-int  nElm;
+int i, j;
 int  *lookat;
 int  *moni;
 char *snames[MAX_SPECIES];
 int  *trans;
-char *strans[MAX_SPECIES];
 char *smass[MAX_ATOMS];
 char *seqn[MAX_EQN];
 char *sfam[MAX_FAMILIES];
@@ -444,8 +419,6 @@ int flxind[MAX_EQN];
 
   /* Allocate local data structures */
   dim    = SpcNr+2;
-  crow   = AllocIntegerVector( dim, "crow in GenerateMonitorData");
-  diag   = AllocIntegerVector( dim, "diag in GenerateMonitorData");
   lookat = AllocIntegerVector( dim, "lookat in GenerateMonitorData");
   moni   = AllocIntegerVector( dim, "moni in GenerateMonitorData");
   trans  = AllocIntegerVector( dim, "trans in GenerateMonitorData");
@@ -510,7 +483,6 @@ int flxind[MAX_EQN];
   for (i = 0; i < SpcNr; i++)
     if ( SpeciesTable[Code[i]].trans ) {
       trans[ntrans] = Index(i);
-      strans[ntrans] = SpeciesTable[Code[i]].name;
       ntrans++;
     }
 
@@ -573,7 +545,7 @@ int flxind[MAX_EQN];
   F77_Inline( "%6sEND\n\n", " " );
 
   /* Free local data structures */
-  free(crow); free(diag); free(lookat); free(moni); free(trans);
+  free(lookat); free(moni); free(trans);
 
 }
 
@@ -585,7 +557,6 @@ int* irow;
 int* icol;
 int* crow;
 int* diag;
-int nElm;
 int dim;
 
   if( !useJacSparse ) return;
@@ -668,10 +639,32 @@ void GenerateJacobianSparseHeader()
   NewLines(1);
 }
 
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/*  mz_rs_20160201+ */
+void GenerateStoichNum()
+{
+  int i, j;
+  int CalcStoichNum;
 
+  if( VarNr == 0 ) return;
+  if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
+    UseFile( functionFile );
+  CalcStoichNum = DefFnc( "CalcStoichNum", 1, "calculate stoichiometric numbers");
+  FunctionBegin( CalcStoichNum, StoichNum );
+  F90_Inline("  StoichNum(:,:) = 0.");
+  for (i = 0; i < VarNr; i++) {
+    for (j = 0; j < EqnNr; j++) {
+      if ( Stoich[i][j] != 0 )
+        Assign( Elm( StoichNum, i, j ), Const( Stoich[i][j] ));
+    }
+  }
+  FunctionEnd( CalcStoichNum );
+  FreeVariable( CalcStoichNum );
+}
+/*  mz_rs_20160201- */
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-void GenerateFun()
+void GenerateFun( int z_useAggregate )
 {
 int i, j, k;
 int used;
@@ -683,75 +676,24 @@ int F_VAR, FSPLIT_VAR;
   if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
        UseFile( functionFile );
 
-  F_VAR      = DefFnc( "Fun",      4, "time derivatives of variables - Aggregate form");
-  FSPLIT_VAR = DefFnc( "Fun_SPLIT", 5, "time derivatives of variables - Split form");
+  F_VAR = DefFnc( "Fun", 6,
+		  "time derivatives of variables - Aggregate form");
 
-  if( useAggregate ) {
-//===========================================================================
-// KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)
-// Manually declare Aout as an optional variable.  We cannot use
-// routine FunctionBegin, because this has no way of defining
-// optional Fortran90 arguments.  Therefore we will just
-// write this using C-language fprintf statements.
-//
-    /*---begin---*/
-    fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-    fprintf(functionFile, "!\n");
-    fprintf(functionFile, "! Fun - time derivatives of variables - Aggregate form\n");
-    fprintf(functionFile, "!   Arguments :\n");
-    fprintf(functionFile, "!      V         - Concentrations of variable species (local)\n");
-    fprintf(functionFile, "!      F         - Concentrations of fixed species (local)\n");
-    fprintf(functionFile, "!      RCT       - Rate constants (local)\n");
-    fprintf(functionFile, "!      Vdot      - Time derivative of variable species concentrations\n");
-    fprintf(functionFile, "!      Aout      - Array to return rxn rates for diagnostics (OPTIONAL)\n");
-    fprintf(functionFile, "!\n");
-    fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
-    fprintf(functionFile, "SUBROUTINE Fun ( V, F, RCT, Vdot, Aout )\n\n");
-    fprintf(functionFile, "! V - Concentrations of variable species (local)\n");
-    fprintf(functionFile, "  REAL(kind=dp) :: V(NVAR)\n");
-    fprintf(functionFile, "! F - Concentrations of fixed species (local)\n");
-    fprintf(functionFile, "  REAL(kind=dp) :: F(NFIX)\n");
-    fprintf(functionFile, "! RCT - Rate constants (local)\n");
-    fprintf(functionFile, "  REAL(kind=dp) :: RCT(NREACT)\n");
-    fprintf(functionFile, "! Vdot - Time derivative of variable species concentrations\n");
-    fprintf(functionFile, "  REAL(kind=dp) :: Vdot(NVAR)\n");
-    fprintf(functionFile, "!### KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)\n");
-    fprintf(functionFile, "!### Aout - Array for returning KPP reaction rates for diagnostics\n");
-    fprintf(functionFile, "  REAL(kind=dp), OPTIONAL :: Aout(NREACT)\n");
-    /*---end---*/
-  } else {
-  /* KPP-autoreduce, include Aout for diagnostic in split form as well (Haipeng Lin, 02 Dec 2021) */
-    /*---begin---*/
-    fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
-    fprintf(functionFile, "!\n");
-    fprintf(functionFile, "! Fun_SPLIT - Fun_SPLIT - time derivatives of variables - Split form\n");
-    fprintf(functionFile, "!   Arguments :\n");
-    fprintf(functionFile, "!      V         - Concentrations of variable species (local)\n");
-    fprintf(functionFile, "!      F         - Concentrations of fixed species (local)\n");
-    fprintf(functionFile, "!      RCT       - Rate constants (local)\n");
-    fprintf(functionFile, "!      P_VAR     - Production term\n");
-    fprintf(functionFile, "!      D_VAR     - Destruction term\n");
-    fprintf(functionFile, "!      Aout      - Array to return rxn rates for diagnostics (OPTIONAL)\n");
-    fprintf(functionFile, "!\n");
-    fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
-    fprintf(functionFile, "SUBROUTINE Fun_SPLIT ( V, F, RCT, P_VAR, D_VAR, Aout )\n\n");
-    fprintf(functionFile, "! V - Concentrations of variable species (local)\n");
-    fprintf(functionFile, "  REAL(kind=dp) :: V(NVAR)\n");
-    fprintf(functionFile, "! F - Concentrations of fixed species (local)\n");
-    fprintf(functionFile, "  REAL(kind=dp) :: F(NFIX)\n");
-    fprintf(functionFile, "! RCT - Rate constants (local)\n");
-    fprintf(functionFile, "  REAL(kind=dp) :: RCT(NREACT)\n");
-    fprintf(functionFile, "! P_VAR - Production term\n");
-    fprintf(functionFile, "  REAL(kind=dp) :: P_VAR(NVAR)\n");
-    fprintf(functionFile, "! D_VAR - Destruction term\n");
-    fprintf(functionFile, "  REAL(kind=dp) :: D_VAR(NVAR)\n");
-    fprintf(functionFile, "!### Aout - Array for returning KPP reaction rates for diagnostics\n");
-    fprintf(functionFile, "  REAL(kind=dp), OPTIONAL :: Aout(NREACT)\n");
-    /*---end---*/
-    /* FunctionBegin( FSPLIT_VAR, V, F, RCT, P_VAR, D_VAR ); */
+  FSPLIT_VAR = DefFnc( "Fun_SPLIT", 7,
+		       "time derivatives of variables - Split form");
+
+  // We have added the capability to return equation rates and the
+  // time derivative of variable species from Fun via optional arguments
+  // Aout and VdotOut (when z_useAggregate=1)
+  //   -- Bob Yantosca (03 May 2022)
+  if( z_useAggregate ) {
+    FunctionBegin( F_VAR, V, F, RCT, Vdot, Aout, Vdotout );
+  }
+  else {
+    FunctionBegin( FSPLIT_VAR, V, F, RCT, Vdot, P_VAR, D_VAR, Aout );
   }
 
-  if ( (useLang==MATLAB_LANG)&&(!useAggregate) )
+  if ( (useLang==MATLAB_LANG)&&(!z_useAggregate) )
      printf("\nWarning: in the function definition move P_VAR to output vars\n");
 
 
@@ -759,14 +701,14 @@ int F_VAR, FSPLIT_VAR;
     NewLines(1);
     WriteComment("Local variables");
     Declare( A );
-    WriteOMPThreadPrivate("A");
+    if ( useLang==F77_LANG ) WriteOMPThreadPrivate("A");
   }
   NewLines(1);
   WriteComment("Computation of equation rates");
 
   for(j=0; j<EqnNr; j++) {
     used = 0;
-    if( useAggregate ) {
+    if( z_useAggregate ) {
       for (i = 0; i < VarNr; i++)
         if ( Stoich[i][j] != 0 ) {
           used = 1;
@@ -792,17 +734,15 @@ int F_VAR, FSPLIT_VAR;
     }
   }
 
-  if( useAggregate ) {
-//===========================================================================
-// KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)
-// Copy A to Aout to return reaction rates outside of KPP
-//
-    fprintf(functionFile,
-	    "\n\n!### KPP 2.3.2_gc, Bob Yantosca (11 Feb 2021)\n");
-    fprintf(functionFile, "\!### Use Aout to return reaction rates\n");
-    fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n\n");
-//===========================================================================
+  // Add code to return equation rates via optional argument Aout
+  //   -- Bob Yantosca (29 Apr 2022)
+  NewLines(1);
+  if ( useLang!=MATLAB_LANG ) {
+    fprintf(functionFile, "  !### Use Aout to return equation rates\n");
+    fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n");
+  }
 
+  if( z_useAggregate ) {
     NewLines(1);
     WriteComment("Aggregate function");
 
@@ -814,22 +754,26 @@ int F_VAR, FSPLIT_VAR;
       if ( doAutoReduce ) F90_Inline("IF (DO_FUN(%d)) &",i+1);
       Assign( Elm( Vdot, i ), sum );
     }
-    for (i = VarNr; i < VarNr; i++) {
-      sum = Const(0);
-      for (j = 0; j < EqnNr; j++) {
-        sum = Add( sum, Mul( Const( Stoich[i][j] ), Elm( A, j ) ) );
-      }
-      Assign( Elm( Vdot, i ), sum );
+
+    /*  mz_rs_20220602+ ----------------------------------- */
+    /* this block can probably be deleted */
+    /* for (i = VarNr; i < VarNr; i++) { */
+    /*   sum = Const(0); */
+    /*   for (j = 0; j < EqnNr; j++) */
+    /*     sum = Add( sum, Mul( Const( Stoich[i][j] ), Elm( A, j ) ) ); */
+    /*   Assign( Elm( Vdot, i ), sum ); */
+    /* } */
+    /*  mz_rs_20220602- ----------------------------------- */
+
+    // Add code to return time derivative of variable species (Vdotout)
+    //   -- Bob Yantosca (03 May 2022)
+    NewLines(1);
+    if ( useLang!=MATLAB_LANG ) {
+      fprintf(functionFile, "  !### Use Vdotout to return time deriv. of variable species\n");
+      fprintf(functionFile, "  IF ( PRESENT( Vdotout ) ) Vdotout = Vdot\n");
     }
 
   } else {
-
-    /* hplin 12/2/21 also add Aout */
-    /*---begin---*/
-    fprintf(functionFile, "\n\n!### KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)\n");
-    fprintf(functionFile, "!### Use Aout to return reaction rates\n");
-    fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n\n");
-    /*---end---*/
 
     NewLines(1);
     WriteComment("Production function");
@@ -844,15 +788,6 @@ int F_VAR, FSPLIT_VAR;
 
     NewLines(1);
     WriteComment("Destruction function");
-
-    /* msl_20160421
-    for (i = 0; i < VarNr; i++) {
-      sum = Const(0);
-      for (j = 0; j < EqnNr; j++)
-        sum = Add( sum, Mul( Const( Stoich_Left[i][j] ), Elm( A, j ) ) );
-      Assign( Elm( D_VAR, i ), sum );
-    }
-    */
 
     for (i = 0; i < VarNr; i++) {
       sum = Const(0);
@@ -872,14 +807,19 @@ int F_VAR, FSPLIT_VAR;
       if( doAutoReduce ) F90_Inline("IF (DO_FUN(%d)) &",i+1);
       Assign( Elm( D_VAR, i ), sum );
     }
+
+    // Add code to calculate Vdot also for split function:
+    NewLines(1);
+    if ( useLang!=MATLAB_LANG ) fprintf(functionFile, "  Vdot = P_VAR - D_VAR*V\n");
+
   }
 
-  if( useAggregate )
+  if( z_useAggregate )
     MATLAB_Inline("\n   Vdot = Vdot(:);\n");
   else
     MATLAB_Inline("\n   P_VAR = P_VAR(:);\n   D_VAR = D_VAR(:);\n");
 
-  if( useAggregate )
+  if( z_useAggregate )
     FunctionEnd( F_VAR );
   else
     FunctionEnd( FSPLIT_VAR );
@@ -982,55 +922,49 @@ int F_VAR, FSPLIT_VAR;
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-/* void GenerateFlux() /\* Produces the equivalent of P_VAR and D_VAR from FunSPLIT()*\/ */
-/* { */
-/* int i, j, k; */
-/* int used; */
-/* int l, m; */
-/* int FLUX_VAR; */
+void GenerateFlux()
+{
+int i, j;
+int FLUX_VAR;
 
-/*   if( VarNr == 0 ) return; */
+  if( VarNr == 0 ) return;
+  // if (useLang != MATLAB_LANG)  // Matlab generates an additional file per function
+  //     UseFile( functionFile );
 
-/*   /\*  if (useLang != MATLAB_LANG)  /\* Matlab generates an additional file per function *\/ */
-/*   /\*     UseFile( functionFile ); *\/ */
+  FLUX_VAR = DefFnc( "Flux", 3, "calculate production & loss terms from reaction flux");
 
-/*   FLUX_VAR = DefFnc( "Flux", 3, "calculate production & loss terms from reaction flux"); */
+  FunctionBegin( FLUX_VAR, RR, P_VAR, D_VAR );
 
-/*   FunctionBegin( FLUX_VAR, RR, P_VAR, D_VAR ); */
+  //if ( (useLang==MATLAB_LANG)&&(!useAggregate) )
+  //  printf("\nWarning: in the flux definition move P_VAR to output vars\n");
 
-/*   /\*if ( (useLang==MATLAB_LANG)&&(!useAggregate) ) */
-/*     printf("\nWarning: in the flux definition move P_VAR to output vars\n");*\/ */
+  NewLines(1);
+  WriteComment("Production function");
 
-/*   NewLines(1); */
-/*   WriteComment("Production function"); */
+  for (i = 0; i < VarNr; i++) {
+    sum = Const(0);
+    for (j = 0; j < EqnNr; j++)
+      sum = Add( sum, Mul( Const( Stoich_Right[i][j] ), Elm( RR, j ) ) );
+    Assign( Elm( P_VAR, i ), sum );
+  }
 
-/*   for (i = 0; i < VarNr; i++) { */
-/*     sum = Const(0); */
-/*     for (j = 0; j < EqnNr; j++) */
-/*       sum = Add( sum, Mul( Const( Stoich_Right[i][j] ), Elm( RR, j ) ) ); */
-/*     if( doAutoReduce ) F90_Inline("IF (.not. DO_FUN(%d)) &",i+1); */
-/*     Assign( Elm( P_VAR, i ), sum ); */
-/*   } */
+  NewLines(1);
+  WriteComment("Destruction function");
 
-/*   NewLines(1); */
-/*   WriteComment("Destruction function"); */
-
-/*   /\* msl_20160421 *\/ */
-/*   for (i = 0; i < VarNr; i++) { */
-/*     sum = Const(0); */
-/*     for (j = 0; j < EqnNr; j++) */
-/*       sum = Add( sum, Mul( Const( Stoich_Left[i][j] ), Elm( RR, j ) ) ); */
-/*     if( doAutoReduce ) F90_Inline("IF (DO_FUN(%d)) &",i+1); */
-/*     Assign( Elm( D_VAR, i ), sum ); */
-/*   } */
+  /* msl_20160421 */
+  for (i = 0; i < VarNr; i++) {
+    sum = Const(0);
+    for (j = 0; j < EqnNr; j++)
+      sum = Add( sum, Mul( Const( Stoich_Left[i][j] ), Elm( RR, j ) ) );
+    Assign( Elm( D_VAR, i ), sum );
+  }
 
 
-/*   /\*MATLAB_Inline("\n   P_VAR = P_VAR(:);\n   D_VAR = D_VAR(:);\n");*\/ */
+  //MATLAB_Inline("\n   P_VAR = P_VAR(:);\n   D_VAR = D_VAR(:);\n");
 
-/*   FunctionEnd( FLUX_VAR ); */
-/*   FreeVariable( FLUX_VAR ); */
-/* } */
-
+  FunctionEnd( FLUX_VAR );
+  FreeVariable( FLUX_VAR );
+}
 
 
 
@@ -1038,7 +972,7 @@ int F_VAR, FSPLIT_VAR;
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateStochastic()
 {
-int i, j, k, l, m, n, jnr;
+int i, j, k, m, n, jnr;
 int used;
 int F_VAR;
 
@@ -1163,8 +1097,6 @@ int F_VAR;
 void GenerateReactantProd()
 {
 int i, j, k;
-int used;
-int l, m;
 int F_STOIC;
 
   if( VarNr == 0 ) return;
@@ -1203,7 +1135,6 @@ int F_STOIC;
 void GenerateJacReactantProd()
 {
 int i, j, k, l, m, JVRP_NZ, newrow;
-int used;
 int F_STOIC;
 int crow_JVRP[MAX_EQN], icol_JVRP[MAX_EQN*MAX_SPECIES];
 int irow_JVRP[MAX_EQN*MAX_SPECIES];
@@ -1443,8 +1374,7 @@ void GenerateHessian()
 /* Unlike Hess, this function deffers the sparse Data structure generation */
 {
 int i, j, k;
-int used;
-int l, m, i1, i2, nElm;
+int m, i1, i2, nElm;
 int F_Hess, F_Hess_VEC, F_HessTR_VEC;
 int *coeff_j, *coeff_i1, *coeff_i2;
 int Djv_isElm;
@@ -2087,7 +2017,6 @@ int *irow;
 int *icol;
 int *crow;
 int *diag;
-int nElm;
 int ibgn, iend;
 int useLangOld;
 int dim;
@@ -2103,7 +2032,7 @@ int dim;
 
   useLangOld = useLang;
   useLang = C_LANG;
-  nElm = NonZero( LU, 0, VarNr, irow, icol, crow, diag );
+  NonZero( LU, 0, VarNr, irow, icol, crow, diag );
   useLang = useLangOld;
 
   UseFile( linalgFile );
@@ -2157,7 +2086,6 @@ int *irow;
 int *icol;
 int *crow;
 int *diag;
-int nElm;
 int ibgn, iend;
 int useLangOld;
 int **pos;
@@ -2175,7 +2103,7 @@ int dim;
 
   useLangOld = useLang;
   useLang = C_LANG;
-  nElm = NonZero( LU, 0, VarNr, irow, icol, crow, diag );
+  NonZero( LU, 0, VarNr, irow, icol, crow, diag );
   useLang = useLangOld;
 
   UseFile( linalgFile );
@@ -2232,57 +2160,6 @@ int dim;
   FreeIntegerMatrix(pos, dim+1, dim+1);
 }
 
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-
-void str_replace(char *target, const char *needle, const char *replacement)
-{
-
-//===========================================================================
-// KPP 2.3.2_gc, Bob Yantosca (06 May 2021)
-// Add function to replace character in a string.  This is used
-// for replacing "~" with "%" in the inlined rate-law functions.
-// This overcomes the problem where "%" is interpreted as the
-// printf format specifier.  For more information, please see:
-//
-//   https://stackoverflow.com/questions/32413667/
-//    replace-all-occurrences-of-a-substring-in-a-string-in-c
-//
-// Note: This string replacement could also have been done with
-// Flex/Bison, but this is a much faster (and straightforward)
-// solution.
-//===========================================================================
-
-  char buffer[MAX_INLINE] = { 0 };
-  char *insert_point = &buffer[0];
-  const char *tmp = target;
-  size_t needle_len = strlen(needle);
-  size_t repl_len = strlen(replacement);
-
-  while (1) {
-    const char *p = strstr(tmp, needle);
-
-    // walked past last occurrence of needle; copy remaining part
-    if (p == NULL) {
-      strcpy(insert_point, tmp);
-      break;
-    }
-
-    // copy part before needle
-    memcpy(insert_point, tmp, p - tmp);
-    insert_point += p - tmp;
-
-    // copy replacement string
-    memcpy(insert_point, replacement, repl_len);
-    insert_point += repl_len;
-
-    // adjust pointers, move on
-    tmp = p + needle_len;
-  }
-
-  // write altered string back to target
-  strcpy(target, buffer);
-}
-
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateRateLaws()
@@ -2290,52 +2167,27 @@ void GenerateRateLaws()
 
   UseFile( rateFile );
 
-//===========================================================================
-// KPP 2.3.2_gc, Bob Yantosca (06 May 2021)
-// Do not print out default rate-law functions for GEOS-Chem,
-// as we only need the ones that are defined in gckpp.kpp
-//
-//  NewLines(1);
-//  WriteComment("Begin Rate Law Functions from KPP_HOME/util/UserRateLaws");
-//  NewLines(1);
-//  IncludeCode( "%s/util/UserRateLaws", Home );
-//  NewLines(1);
-//  WriteComment("End Rate Law Functions from KPP_HOME/util/UserRateLaws");
-//  NewLines(1);
-//===========================================================================
+  NewLines(1);
+  WriteComment("Begin Rate Law Functions from KPP_HOME/util/UserRateLaws");
+  NewLines(1);
+  IncludeCode( "%s/util/UserRateLaws", Home );
+  NewLines(1);
+  WriteComment("End Rate Law Functions from KPP_HOME/util/UserRateLaws");
+  NewLines(1);
 
   NewLines(1);
   WriteComment("Begin INLINED Rate Law Functions");
   NewLines(1);
 
   switch( useLang ) {
-    case C_LANG:
-      bprintf( InlineCode[ C_RATES ].code );
-      break;
-    case F77_LANG:
-      bprintf( InlineCode[ F77_RATES ].code );
-      break;
-    case F90_LANG:
-//===========================================================================
-// KPP 2.3.2_gc, Bob Yantosca (06 May 2021)
-// Call function str_replace to replace "=>" with "%%%%".
-// This will render as "%%" going into bprintf, which will print
-// tot he gckpp_Rates.F90 file as "%".  This is a workaround in
-// order to have KPP be able to inline code with Fortran-90
-// derived types.
-//
-// KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
-// Also make sure the F90_RATES inline text is not null before printing.
-//
-      if ( strlen(InlineCode[ F90_RATES ].code) > 0 ) {
-    	  str_replace( InlineCode[ F90_RATES ].code, "=>", "%%%%");
-    	  bprintf( InlineCode[ F90_RATES ].code );
-    	}
-//===========================================================================
-      break;
-    case MATLAB_LANG:
-      bprintf( InlineCode[ MATLAB_RATES ].code );
-      break;
+    case C_LANG:  bprintf( InlineCode[ C_RATES ].code );
+                 break;
+    case F77_LANG: bprintf( InlineCode[ F77_RATES ].code );
+                 break;
+    case F90_LANG: bprintf( InlineCode[ F90_RATES ].code );
+                 break;
+    case MATLAB_LANG: bprintf( InlineCode[ MATLAB_RATES ].code );
+                 break;
   }
   FlushBuf();
 
@@ -2378,7 +2230,7 @@ int UPDATE_RCONST;
   F77_Inline("      INCLUDE '%s_Global.h'", rootFileName);
   MATLAB_Inline("global SUN TEMP RCONST");
 
-  if ( (useLang==F77_LANG) )
+  if ( useLang==F77_LANG )
       IncludeCode( "%s/util/UserRateLaws_FcnHeader", Home );
 
   NewLines(1);
@@ -2437,9 +2289,30 @@ int UPDATE_PHOTO;
 
   FunctionBegin( UPDATE_PHOTO );
   F77_Inline("      INCLUDE '%s_Global.h'", rootFileName);
-  F90_Inline("   USE %s_Global", rootFileName);
+  /*  mz_rs_20220212+ */
+  /* global is already used in the rates module, don't use it twice */
+  /* F90_Inline("   USE %s_Global", rootFileName); */
+  /*  mz_rs_20220212- */
   MATLAB_Inline("global SUN TEMP RCONST");
 
+  NewLines(1);
+  WriteComment("Begin INLINED RCONST");
+  NewLines(1);
+
+  switch( useLang ) {
+    case C_LANG:  bprintf( InlineCode[ C_RCONST ].code );
+                 break;
+    case F77_LANG: bprintf( InlineCode[ F77_RCONST ].code );
+                 break;
+    case F90_LANG: bprintf( InlineCode[ F90_RCONST ].code );
+                 break;
+    case MATLAB_LANG: bprintf( InlineCode[ MATLAB_RCONST ].code );
+                 break;
+  }
+  FlushBuf();
+
+  NewLines(1);
+  WriteComment("End INLINED RCONST");
   NewLines(1);
 
   for( i = 0; i < EqnNr; i++) {
@@ -2546,9 +2419,7 @@ void GenerateParamHeader()
 {
 int spc;
 int i;
-char name[ MAX_SPNAME ];
-int offs;
-int mxyz;
+char name[MAX_SPNAME];
 
 int j,dummy_species;
 
@@ -2586,7 +2457,9 @@ int j,dummy_species;
   WriteComment("  VAR(ind_spc) = C(ind_spc)");
   NewLines(1);
   for( i = 0; i < VarNr; i++) {
-    sprintf( name, "ind_%s", SpeciesTable[ Code[i] ].name );
+    sprintf( name, "%s", "ind_" );
+    strncat( name, SpeciesTable[ Code[i] ].name,
+	     strlen(SpeciesTable[ Code[i] ].name)+1 );
     spc = DefConst( name, INT, 0 );
     DeclareConstant( spc, ascii( Index(i) ) );
     FreeVariable( spc );
@@ -2610,7 +2483,9 @@ int j,dummy_species;
   WriteComment("  C(ind_spc)");
   NewLines(1);
   for( i = 0; i < FixNr; i++) {
-    sprintf( name, "ind_%s", SpeciesTable[ Code[i + VarNr] ].name );
+    sprintf( name, "%s", "ind_" );
+    strncat( name, SpeciesTable[ Code[i + VarNr] ].name,
+	     strlen(SpeciesTable[ Code[i + VarNr] ].name)+1 );
     spc = DefConst( name, INT, 0 );
     DeclareConstant( spc, ascii( Index(i+VarNr) ) );
     FreeVariable( spc );
@@ -2626,7 +2501,8 @@ int j,dummy_species;
       for( j = 0; j < MAX_SPECIES; j++)
         if (Code[j] == i) dummy_species = 0;
       if (dummy_species) {
-        sprintf( name, "ind_%s", SpeciesTable[i].name );
+	sprintf( name, "%s", "ind_" );
+	strncat( name, SpeciesTable[i].name, strlen(SpeciesTable[i].name)+1 );
         spc = DefConst( name, INT, 0 );
         DeclareConstant( spc, ascii( 0 ) );
         FreeVariable( spc );
@@ -2639,7 +2515,9 @@ int j,dummy_species;
   WriteComment("   FIX(indf_spc) = C(ind_spc) = C(NVAR+indf_spc)");
   NewLines(1);
   for( i = 0; i < FixNr; i++) {
-    sprintf( name, "indf_%s", SpeciesTable[ Code[i + VarNr] ].name );
+    sprintf( name, "%s", "indf_" );
+    strncat( name, SpeciesTable[ Code[i + VarNr] ].name,
+	     strlen( SpeciesTable[ Code[i + VarNr] ].name)+1 );
     spc = DefConst( name, INT, 0 );
     DeclareConstant( spc, ascii( Index(i) ) );
     FreeVariable( spc );
@@ -2650,18 +2528,15 @@ int j,dummy_species;
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateGlobalHeader()
 {
-  int spc;
-  int i;
-  char name[20];
-  int offs;
-  int mxyz;
   int useFortran;
 
-
 //===========================================================================
-// KPP 2.3.2_gc, Bob Yantosca (26 Mar 2021)
-// Modify code to inline the F77/F90 THREADPRIVATE declarations
-// and also declare extra arrays and scalars
+// MODIFICATION: Bob Yantosca (26 Mar 2021)
+//
+// Modify code to inline the F77/F90 THREADPRIVATE declarations, and also
+// declare extra arrays and scalars.  These declarations begin with a
+// comment character and will be ignored unless the Fortran-90 code is
+// compiled with OpenMP.
 //===========================================================================
 
   /*** Define a flag to denote if we are using F90 or F77 ***/
@@ -2677,9 +2552,25 @@ void GenerateGlobalHeader()
   WriteComment("Declaration of global variables");
   if ( useFortran ) {
     NewLines(1);
-    WriteComment("These quantities vary with lon/lat/lev location.");
-    WriteComment("They must be declared THREADPRIVATE for the parallel");
-    WriteComment("loop over all cells in the chemistry grid.");
+    WriteComment(
+      "~~~ If you are using KPP within an OpenMP parallel environment,");
+    WriteComment(
+      "~~~ then these variables must be declared THREADPRIVATE.  This means");
+    WriteComment(
+      "~~~ that the compiler will make a private copy of these variables");
+    WriteComment(
+      "~~~ (in stack memory) for each execution thread.  At the end of ");
+    WriteComment(
+      "~~~ the OpenMP parallel loop, these variables will be finalized,");
+    WriteComment(
+      "~~~ and their memory deallocated.");
+    WriteComment("~~~");
+    WriteComment(
+      "~~~ NOTE: Because the OpenMP commands all begin with a comment");
+    WriteComment(
+      "~~~ character, they will be ignored unless the code is compiled");
+    WriteComment(
+      "~~~ with OpenMP parallelization turned on.");
   }
   NewLines(1);
 
@@ -2687,7 +2578,7 @@ void GenerateGlobalHeader()
   ExternDeclare( C );
   if ( useFortran ) { WriteOMPThreadPrivate("C"); }
 
-  /*** Declare VAR and FIX for F90 ***/
+  /*** Declare VAR and FIX for F90 (these are now pointers!) ***/
   if ( useLang == F90_LANG ) {
     ExternDeclare( VAR );
     WriteOMPThreadPrivate("VAR");
@@ -2696,7 +2587,8 @@ void GenerateGlobalHeader()
     WriteOMPThreadPrivate("FIX");
   }
 
-  /*** Declare VAR and fix for F77 ***/
+  /*** Declare VAR and fix for F77                             ***/
+  /*** We need to keep the EQUIVALENCE statement for F77 only! ***/
   if ( useLang == F77_LANG ) {
     Declare( VAR );
     WriteOMPThreadPrivate("VAR");
@@ -2718,6 +2610,12 @@ void GenerateGlobalHeader()
     ExternDeclare( FIX );
   }
 
+  /*** Declare VAR and FIX for C with the extern property ***/
+  if ( useLang == C_LANG ) {
+    C_Inline("  extern %s * %s;", C_types[real], varTable[VAR]->name );
+    C_Inline("  extern %s * %s;", C_types[real], varTable[FIX]->name );
+  }
+
   /*** Declare all other threadprivate variables ***/
   ExternDeclare( RCONST );
   if ( useFortran ) { WriteOMPThreadPrivate("RCONST"); }
@@ -2725,39 +2623,22 @@ void GenerateGlobalHeader()
   ExternDeclare( TIME );
   if ( useFortran ) { WriteOMPThreadPrivate("TIME"); }
 
+  ExternDeclare( SUN );
+  if ( useFortran ) { WriteOMPThreadPrivate("SUN"); }
+
   ExternDeclare( TEMP );
   if ( useFortran ) { WriteOMPThreadPrivate("TEMP"); }
-
-  ExternDeclare( SR_TEMP );
-  if ( useFortran ) { WriteOMPThreadPrivate("SR_TEMP"); }
-
-  ExternDeclare( TEMP_OVER_K300 );
-  if ( useFortran ) { WriteOMPThreadPrivate("TEMP_OVER_K300"); }
-
-  ExternDeclare( K300_OVER_TEMP );
-  if ( useFortran ) { WriteOMPThreadPrivate("K300_OVER_TEMP"); }
-
-  ExternDeclare( CFACTOR );
-  if ( useFortran ) { WriteOMPThreadPrivate("CFACTOR"); }
-
-  ExternDeclare( NUMDEN );
-  if ( useFortran ) { WriteOMPThreadPrivate("NUMDEN"); }
-
-  C_Inline("  extern %s * %s;", C_types[real], varTable[VAR]->name );
-  C_Inline("  extern %s * %s;", C_types[real], varTable[FIX]->name );
 
   /*** Declare non-threadprivate variables ***/
   NewLines(1);
   if ( useFortran ) {
-    WriteComment("These variables do not vary with location, and can be");
-    WriteComment("assigned outside of the parallel loop over cells in the");
-    WriteComment("chemistry grid.  These do not need to be THREADPRIVATE.");
+    WriteComment(
+     "~~~ If you are using KPP within an OpenMP parallel environment,");
+    WriteComment(
+     "~~~ these variables DO NOT need to be declared THREADPRIVATE.");
     NewLines(1);
   }
 
-  ExternDeclare( MW   );
-  ExternDeclare( SR_MW );
-  ExternDeclare( RTOLS );
   ExternDeclare( TSTART );
   ExternDeclare( TEND );
   ExternDeclare( DT );
@@ -2785,6 +2666,7 @@ void GenerateGlobalHeader()
     WriteOMPThreadPrivate(" DO_JVS, DO_SLV, DO_FUN, cLU_IROW, cLU_ICOL, cLU_CROW");
     WriteOMPThreadPrivate(" cLU_DIAG, JVS_MAP, SPC_MAP, iSPC_MAP, RMV, rNVAR, cNONZERO, KEEPACTIVE "); /* msl_20160419 */
   }
+  ExternDeclare( CFACTOR );
   if (useStochastic)
       ExternDeclare( VOLUME );
 
@@ -2845,15 +2727,15 @@ int EqnStr( int eq, char * buf, float** mat )
 int spc, first;
 
 /* bugfix if stoichiometric factor is not an integer */
-int n;
 char s[40];
+char tmpStr[MAX_EQNLEN];
 
   first = 1;
   *buf = 0;
   for( spc = 0; spc < SpcNr; spc++ )
     if( mat[spc][eq] != 0 ) {
       if( ((mat[spc][eq] == 1)||(mat[spc][eq] == -1)) ) {
-          sprintf(s, "");
+	s[0] = '\0'; // necessary to remove old contents
       } else {
         /* real */
         /*  mz_rs_20050130+ */
@@ -2866,22 +2748,50 @@ char s[40];
         /*for (n= strlen(s) - 1; n >= 0; n--)
           if (s[n] != '0') break; */
         s[strlen(s)]= '\0';
-        sprintf(s, "%s ", s);
+	strcat( s, " " );
       }
 
+// Remove self-referential sprintf statements
+//  -- Bob Yantosca (02 May 2022)
+//      if( first ) {
+//        if( mat[spc][eq] > 0 ) sprintf(buf, "%s%s", buf, s);
+//                          else sprintf(buf, "%s- %s", buf, s);
+//        first = 0;
+//      } else {
+//        if( mat[spc][eq] > 0 ) sprintf(buf, "%s + %s", buf, s);
+//                          else sprintf(buf, "%s - %s", buf, s);
+//      }
+//      sprintf(buf, "%s%s", buf, SpeciesTable[ Code[spc] ].name);
+//    }
+
       if( first ) {
-        if( mat[spc][eq] > 0 ) sprintf(buf, "%s%s", buf, s);
-                          else sprintf(buf, "%s- %s", buf, s);
+        if( mat[spc][eq] > 0 ) {
+	  sprintf( tmpStr, "%s", s );
+	  strncat( buf, tmpStr, strlen(tmpStr)+1 );
+	} else {
+	  sprintf( tmpStr, "%s",   buf              );
+	  strncat( tmpStr, "- ",   3                );
+	  strncat( tmpStr, s,      strlen(s)+1      );
+	  strncpy( buf,    tmpStr, strlen(tmpStr)+1 );
+	}
         first = 0;
       } else {
-        if( mat[spc][eq] > 0 ) sprintf(buf, "%s + %s", buf, s);
-                          else sprintf(buf, "%s - %s", buf, s);
+        if( mat[spc][eq] > 0 ) {
+	  sprintf( tmpStr, "%s",   buf              );
+	  strncat( tmpStr, " + ",  4                );
+	  strncat( tmpStr, s,      strlen(s)+1      );
+	  strncpy( buf,    tmpStr, strlen(tmpStr)+1 );
+        } else {
+	  sprintf( tmpStr, "%s",   buf              );
+	  strncat( tmpStr, " - ",  4                );
+	  strncat( tmpStr, s,      strlen(s)+1      );
+	  strncpy( buf,    tmpStr, strlen(tmpStr)+1 );
+	}
       }
-      sprintf(buf, "%s%s", buf, SpeciesTable[ Code[spc] ].name);
-      if (strlen(buf)>MAX_EQNLEN/2) { /* truncate if eqn string too long */
-         sprintf(buf, "%s ... etc.",buf);
-	 break;
-      }
+      sprintf( tmpStr, "%s", buf );
+      strncat( tmpStr, SpeciesTable[ Code[spc] ].name,
+	       strlen(  SpeciesTable[ Code[spc] ].name )+1 );
+      strncpy( buf, tmpStr, strlen(tmpStr)+1 );
     }
 
   return strlen(buf);
@@ -2892,6 +2802,7 @@ int EqnString( int eq, char * buf )
 {
 static int lhs = 0;
 static int rhs = 0;
+int len_rhsbuf;
 
 int i, l;
 char lhsbuf[MAX_EQNLEN], rhsbuf[MAX_EQNLEN];
@@ -2903,14 +2814,25 @@ char lhsbuf[MAX_EQNLEN], rhsbuf[MAX_EQNLEN];
 
   if(rhs == 0) for( i = 0; i < EqnNr; i++ ) {
                  l = EqnStr( i, rhsbuf, Stoich_Right);
-                 rhs = (rhs > l) ? lhs : l;
+                 rhs = (rhs > l) ? rhs : l;
                }
 
-
   EqnStr( eq, lhsbuf, Stoich_Left);
-  EqnStr( eq, rhsbuf, Stoich_Right);
+  len_rhsbuf=EqnStr( eq, rhsbuf, Stoich_Right);
 
-  sprintf(buf, "%*s --> %-*s", lhs, lhsbuf, rhs, rhsbuf);
+  if(lhs+5+len_rhsbuf>100) // 100 = len of EQN_NAMES string; 5 = len of " --> "
+    {
+      // truncate the list of products in kpp_monitor file:
+      rhsbuf[100-5-lhs-8]=0; // 8 = len of "... etc."
+      sprintf(buf, "%*s --> ", lhs, lhsbuf);
+      strcat(buf, rhsbuf);
+      strcat(buf, "... etc.");
+    }
+  else
+    {
+      sprintf(buf, "%*s --> %-*s", lhs, lhsbuf, rhs, rhsbuf);
+    }
+
   return strlen(buf);
 }
 
@@ -3003,57 +2925,88 @@ int INITVAL;
   F90_Inline("  USE %s_Global\n", rootFileName);
   MATLAB_Inline("global CFACTOR VAR FIX NVAR NFIX", rootFileName);
 
+  F77_Inline("      INCLUDE '%s_Parameters.h'", rootFileName);
+  F90_Inline("  USE %s_Parameters\n", rootFileName);
+
   I = DefElm( "i", INT, 0);
   X = DefElm( "x", real, 0);
   Declare( I );
   Declare( X );
 
   NewLines(1);
+  WriteComment("~~~ Define scale factor for units");
   WriteAssign( varTable[CFACTOR]->name , ascid( (double)cfactor ) );
   NewLines(1);
 
-  Assign( Elm( X ), Mul( Elm( IV, varDefault ), Elm( CFACTOR ) ) );
-  C_Inline("  for( i = 0; i < NVAR; i++ )" );
-  F77_Inline("      DO i = 1, NVAR" );
-  F90_Inline("  DO i = 1, NVAR" );
-  MATLAB_Inline("   for i = 1:NVAR" );
-  ident++;
+  //=========================================================================
+  // MODIFICATION by Bob Yantosca (25 Apr 2022)
+  //
+  // For F90, assign values to C directly (since VAR and FIX now point to C
+  // instead of the other way around).  Otherwise, preserve prior code.
+  //=========================================================================
+  if ( useLang == F90_LANG ) {
+
+    //
+    // Fortran-90
+    //
+    WriteComment("~~~ Zero C array");
+    if ( useDouble )
+      F90_Inline( "  C = 0.0_dp" );
+    else
+      F90_Inline( "  C = 0.0" );
+    NewLines(1);
+
+    WriteComment("~~~ Set initial species concentrations");
+    for( i = 0; i < SpcNr; i++) {
+      if( *SpeciesTable[ Code[i] ].ival == 0 ) continue;
+      Assign( Elm( C, i ),
+	      Mul( Elm( IV, SpeciesTable[ Code[i] ].ival ),
+	      Elm( CFACTOR ) ) );
+    }
+
+    NewLines(1);
+
+  } else {
+
+    //
+    // Fortran-77, C, and Matlab
+    //
+    Assign( Elm( X ), Mul( Elm( IV, varDefault ), Elm( CFACTOR ) ) );
+    C_Inline("  for( i = 0; i < NVAR; i++ )" );
+    F77_Inline("      DO i = 1, NVAR" );
+    MATLAB_Inline("   for i = 1:NVAR" );
+    ident++;
     Assign( Elm( VAR, -I ), Elm( X ) );
-  ident--;
-  F77_Inline("      END DO" );
-  F90_Inline("  END DO" );
-  MATLAB_Inline("   end" );
+    ident--;
+    F77_Inline("      END DO" );
+    MATLAB_Inline("   end" );
 
-
-  NewLines(1);
-  Assign( Elm( X ), Mul( Elm( IV, fixDefault ), Elm( CFACTOR ) ) );
-  C_Inline("  for( i = 0; i < NFIX; i++ )" );
-  F77_Inline("      DO i = 1, NFIX" );
-  F90_Inline("  DO i = 1, NFIX" );
-  MATLAB_Inline("   for i = 1:NFIX" );
-  ident++;
+    NewLines(1);
+    Assign( Elm( X ), Mul( Elm( IV, fixDefault ), Elm( CFACTOR ) ) );
+    C_Inline("  for( i = 0; i < NFIX; i++ )" );
+    F77_Inline("      DO i = 1, NFIX" );
+    MATLAB_Inline("   for i = 1:NFIX" );
+    ident++;
     Assign( Elm( FIX, -I ), Elm( X ) );
-  ident--;
-  F77_Inline("      END DO" );
-  F90_Inline("  END DO" );
-  MATLAB_Inline("   end" );
+    ident--;
+    F77_Inline("      END DO" );
+    MATLAB_Inline("   end" );
 
+    NewLines(1);
 
-  NewLines(1);
+    for( i = 0; i < VarNr; i++) {
+      if( *SpeciesTable[ Code[i] ].ival == 0 ) continue;
+      Assign( Elm( VAR, i ),
+	      Mul( Elm( IV, SpeciesTable[ Code[i] ].ival ),
+	      Elm( CFACTOR ) ) );
+    }
 
-  for( i = 0; i < VarNr; i++) {
-    if( *SpeciesTable[ Code[i] ].ival == 0 ) continue;
-    Assign( Elm( VAR, i ), Mul(
-              Elm( IV, SpeciesTable[ Code[i] ].ival ),
+    for( i = 0; i < FixNr; i++) {
+      if( *SpeciesTable[ Code[i + VarNr] ].ival == 0 ) continue;
+      Assign( Elm( FIX, i ),
+	      Mul( Elm( IV, SpeciesTable[ Code[i + VarNr] ].ival ),
               Elm( CFACTOR ) ) );
-  }
-
-
-  for( i = 0; i < FixNr; i++) {
-    if( *SpeciesTable[ Code[i + VarNr] ].ival == 0 ) continue;
-    Assign( Elm( FIX, i ), Mul(
-              Elm( IV, SpeciesTable[ Code[i + VarNr] ].ival ),
-              Elm( CFACTOR ) ) );
+    }
   }
 
 /*  NewLines(1);
@@ -3101,12 +3054,10 @@ int INITVAL;
   FreeVariable( INITVAL );
 }
 
-
-
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateShuffle_user2kpp()
 {
-int i,k,l;
+int i,k;
 int Shuffle_user2kpp;
 
   UseFile( utilFile );
@@ -3114,7 +3065,7 @@ int Shuffle_user2kpp;
   Shuffle_user2kpp    = DefFnc( "Shuffle_user2kpp", 2, "function to copy concentrations from USER to KPP");
   FunctionBegin( Shuffle_user2kpp, V_USER, V );
 
-  k = 0;l = 0;
+  k = 0;
   for( i = 1; i < SpcNr; i++) {
     if( ReverseCode[i] < 0 ) {
       if( SpeciesTable[i].type == VAR_SPC ) k++;
@@ -3141,7 +3092,7 @@ int Shuffle_user2kpp;
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateShuffle_kpp2user()
 {
-int i,k,l;
+int i,k;
 int Shuffle_kpp2user;
 
   UseFile( utilFile );
@@ -3149,7 +3100,7 @@ int Shuffle_kpp2user;
   Shuffle_kpp2user    = DefFnc( "Shuffle_kpp2user", 2, "function to restore concentrations from KPP to USER");
   FunctionBegin( Shuffle_kpp2user, V, V_USER );
 
-  k = 0; l = 0;
+  k = 0;
   for( i = 0; i < SpcNr; i++) {
     if( ReverseCode[i] < 0 ) {
       if( SpeciesTable[i].type == VAR_SPC ) k++;
@@ -3241,16 +3192,17 @@ char buf[100], suffix[5];
   if (useLang == MATLAB_LANG) return;
   if (useMex == 0) return;
 
+  // Because this CASE statement is used to create the _Mex* files,
+  // use the f90Suffix variable to use the proper .f90 or .F90 extension,
+  // depending on the value of the #UPPERCASEF90 switch.
+  //   -- Bob Yantosca (22 Apr 2022)
   switch( useLang ) {
-    case F77_LANG: sprintf( suffix, "f");
-                 break;
-    case F90_LANG: sprintf( suffix, "f90");
-                 break;
-    case C_LANG:   sprintf( suffix, "c");
-                 break;
-    default: printf("\nCannot create mex files for language %d\n", useLang);
-                 exit(1);
-                 break;
+    case F77_LANG: sprintf( suffix, "%s", "f"       ); break;
+    case F90_LANG: sprintf( suffix, "%s", f90Suffix ); break;
+    case C_LANG:   sprintf( suffix, "%s", "c"       ); break;
+    default:
+      printf("\nCannot create mex files for language %d\n", useLang);
+      exit(1);
   }
 
   sprintf( buf, "%s_mex_Fun.%s", rootFileName, suffix );
@@ -3287,7 +3239,7 @@ char buf[100], suffix[5];
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateMatlabTemplates()
 {
-char buf[200], suffix[5];
+char buf[200];
 
   if (useLang != MATLAB_LANG) return;
 
@@ -3326,15 +3278,6 @@ char buf[200], suffix[5];
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateF90Modules(char where)
 {
-
-//===========================================================================
-// KPP 2.3.0_gc, Bob Yantosca (11 Feb 2020)
-// NOTE: Use the .F90 suffix instead of .f90, because .F90 denotes
-// non-preprocessed source code, whereas .f90 denotes source code
-// with header files inlined.  This update was added into the
-// GC_updates branch for KPP version 2.3.0_gc.
-//===========================================================================
-
 char buf[200];
 
 if (useLang != F90_LANG) return;
@@ -3342,7 +3285,7 @@ if (useLang != F90_LANG) return;
 switch (where) {
 case 'h':
 
-  sprintf( buf, "%s_Precision.F90", rootFileName );
+  sprintf( buf, "%s_Precision.%s", rootFileName, f90Suffix );
   sparse_dataFile = fopen(buf, "w");
   if( sparse_dataFile == 0 ) {
     FatalError(3,"%s: Can't create file", buf );
@@ -3374,22 +3317,32 @@ case 'h':
 
   UseFile( global_dataFile );
     F90_Inline("MODULE %s_Global\n", rootFileName );
-    if ( useDeclareValues )
+    if ( useDeclareValues ) {
       F90_Inline("  USE %s_Precision", rootFileName );
-    else
-      F90_Inline("  USE %s_Parameters, ONLY: dp, NSPEC, NVAR, NFIX, NREACT, LU_NONZERO", rootFileName);
+    }
+    else {
+      if ( useDouble ) {
+	      F90_Inline("  USE %s_Parameters, ONLY: dp, NSPEC, NVAR, NFIX, NREACT, LU_NONZERO", rootFileName);
+      }
+      else {
+	      F90_Inline("  USE %s_Parameters, ONLY: sp, NSPEC, NVAR, NFIX, NREACT, LU_NONZERO", rootFileName);
+      }
+    }
+
     F90_Inline("  PUBLIC\n  SAVE\n");
 
   UseFile( functionFile );
     F90_Inline("MODULE %s_Function\n", rootFileName );
-    if ( useDeclareValues )
+    if ( useDeclareValues ) {
       F90_Inline("  USE %s_Precision", rootFileName );
-    else
+    }
+    else {
       if( doAutoReduce ) F90_Inline("  USE %s_Global, only : DO_FUN", rootFileName );
       F90_Inline("  USE %s_Parameters", rootFileName );
+    }
     F90_Inline("  IMPLICIT NONE\n", rootFileName );
     Declare( A ); /*  mz_rs_20050117 */
-    WriteOMPThreadPrivate(" A "); /* msl_20160419 */
+    if ( useLang == F90_LANG || useLang == F77_LANG ) WriteOMPThreadPrivate(" A "); /* msl_20160419 */
     F90_Inline("\nCONTAINS\n\n");
 
   UseFile( rateFile );
@@ -3400,6 +3353,9 @@ case 'h':
       F90_Inline("  USE %s_Parameters", rootFileName );
     F90_Inline("  USE %s_Global", rootFileName );
     F90_Inline("  IMPLICIT NONE", rootFileName );
+    F90_Inline("  INTEGER, PARAMETER :: ASSOC = 1, DISSOC = 2", rootFileName );
+    NewLines(1);
+    IncludeCode( "%s/util/UserRateLawsInterfaces", Home );
     F90_Inline("\nCONTAINS\n\n");
 
   if ( useStochastic ) {
@@ -3492,9 +3448,8 @@ case 'h':
     /* Here we define the model module which aggregates everything */
     /* put module rootFileName_Model into separate file */
     /* (reusing "sparse_dataFile" as done above for _Precision file) */
-
-
-    sprintf( buf, "%s_Model.F90", rootFileName );
+    //sprintf( buf, "%s_Model.f90", rootFileName );
+    sprintf( buf, "%s_Model.%s", rootFileName, f90Suffix );
     sparse_dataFile = fopen(buf, "w");
     if( sparse_dataFile == 0 ) {
       FatalError(3,"%s: Can't create file", buf );
@@ -3591,7 +3546,7 @@ case 't':
   break;
 
 default:
-  printf("\n Unrecognized option '%s' in GenerateF90Modules\n", where);
+  printf("\n Unrecognized option '%c' in GenerateF90Modules\n", where);
   break;
 }
 }
@@ -3600,7 +3555,7 @@ default:
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void Generate()
 {
-int i, j;
+int i;
 int n;
 
   VarStartNr = 0;
@@ -3625,7 +3580,7 @@ int n;
                  break;
     case MATLAB_LANG: Use_MATLAB( rootFileName );
                  break;
-    default: printf("\n Language no '%s' unknown\n",useLang );
+    default: printf("\n Language no '%d' unknown\n",useLang );
   }
   printf("\nKPP is initializing the code generation.");
   InitGen();
@@ -3658,9 +3613,10 @@ int n;
     printf("\nKPP is generating the ODE function:");
   /*}*/
   printf("\n    - %s_Function",rootFileName);
-  GenerateFun();
-  /*if (doFlux == 1)<-- make GenerateFlux automatic until a REDUX toggle is inlcuded */
-  /*GenerateFlux();*/
+  GenerateFun(1); /* setting useAggregate=1, generate SUBROUTINE Fun*/
+  GenerateFun(0); /* setting useAggregate=0, generate SUBROUTINE FUN_SPLIT */
+  GenerateStoichNum();
+  if (doFlux == 1 || doAutoReduce) GenerateFlux();
 
   if ( useStochastic ) {
     printf("\nKPP is generating the Stochastic description:");
@@ -3707,22 +3663,12 @@ int n;
   printf("\n    - %s_Rates",rootFileName);
 
   GenerateRateLaws();
-
-//===========================================================================
-// KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
-// Comment out the function call that pastes the UPDATE_SUN function into
-// the gckpp_Rates.F90 file.  This is not needed for GEOS-Chem and most
-// other external models, as photo rates are usually computed externally
-// and passed in.
-//
-//  GenerateUpdateSun();
-//===========================================================================
-
+  GenerateUpdateSun();
   GenerateUpdateRconst();
   GenerateUpdatePhoto();
   GenerateGetMass();
 
-  /*  GenerateComputeFamilies(); Removed. MSL Oct. 30, 2017*/
+  GenerateComputeFamilies();
 
   printf("\nKPP is generating the parameters:");
   printf("\n    - %s_Parameters",rootFileName);
@@ -3758,7 +3704,7 @@ int n;
     GenerateDJacDRcoeff();
   }
 
-  printf("\nKPP is generating the driver from %s.f90:", driver);
+  printf("\nKPP is generating the driver from %s.%s:", driver, f90Suffix);
   printf("\n    - %s_Main",rootFileName);
 
   if ( (useLang == F77_LANG)||(useLang == F90_LANG)||(useLang == C_LANG) )

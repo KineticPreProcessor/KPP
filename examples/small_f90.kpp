@@ -1,6 +1,4 @@
 #MODEL      small_strato
-#INTEGRATOR kpp_lsode 
+#INTEGRATOR lsode
 #LANGUAGE   Fortran90
 #DRIVER     general
-#HESSIAN    on
-#STOICMAT   on

@@ -35,15 +35,18 @@
 #include <string.h>
 #include <stdio.h>
 
-#define MAX_LINE 120
+#define MAX_LINE 300   // NOTE: Same as MAX_PATH in gdata.h
 
+/* Setting LEN=32 avoids problems with long species names and long
+   equation tags. A consistent change in F90_DeclareData (see below)
+   is probably also necessary.                                        */
 char *F90_types[] = { "",                   /* VOID */
-                    "INTEGER",            /* INT */
-                    "REAL(kind=sp)",      /* FLOAT */
-                    "REAL(kind=dp)",      /* DOUBLE */
-                    "CHARACTER(LEN=15)",  /* STRING */
-                    "CHARACTER(LEN=100)", /* DOUBLESTRING */
-		    "LOGICAL"             /* LOGICAL */
+                      "INTEGER",            /* INT */
+                      "REAL(kind=sp)",      /* FLOAT */
+                      "REAL(kind=dp)",      /* DOUBLE */
+                      "CHARACTER(LEN=32)",  /* STRING */
+                      "CHARACTER(LEN=100)", /* DOUBLESTRING */
+                      "LOGICAL"             /* LOGICAL */
                   };
 
 /*************************************************************************************************/
@@ -111,19 +114,20 @@ void F90_WriteAssign( char *ls, char *rs )
 int start;
 int linelg;
 int i, j;
-int ifound, jfound;
+int jfound;
 char c;
 int first;
 int crtident;
 
 /* Max no of continuation lines in F90/F95 differs with compilers, but 39
                                should work for every compiler*/
-int number_of_lines = 1, MAX_NO_OF_LINES = 36;
+/* if MAX_NO_OF_LINES is too small, KPP will split lines incorrectly */
+int number_of_lines = 1, MAX_NO_OF_LINES = 250;
 
 /*  Operator Mapping: 0xaa = '*' | 0xab = '+' | 0xac = ','
                       0xad = '-' | 0xae ='.' | 0xaf = '/' */
 /* char op_mult=0xaa, op_plus=0xab, op_minus=0xad, op_dot=0xae, op_div=0xaf; */
-char op_mult='*', op_plus='+', op_minus='-', op_dot='.', op_div='/';
+char op_plus='+', op_minus='-';  //, op_dot='.', op_div='/'. op_mult='*';
 
   crtident = 2 + ident * 2;
   bprintf("%*s%s = ", crtident, "", ls);
@@ -132,7 +136,7 @@ char op_mult='*', op_plus='+', op_minus='-', op_dot='.', op_div='/';
 
   first = 1;
   while( strlen(rs) > linelg ) {
-    ifound = 0; jfound = 0;
+    jfound = 0;
     if ( number_of_lines >= MAX_NO_OF_LINES ) {
      /* If a new line needs to be started.
           Note: the approach below will create erroneous code if the +/- is within a subexpression, e.g. for
@@ -145,7 +149,7 @@ char op_mult='*', op_plus='+', op_minus='-', op_dot='.', op_div='/';
     if ( ( number_of_lines < MAX_NO_OF_LINES )||( !jfound ) ) {
      for( i=linelg; i>10; i-- ) /* split row here if operator or comma */
        if ( ( rs[i] & 0x80 )||( rs[i]==',' ) ) {
-        ifound = 1; break;
+        break;
 	}
      if( i <= 10 ) {
        printf("\n Warning: double-check continuation lines for:\n   %s = %s\n",ls,rs);
@@ -255,8 +259,33 @@ char maxj[20];
 		      sprintf( maxi, "%d", (varTable[-var->maxi]->value)==0?
 		           1:varTable[-var->maxi]->value );
 		}
-                sprintf( buf, "%s :: %s(%s)", baseType, var->name, maxi );
+
+		//=============================================================
+		// MODIFICATION by Bob Yantosca (28 Apr 2022)
+		//
+		// Modify the IF block so that F90 variables can be declared
+		// with either the POINTER, TARGET, or OPTIONAL attribute.
+		//
+		if ( var->attr == ATTR_F90_PTR )
+		  sprintf( buf, "%s, POINTER :: %s(:)", baseType,
+			                                var->name );
+		else if ( var->attr == ATTR_F90_TGT )
+		  sprintf( buf, "%s, TARGET :: %s(%s)", baseType,
+			                                var->name,
+			                                maxi );
+		else if ( var->attr == ATTR_F90_OPT )
+		  sprintf( buf, "%s, OPTIONAL :: %s(%s)", baseType,
+			                                  var->name,
+			                                  maxi );
+		else if ( var->attr == ATTR_F90_OPT_PTR )
+		  sprintf( buf, "%s, OPTIONAL, POINTER :: %s(%s)", baseType,
+			                                           var->name,
+			                                           maxi );
+		else
+		  sprintf( buf, "%s :: %s(%s)", baseType, var->name, maxi );
+		//=============================================================
  		break;
+
     case MELM:
                 if( var->maxi > 0 ) sprintf( maxi, "%d", var->maxi );
                 else {
@@ -287,6 +316,7 @@ char maxj[20];
                 sprintf( buf, "%s :: %s(%s,%s)",
                          baseType, var->name, maxi, maxj );
 		break;
+
     default:
                 printf( "Can not declare type %d\n", var->type );
                 break;
@@ -297,9 +327,8 @@ char maxj[20];
 /*************************************************************************************************/
 char * F90_DeclareData( int v, void * values, int n)
 {
-int i, j;
+int i;
 int nlines;
-int split;
 static char buf[120];
 VARIABLE *var;
 int * ival;
@@ -309,7 +338,6 @@ char *baseType;
 char maxi[20];
 char maxj[20];
 int maxCols = MAX_COLS;
-char dsbuf[200];
 
  int i_from, i_to;
  int isplit;
@@ -325,7 +353,6 @@ char dsbuf[200];
   cval = (char **) values;
 
   nlines = 1;
-  split = 0;
   var -> maxi = max( n, 1 );
 
   baseType = F90_types[ var->baseType ];
@@ -342,6 +369,7 @@ char dsbuf[200];
 		  case STRING: bprintf( "'%3s'", *cval ); break;
 		}
 		break;
+
     case VELM:
       /* define maxCols here already and choose suitable splitsize */
       switch( var -> baseType ) {
@@ -365,8 +393,30 @@ char dsbuf[200];
         if( (var->maxi == 0) ||
             ((var->maxi < 0) && (varTable[ -var->maxi ]->maxi == 0)) )
           strcat( maxi, "+1");
-        bprintf( "  %s, " , baseType);
+	bprintf( "  %s, " , baseType);
         if( n>0 ) bprintf( "PARAMETER, " ); /* if values are assigned now */
+	//====================================================================
+	// MODIFICATION by Bob Yantosca (28 Apr 2022)
+	//
+	// Add the POINTER, TARGET, or OPTIONAL attributes to F90 variables.
+	//
+	if ( var->attr == ATTR_F90_PTR ) {
+          bprintf( ", POINTER :: %s(:)", var->name ) ;
+	  if( n<=0 ) break;
+	}
+	if ( var->attr == ATTR_F90_TGT ) {
+          bprintf( ", TARGET :: %s(%s)", var->name, maxi ) ;
+	  if( n<=0 ) break;
+        }
+	if ( var->attr == ATTR_F90_OPT ) {
+          bprintf( ", OPTIONAL :: %s(%s)", var->name, maxi ) ;
+	  if( n<=0 ) break;
+        }
+	if ( var->attr == ATTR_F90_OPT_PTR ) {
+          bprintf( ", OPTIONAL, POINTER :: %s(%s)", var->name, maxi ) ;
+	  if( n<=0 ) break;
+        }
+	//====================================================================
         if ( maxi_div==0 ) { /* define array in one piece */
           bprintf( "DIMENSION(%s) :: %s",
                    maxi, var->name) ;
@@ -401,7 +451,9 @@ char dsbuf[200];
           case REAL:
             bprintf( "%12.6e", dval[i] ); break;
           case STRING:
-            bprintf( "'%-15s'", cval[i] ); break;
+            /* Setting length to 32 avoids problems with long species names and long equation tags. */
+            /* A consistent change in "char *F90_types" (see above) is probably also necessary */
+            bprintf( "'%-32s'", cval[i] ); break;
           case DOUBLESTRING:
             /* strncpy( dsbuf, cval[i], 54 ); dsbuf[54]='\0'; */
             /* bprintf( "'%48s'", dsbuf ); break; */
@@ -411,14 +463,14 @@ char dsbuf[200];
             bprintf( "," );
             if( (i+1) % maxCols == 0 ) {
               if (maxCols == 1 ) {
-		bprintf( " & ! index %d\n     ", i+1 ); }
-	      else {
-		bprintf( " & ! index %d - %d\n     ", i-maxCols+2, i+1 ); }
+                bprintf( " & ! index %d\n     ", i+1 ); }
+              else {
+                bprintf( " & ! index %d - %d\n     ", i-maxCols+2, i+1 ); }
               nlines++;
             }
           }
         }
-        bprintf( " /)\n" );
+        bprintf( " /) ! index up to %d\n", i_to );
         /* mz_rs added FlushBuf, otherwise MAX_OUTBUF would have to be very large */
         FlushBuf();
       }
@@ -454,6 +506,7 @@ char dsbuf[200];
                 sprintf( buf, "%s, DIMENSION(%s,%s) :: %s\n",	/* changed here */
                          baseType, maxi, maxj,var->name );
 		break;
+
     default:
                 printf( "Can not declare type %d", var->type );
                 break;
@@ -523,7 +576,6 @@ char dummy_val[100];           /* used just to avoid strange behaviour of
 void F90_WriteVecData( VARIABLE * var, int min, int max, int split )
 {
 char buf[80];
-char *p;
 
   if( split )
     sprintf( buf, "%6sdata( %s(i), i = %d, %d ) / &\n%5s",
@@ -540,7 +592,7 @@ char *p;
 /*************************************************************************************************/
 void F90_DeclareDataOld( int v, int * values, int n )
 {
-int i, j;
+int i;
 int nlines, min, max;
 int split;
 VARIABLE *var;
@@ -611,7 +663,6 @@ char dsbuf[55];
 /*************************************************************************************************/
 void F90_InitDeclare( int v, int n, void * values )
 {
-int i;
 VARIABLE * var;
 
   var = varTable[ v ];
@@ -650,10 +701,8 @@ int narg;
 void F90_FunctionPrototipe( int f, ... )
 {
 char * name;
-int narg;
 
   name = varTable[ f ]->name;
-  narg = varTable[ f ]->maxi;
 
   bprintf("      EXTERNAL %s\n", name );
 
@@ -665,13 +714,9 @@ void F90_FunctionBegin( int f, ... )
 {
 Va_list args;
 int i;
-int v;
 int vars[20];
-char * name;
 int narg;
-FILE *oldf;
 
-  name = varTable[ f ]->name;
   narg = varTable[ f ]->maxi;
 
   Va_start( args, f );
@@ -711,7 +756,7 @@ void F90_FunctionEnd( int f )
 void F90_Inline( char *fmt, ... )
 {
 va_list args;
-char buf[ 1000 ];
+char buf[ MAX_K ];
 
   if( useLang != F90_LANG ) return;
 
@@ -727,78 +772,114 @@ char buf[ 1000 ];
 /*************************************************************************************************/
 void Use_F90()
 {
-  WriteElm 	    = F90_WriteElm;
-  WriteSymbol 	    = F90_WriteSymbol;
-  WriteAssign 	    = F90_WriteAssign;
-  WriteComment 	    = F90_WriteComment;
-  WriteOMPThreadPrivate   = F90_WriteOMPThreadPrivate;
-  DeclareConstant   = F90_DeclareConstant;
-  Declare           = F90_Declare;
-  ExternDeclare     = F90_ExternDeclare;
-  GlobalDeclare     = F90_GlobalDeclare;
-  InitDeclare       = F90_InitDeclare;
+  // Temporary string variable
+  char buf[ MAX_K ];
 
-  FunctionStart     = F90_FunctionStart;
-  FunctionPrototipe = F90_FunctionPrototipe;
-  FunctionBegin     = F90_FunctionBegin;
-  FunctionEnd       = F90_FunctionEnd;
+  // Use functions for writing code to the F90 format files
+  WriteElm              = F90_WriteElm;
+  WriteSymbol           = F90_WriteSymbol;
+  WriteAssign           = F90_WriteAssign;
+  WriteComment          = F90_WriteComment;
+  WriteOMPThreadPrivate = F90_WriteOMPThreadPrivate;
+  DeclareConstant       = F90_DeclareConstant;
+  Declare               = F90_Declare;
+  ExternDeclare         = F90_ExternDeclare;
+  GlobalDeclare         = F90_GlobalDeclare;
+  InitDeclare           = F90_InitDeclare;
+  FunctionStart         = F90_FunctionStart;
+  FunctionPrototipe     = F90_FunctionPrototipe;
+  FunctionBegin         = F90_FunctionBegin;
+  FunctionEnd           = F90_FunctionEnd;
 
-//===========================================================================
-// KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)
-// NOTE: Use the .F90 suffix instead of .f90, because .F90 denotes
-// non-preprocessed source code, whereas .f90 denotes source code
-// with header files inlined.  This update was added into the
-// GC_updates branch for KPP version 2.3.0_gc.
-//===========================================================================
+  // Parameters
+  sprintf( buf, "_Parameters.%s", f90Suffix );
+  OpenFile( &param_headerFile, rootFileName, buf, "Parameter Module File" );
 
-  OpenFile( &param_headerFile,   rootFileName,
-	    "_Parameters.F90", "Parameter Module File" );
-  /*  mz_rs_20050117+ */
-  OpenFile( &initFile, rootFileName,
-	    "_Initialize.F90", "Initialization File" );
-  /*  mz_rs_20050117- */
-  /* mz_rs_20050518+ no driver file if driver = none */
-  if( strcmp( driver, "none" ) != 0 )
-    OpenFile( &driverFile, rootFileName,
-	      "_Main.F90", "Main Program File" );
-  /* mz_rs_20050518- */
-  OpenFile( &integratorFile, rootFileName, "_Integrator.F90",
-                   "Numerical Integrator (Time-Stepping) File" );
-  OpenFile( &linalgFile, rootFileName, "_LinearAlgebra.F90",
-                   "Linear Algebra Data and Routines File" );
-  OpenFile( &functionFile, rootFileName, "_Function.F90",
-                   "The ODE Function of Chemical Model File" );
-  OpenFile( &jacobianFile, rootFileName, "_Jacobian.F90",
-                   "The ODE Jacobian of Chemical Model File" );
-  OpenFile( &rateFile, rootFileName, "_Rates.F90",
-                   "The Reaction Rates File" );
-  if ( useStochastic )
-    OpenFile( &stochasticFile, rootFileName, "_Stochastic.F90",
-                   "The Stochastic Chemical Model File" );
-  if ( useStoicmat ) {
-     OpenFile( &stoichiomFile, rootFileName, "_Stoichiom.F90",
-                   "The Stoichiometric Chemical Model File" );
-     OpenFile( &sparse_stoicmFile, rootFileName, "_StoichiomSP.F90",
-                   "Sparse Stoichiometric Data Structures File" );
+  // Initialize
+  sprintf( buf, "_Initialize.%s", f90Suffix );
+  OpenFile( &initFile, rootFileName, buf, "Initialization File" );
+
+  // Main
+  if( strcmp( driver, "none" ) != 0 ) {
+    sprintf( buf, "_Main.%s", f90Suffix );
+    OpenFile( &driverFile, rootFileName, buf, "Main Program File" );
   }
-  OpenFile( &utilFile, rootFileName, "_Util.F90",
-                   "Auxiliary Routines File" );
+
+  // Integrator
+  sprintf( buf, "_Integrator.%s", f90Suffix );
+  OpenFile( &integratorFile, rootFileName, buf,
+	    "Numerical Integrator (Time-Stepping) File" );
+
+  // LinearAlgebra
+  sprintf( buf, "_LinearAlgebra.%s", f90Suffix );
+  OpenFile( &linalgFile, rootFileName, buf,
+	    "Linear Algebra Data and Routines File" );
+
+  // Function
+  sprintf( buf, "_Function.%s", f90Suffix );
+  OpenFile( &functionFile, rootFileName, buf,
+	    "The ODE Function of Chemical Model File" );
+
+  // Jacobian
+  sprintf( buf, "_Jacobian.%s", f90Suffix );
+  OpenFile( &jacobianFile, rootFileName, buf,
+	    "The ODE Jacobian of Chemical Model File" );
+
+  // _Rates
+  sprintf( buf, "_Rates.%s", f90Suffix );
+  OpenFile( &rateFile, rootFileName, buf, "The Reaction Rates File" );
+
+  // _Stochastic
+  if ( useStochastic ) {
+    sprintf( buf, "_Stochastic.%s", f90Suffix );
+    OpenFile( &stochasticFile, rootFileName, buf,
+	      "The Stochastic Chemical Model File" );
+  }
+
+  // _Stoichiom and _StoichiomSP
+  if ( useStoicmat ) {
+    sprintf( buf, "_Stoichiom.%s", f90Suffix );
+    OpenFile( &stoichiomFile, rootFileName, buf,
+	      "The Stoichiometric Chemical Model File" );
+
+    sprintf( buf, "_StoichiomSP.%s", f90Suffix );
+    OpenFile( &sparse_stoicmFile, rootFileName, buf,
+	      "Sparse Stoichiometric Data Structures File" );
+  }
+
+  // _Util
+  sprintf( buf, "_Util.%s", f90Suffix );
+  OpenFile( &utilFile, rootFileName, buf, "Auxiliary Routines File" );
+
   /* OpenFile( &sparse_dataFile, rootFileName, "_Sparse.f90",
                        "Sparse Data Module File" );*/
-  OpenFile( &global_dataFile, rootFileName, "_Global.F90",
-	    "Global Data Module File" );
-  
+
+  // _Global
+  sprintf( buf, "_Global.%s", f90Suffix );
+  OpenFile( &global_dataFile, rootFileName, buf, "Global Data Module File" );
+
+  // _JacobianSP
   if ( useJacSparse ) {
-     OpenFile( &sparse_jacFile, rootFileName, "_JacobianSP.F90",
-         "Sparse Jacobian Data Structures File" );
+    sprintf( buf, "_JacobianSP.%s", f90Suffix );
+    OpenFile( &sparse_jacFile, rootFileName, buf,
+	      "Sparse Jacobian Data Structures File" );
   }
+
+  // _Hessian and _HessianSP
   if ( useHessian ) {
-     OpenFile( &hessianFile, rootFileName, "_Hessian.F90", "Hessian File" );
-     OpenFile( &sparse_hessFile, rootFileName, "_HessianSP.F90",
-         "Sparse Hessian Data Structures File" );
+    sprintf( buf, "_Hessian.%s", f90Suffix );
+    OpenFile( &hessianFile, rootFileName, buf, "Hessian File" );
+
+    sprintf( buf, "_HessianSP.%s", f90Suffix );
+    OpenFile( &sparse_hessFile, rootFileName, buf,
+	      "Sparse Hessian Data Structures File" );
   }
+
+  // .map
   OpenFile( &mapFile, rootFileName, ".map",
-                   "Map File with Human-Readable Information" );
-  OpenFile( &monitorFile, rootFileName, "_Monitor.F90",
-                   "Utility Data Module File" );
+	    "Map File with Human-Readable Information" );
+
+  // _Monitor
+  sprintf( buf, "_Monitor.%s", f90Suffix );
+  OpenFile( &monitorFile, rootFileName, buf, "Utility Data Module File" );
 }

@@ -1,0 +1,249 @@
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# User: Set here the F90 compiler and options
+#       Pedefined compilers: INTEL, PGF, HPUX, LAHEY
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Pick a default compiler if not supplied
+ifndef COMPILER
+#COMPILER = LAHEY
+#COMPILER = INTEL
+#COMPILER = PGF
+#COMPILER = HPUX
+COMPILER = GFORTRAN
+endif
+
+FC_LAHEY   = lf95
+# More aggressive for production runs:
+#FOPT_LAHEY = -Cpp --pca -O
+# More checking for debugging:
+FOPT_LAHEY = -Cpp --chk a,e,s,u --pca --ap -O0 -g --trap --trace --chkglobal
+
+FC_INTEL   = ifort
+# More aggressive for production runs:
+#FOPT_INTEL = -cpp -O -fp-model precise -pc80 -prec_div
+# More checking for debugging:
+FOPT_INTEL = -cpp -O0 -fp-model strict -implicitnone -ftrapuv \
+              -debug all -check all -warn all -g
+
+FC_PGF     = pgf90
+# More aggressive for production runs:
+FOPT_PGF   = -Mpreprocess -O -fast -pc 80 -Kieee
+# More checking for debugging:
+#FOPT_PGF   = -Mpreprocess -O0 -Mbounds -Mchkfpstk -Mchkptr -Mchkstk \
+#             -Ktrap=fp -pc 80 -Kieee
+
+FC_HPUX    = f90
+FOPT_HPUX  = -O -u +Oall +check=on
+
+FC_GFORTRAN     = gfortran
+FOPT_GFORTRAN   = -cpp -O -g
+
+# define FULL_ALGEBRA for non-sparse integration
+FC   = $(FC_$(COMPILER))
+FOPT = $(FOPT_$(COMPILER)) # -DFULL_ALGEBRA
+
+LIBS =
+#LIBS = -llapack -lblas
+
+#############################################################################
+# Test if various files are found on disk or not
+# so that we can include/exclude them from the Make process
+#############################################################################
+
+# JacobianSP
+HAS_JAC_SP =0
+ifeq ($(shell test -f KPP_ROOT_JacobianSP.f90 && echo y),y)
+  HAS_JAC_SP =1
+endif
+
+# Jacobian
+HAS_JAC = 0
+ifeq ($(shell test -f KPP_ROOT_Jacobian.f90 && echo y),y)
+  HAS_JAC = 1
+endif
+
+# HessianSP
+HAS_HES_SP = 0
+ifeq ($(shell test -f KPP_ROOT_HessianSP.f90 && echo y),y)
+  HAS_HES_SP = 1
+endif
+
+# Hessian
+HAS_HES=0
+ifeq ($(shell test -f KPP_ROOT_Hessian.f90 && echo y),y)
+  HAS_HES = 1
+endif
+
+# StoichiomSP
+HAS_STM_SP = 0
+ifeq ($(shell test -f  KPP_ROOT_StoichiomSP.f90 && echo y),y)
+  HAS_STM_SP=1
+endif
+
+# Stoichiom
+HAS_STM = 0
+ifeq ($(shell test -f  KPP_ROOT_Stoichiom.f90 && echo y),y)
+  HAS_STM=1
+endif
+
+
+# Command to create Matlab mex gateway routines
+# Note: use $(FC) as the mex Fortran compiler
+MEX  = mex
+
+GENSRC = KPP_ROOT_Precision.f90  KPP_ROOT_Parameters.f90  KPP_ROOT_Global.f90
+GENOBJ = KPP_ROOT_Precision.o    KPP_ROOT_Parameters.o    KPP_ROOT_Global.o
+
+FUNSRC = KPP_ROOT_Function.f90
+FUNOBJ = KPP_ROOT_Function.o
+
+JACSRC   =
+JACOBJ   =
+JACSPOBJ =
+ifeq ($(HAS_JAC_SP),1)
+  JACSRC   += KPP_ROOT_JacobianSP.f90
+  JACOBJ   += KPP_ROOT_JacobianSP.o
+  JACSPOBJ += KPP_ROOT_JacobianSP.o
+endif
+ifeq ($(HAS_JAC),1)
+  JACSRC   += KPP_ROOT_Jacobian.f90
+  JACOBJ   += KPP_ROOT_Jacobian.o
+endif
+
+HESSRC   =
+HESOBJ   =
+HESSPOBJ =
+ifeq ($(HAS_HES_SP),1)
+  HESSRC   += KPP_ROOT_HessianSP.f90
+  HESOBJ   += KPP_ROOT_HessianSP.o
+  HESSPOBJ += KPP_ROOT_HessianSP.o
+endif
+ifeq ($(HAS_HES),1)
+  HESSRC   += KPP_ROOT_Hessian.f90
+  HESOBJ   += KPP_ROOT_Hessian.o
+endif
+
+STMSRC   =
+STMOBJ   =
+STMSPOBJ =
+ifeq ($(HAS_STM_SP),1)
+  STMSRC   += KPP_ROOT_StoichiomSP.f90
+  STMOBJ   += KPP_ROOT_StoichiomSP.o
+  STMSPOBJ += KPP_ROOT_StoichiomSP.o
+endif
+ifeq ($(HAS_HES),1)
+  HESSRC   += KPP_ROOT_Stoichiom.f90
+  HESOBJ   += KPP_ROOT_Stoichiom.o
+endif
+
+UTLSRC = KPP_ROOT_Rates.f90 KPP_ROOT_Util.f90 KPP_ROOT_Monitor.f90
+UTLOBJ = KPP_ROOT_Rates.o   KPP_ROOT_Util.o   KPP_ROOT_Monitor.o
+
+LASRC  = KPP_ROOT_LinearAlgebra.f90
+LAOBJ  = KPP_ROOT_LinearAlgebra.o
+
+STOCHSRC = KPP_ROOT_Stochastic.f90
+STOCHOBJ = KPP_ROOT_Stochastic.o
+
+MAINSRC = KPP_ROOT_Main.f90        KPP_ROOT_Initialize.f90 \
+          KPP_ROOT_Integrator.f90  KPP_ROOT_Model.f90
+MAINOBJ = KPP_ROOT_Main.o          KPP_ROOT_Initialize.o   \
+          KPP_ROOT_Integrator.o    KPP_ROOT_Model.o
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# User: modify the line below to include only the
+#       objects needed by your application
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ALLOBJ = $(GENOBJ) $(FUNOBJ) $(JACOBJ) $(HESOBJ) $(STMOBJ) \
+	 $(UTLOBJ) $(LAOBJ)
+
+#############################################################################
+# Makefile targets and rules
+#############################################################################
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# User: modify the line below to include only the
+#       executables needed by your application
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+all:    exe
+
+exe:	$(ALLOBJ) $(MAINOBJ)
+	$(FC) $(FOPT) $(ALLOBJ) $(MAINOBJ) $(LIBS) -o KPP_ROOT.exe
+
+stochastic:$(ALLOBJ) $(STOCHOBJ) $(MAINOBJ)
+	$(FC) $(FOPT) $(ALLOBJ) $(STOCHOBJ) $(MAINOBJ) $(LIBS) \
+	-o KPP_ROOT_stochastic.exe
+
+mex:    $(ALLOBJ)
+	$(MEX) FC#$(FC) -fortran -O KPP_ROOT_mex_Fun.f90     $(ALLOBJ)
+	$(MEX) FC#$(FC) -fortran -O KPP_ROOT_mex_Jac_SP.f90  $(ALLOBJ)
+	$(MEX) FC#$(FC) -fortran -O KPP_ROOT_mex_Hessian.f90 $(ALLOBJ)
+
+clean:
+	rm -f KPP_ROOT*.o KPP_ROOT*.mod \
+	KPP_ROOT*.dat KPP_ROOT.exe KPP_ROOT*.mexglx \
+	KPP_ROOT.map
+
+distclean:
+	rm -f KPP_ROOT*.o KPP_ROOT*.mod \
+	KPP_ROOT*.dat KPP_ROOT.exe KPP_ROOT.map \
+	KPP_ROOT_*.f90 KPP_ROOT_*.f90 KPP_ROOT_*.mexglx \
+	results*.m
+
+KPP_ROOT_Precision.o: KPP_ROOT_Precision.f90
+	$(FC) $(FOPT) -c $<
+
+KPP_ROOT_Parameters.o: KPP_ROOT_Parameters.f90 KPP_ROOT_Precision.o
+	$(FC) $(FOPT) -c $<
+
+KPP_ROOT_Monitor.o: KPP_ROOT_Monitor.f90 KPP_ROOT_Precision.o
+	$(FC) $(FOPT) -c $<
+
+KPP_ROOT_Global.o: KPP_ROOT_Global.f90 KPP_ROOT_Parameters.o KPP_ROOT_Precision.o
+	$(FC) $(FOPT) -c $<
+
+KPP_ROOT_Initialize.o: KPP_ROOT_Initialize.f90 $(GENOBJ)
+	$(FC) $(FOPT) -c $<
+
+KPP_ROOT_Function.o: KPP_ROOT_Function.f90 $(GENOBJ)
+	$(FC) $(FOPT) -c $<
+
+KPP_ROOT_Stochastic.o: KPP_ROOT_Stochastic.f90 $(GENOBJ)
+	$(FC) $(FOPT) -c $<
+
+KPP_ROOT_JacobianSP.o: KPP_ROOT_JacobianSP.f90 $(GENOBJ)
+	$(FC) $(FOPT) -c $<
+
+KPP_ROOT_Jacobian.o: KPP_ROOT_Jacobian.f90 $(GENOBJ) $(JACSPOBJ)
+	$(FC) $(FOPT) -c $<
+
+KPP_ROOT_LinearAlgebra.o: KPP_ROOT_LinearAlgebra.f90 $(GENOBJ) $(JACSPOBJ)
+	$(FC) $(FOPT) -c $<
+
+KPP_ROOT_Rates.o: KPP_ROOT_Rates.f90 $(GENOBJ)
+	$(FC) $(FOPT) -c $<
+
+KPP_ROOT_HessianSP.o: KPP_ROOT_HessianSP.f90 $(GENOBJ)
+	$(FC) $(FOPT) -c $<
+
+KPP_ROOT_Hessian.o:  KPP_ROOT_Hessian.f90 $(GENOBJ) $(HESSPOBJ)
+	$(FC) $(FOPT) -c $<
+
+KPP_ROOT_StoichiomSP.o: KPP_ROOT_StoichiomSP.f90 $(GENOBJ)
+	$(FC) $(FOPT) -c $<
+
+KPP_ROOT_Stoichiom.o: KPP_ROOT_Stoichiom.f90 $(GENOBJ) $(STMSPOBJ)
+	$(FC) $(FOPT) -c $<
+
+KPP_ROOT_Util.o: KPP_ROOT_Util.f90 $(GENOBJ) KPP_ROOT_Monitor.o
+	$(FC) $(FOPT) -c $<
+
+KPP_ROOT_Main.o: KPP_ROOT_Main.f90  $(ALLOBJ) \
+                 KPP_ROOT_Initialize.o KPP_ROOT_Model.o KPP_ROOT_Integrator.o
+	$(FC) $(FOPT) -c $<
+
+KPP_ROOT_Model.o: KPP_ROOT_Model.f90 $(ALLOBJ) KPP_ROOT_Integrator.o
+	$(FC) $(FOPT) -c $<
+
+KPP_ROOT_Integrator.o: KPP_ROOT_Integrator.f90 $(ALLOBJ)
+	$(FC) $(FOPT) -c $<

@@ -162,8 +162,7 @@ int LUnonZero()
 {
 CODE v[MAX_SPECIES];
 CODE *var;
-int i,j,k;
-int nu,nl;
+int i,j;
 
   var = v;
   if( Stru != bestStru ) {
@@ -185,7 +184,6 @@ void LinColSparsity()
 {
 int i,j,k;
 int nlin, ncol;
-FILE * fff;
 
   for ( i=0; i<VarNr; i++ )
     for ( j=0; j<VarNr; j++ )
@@ -278,7 +276,7 @@ void ReorderSpecies( int criteria )
 CODE *var;
 CODE *fix;
 CODE *dummy;
-CODE *PrLo;
+//CODE *PrLo;
 EQ_VECT *tmpStoich_Left;
 EQ_VECT *tmpStoich_Right;
 EQ_VECT *tmpStoich;
@@ -315,7 +313,7 @@ int dummyNr;
   var = (CODE*)malloc( SpcNr * sizeof(CODE) );
   fix = (CODE*)malloc( SpcNr * sizeof(CODE) );
   dummy = (CODE*)malloc( 5 * sizeof(CODE) );
-  PrLo  = (CODE*)malloc( EqnNr * sizeof(CODE) );
+//PrLo  = (CODE*)malloc( EqnNr * sizeof(CODE) );
   tmpStoich_Left = (EQ_VECT*)malloc( SpcNr * sizeof(EQ_VECT) );
   tmpStoich_Right = (EQ_VECT*)malloc( SpcNr * sizeof(EQ_VECT) );
   tmpStoich = (EQ_VECT*)malloc( SpcNr * sizeof(EQ_VECT) );
@@ -492,13 +490,12 @@ for (i=0; i<SpcNr; i++)
 }
 
 /*******************************************************************/                    
-int Postprocess( char * root )
+void Postprocess( char * root )
 {
 char buf[ 200 ];
-char cmd[500];
-char cmdexe[500];
-static char tmpfile[] = "kppfile.tmp";
-FILE * fp;
+//char cmd[500];
+//char cmdexe[500];
+//static char tmpfile[] = "kppfile.tmp";
 
   if ( useLang == MATLAB_LANG ) {
  /*  Add rate function definitions as internal functions to the Update_RCONST file*/
@@ -535,14 +532,53 @@ FILE * fp;
   system( cmdexe );
 */
 } 
- 
+
+/*******************************************************************/
+
+int KppVersionIsTooOld() {
+  //
+  // Determine if the current KPP version is older than the minimum
+  // version number (specified by #MINVERSION in the equation file).
+  //
+  // Return value: 0 = Version is the same or later than min. version
+  //               1 = Version is too old
+  //
+  //  -- Bob Yantosca (27 Apr 2022)
+  //
+  int v0, v1, v2, r0, r1, r2;
+
+  // If no minimum version is specified, then exit w/ success.
+  // Use strncmp to restrict the search to the 1st 4 characters
+  // (indexed from 0) in order to make the test robust enough
+  // for running in the Docker container for C-I testing.
+  // We have found that just using strcmp( minKppVersion, "none" ),
+  // or if ( minKppVersion == "none" ) would cause the C-I tests to
+  // fail when running on Azure dev pipelines.
+  //  -- Lucas Estrada and Bob Yantosca (28 Apr 2022)
+  if ( strncmp( minKppVersion, "none", 3 ) == 0 ) return 0;
+
+  // Read versions into major, minor, patch numbers
+  sscanf( KPP_VERSION,   "%d.%d.%d", &v0, &v1, &v2 );  // Current version
+  sscanf( minKppVersion, "%d.%d.%d", &r0, &r1, &r2 );  // Required version
+
+  // Compare versions
+  if ( v0 > r0 ) return 0;      // Major version # is higher, so not too old
+  if ( v0 == r0 ) {             // Otherwise need to test minor version #
+    if ( v1 > r1 ) return 0;    // Minor version # is higher, so not too old
+    if ( v1 == r1 ) {           // Otherwise test patch version #
+      if ( v2 >= r2 ) return 0; // Patch version # is OK, so not too old
+    }
+  }
+  nError += 1;                  // Update error count
+  return 1;                     // Otherwise version is too old
+}
+
 /*******************************************************************/                    
 int main( int argc, char * argv[] )
 {
 int status;
 char name[ 200 ];
 char *p;
-int i,j;
   
   AllocInternalArrays();
 
@@ -576,6 +612,16 @@ int i,j;
 
   if( status ) FatalError(2,"%d errors and %d warnings encountered.", 
                            nError, nWarning ); 
+
+  // Stop if this version of KPP is older than #MINVERSION
+  // (or continue along if #MINVERSION is not supplied)
+  //   -- Bob Yantosca (27 Apr 2022)
+  status = KppVersionIsTooOld();
+  if ( status != 0 ) {
+    sprintf( name, "You are using KPP version %s,\nbut your mechanism requires version %s or later.\n", KPP_VERSION, minKppVersion);
+    FatalError( -50, name );
+  }
+
   /* Allocate some internal data structures */
   AllocStructArrays();
 

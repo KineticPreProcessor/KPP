@@ -39,13 +39,18 @@
 
 int fncPrototipe = 0;
 
-char *C_types[] = { "void",     /* VOID */ 
+char *C_types[] = { "void",   /* VOID */
                     "int",    /* INT */
                     "float",  /* FLOAT */
                     "double", /* DOUBLE */
                     "char *", /* STRING */
                     "char *"  /* DOUBLESTRING */
                   }; 
+
+// Local definitions of function prototypes just for code_c.c
+// This will avoid "implicit function declaration" warnings
+//   -- Bob Yantosca (29 Apr 2022)
+void Message( char *fmt, ...  );
 
 void C_WriteElm( NODE * n )
 {
@@ -113,12 +118,12 @@ int i,j;
 char c;
 int first;
 int number_of_lines = 1, MAX_NO_OF_LINES = 99;
-int ifound, jfound;
+int jfound;
 
 /*  Operator Mapping: 0xaa = '*' | 0xab = '+' | 0xac = ',' 
                       0xad = '-' | 0xae ='.' | 0xaf = '/' */		      
-/* char op_mult=0xaa, op_plus=0xab, op_minus=0xad, op_dot=0xae, op_div=0xaf; */		      
-char op_mult='*', op_plus='+', op_minus='-', op_dot='.', op_div='/';		      
+/* char op_mult=0xaa, op_plus=0xab, op_minus=0xad, op_dot=0xae, op_div=0xaf; */
+char op_plus='+', op_minus='-'; //op_dot='.', op_div='/', op_mult='*';
 
   crtident = 2 + ident * 2;
   bprintf("%*s%s = ", crtident, "", ls);
@@ -127,7 +132,7 @@ char op_mult='*', op_plus='+', op_minus='-', op_dot='.', op_div='/';
 
   first = 1;
   while( strlen(rs) > linelg ) {
-    ifound = 0; jfound = 0;
+    jfound = 0;
     if ( number_of_lines >= MAX_NO_OF_LINES ) {/* if a new line needs to be started */
      for( j=linelg; j>5; j-- ) /* split row here if +, -, or comma */
        if ( ( rs[j] == op_plus )||( rs[j] == op_minus )||( rs[j]==',' ) ) { 
@@ -137,7 +142,7 @@ char op_mult='*', op_plus='+', op_minus='-', op_dot='.', op_div='/';
     if ( ( number_of_lines < MAX_NO_OF_LINES )||( !jfound ) ) {
      for( i=linelg; i>10; i-- ) /* split row here if operator or comma */
        if ( ( rs[i] & 0x80 )||( rs[i]==',' ) ) {
-        ifound = 1; break;
+        break;
 	}
      if( i <= 10 ) {
       printf("\n Warning: possible error in continuation lines for %s = ...",ls);
@@ -367,7 +372,7 @@ char dummy_val[100];           /* used just to avoid strange behaviour of
     case CONST: bprintf("#define %-20s %-10s ", var->name, val );
                 break;       
     default:
-                printf( "Invalid constant", var->type );
+                printf( "Invalid constant: %d", var->type );
                 break;
   }
   if( varTable[ v ]->comment )
@@ -419,10 +424,8 @@ void C_FunctionPrototipe( int f, ... )
 Va_list args;
 int i;
 int vars[20];
-char * name;
 int narg;
 
-  name = varTable[ f ]->name;
   narg = varTable[ f ]->maxi;
 
   Va_start( args, f );  
@@ -440,10 +443,8 @@ void C_FunctionBegin( int f, ... )
 Va_list args;
 int i;
 int vars[20];
-char * name;
 int narg;
 
-  name = varTable[ f ]->name;
   narg = varTable[ f ]->maxi;
 
   Va_start( args, f );  
@@ -473,7 +474,7 @@ void C_FunctionEnd( int f )
 void C_Inline( char *fmt, ... )
 {
 Va_list args;
-char buf[ 1000 ];
+char buf[ MAX_K ];
 
   if( useLang != C_LANG ) return;
   

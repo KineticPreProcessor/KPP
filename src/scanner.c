@@ -37,25 +37,22 @@
 #include <string.h>
 #include <math.h>
 
-int AtomNr    = 0;
-int SpeciesNr = 0;
-int FamilyNr  = 0;
-int EqnNr     = 0;
-int SpcNr     = 0;
-int VarNr     = 0;
+int AtomNr       = 0;
+int SpeciesNr    = 0;
+int FamilyNr     = 0;
+int EqnNr        = 0;
+int SpcNr        = 0;
+int VarNr        = 0;
 int VarActiveNr  = 0;
-int FixNr     = 0;
+int FixNr        = 0;
 int VarStartNr   = 0;
 int FixStartNr   = 0;
 int plNr         = 0;
-
-
-int initNr = -1;
-int xNr = 0;
-int yNr = 0;
-int zNr = 0;
-
-int falseSpcNr = 0;
+int initNr       = -1;
+int xNr          = 0;
+int yNr          = 0;
+int zNr          = 0;
+int falseSpcNr   = 0;
 
 ATOM_DEF AtomTable[ MAX_ATNR ];
 SPECIES_DEF SpeciesTable[ MAX_SPECIES ];
@@ -73,30 +70,30 @@ CODE    *Prod_Spc[ MAX_EQN ];
 CODE    *Loss_Spc[ MAX_EQN ];
 int Reactive[ MAX_SPECIES ];
 
-INLINE_KEY InlineKeys[] = { { F77_GLOBAL,   APPEND,  "F77_GLOBAL" },
-                            { F77_INIT,   APPEND,  "F77_INIT" },
-                            { F77_DATA,   APPEND,  "F77_DATA" },
-                            { F77_UTIL,   APPEND,  "F77_UTIL" }, 
-                            { F77_RATES, APPEND,  "F77_RATES" }, 
-                            { F77_RCONST, APPEND,  "F77_RCONST" }, 
-			    { F90_GLOBAL,   APPEND,  "F90_GLOBAL" },
-                            { F90_INIT,   APPEND,  "F90_INIT" },
-                            { F90_DATA,   APPEND,  "F90_DATA" },
-                            { F90_UTIL,   APPEND,  "F90_UTIL" },
-                            { F90_RATES, APPEND,  "F90_RATES" }, 
-                            { F90_RCONST, APPEND,  "F90_RCONST" }, 
-                            { C_GLOBAL,     APPEND,  "C_GLOBAL" },
-                            { C_INIT,     APPEND,  "C_INIT" },
-                            { C_DATA,     APPEND,  "C_DATA" },
-                            { C_UTIL,     APPEND,  "C_UTIL" },
-                            { C_RATES,   APPEND,  "C_RATES" }, 
-                            { C_RCONST,   APPEND,  "C_RCONST" }, 
-                            { MATLAB_GLOBAL,     APPEND,  "MATLAB_GLOBAL" },
-                            { MATLAB_INIT,     APPEND,  "MATLAB_INIT" },
-                            { MATLAB_DATA,     APPEND,  "MATLAB_DATA" },
-                            { MATLAB_UTIL,     APPEND,  "MATLAB_UTIL" },
-                            { MATLAB_RATES,   APPEND,  "MATLAB_RATES" }, 
-                            { MATLAB_RCONST,   APPEND,  "MATLAB_RCONST" } 
+INLINE_KEY InlineKeys[] = { { F77_GLOBAL,     APPEND,  "F77_GLOBAL"    },
+                            { F77_INIT,       APPEND,  "F77_INIT"      },
+                            { F77_DATA,       APPEND,  "F77_DATA"      },
+                            { F77_UTIL,       APPEND,  "F77_UTIL"      },
+                            { F77_RATES,      APPEND,  "F77_RATES"     },
+                            { F77_RCONST,     APPEND,  "F77_RCONST"    },
+			                      { F90_GLOBAL,     APPEND,  "F90_GLOBAL"    },
+                            { F90_INIT,       APPEND,  "F90_INIT"      },
+                            { F90_DATA,       APPEND,  "F90_DATA"      },
+                            { F90_UTIL,       APPEND,  "F90_UTIL"      },
+                            { F90_RATES,      APPEND,  "F90_RATES"     },
+                            { F90_RCONST,     APPEND,  "F90_RCONST"    },
+                            { C_GLOBAL,       APPEND,  "C_GLOBAL"      },
+                            { C_INIT,         APPEND,  "C_INIT"        },
+                            { C_DATA,         APPEND,  "C_DATA"        },
+                            { C_UTIL,         APPEND,  "C_UTIL"        },
+                            { C_RATES,        APPEND,  "C_RATES"       },
+                            { C_RCONST,       APPEND,  "C_RCONST"      },
+                            { MATLAB_GLOBAL,  APPEND,  "MATLAB_GLOBAL" },
+                            { MATLAB_INIT,    APPEND,  "MATLAB_INIT"   },
+                            { MATLAB_DATA,    APPEND,  "MATLAB_DATA"   },
+                            { MATLAB_UTIL,    APPEND,  "MATLAB_UTIL"   },
+                            { MATLAB_RATES,   APPEND,  "MATLAB_RATES"  },
+                            { MATLAB_RCONST,  APPEND,  "MATLAB_RCONST" }
 		 	  };
 
 int useAggregate   = 1;
@@ -113,9 +110,12 @@ int useLang        = F77_LANG;
 int useStochastic  = 0;
 int doFlux         = 0;
 int doAutoReduce   = 0;
-/* if useValues=1 KPP replaces parameters like NVAR etc. 
-       by their values in vector/matrix declarations */
-int useDeclareValues = 0; 
+int useDeclareValues = 0;         // if useValues=1 KPP replaces parameters
+                                  // like NVAR etc. by their values in vector
+                                  // or matrix declarations
+int upperCaseF90       = 0;
+char f90Suffix[4]      = "f90";
+char minKppVersion[30] = "none";  // size [30] must be the same as in gdata.h
 
 char integrator[ MAX_PATH ] = "none";
 char driver[ MAX_PATH ] = "none";
@@ -422,6 +422,27 @@ void CmdAutoReduce( char *cmd )
   ScanError("'%s': Unknown parameter for #AUTOREDUCE [ON|OFF]", cmd );
 }
 
+void CmdUpperCaseF90( char *cmd )
+{
+  if( EqNoCase( cmd, "OFF" ) ) {
+    upperCaseF90 = 0;
+    sprintf( f90Suffix, "%s", "f90" );
+    return;
+  }
+  if( EqNoCase( cmd, "ON" ) ) {
+    upperCaseF90 = 1;
+    sprintf( f90Suffix, "%s", "F90" );
+    return;
+  }
+  ScanError("'%s': Unknown parameter for #UPPERCASEF90 [ON|OFF]", cmd );
+}
+
+void CmdMinVersion( char *cmd )
+{
+  strcpy( minKppVersion, cmd );
+  return;
+}
+
 int FindAtom( char *atname )
 {
 int i;
@@ -691,7 +712,9 @@ int err;
       }
       if ( AtomTable[i].check == DO_CHECK ) {
         err = 1;
-        sprintf(errmsg, "%s %s", errmsg, AtomTable[i].name );
+        //sprintf(errmsg, "%s %s", errmsg, AtomTable[i].name );
+	strncat( errmsg, " ", 2 );
+	strncat( errmsg,  AtomTable[i].name, strlen(AtomTable[i].name)+1 );
         continue;
       }
     }
@@ -715,7 +738,7 @@ int err;
     }
     if ( equal ) {
       if( r1 == r2 )
-        ScanWarning( "Duplicate equation: "
+        ScanError( "Duplicate equation: "
         	   " (eqn<%d> = eqn<%d> )", i+1, EqnNr+1 );
       else
 	ScanWarning( "Linearly dependent equations: "
@@ -1054,19 +1077,16 @@ int i;
 void ScanEquations( MEMBER crtMbr ) {
   int crtCode;
   int i;
-  float coeff;
   
   crtCode = ReverseCode[crtMbr.code];
   /* -- Loop through equations -- */
   /* -- -- Set coeff. values   -- */
   for( i=0; i<EqnNr; i++ ) {
-    if ( Stoich_Left[ crtCode ][ i ] > 0 ) { /* Then this species is part of this equations's LHS */
-      coeff = Stoich_Left[ crtCode ][ i ] * crtMbr.coeff;
+    if ( Stoich_Left[ crtCode ][ i ] > 0 ) {
       Loss_Coeff[ FamilyNr ][ i ] += Stoich_Left[ crtCode ][ i ] * crtMbr.coeff;
       /*printf("\nAdded %s to loss family eq. %i ... %f",crtMbr.name,i,Stoich_Left[ crtCode ][ i ]);*/
     }
-    if ( Stoich_Right[ crtCode ][ i ] > 0 ) { /* Then this species is part of this equations's RHS */
-      coeff = Stoich_Right[ crtCode ][ i ] * crtMbr.coeff;
+    if ( Stoich_Right[ crtCode ][ i ] > 0 ) {
       Prod_Coeff[ FamilyNr ][ i ] += Stoich_Right[ crtCode ][ i ] * crtMbr.coeff;
       /*printf("\nAdded %s to prod family eq. %i ... %f",crtMbr.name,i,Stoich_Right[ crtCode ][ i ]);*/
     }
@@ -1079,15 +1099,17 @@ void ScanEquations( MEMBER crtMbr ) {
     /* ---------------------------------------------------------------------------------------------*/
     /*switch( type ) {
     case LOSS_FAM:
-      if ( Stoich_Left[ crtCode ][ i ] > 0 ) { /* Then this species is part of this equations's LHS */
-    /*tmpval = 1;
+      if ( Stoich_Left[ crtCode ][ i ] > 0 ) {
+        // Then this species is part of this equations's LHS
+        tmpval = 1;
 	coeff = Stoich_Left[ crtCode ][ i ] * crtMbr.coeff;
 	Loss_Coeff[ FamilyNr ][ i ] += Stoich_Left[ crtCode ][ i ] * crtMbr.coeff;
 	break; }
       else break;
     case PROD_FAM:
-      if ( Stoich_Right[ crtCode ][ i ] > 0 ) { /* Then this species is part of this equations's RHS */
-    /*tmpval = 1;
+      if ( Stoich_Right[ crtCode ][ i ] > 0 ) {
+      // Then this species is part of this equations's RHS
+      tmpval = 1;
 	coeff = Stoich_Right[ crtCode ][ i ] * crtMbr.coeff;
 	Prod_Coeff[ FamilyNr ][ i ] += Stoich_Right[ crtCode ][ i ] * crtMbr.coeff;
 	break; }
@@ -1101,7 +1123,7 @@ void ScanEquations( MEMBER crtMbr ) {
 void AddMember( char *mbrname, char *nr )
 {
 int code;
- 
+
   code = FindSpecies( mbrname );
   if ( code < 0 ) {
     ScanError("Undefined member %s.", mbrname );
@@ -1111,7 +1133,7 @@ int code;
   strcpy( crtMembers[ crtMemberNr ].name, mbrname );
   crtMembers[ crtMemberNr ].nr        = (unsigned char)atoi(nr);
   crtMembers[ crtMemberNr ].coeff     = (unsigned char)atof(nr);
-  crtMembers[ crtMemberNr ].coeff_str = nr;
+  crtMembers[ crtMemberNr ].coeff_str = *nr;
   crtMembers[ crtMemberNr ].code      = code;
   crtMemberNr++;
 
@@ -1141,10 +1163,10 @@ void FinalizeFamily()
 	if ( (Loss_Coeff[ FamilyNr ][ i ] - Prod_Coeff[ FamilyNr ][ i ]) > 0. ) {
 	  sprintf(eqNr, "%d", FamilyNr );
 	  strcpy( spstr, FamilyTable[ FamilyNr ].name );
-	  /*strcat( spstr, eqNr );
-	  /* -- -- Scan all species to see if RR_<i> exists. -- -- */
+	  //strcat( spstr, eqNr );
+	  // -- -- Scan all species to see if RR_<i> exists. -- --
 	  newSpcCode = FindSpecies( spstr );
-	  /* -- -- If not, then declare it                   -- -- */
+	  // -- -- If not, then declare it                   -- --
 	  if ( newSpcCode < 0 ){
 	    DeclareSpecies( VAR_SPC, spstr );
 	  } 
@@ -1158,14 +1180,14 @@ void FinalizeFamily()
 	if ( (Prod_Coeff[ FamilyNr ][ i ] - Loss_Coeff[ FamilyNr ][ i ]) > 0. ) {
 	  sprintf(eqNr, "%d", FamilyNr );
 	  strcpy( spstr, FamilyTable[ FamilyNr ].name );
-	  /*strcat( spstr, eqNr );
-	  /* -- -- Scan all species to see if RR_<i> exists. -- -- */
+	  //strcat( spstr, eqNr );
+	  // -- -- Scan all species to see if RR_<i> exists. -- --
 	  newSpcCode = FindSpecies( spstr );
-	  /* -- -- If not, then declare it                   -- -- */
+	  // -- -- If not, then declare it                   -- --
 	  if ( newSpcCode < 0 ){
 	    DeclareSpecies( VAR_SPC, spstr );
 	  } 
-	  /* -- -- Now, add this species to the appropriate Stoich* arrays -- */
+	  // -- -- Now, add this species to the appropriate Stoich* arrays --
 	  sprintf(Coef,"%f",Prod_Coeff[ FamilyNr ][ i ] - Loss_Coeff[ FamilyNr ][ i ]);
 	  ProcessProdLossTerm( PROD_FAM, i, "+", Coef, spstr );
 	  Prod_Spc[ i ] = &ReverseCode[ FindSpecies( spstr ) ];

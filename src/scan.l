@@ -43,6 +43,7 @@
 
 %{
   #include <string.h> /* strcpy, strlen */
+  #include <ctype.h>  /* toupper, isspace */
   #include "gdata.h" 
   #include "scan.h" 
   #include "y.tab.h"
@@ -60,13 +61,13 @@
   char *yy_filename[ MAX_INCLUDE ];
   int yy_buf_level = 0;
   
-  char crtToken[ MAX_K ];
-  char nextToken[ MAX_K ];
+  char crtToken[MAX_K];
+  char nextToken[MAX_K];
   int crtTokType;
   int nextTokType;
   int crtLine;
-  char crtFile[ MAX_K ];
-  char crt_rate[ MAX_K ];
+  char crtFile[MAX_K];
+  char crt_rate[MAX_K];
 
   int oldnErr = 0;
 
@@ -308,58 +309,60 @@ STOICH  {LIT}[a-zA-Z_0-9]*[*]
                         }  
 %%
 
-  KEYWORD keywords[] = { { "INCLUDE",    INC_STATE, 0 },
-                         { "MODEL",      MOD_STATE, 0 },
-                         { "INTEGRATOR", INT_STATE, 0 },
-                         { "JACOBIAN",   PRM_STATE, JACOBIAN }, 
-                         { "HESSIAN",    PRM_STATE, HESSIAN }, 
-                         { "DECLARE",    PRM_STATE, DECLARE }, 
-                         { "STOICMAT",   PRM_STATE, STOICMAT }, 
-                         { "STOCHASTIC", PRM_STATE, STOCHASTIC }, 
-                         { "DOUBLE",     PRM_STATE, DOUBLE }, 
-                         { "REORDER",    PRM_STATE, REORDER }, 
-                         { "MEX",        PRM_STATE, MEX }, 
-                         { "DUMMYINDEX", PRM_STATE, DUMMYINDEX}, 
-                         { "EQNTAGS",    PRM_STATE, EQNTAGS}, 
-                         { "FUNCTION",   PRM_STATE, FUNCTION }, 
-                         { "ATOMS",      ATM_STATE, ATOMDECL },   
-                         { "CHECK",      ATM_STATE, CHECK },
-                         { "CHECKALL",   INITIAL,   CHECKALL },
-                         { "DEFVAR",     DSP_STATE, DEFVAR }, 
-                         { "DEFRAD",     DSP_STATE, DEFVAR }, 
-                         { "DEFFIX",     DSP_STATE, DEFFIX }, 
-                         { "SETVAR",     SSP_STATE, SETVAR }, 
-                         { "SETRAD",     SSP_STATE, SETVAR }, 
-                         { "SETFIX",     SSP_STATE, SETFIX }, 
-                         { "INITVALUES", INI_STATE, INITVALUES }, 
-                         { "EQUATIONS",  EQN_STATE, EQUATIONS }, 
-                         { "FAMILIES",   FAM_STATE, FAMILIES }, 
-                         { "LUMP",       LMP_STATE, LUMP }, 
-                         { "LOOKAT", 	 LKT_STATE, LOOKAT },
-                         { "LOOKATALL",  INITIAL,   LOOKATALL },
-                         { "TRANSPORT",  TPT_STATE, TRANSPORT },
-                         { "TRANSPORTALL", INITIAL,   TRANSPORTALL },
-                         { "INITIALIZE", PRM_STATE, INITIALIZE },
-                         { "XGRID",  	 PRM_STATE, XGRID },
-                         { "YGRID",  	 PRM_STATE, YGRID },
-                         { "ZGRID",  	 PRM_STATE, ZGRID },
-                         { "MONITOR", 	 MNI_STATE, MONITOR },
-                         { "WRITE_ATM",  INITIAL,   WRITE_ATM },
-                         { "WRITE_SPC",  INITIAL,   WRITE_SPC },
-                         { "WRITE_MAT",  INITIAL,   WRITE_MAT },
-                         { "WRITE_OPT",  INITIAL,   WRITE_OPT },
-                         { "USE",        PRM_STATE, USE },
-                         { "LANGUAGE",   PRM_STATE, LANGUAGE },
-                         { "INLINE",     INL_STATE, INLINE },
-                         { "ENDINLINE",  INITIAL,   ENDINLINE },
-                         { "INTFILE",    PRM_STATE, INTFILE },
-                         { "DRIVER",     PRM_STATE, DRIVER },
-                         { "RUN",        PRM_STATE, RUN },
-                         { "USES",       USE_STATE, USES },
-                         { "SPARSEDATA", PRM_STATE, SPARSEDATA },
-                         { "FLUX",       PRM_STATE, FLUX }, 
-                         { "AUTOREDUCE", PRM_STATE, AUTOREDUCE },
-                         { 0, 0, 0 } 
+  KEYWORD keywords[] = { { "INCLUDE",       INC_STATE, 0            },
+                         { "MODEL",         MOD_STATE, 0            },
+                         { "INTEGRATOR",    INT_STATE, 0            },
+                         { "JACOBIAN",      PRM_STATE, JACOBIAN     },
+                         { "HESSIAN",       PRM_STATE, HESSIAN      },
+                         { "DECLARE",       PRM_STATE, DECLARE      },
+                         { "STOICMAT",      PRM_STATE, STOICMAT     },
+                         { "STOCHASTIC",    PRM_STATE, STOCHASTIC   },
+                         { "DOUBLE",        PRM_STATE, DOUBLE       },
+                         { "REORDER",       PRM_STATE, REORDER      },
+                         { "MEX",           PRM_STATE, MEX          },
+                         { "DUMMYINDEX",    PRM_STATE, DUMMYINDEX   },
+                         { "EQNTAGS",       PRM_STATE, EQNTAGS      },
+                         { "FUNCTION",      PRM_STATE, FUNCTION     },
+                         { "ATOMS",         ATM_STATE, ATOMDECL     },
+                         { "CHECK",         ATM_STATE, CHECK        },
+                         { "CHECKALL",      INITIAL,   CHECKALL     },
+                         { "DEFVAR",        DSP_STATE, DEFVAR       },
+                         { "DEFRAD",        DSP_STATE, DEFVAR       },
+                         { "DEFFIX",        DSP_STATE, DEFFIX       },
+                         { "SETVAR",        SSP_STATE, SETVAR       },
+                         { "SETRAD",        SSP_STATE, SETVAR       },
+                         { "SETFIX",        SSP_STATE, SETFIX       },
+                         { "INITVALUES",    INI_STATE, INITVALUES   },
+                         { "EQUATIONS",     EQN_STATE, EQUATIONS    },
+                         { "FAMILIES",      FAM_STATE, FAMILIES     },
+                         { "LUMP",          LMP_STATE, LUMP         },
+                         { "LOOKAT",        LKT_STATE, LOOKAT       },
+                         { "LOOKATALL",     INITIAL,   LOOKATALL    },
+                         { "TRANSPORT",     TPT_STATE, TRANSPORT    },
+                         { "TRANSPORTALL",  INITIAL,   TRANSPORTALL },
+                         { "INITIALIZE",    PRM_STATE, INITIALIZE   },
+                         { "XGRID",         PRM_STATE, XGRID        },
+                         { "YGRID",         PRM_STATE, YGRID        },
+                         { "ZGRID",         PRM_STATE, ZGRID        },
+                         { "MONITOR",       MNI_STATE, MONITOR      },
+                         { "WRITE_ATM",     INITIAL,   WRITE_ATM    },
+                         { "WRITE_SPC",     INITIAL,   WRITE_SPC    },
+                         { "WRITE_MAT",     INITIAL,   WRITE_MAT    },
+                         { "WRITE_OPT",     INITIAL,   WRITE_OPT    },
+                         { "USE",           PRM_STATE, USE          },
+                         { "LANGUAGE",      PRM_STATE, LANGUAGE     },
+                         { "INLINE",        INL_STATE, INLINE       },
+                         { "ENDINLINE",     INITIAL,   ENDINLINE    },
+                         { "INTFILE",       PRM_STATE, INTFILE      },
+                         { "DRIVER",        PRM_STATE, DRIVER       },
+                         { "RUN",           PRM_STATE, RUN          },
+                         { "USES",          USE_STATE, USES         },
+                         { "SPARSEDATA",    PRM_STATE, SPARSEDATA   },
+                         { "FLUX",          PRM_STATE, FLUX         },
+                         { "UPPERCASEF90",  PRM_STATE, UPPERCASEF90 },
+                         { "MINVERSION",    PRM_STATE, MINVERSION   },
+                         { "AUTOREDUCE",    PRM_STATE, AUTOREDUCE   },
+                         { 0,               0,         0            }
                        };
 
 void Include ( char * name )

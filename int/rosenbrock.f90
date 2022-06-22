@@ -18,12 +18,19 @@
 
 MODULE KPP_ROOT_Integrator
 
-  USE KPP_ROOT_Parameters, ONLY: NVAR, NFIX, NSPEC, LU_NONZERO
+  USE KPP_ROOT_Parameters
   USE KPP_ROOT_Global
   IMPLICIT NONE
   PUBLIC
   SAVE
-  
+
+!~~~> Flags to determine if we should call the UPDATE_* routines from within
+!~~~> the integrator.  If using KPP in an external model, you might want to
+!~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
+  LOGICAL, PRIVATE :: Do_Update_RCONST
+  LOGICAL, PRIVATE :: Do_Update_PHOTO
+  LOGICAL, PRIVATE :: Do_Update_SUN
+
 !~~~>  Statistics on the work performed by the Rosenbrock method
   INTEGER, PARAMETER :: Nfun=1, Njac=2, Nstp=3, Nacc=4, &
                         Nrej=5, Ndec=6, Nsol=7, Nsng=8, &
@@ -31,58 +38,87 @@ MODULE KPP_ROOT_Integrator
 
 CONTAINS
 
-SUBROUTINE INTEGRATE( TIN, TOUT, &
-  ICNTRL_U, RCNTRL_U, ISTATUS_U, RSTATUS_U, IERR_U )
+SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
+                      ISTATUS_U, RSTATUS_U, IERR_U              )
+
+   USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
 
    IMPLICIT NONE
 
    KPP_REAL, INTENT(IN) :: TIN  ! Start Time
    KPP_REAL, INTENT(IN) :: TOUT ! End Time
-   ! Optional input parameters and statistics
-   INTEGER,       INTENT(IN),  OPTIONAL :: ICNTRL_U(20)
+   !~~~> Optional input parameters and statistics
+   INTEGER,  INTENT(IN),  OPTIONAL :: ICNTRL_U(20)
    KPP_REAL, INTENT(IN),  OPTIONAL :: RCNTRL_U(20)
-   INTEGER,       INTENT(OUT), OPTIONAL :: ISTATUS_U(20)
+   INTEGER,  INTENT(OUT), OPTIONAL :: ISTATUS_U(20)
    KPP_REAL, INTENT(OUT), OPTIONAL :: RSTATUS_U(20)
-   INTEGER,       INTENT(OUT), OPTIONAL :: IERR_U
+   INTEGER,  INTENT(OUT), OPTIONAL :: IERR_U
 
    KPP_REAL :: RCNTRL(20), RSTATUS(20)
    INTEGER       :: ICNTRL(20), ISTATUS(20), IERR
 
    INTEGER, SAVE :: Ntotal = 0
 
-   ICNTRL(:)  = 0
-   RCNTRL(:)  = 0.0_dp
-   ISTATUS(:) = 0
-   RSTATUS(:) = 0.0_dp
+   !~~~> Zero input and output arrays for safety's sake
+   ICNTRL     = 0
+   RCNTRL     = 0.0_dp
+   ISTATUS    = 0
+   RSTATUS    = 0.0_dp
 
    !~~~> fine-tune the integrator:
-   ICNTRL(1) = 0	! 0 - non-autonomous, 1 - autonomous
-   ICNTRL(2) = 0	! 0 - vector tolerances, 1 - scalars
+   ICNTRL(15) = 5       ! Call Update_SUN and Update_RCONST from w/in the int.
 
-   ! If optional parameters are given, and if they are >0, 
-   ! then they overwrite default settings. 
-   IF (PRESENT(ICNTRL_U)) THEN
-     WHERE(ICNTRL_U(:) > 0) ICNTRL(:) = ICNTRL_U(:)
-   END IF
-   IF (PRESENT(RCNTRL_U)) THEN
-     WHERE(RCNTRL_U(:) > 0) RCNTRL(:) = RCNTRL_U(:)
-   END IF
+   !~~~> if optional parameters are given, and if they are /= 0,
+   !     then use them to overwrite default settings
+   IF ( PRESENT( ICNTRL_U ) ) THEN
+      WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
+   ENDIF
+   IF ( PRESENT( RCNTRL_U ) ) THEN
+      WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
+   ENDIF
 
+   !~~~> Determine the settings of the Do_Update_* flags, which determine
+   !~~~> whether or not we need to call Update_* routines in the integrator
+   !~~~> (or not, if we are calling them from a higher-level)
+   ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
+   !            =  0 ! Status quo
+   !            =  1 ! Call Update_RCONST from within the integrator
+   !            =  2 ! Call Update_PHOTO from within the integrator
+   !            =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
+   !            =  4 ! Call Update_SUN from within the integrator
+   !            =  5 ! Call Update_SUN and Update_RCONST from within the int.
+   !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
+   !            =  7 ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
+   CALL Integrator_Update_Options( ICNTRL(15),          &
+                                   Do_Update_RCONST,    &
+                                   Do_Update_PHOTO,     &
+                                   Do_Update_Sun       )
 
-   CALL Rosenbrock(NVAR,VAR,TIN,TOUT,   &
-         ATOL,RTOL,                &
-         RCNTRL,ICNTRL,RSTATUS,ISTATUS,IERR)
+   !~~~> In order to remove the prior EQUIVALENCE statements (which
+   !~~~> are not thread-safe), we now have declared VAR and FIX as
+   !~~~> threadprivate pointer variables that can point to C.
+   VAR => C(1:NVAR )
+   FIX => C(NVAR+1:NSPEC)
 
-   !~~~> Debug option: show no of steps
-   ! Ntotal = Ntotal + ISTATUS(Nstp)
-   ! PRINT*,'NSTEPS=',ISTATUS(Nstp),' (',Ntotal,')','  O3=', VAR(ind_O3)
+   !~~~> Call the integrator
+   CALL Rosenbrock( NVAR,   VAR,    TIN,     TOUT,    ATOL, RTOL,  &
+                    RCNTRL, ICNTRL, RSTATUS, ISTATUS, IERR        )
+
+   !~~~> Free pointers
+   VAR => NULL()
+   FIX => NULL()
+
+   !~~~> Debug option: show number of steps
+   !Ntotal = Ntotal + ISTATUS(Nstp)
+   !PRINT*,'NSTEPS=',ISTATUS(Nstp),' (',Ntotal,')','  O3=', VAR(ind_O3)
 
    STEPMIN = RSTATUS(Nhexit)
-   ! if optional parameters are given for output they 
-   ! are updated with the return information
-   IF (PRESENT(ISTATUS_U)) ISTATUS_U(:) = ISTATUS(:)
-   IF (PRESENT(RSTATUS_U)) RSTATUS_U(:) = RSTATUS(:)
-   IF (PRESENT(IERR_U))    IERR_U       = IERR
+
+   !~~~> if optional parameters are given for output
+   !~~~> use them to store information in them
+   IF ( PRESENT( ISTATUS_U ) ) ISTATUS_U = ISTATUS
+   IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
+   IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR
 
 END SUBROUTINE INTEGRATE
 
@@ -110,7 +146,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !    (C)  Adrian Sandu, August 2004
 !    Virginia Polytechnic Institute and State University
 !    Contact: sandu@cs.vt.edu
-!    Revised by Philipp Miehe and Adrian Sandu, May 2006                  
+!    Revised by Philipp Miehe and Adrian Sandu, May 2006
 !    This implementation is part of KPP - the Kinetic PreProcessor
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
@@ -158,7 +194,22 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !        = 5 :    Rodas4
 !
 !    ICNTRL(4)  -> maximum number of integration steps
-!        For ICNTRL(4)=0) the default value of 100000 is used
+!        For ICNTRL(4)=0) the default value of 200000 is used
+!
+!    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
+!        = -1 :  Do not call Update_* functions within the integrator
+!        =  0 :  Status quo
+!        =  1 :  Call Update_RCONST from within the integrator
+!        =  2 :  Call Update_PHOTO from within the integrator
+!        =  3 :  Call Update_RCONST and Update_PHOTO from w/in the int.
+!        =  4 :  Call Update_SUN from within the integrator
+!        =  5 :  Call Update_SUN and Update_RCONST from within the int.
+!        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO, Update_RCONST w/in the int.
+!
+!    ICNTRL(16) -> 
+!        = 0 : allow negative concentrations (default)
+!        = 1 : set negative concentrations to zero
 !
 !    RCNTRL(1)  -> Hmin, lower bound for the integration step size
 !          It is strongly recommended to keep Hmin = ZERO
@@ -199,7 +250,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !                     computed Y upon return
 !    RSTATUS(2)  -> Hexit, last accepted step before exit
 !    RSTATUS(3)  -> Hnew, last predicted step (not yet taken)
-!                   For multiple restarts, use Hnew as Hstart 
+!                   For multiple restarts, use Hnew as Hstart
 !                     in the subsequent run
 !
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -230,7 +281,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
    KPP_REAL :: Hmin, Hmax, Hstart
    KPP_REAL :: Texit
    INTEGER       :: i, UplimTol, Max_no_steps
-   LOGICAL       :: Autonomous, VectorTol, Do_Update_Rates
+   LOGICAL       :: Autonomous, VectorTol
 !~~~>   Parameters
    KPP_REAL, PARAMETER :: ZERO = 0.0_dp, ONE  = 1.0_dp
    KPP_REAL, PARAMETER :: DeltaMin = 1.0E-5_dp
@@ -241,9 +292,6 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 
 !~~~>  Autonomous or time dependent ODE. Default is time dependent.
    Autonomous = .NOT.(ICNTRL(1) == 0)
-
-!~~~>  Update rates within the integration step
-   Do_Update_Rates = ( ICNTRL(15) == 1 )
 
 !~~~>  For Scalar tolerances (ICNTRL(2).NE.0)  the code uses AbsTol(1) and RelTol(1)
 !   For Vector tolerances (ICNTRL(2) == 0) the code uses AbsTol(1:N) and RelTol(1:N)
@@ -270,7 +318,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
      CASE (6)
        CALL Rang3
      CASE DEFAULT
-       PRINT * , 'Unknown Rosenbrock method: ICNTRL(3)=',ICNTRL(3) 
+       PRINT * , 'Unknown Rosenbrock method: ICNTRL(3)=',ICNTRL(3)
        CALL ros_ErrorMsg(-2,Tstart,ZERO,IERR)
        RETURN
    END SELECT
@@ -377,56 +425,51 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
         Autonomous, VectorTol, Max_no_steps,     &
         Roundoff, Hmin, Hmax, Hstart,            &
         FacMin, FacMax, FacRej, FacSafe,         &
-!============================================================================
-! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
-! Pass Do_Update_Rates, which is needed for routine FunTemplate.
-        Do_Update_Rates,                         & 
-!============================================================================
 !  Error indicator
         IERR)
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CONTAINS !  SUBROUTINES internal to Rosenbrock
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   
+
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  SUBROUTINE ros_ErrorMsg(Code,T,H,IERR)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !    Handles all error messages
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  
+
    KPP_REAL, INTENT(IN) :: T, H
    INTEGER, INTENT(IN)  :: Code
    INTEGER, INTENT(OUT) :: IERR
-   
+
    IERR = Code
    PRINT * , &
-     'Forced exit from Rosenbrock due to the following error:' 
-     
+     'Forced exit from Rosenbrock due to the following error:'
+
    SELECT CASE (Code)
-    CASE (-1)    
+    CASE (-1)
       PRINT * , '--> Improper value for maximal no of steps'
-    CASE (-2)    
+    CASE (-2)
       PRINT * , '--> Selected Rosenbrock method not implemented'
-    CASE (-3)    
+    CASE (-3)
       PRINT * , '--> Hmin/Hmax/Hstart must be positive'
-    CASE (-4)    
+    CASE (-4)
       PRINT * , '--> FacMin/FacMax/FacRej must be positive'
-    CASE (-5) 
+    CASE (-5)
       PRINT * , '--> Improper tolerance values'
-    CASE (-6) 
+    CASE (-6)
       PRINT * , '--> No of steps exceeds maximum bound'
-    CASE (-7) 
+    CASE (-7)
       PRINT * , '--> Step size too small: T + 10*H = T', &
             ' or H < Roundoff'
-    CASE (-8)    
+    CASE (-8)
       PRINT * , '--> Matrix is repeatedly singular'
     CASE DEFAULT
       PRINT *, 'Unknown Error code: ', Code
    END SELECT
-   
+
    PRINT *, "T=", T, "and H=", H
-     
+
  END SUBROUTINE ros_ErrorMsg
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -436,7 +479,6 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
         Autonomous, VectorTol, Max_no_steps,     &
         Roundoff, Hmin, Hmax, Hstart,            &
         FacMin, FacMax, FacRej, FacSafe,         &
-        Do_Update_Rates,                         &
 !~~~> Error indicator
         IERR )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -456,7 +498,7 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
 !~~~> Input: tolerances
    KPP_REAL, INTENT(IN) ::  AbsTol(N), RelTol(N)
 !~~~> Input: integration parameters
-   LOGICAL, INTENT(IN) :: Autonomous, VectorTol, Do_Update_Rates
+   LOGICAL, INTENT(IN) :: Autonomous, VectorTol
    KPP_REAL, INTENT(IN) :: Hstart, Hmin, Hmax
    INTEGER, INTENT(IN) :: Max_no_steps
    KPP_REAL, INTENT(IN) :: Roundoff, FacMin, FacMax, FacRej, FacSafe
@@ -465,7 +507,7 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
 ! ~~~~ Local variables
    KPP_REAL :: Ynew(N), Fcn0(N), Fcn(N)
    KPP_REAL :: K(N*ros_S), dFdT(N)
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
    KPP_REAL :: Jac0(N,N), Ghimj(N,N)
 #else
    KPP_REAL :: Jac0(LU_NONZERO), Ghimj(LU_NONZERO)
@@ -517,28 +559,16 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
    H = MIN(H,ABS(Tend-T))
 
 !~~~>   Compute the function at current time
-   CALL FunTemplate( T, Y,            &
-!============================================================================
-! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
-! Pass Do_Update_Rates, which is needed for routine FunTemplate.
-                     Do_Update_Rates, &
-!============================================================================
-                     Fcn0 )
+   CALL FunTemplate( T, Y, Fcn0 )
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 
 !~~~>  Compute the function derivative with respect to T
    IF (.NOT.Autonomous) THEN
-      CALL ros_FunTimeDerivative( T, Roundoff, Y,  &
-!============================================================================
-! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
-! Pass Do_Update_Rates, which is needed for routine FunTemplate.
-                                  Do_Update_Rates, &
-!============================================================================
-                                  Fcn0, dFdT )
+      CALL ros_FunTimeDerivative ( T, Roundoff, Y, Fcn0, dFdT )
    END IF
 
 !~~~>   Compute the Jacobian at current time
-   CALL JacTemplate(T,Y,Jac0)
+   CALL JacTemplate( T, Y, Jac0 )
    ISTATUS(Njac) = ISTATUS(Njac) + 1
 
 !~~~>  Repeat step calculation until current step accepted
@@ -560,23 +590,17 @@ Stage: DO istage = 1, ros_S
       ! For the 1st istage the function has been computed previously
        IF ( istage == 1 ) THEN
          !slim: CALL WCOPY(N,Fcn0,1,Fcn,1)
-	 Fcn(1:N) = Fcn0(1:N)
+         Fcn(1:N) = Fcn0(1:N)
       ! istage>1 and a new function evaluation is needed at the current istage
        ELSEIF ( ros_NewF(istage) ) THEN
          !slim: CALL WCOPY(N,Y,1,Ynew,1)
-	 Ynew(1:N) = Y(1:N)
+         Ynew(1:N) = Y(1:N)
          DO j = 1, istage-1
            CALL WAXPY(N,ros_A((istage-1)*(istage-2)/2+j), &
             K(N*(j-1)+1),1,Ynew,1)
          END DO
          Tau = T + ros_Alpha(istage)*Direction*H
-         CALL FunTemplate( Tau, Ynew,       &
-!============================================================================
-! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
-! Pass Do_Update_Rates, which is needed for routine FunTemplate.
-                           Do_Update_Rates, &
-!============================================================================
-                           Fcn )
+         CALL FunTemplate( Tau, Ynew, Fcn )
          ISTATUS(Nfun) = ISTATUS(Nfun) + 1
        END IF ! if istage == 1 elseif ros_NewF(istage)
        !slim: CALL WCOPY(N,Fcn,1,K(ioffset+1),1)
@@ -617,8 +641,13 @@ Stage: DO istage = 1, ros_S
    ISTATUS(Nstp) = ISTATUS(Nstp) + 1
    IF ( (Err <= ONE).OR.(H <= Hmin) ) THEN  !~~~> Accept step
       ISTATUS(Nacc) = ISTATUS(Nacc) + 1
-      !slim: CALL WCOPY(N,Ynew,1,Y,1)
-      Y(1:N) = Ynew(1:N)
+      IF (ICNTRL(16) == 1) THEN
+        ! new value is non-negative:
+        Y = MAX(Ynew,ZERO)
+      ELSE
+        !slim: CALL WCOPY(N,Ynew,1,Y,1)
+        Y(1:N) = Ynew(1:N)
+      ENDIF      
       T = T + Direction*H
       Hnew = MAX(Hmin,MIN(Hnew,Hmax))
       IF (RejectLastH) THEN  ! No step size increase after a rejected step
@@ -643,7 +672,6 @@ Stage: DO istage = 1, ros_S
 
    END DO UntilAccepted
 
-   
    END DO TimeLoop
 
 !~~~> Succesful exit
@@ -687,12 +715,7 @@ Stage: DO istage = 1, ros_S
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE ros_FunTimeDerivative ( T, Roundoff, Y,   &
-!============================================================================
-! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
-                                     Do_Update_Rates,  &
-!============================================================================
-                                     Fcn0, dFdT )
+  SUBROUTINE ros_FunTimeDerivative ( T, Roundoff, Y, Fcn0, dFdT )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~> The time partial derivative of the function by finite differences
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -700,7 +723,6 @@ Stage: DO istage = 1, ros_S
 
 !~~~> Input arguments
    KPP_REAL, INTENT(IN) :: T, Roundoff, Y(N), Fcn0(N)
-   LOGICAL,  INTENT(IN) :: Do_Update_Rates
 !~~~> Output arguments
    KPP_REAL, INTENT(OUT) :: dFdT(N)
 !~~~> Local variables
@@ -708,12 +730,7 @@ Stage: DO istage = 1, ros_S
    KPP_REAL, PARAMETER :: ONE = 1.0_dp, DeltaMin = 1.0E-6_dp
 
    Delta = SQRT(Roundoff)*MAX(DeltaMin,ABS(T))
-   CALL FunTemplate( T+Delta, Y,       &
-!============================================================================
-! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
-                     Do_Update_Rates,  &
-!============================================================================
-                     dFdT )
+   CALL FunTemplate( T+Delta, Y, dFdT )
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
    CALL WAXPY(N,(-ONE),Fcn0,1,dFdT,1)
    CALL WSCAL(N,(ONE/Delta),dFdT,1)
@@ -735,25 +752,25 @@ Stage: DO istage = 1, ros_S
    IMPLICIT NONE
 
 !~~~> Input arguments
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
    KPP_REAL, INTENT(IN) ::  Jac0(N,N)
 #else
    KPP_REAL, INTENT(IN) ::  Jac0(LU_NONZERO)
-#endif   
+#endif
    KPP_REAL, INTENT(IN) ::  gam
    INTEGER, INTENT(IN) ::  Direction
 !~~~> Output arguments
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
    KPP_REAL, INTENT(OUT) :: Ghimj(N,N)
 #else
    KPP_REAL, INTENT(OUT) :: Ghimj(LU_NONZERO)
-#endif   
+#endif
    LOGICAL, INTENT(OUT) ::  Singular
    INTEGER, INTENT(OUT) ::  Pivot(N)
 !~~~> Inout arguments
    KPP_REAL, INTENT(INOUT) :: H   ! step size is decreased when LU fails
 !~~~> Local variables
-   INTEGER  :: i, ISING, Nconsecutive
+   INTEGER  :: i, ising, Nconsecutive
    KPP_REAL :: ghinv
    KPP_REAL, PARAMETER :: ONE  = 1.0_dp, HALF = 0.5_dp
 
@@ -763,7 +780,7 @@ Stage: DO istage = 1, ros_S
    DO WHILE (Singular)
 
 !~~~>    Construct Ghimj = 1/(H*gam) - Jac0
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
      !slim: CALL WCOPY(N*N,Jac0,1,Ghimj,1)
      !slim: CALL WSCAL(N*N,(-ONE),Ghimj,1)
      Ghimj = -Jac0
@@ -779,24 +796,24 @@ Stage: DO istage = 1, ros_S
      DO i=1,N
        Ghimj(LU_DIAG(i)) = Ghimj(LU_DIAG(i))+ghinv
      END DO
-#endif   
+#endif
 !~~~>    Compute LU decomposition
-     CALL ros_Decomp( Ghimj, Pivot, ISING )
-     IF (ISING == 0) THEN
+     CALL ros_Decomp( Ghimj, Pivot, ising )
+     IF (ising == 0) THEN
 !~~~>    If successful done
         Singular = .FALSE.
-     ELSE ! ISING .ne. 0
+     ELSE ! ising .ne. 0
 !~~~>    If unsuccessful half the step size; if 5 consecutive fails then return
         ISTATUS(Nsng) = ISTATUS(Nsng) + 1
         Nconsecutive = Nconsecutive+1
         Singular = .TRUE.
-        PRINT*,'Warning: LU Decomposition returned ISING = ',ISING
+        PRINT*,'Warning: LU Decomposition returned ising = ',ising
         IF (Nconsecutive <= 5) THEN ! Less than 5 consecutive failed decompositions
            H = H*HALF
         ELSE  ! More than 5 consecutive failed decompositions
            RETURN
         END IF  ! Nconsecutive
-      END IF    ! ISING
+      END IF    ! ising
 
    END DO ! WHILE Singular
 
@@ -804,24 +821,24 @@ Stage: DO istage = 1, ros_S
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE ros_Decomp( A, Pivot, ISING )
+  SUBROUTINE ros_Decomp( A, Pivot, ising )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the LU decomposition
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    IMPLICIT NONE
 !~~~> Inout variables
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
    KPP_REAL, INTENT(INOUT) :: A(N,N)
-#else   
+#else
    KPP_REAL, INTENT(INOUT) :: A(LU_NONZERO)
 #endif
 !~~~> Output variables
-   INTEGER, INTENT(OUT) :: Pivot(N), ISING
+   INTEGER, INTENT(OUT) :: Pivot(N), ising
 
-#ifdef FULL_ALGEBRA    
-   CALL  DGETRF( N, N, A, N, Pivot, ISING )
-#else   
-   CALL KppDecomp ( A, ISING )
+#ifdef FULL_ALGEBRA
+   CALL  DGETRF( N, N, A, N, Pivot, ising )
+#else
+   CALL KppDecomp ( A, ising )
    Pivot(1) = 1
 #endif
    ISTATUS(Ndec) = ISTATUS(Ndec) + 1
@@ -832,27 +849,27 @@ Stage: DO istage = 1, ros_S
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE ros_Solve( A, Pivot, b )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-!  Template for the forward/backward substitution 
+!  Template for the forward/backward substitution
 !  (using pre-computed LU decomposition)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    IMPLICIT NONE
 !~~~> Input variables
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
    KPP_REAL, INTENT(IN) :: A(N,N)
-   INTEGER :: ISING
-#else   
+   INTEGER :: ising
+#else
    KPP_REAL, INTENT(IN) :: A(LU_NONZERO)
 #endif
    INTEGER, INTENT(IN) :: Pivot(N)
 !~~~> InOut variables
    KPP_REAL, INTENT(INOUT) :: b(N)
 
-#ifdef FULL_ALGEBRA    
-   CALL  DGETRS( 'N', N , 1, A, N, Pivot, b, N, ISING )
+#ifdef FULL_ALGEBRA
+   CALL  DGETRS( 'N', N , 1, A, N, Pivot, b, N, ising )
    IF ( Info < 0 ) THEN
-      PRINT*,"Error in DGETRS. ISING=",ISING
-   END IF  
-#else   
+      PRINT*,"Error in DGETRS. ising=",ising
+   END IF
+#else
    CALL KppSolve( A, b )
 #endif
 
@@ -1217,7 +1234,7 @@ Stage: DO istage = 1, ros_S
 ! J. RANG and L. ANGERMANN
 ! NEW ROSENBROCK W-METHODS OF ORDER 3
 ! FOR PARTIAL DIFFERENTIAL ALGEBRAIC
-!        EQUATIONS OF INDEX 1                                             
+!        EQUATIONS OF INDEX 1
 ! BIT Numerical Mathematics (2005) 45: 761-787
 !  DOI: 10.1007/s10543-005-0035-y
 ! Table 4.1-4.2
@@ -1288,48 +1305,34 @@ END SUBROUTINE Rosenbrock
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBROUTINE FunTemplate( T, Y,            &
-!============================================================================
-! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
-                        Do_Update_Rates, &
-!============================================================================
-                        Ydot )
+SUBROUTINE FunTemplate( T, Y, Ydot, P_VAR, D_VAR )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the ODE function call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
- USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
- USE KPP_ROOT_Function, ONLY: Fun
-!============================================================================
-! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
- USE KPP_ROOT_Rates, ONLY : Update_Rconst
-!============================================================================
+ USE KPP_ROOT_Parameters, ONLY : NVAR, LU_NONZERO
+ USE KPP_ROOT_Global,     ONLY : FIX, RCONST, TIME
+ USE KPP_ROOT_Function,   ONLY : Fun, Fun_SPLIT
+ USE KPP_ROOT_Rates,      ONLY : Update_SUN, Update_RCONST
 
 !~~~> Input variables
    KPP_REAL :: T, Y(NVAR)
-   LOGICAL  :: Do_Update_Rates
 !~~~> Output variables
    KPP_REAL :: Ydot(NVAR)
+   KPP_REAL, OPTIONAL :: P_VAR(NVAR), D_VAR(NVAR)
 !~~~> Local variables
-   KPP_REAL :: Told
+   KPP_REAL :: Told, P(NVAR), D(NVAR)
 
    Told = TIME
    TIME = T
 
-!============================================================================
-! KPP 2.3.3_gc, Bob Yantosca (11 Jun 2021)
-! Following https://github.com/geoschem/KPP/issues/5, we have restored
-! the option to update the reaction rates from within the integrator
-! step.  This is toggled with option ICNTRL(15) == 1, which gets
-! assigned to logical flag Do_Update_Rates in routine Ros_Integrator 
-! and passed here.  For GEOS-Chem and other models, we typically update 
-! the reaction rates outside of KPP for computational expediency.
-   IF ( Do_Update_Rates ) CALL Update_Rconst()
-!============================================================================
-
-   CALL Fun( Y, FIX, RCONST, Ydot )
+   IF ( Do_Update_SUN    ) CALL Update_SUN()
+   IF ( Do_Update_RCONST ) CALL Update_RCONST()
+   CALL KPP_FUN_OR_FUN_SPLIT
    TIME = Told
+
+   IF (Present(P_VAR)) P_VAR=P
+   IF (Present(D_VAR)) D_VAR=D
 
 END SUBROUTINE FunTemplate
 
@@ -1340,27 +1343,30 @@ SUBROUTINE JacTemplate( T, Y, Jcb )
 !  Template for the ODE Jacobian call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
- USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
- USE KPP_ROOT_Jacobian, ONLY: Jac_SP, LU_IROW, LU_ICOL
+ USE KPP_ROOT_Parameters,    ONLY : NVAR, LU_NONZERO
+ USE KPP_ROOT_Global,        ONLY : FIX, RCONST, TIME
+ USE KPP_ROOT_Jacobian,      ONLY : Jac_SP, LU_IROW, LU_ICOL
  USE KPP_ROOT_LinearAlgebra
+ USE KPP_ROOT_Rates,         ONLY : Update_SUN, Update_RCONST
 !~~~> Input variables
     KPP_REAL :: T, Y(NVAR)
 !~~~> Output variables
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
     KPP_REAL :: JV(LU_NONZERO), Jcb(NVAR,NVAR)
 #else
     KPP_REAL :: Jcb(LU_NONZERO)
-#endif   
+#endif
 !~~~> Local variables
     KPP_REAL :: Told
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
     INTEGER :: i, j
-#endif   
+#endif
 
     Told = TIME
     TIME = T
-#ifdef FULL_ALGEBRA    
+    IF ( Do_Update_SUN    ) CALL Update_SUN()
+    IF ( Do_Update_RCONST ) CALL Update_RCONST()
+#ifdef FULL_ALGEBRA
     CALL Jac_SP(Y, FIX, RCONST, JV)
     DO j=1,NVAR
       DO i=1,NVAR
@@ -1372,13 +1378,9 @@ SUBROUTINE JacTemplate( T, Y, Jcb )
     END DO
 #else
     CALL Jac_SP( Y, FIX, RCONST, Jcb )
-#endif   
+#endif
     TIME = Told
 
 END SUBROUTINE JacTemplate
 
 END MODULE KPP_ROOT_Integrator
-
-
-
-

@@ -1,53 +1,62 @@
-===============================
-KPP-for-GEOS-Chem Documentation
-===============================
+#############################
+The Kinetic PreProcessor: KPP
+#############################
 
 .. raw:: html
 
+   <h3>An Environment for the<br/>Simuation of Chemical Kinetic Systems</h3>
+   <p><strong>Adrian Sandu<sup>1</sup>, Rolf Sander<sup>2</sup>, Michael Long<sup>3</sup>, Haipeng Lin<sup>4</sup>, and Robert Yantosca<sup>4</sup></strong></p>
+   <p><em>
+     <sup>1</sup> Virginia Polytechnic Institute and State University, Blacksburg, VA, USA<br/>
+     <sup>2</sup> Max-Planck Institute of Chemistry, Mainz, Germany<br/>
+     <sup>3</sup> Renaissance Fiber, LLC, North Carolina, USA.<br/>
+     <sup>4</sup> Harvard University, Cambridge, MA, USA</em>
+   </p>
+   </hr>
    <p>
-   <a href="https://github.com/geoschem/KPP/blob/GC_updates/LICENSE.txt"><img
-   src="https://img.shields.io/badge/License-MIT-blue.svg"></a>
-   <a href="https://doi.org/10.5281/zenodo.4552707"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.4552707.svg"></a>
+   <a href="https://github.com/KineticPreProcessor/KPP/blob/main/LICENSE.txt"><img
+   src="https://img.shields.io/badge/License-GPLv3-blue.svg"></a>
+   <a href="https://doi.org/10.5281/zenodo.6563908"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.6563908.svg"></a>
    <a href="https://kpp.readthedocs.io/en/latest/"><img src="https://img.shields.io/readthedocs/kpp?label=ReadTheDocs"></a>
    </p>
 
-:program:`KPP-for-GEOS-Chem` is `a clean implementation of
-the Kinetic Pre Processor (KPP) <https://github.com/geoschem/kpp/tree/GC_updates>`__ that has
-been customized for :program:`GEOS-Chem` v11-01 and later versions. You can use
-:program:`KPP-for-GEOS-Chem` to create custom :program:`GEOS-Chem` chemistry mechanisms (or
-to edit existing mechanisms).
-
-.. toctree::
-   :maxdepth: 20
-   :caption: Basic Information
-
-   basic-info/about.rst
-   basic-info/requirements.rst
-   basic-info/key_references.rst
+This site provides instructions for :program:`KPP`, the Kinetic PreProcessor.
+   
+Contributions (e.g., suggestions, edits, revisions) would be greatly
+appreciated. See :ref:`editing-this-user-guide` and our
+:ref:`contributing-guidelines` If you find something hard to
+understand---let us know!  
    
 .. toctree::
-   :maxdepth: 20
-   :caption: Usage Details
+   :caption: Getting Started
 
-   usage-details/installation.rst
-   usage-details/generating_f90_code.rst
-   usage-details/use_custom_mech.rst
+   getting_started/00_revision_history.rst
+   getting_started/01_installation.rst
+   getting_started/02_running_kpp_sample_mech.rst
 
 .. toctree::
-   :maxdepth: 20
-   :caption: Creating & Modifying Mechanisms
+   :caption: Using KPP
 
-   creating-mechanisms/configuration_files.rst 
-   creating-mechanisms/species.rst
-   creating-mechanisms/reactions.rst
-   creating-mechanisms/chemical_families.rst
-   creating-mechanisms/solver_parameters.rst
-  
+   using_kpp/04_input_for_kpp.rst
+   using_kpp/05_output_from_kpp.rst
+
 .. toctree::
-   :maxdepth: 20
-   :caption: Help & Reference
+   :caption: Technical information
+
+   tech_info/06_info_for_kpp_developers.rst
+   tech_info/07_numerical_methods.rst
+   tech_info/08_bnf_description_of_kpp_lang.rst
+
+.. toctree::
+   :caption: KPP Reference
+
+   citations/09_acknowledgments.rst
+   citations/10_kpp_references.rst
+
+.. toctree::
+   :caption: Help and Support
 
    reference/known-bugs.rst 
-   reference/SUPPORT.md
-   reference/CONTRIBUTING.md
-   geos-chem-shared-docs/editing_these_docs.rst
+   reference/SUPPORT.rst
+   reference/CONTRIBUTING.rst
+   reference/editing_these_docs.rst

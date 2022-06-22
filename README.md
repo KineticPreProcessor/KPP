@@ -1,67 +1,13 @@
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/geoschem/KPP/blob/GC_updates/LICENSE.txt) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4552707.svg)](https://doi.org/10.5281/zenodo.4552707) [![ReadTheDocs](https://img.shields.io/readthedocs/kpp?label=ReadTheDocs)](https://kpp.readthedocs.io/en/latest/)
+[![Latest
+Release](https://img.shields.io/github/v/release/KineticPreProcessor/KPP?label=Latest%20Release)](https://kpp.readthedocs.io) [![License: GPL
+v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/KineticPreProcessor/KPP/blob/main/LICENSE.txt) [![C-I
+tests](https://img.shields.io/azure-devops/build/KineticPreProcessor/KPP/1/main?label=C-I%20Tests)](https://dev.azure.com/KineticPreProcessor/KPP/_build) [![ReadTheDocs](https://assets.readthedocs.org/static/projects/badges/passing-flat.svg)](https://kpp.readthedocs.io/en/latest) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6563908.svg)](https://doi.org/10.5281/zenodo.6563908)
 
-# README for KPP-for-GEOS-Chem
-### Description
+# The Kinetic PreProcessor: KPP
+This is the repository for the The Kinetic PreProcessor (KPP) source code.
 
-The GC_updates branch of the KPP repository tracks modifications to KPP that are specific to GEOS-Chem.
+## License
+KPP is distributed under [GPLv3, the general public license](https://github.com/KineticPreProcessor/KPP/blob/main/LICENSE.txt).
 
-### Documentation
-
-Complete documentation for KPP-for-GEOS-Chem may now be found https://kpp.readthedocs.io.
-## Versions
-  KPP - symbolic chemistry Kinetics PreProcessor, [Version 2.2.3](http://www.cs.vt.edu/~asandu/Software/KPP)
-
-  KPP is distributed under GPL, the [general public license](http://www.gnu.org/copyleft/gpl.html)
-  
-    (C) 1995-1997, V. Damian & A. Sandu, CGRER, Univ. Iowa
-    (C) 1997-2005, A. Sandu, Michigan Tech, Virginia Tech
-        with contributions from:
-        R. Sander, Max-Planck Institute for Chemistry, Mainz, Germany
-
-## Getting Started
-   Read [user's manual](https://github.com/KineticPreProcessor/KPP/blob/master/doc/kpp_UserManual.pdf)
-
-## Installation
-
-1. Make sure that FLEX (public domain lexical analizer) is installed
-   on your machine. Type "flex --version" to test this.
-
-2. Note down the exact path name where the FLEX library is installed. The
-   library is called:
-	libfl.a or libfl.sh 
-
-3. Define the KPP_HOME environment variable to point to the complete 
-   path location of KPP. If, for example, KPP is installed in $HOME/kpp:
-
-   - with C shell (or tcsh) edit the file .cshrc (or .tcshrc) in your
-     home directory and add:
-	setenv KPP_HOME $HOME/kpp
-	set path=( $path $HOME/kpp/bin )
-     Execute 'source .cshrc' (or 'source .tcshrc') to make sure these
-     changes are in effect.
-
-   - with bash shell edit the file .bashrc in your home directory and add:
-	export KPP_HOME=$HOME/kpp
-	export PATH=$PATH:$HOME/kpp/bin
-
-3. In KPP_HOME directory edit: 
-	Makefile.defs 
-   and follow the instructions included to specify the compiler, 
-   the location of the FLEX library, etc.
- 
-4. In KPP_HOME directory build the sources using:
-	make
-
-## Cleanup 
-
-1. Delete the KPP object files with:
-	make clean
-
-2. Delete the whole distribution (including the KPP binaries) with:
-	make distclean
-
-## Troubleshooting
-If you have any problems please send the detailed error report and the machine
-environment to:
-
-	geos-chem-support@g.harvard.edu
+## Documentation
+Please see our comprehensive KPP User's Guide (https://kpp.readthedocs.io) for installation and usage instructions.

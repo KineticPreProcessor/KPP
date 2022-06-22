@@ -1,10 +1,5 @@
-#include saprc99.spc
-#include saprc99.eqn
-
-{#LANGUAGE Fortran77
-#INTEGRATOR rodas3
-#DRIVER matlab
-#HESSIAN ON}
+#INCLUDE saprc99.spc
+#INCLUDE saprc99.eqn
 
 #LOOKATALL
 

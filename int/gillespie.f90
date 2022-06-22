@@ -1,7 +1,7 @@
 MODULE KPP_ROOT_Integrator
 
-  USE KPP_ROOT_Parameters, ONLY : NVAR, NFIX, NREACT 
-  USE KPP_ROOT_Global, ONLY : TIME, RCONST, Volume 
+  USE KPP_ROOT_Parameters
+  USE KPP_ROOT_Global
   USE KPP_ROOT_Stoichiom  
   USE KPP_ROOT_Stochastic
   USE KPP_ROOT_Rates
@@ -33,22 +33,28 @@ CONTAINS
       REAL   :: r1, r2
       KPP_REAL :: A(NREACT), SCT(NREACT), x
    
+      !~~~> In order to remove the prior EQUIVALENCE statements (which
+      !~~~> are not thread-safe), we now have declared VAR and FIX as
+      !~~~> threadprivate pointer variables that can point to C.
+      VAR => C(1:NVAR )
+      FIX => C(NVAR+1:NSPEC)
+
       DO issa = 1, Nevents
 
-          ! Uniformly distributed random numbers
+          !~~~> Uniformly distributed random numbers
           CALL RANDOM_NUMBER(r1)
           CALL RANDOM_NUMBER(r2)
           ! Avoid log of zero
           r2 = MAX(r2,1.e-14)
           
-          ! Propensity vector
+          !~~~> Propensity vector
           CALL  Propensity ( NmlcV, NmlcF, SCT, A )
           ! Cumulative sum of propensities
           DO i = 2, NREACT
             A(i) = A(i-1)+A(i);
           END DO
           
-          ! Index of next reaction
+          !~~~> Index of next reaction
           x = r1*A(NREACT)
           DO i = 1, NREACT
             IF (A(i)>=x) THEN
@@ -57,14 +63,18 @@ CONTAINS
             END IF
           END DO
           
-          ! Update time with time to next reaction
+          !~~~> Update time with time to next reaction
           T = T - LOG(r2)/A(NREACT);
 
-          ! Update state vector
+          !~~~> Update state vector
           CALL MoleculeChange( m, NmlcV )
         
      END DO
     
+     !~~~> Free pointers
+     VAR => NULL()
+     FIX => NULL()
+
   CONTAINS
 
     SUBROUTINE PropensityTemplate( T, NmlcV, NmlcF, Prop )

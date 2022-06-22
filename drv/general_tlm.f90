@@ -4,66 +4,67 @@
 
 PROGRAM KPP_ROOT_TLM_Driver
 
-  USE KPP_ROOT_Model
-  USE KPP_ROOT_Initialize, ONLY: Initialize
+      USE KPP_ROOT_Model
+      USE KPP_ROOT_Initialize, ONLY: Initialize
 
       KPP_REAL :: T, DVAL(NSPEC)
       INTEGER :: i, j, ind_1 = 1, ind_2 = 2
-      ! INTEGER :: ind_1 = ind_NO2, ind_2 = ind_O3
 
-!~~~>  NTLM = Number of sensitivity coefficients to compute
-!      Note: this value is set for sensitivities w.r.t. all initial values
-!            the setting may have to be changed for other applications
+!~~~> NTLM = Number of sensitivity coefficients to compute
+!~~~> Note: this value is set for sensitivities w.r.t. all initial values
+!~~~> the setting may have to be changed for other applications
       INTEGER, PARAMETER :: NTLM = NVAR
       KPP_REAL, DIMENSION(NVAR,NTLM) ::  Y_tlm, ATOL_tlm, RTOL_tlm
 
-  
-!~~~>  Control (in) and status (out) vectors for the integrator
+!~~~> Control (in) and status (out) vectors for the integrator
       INTEGER,  DIMENSION(20) :: ICNTRL, ISTATUS
       KPP_REAL, DIMENSION(20) :: RCNTRL, RSTATUS
 
       STEPMIN = 0.0d0
       STEPMAX = 0.0d0
 
-!~~~> Tolerances for calculating concentrations       
+!~~~> Tolerances for calculating concentrations
       DO i=1,NVAR
-        RTOL(i) = 1.0d-4
-        ATOL(i) = 1.0d-3
+         RTOL(i) = 1.0d-4
+         ATOL(i) = 1.0d-3
       END DO
-      
-!~~~> Tolerances for calculating sensitivities 
-!     are used for controlling sensitivity truncation error
-!     and for solving the linear sensitivity equations by iterations  
-!     Note: Sensitivities typically span many orders of magnitude
-!           and a careful tuning of ATOL_tlm may be necessary     
+
+!~~~> Tolerances for calculating sensitivities
+!~~~> are used for controlling sensitivity truncation error
+!~~~> and for solving the linear sensitivity equations by iterations
+!~~~> Note: Sensitivities typically span many orders of magnitude
+!~~~> and a careful tuning of ATOL_tlm may be necessary
       DO j=1,NTLM
-        DO i=1,NVAR
-          RTOL_tlm(i,j) = 1.0d-4
-          ATOL_tlm(i,j) = 1.0d-3
-        END DO
+         DO i=1,NVAR
+            RTOL_tlm(i,j) = 1.0d-4
+            ATOL_tlm(i,j) = 1.0d-3
+         END DO
       END DO
-     
+
+!~~~> Set initial values of species concenetrations
       CALL Initialize()
-!~~~> Note: the initial values below are for sensitivities 
-!           w.r.t. initial values;
-!           they may have to be changed for other applications
+
+!~~~> Note: the initial values below are for sensitivities
+!~~~> w.r.t. initial values;
+!~~~> they may have to be changed for other applications
       Y_tlm(1:NVAR,1:NTLM) = 0.0d0
       DO j=1,NTLM
-        Y_tlm(j,j) = 1.0d0
+         Y_tlm(j,j) = 1.0d0
       END DO
 
 !~~~> Default control options
       ICNTRL(1:20) = 0
-      RCNTRL(1:20) = 0.0d0       
+      RCNTRL(1:20) = 0.0d0
 
 !~~~> Begin time loop
 
       CALL InitSaveData()
 
       T = TSTART
-      
+
 kron: DO WHILE (T < TEND)
-       
+
+!~~~> Write out values of monitored species at each time iteration
         TIME = T
         CALL GetMass( C, DVAL )
         WRITE(6,991) (T-TSTART)/(TEND-TSTART)*100, T,      &
@@ -72,17 +73,26 @@ kron: DO WHILE (T < TEND)
                     (TRIM(SMASS(i)),DVAL(i)/CFACTOR, i=1,NMASS)
 
         CALL SaveData()
-        CALL Update_SUN() 
+
+!~~~> Update sun and rates before calling the integrator
+        CALL Update_SUN()
         CALL Update_RCONST()
 
-        CALL INTEGRATE_TLM( NTLM, VAR, Y_tlm, T, T+DT,     &
-                            ATOL_tlm, RTOL_tlm,            &
-                            ICNTRL, RCNTRL, ISTATUS, RSTATUS )
+!~~~> NOTE: in order to get rid of the prior EQUIVALENCE statements that
+!~~~> are not thread-safe, we now pass C(1:NVAR) to INTEGRATE_TLM rather
+!~~~> than VAR.  VAR and FIX are now threadprivate pointers that are
+!~~~> local to the integrator routine.  We can now replace instances of
+!~~~> VAR with C(1:NVAR) and FIX with C(NVAR+1:NSPEC).
+!~~~>    -- Bob Yantosca (26 Apr 2022)
+        CALL INTEGRATE_TLM( NTLM,   C(1:NVAR), Y_tlm,     T,       &
+                            T+DT,   ATOL_tlm,  RTOL_tlm,  ICNTRL,  &
+                            RCNTRL, ISTATUS,   RSTATUS            )
 
         T = T+DT
 
-      END DO kron
+     END DO kron
 
+!~~~> Write out final values of monitored species
       CALL GetMass( C, DVAL )
       WRITE(6,991) (T-TSTART)/(TEND-TSTART)*100, T,        &
                   (TRIM(SPC_NAMES(MONITOR(i))),            &
@@ -99,7 +109,7 @@ kron: DO WHILE (T < TEND)
       WRITE(6,*) ' were written in the file KPP_ROOT_TLM_results.m'
       WRITE(6,*) '**************************************************'
       DO j=1,NTLM
-        WRITE(20,993) ( Y_tlm(i,j), i=1,NVAR )          
+        WRITE(20,993) ( Y_tlm(i,j), i=1,NVAR )
       END DO
 
       CALL CloseSaveData()
@@ -112,21 +122,20 @@ kron: DO WHILE (T < TEND)
                    Y_tlm(ind_2,1)
       WRITE(6,995) TRIM(SPC_NAMES(ind_2)),TRIM(SPC_NAMES(ind_1)), &
                    Y_tlm(ind_1,2)
-                  
-                 
+
+
  991  FORMAT(F6.1,'%. T=',E10.3,3X,20(A,'=',E10.4,';',1X))
  993  FORMAT(1000(E24.16,2X))
  995  FORMAT('TLM: d[',A,'](tf)/d[',A,'](t0)=',E14.7)
- 
- 
+
+
       !~~~> The entire matrix of sensitivities
-      WRITE(6,996) ( 'd ',TRIM(SPC_NAMES(i)), i=1,NVAR ) 
+      WRITE(6,996) ( 'd ',TRIM(SPC_NAMES(i)), i=1,NVAR )
       DO j=1,NTLM
-        WRITE(6,997) TRIM(SPC_NAMES(j)),( Y_tlm(i,j), i=1,NVAR )          
+        WRITE(6,997) TRIM(SPC_NAMES(j)),( Y_tlm(i,j), i=1,NVAR )
       END DO
  996  FORMAT(12X,100('  ',A2,A6,4X))
  997  FORMAT('d/d',A6,' = ',100(E12.5,2X))
- 
+
 
 END PROGRAM KPP_ROOT_TLM_Driver
-

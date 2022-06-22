@@ -1,0 +1,5 @@
+#MODEL      small_strato
+#INTEGRATOR rosenbrock
+#LANGUAGE   Fortran90
+#DRIVER     general
+#FUNCTION   SPLIT

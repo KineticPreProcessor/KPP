@@ -37,7 +37,7 @@
 #include <stdio.h>
 #include "gdef.h"
 
-#define MAX_INLINE 200000  // KPP 2.3.2_gc, bmy, 06 May 2021
+#define MAX_INLINE 200000
           
 enum eq_state { LHS, RHS, RAT };
 enum sptypes { DUMMY_SPC, VAR_SPC, RAD_SPC, FIX_SPC, PL_SPC };
@@ -100,5 +100,44 @@ void WriteOptions();
 
 char * AppendString( char * s1, char * s2, int * len, int addlen );
 void AddInlineCode( char * context, char * code );
+
+// Add function prototpyes flagged as missing by the gfortran compiler,
+// in order to remove -Wimplicit-function-declaration warnings.
+// Some of these are already defined in gdata.h but are also needed here
+// since gdata.h is not accessed in the scanning/lexing.
+//   -- Bob Yantosca (27 Apr 2022)
+void AddUseFile( char *fname );
+void CheckAll();
+void CmdFunction( char *cmd );
+void CmdJacobian( char *cmd );
+void CmdHessian( char *cmd );
+void CmdDeclareValues( char *cmd );
+void CmdDouble( char *cmd );
+void CmdReorder( char *cmd );
+void CmdMex( char *cmd );
+void CmdDummyindex( char *cmd );
+void CmdEqntags( char *cmd );
+void CmdUse( char *cmd );
+void CmdLanguage( char *cmd );
+void CmdIntegrator( char *cmd );
+void CmdDriver( char *cmd );
+void CmdRun( char *cmd );
+void CmdStochastic( char *cmd );
+void CmdStoicmat( char *cmd );
+void CmdFlux( char *cmd );
+void CmdUpperCaseF90( char *cmd );
+void CmdMinVersion( char *cmd );
+void CmdUse( char *cmd );
+void DefineInitializeNbr( char *cmd );
+void DefineXGrid( char *cmd );
+void DefineYGrid( char *cmd );
+void DefineZGrid( char *cmd );
+int EqNoCase( char *s1, char *s2 );
+int EqnString( int eq, char * buf );
+void LookAtAll();
+int ParseEquationFile( char * filename );
+void SparseData( char *cmd );
+void TransportAll();
+int yylex();
 
 #endif

@@ -37,7 +37,10 @@
 %{
   #include <stdio.h>
   #include <stdlib.h>
-  #include <malloc.h>
+  #ifdef MACOS
+   #include <malloc/malloc.h>
+  #endif
+  /* #include <malloc.h> not necessary, "malloc" comes from <stdlib.h> */
   #include <string.h>
   #include <unistd.h>
   #include "scan.h"
@@ -69,8 +72,9 @@
 
 %}
 
+/* size of char str must be the same as MAX_K in gdata.h */
 %union{
-  char str[80];
+  char str[1000];
 };
 
 %token JACOBIAN DOUBLE FUNCTION DEFVAR DEFRAD DEFFIX SETVAR SETRAD SETFIX 
@@ -93,7 +97,8 @@
 %token FLUX AUTOREDUCE
 %token      PLSPC
 %type <str> PLSPC
-
+%token UPPERCASEF90
+%token MINVERSION
 %%
 
 program		: section
@@ -204,14 +209,15 @@ section	        : JACOBIAN PARAMETER
                 | USES uselist  
                   {}
                 | SPARSEDATA PARAMETER
-		  { SparseData( $2 );
-                  }
+		  { SparseData( $2 ); }
                 | FLUX PARAMETER
-		  { CmdFlux( $2 );
-                  }
+		  { CmdFlux( $2 ); }
                 | AUTOREDUCE PARAMETER
-		  { CmdAutoReduce( $2 );
-                  }
+		  { CmdAutoReduce( $2 ); }
+                | UPPERCASEF90 PARAMETER
+		  { CmdUpperCaseF90( $2 ); }
+                | MINVERSION PARAMETER
+		  { CmdMinVersion( $2 ); }
                 ;  
 semicolon       : semicolon ';'
                   { ScanWarning("Unnecessary ';'");

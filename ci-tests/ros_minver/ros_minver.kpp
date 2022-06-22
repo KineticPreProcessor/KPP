@@ -1,0 +1,8 @@
+#MINVERSION   100.10.20    {So big that any recent KPP version will fail!}
+#MODEL        saprc99
+#INTEGRATOR   rosenbrock
+#LANGUAGE     Fortran90
+#UPPERCASEF90 on
+#DRIVER       general
+#HESSIAN      on
+#STOICMAT     on

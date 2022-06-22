@@ -17,7 +17,7 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
 
    KPP_REAL, INTENT(IN) :: TIN  ! Start Time
    KPP_REAL, INTENT(IN) :: TOUT ! End Time
-   ! Optional input parameters and statistics
+   !~~~> Optional input parameters and statistics
    INTEGER,       INTENT(IN),  OPTIONAL :: ICNTRL_U(20)
    KPP_REAL, INTENT(IN),  OPTIONAL :: RCNTRL_U(20)
    INTEGER,       INTENT(OUT), OPTIONAL :: ISTATUS_U(20)
@@ -28,38 +28,50 @@ SUBROUTINE INTEGRATE( TIN, TOUT, &
    INTEGER       :: ICNTRL(20), ISTATUS(20), IERR
 
    INTEGER, SAVE :: Ntotal = 0
-
-   ICNTRL(:)  = 0
-   RCNTRL(:)  = 0.0_dp
-   ISTATUS(:) = 0
-   RSTATUS(:) = 0.0_dp
+   
+   !~~~> Zero input and output arrays for safety's sake
+   ICNTRL     = 0
+   RCNTRL     = 0.0_dp
+   ISTATUS    = 0
+   RSTATUS    = 0.0_dp
 
    !~~~> fine-tune the integrator:
-   ICNTRL(1) = 0	! 0 - non-autonomous, 1 - autonomous
-   ICNTRL(2) = 0	! 0 - vector tolerances, 1 - scalars
+   ICNTRL(1)  = 0       ! 0 - non-autonomous, 1 - autonomous
+   ICNTRL(2)  = 0       ! 0 - vector tolerances, 1 - scalars
+   ICNTRL(15) = 5       ! Call Update_SUN and Update_RCONST from w/in the int. 
 
-   ! If optional parameters are given, and if they are >0, 
-   ! then they overwrite default settings. 
-   IF (PRESENT(ICNTRL_U)) THEN
-     WHERE(ICNTRL_U(:) > 0) ICNTRL(:) = ICNTRL_U(:)
-   END IF
-   IF (PRESENT(RCNTRL_U)) THEN
-     WHERE(RCNTRL_U(:) > 0) RCNTRL(:) = RCNTRL_U(:)
-   END IF
+   !~~~> if optional parameters are given, and if they are /= 0,
+   !     then use them to overwrite default settings
+   IF ( PRESENT( ICNTRL_U ) ) THEN
+      WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
+   ENDIF
+   IF ( PRESENT( RCNTRL_U ) ) THEN
+      WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
+   ENDIF
 
+   !~~~> In order to remove the prior EQUIVALENCE statements (which
+   !~~~> are not thread-safe), we now have declared VAR and FIX as
+   !~~~> threadprivate pointer variables that can point to C.
+   VAR => C(1:NVAR )
+   FIX => C(NVAR+1:NSPEC)
 
+   !~~~> Call the integrator
    CALL Exponential(NVAR,VAR,NFIX,FIX,TIN,TOUT,IERR)
 
-   ! if optional parameters are given for output they 
-   ! are updated with the return information
-   IF (PRESENT(ISTATUS_U)) ISTATUS_U(:) = ISTATUS(:)
-   IF (PRESENT(RSTATUS_U)) RSTATUS_U(:) = RSTATUS(:)
-   IF (PRESENT(IERR_U))    IERR_U       = IERR
+   !~~~> Free pointers
+   VAR => NULL()
+   FIX => NULL()
 
+   !~~~> if optional parameters are given for output
+   !~~~> use them to store information in them
+   IF ( PRESENT( ISTATUS_U ) ) ISTATUS_U = ISTATUS
+   IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
+   IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR
+   
 END SUBROUTINE INTEGRATE
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBROUTINE Exponential(N,Y,NF,F,Tstart,Tend, IERR)
+SUBROUTINE Exponential(N,Y,NF,FIX,Tstart,Tend, IERR)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
 !    Solves the system y'=F(t,y) using a an explicit method defined by
@@ -102,18 +114,18 @@ SUBROUTINE Exponential(N,Y,NF,F,Tstart,Tend, IERR)
 
 !~~~>  Arguments
    INTEGER,       INTENT(IN)    :: N, NF
-   KPP_REAL, INTENT(INOUT) :: Y(N), F(NF)
+   KPP_REAL, INTENT(INOUT) :: Y(N), FIX(NF)
    KPP_REAL, INTENT(IN)    :: Tstart,Tend
    INTEGER, INTENT(OUT)   :: IERR
-!~~~>  Parameters of the Rosenbrock method, up to 6 stages
 !~~~>  Local variables
-   KPP_REAL            :: PROD(N), LOSS(N)
+   KPP_REAL            :: Ydot(N), P(N), D(N)
 !~~~>   Parameters
    KPP_REAL, PARAMETER :: ZERO = 0.0_dp, ONE  = 1.0_dp
    KPP_REAL, PARAMETER :: DeltaMin = 1.0E-5_dp
 
-   CALL Fun_SPLIT(Y,F,RCONST,PROD,LOSS)
-   Y=Y*dexp(-1._dp*LOSS*(Tstart-Tend))+(1._dp-dexp(-1._dp*LOSS*(Tstart-Tend))*(PROD/LOSS))
+   CALL KPP_FUN_OR_FUN_SPLIT
+   
+   Y=Y*dexp(-1._dp*D*(Tstart-Tend))+(1._dp-dexp(-1._dp*D*(Tstart-Tend))*(P/D))
 
    ! Can be rewritten as a linear algebra operation for possible optimization. - MSL
    

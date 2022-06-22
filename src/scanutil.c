@@ -32,9 +32,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <malloc.h>
+#ifdef MACOS
+ #include <malloc/malloc.h>
+#endif
+/* #include <malloc.h> not necessary, "malloc" comes from <stdlib.h> */
 #include <unistd.h>
 #include <string.h>
+#include <ctype.h>
 #include "gdata.h"
 #include "scan.h"
 
@@ -176,7 +180,11 @@ int noext;
       }
       if((*crtpath == ':')||(*crtpath==0)) {
         *p = 0;
-        sprintf(pathname,"%s/%s",pathname,name);
+	// We can't sprint a file to itself, we can use strncat to append.
+	//  -- Bob Yantosca (29 Apr 2022)
+        //sprintf(pathname,"%s/%s",pathname,name);
+	strncat( pathname, "/", 2 );
+	strncat( pathname, name, strlen(name)+1 );
         fp = fopen(pathname,"r");
         if( fp ) {
           fclose(fp);
@@ -190,8 +198,16 @@ int noext;
       *p++ = *crtpath++;
     }
   }
+
+  // Use strncat to append to pathname, as we cannot sprintf
+  // a string unto itself -- Bob Yantosca (29 Apr 2022)
+  //sprintf(pathname, "%s/%s/%s", Home, dir, name);
+  sprintf( pathname, "%s", Home            );
+  strncat( pathname, "/",  2               );
+  strncat( pathname, dir,  strlen(dir)+1   );
+  strncat( pathname, "/",  2               );
+  strncat( pathname, name, strlen(name)+1  );
   
-  sprintf(pathname, "%s/%s/%s", Home, dir, name);
   fp = fopen(pathname,"r");
   if( fp ) {
     fclose(fp);

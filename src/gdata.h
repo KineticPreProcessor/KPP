@@ -29,27 +29,51 @@
 
 ******************************************************************************/
 
-#define KPP_VERSION "3.0.0_gc-AR.alpha2"  // Version number
+#define KPP_VERSION "2.5.0"
 
 #ifndef _GDATA_H_
 #define _GDATA_H_
 
 #include <stdio.h>
+#include <string.h>
 
-#define MAX_EQN        1500     // Max number of equations
-#define MAX_SPECIES    1000     // Max number of species
+// - Many limits can be changed here by adjusting the MAX_* constants
+// - To increase the max size of inlined code (F90_GLOBAL etc.),
+//   change MAX_INLINE in scan.h.
+//
+//   NOTES:
+//   ------
+//   (1) Note: MAX_EQN or MAX_SPECIES over 1023 causes a seg fault in CI build
+//         -- Lucas Estrada, 10/13/2021
+//
+//   (2) MacOS has a hard limit of 65332 bytes for stack memory.  To make
+//       sure that you are using this max amount of stack memory, add
+//       "ulimit -s 65532" in your .bashrc or .bash_aliases script.  We must
+//       also set smaller limits for MAX_EQN and MAX_SPECIES here so that we
+//       do not exceed the avaialble stack memory (which will result in the
+//       infamous "Segmentation fault 11" error).  If you are stll having
+//       problems on MacOS then consider reducing MAX_EQN and MAX_SPECIES
+//       to smaller values than are listed below.
+//         -- Bob Yantosca (03 May 2022)
+#ifdef MACOS
+#define MAX_EQN        2000     // Max number of equations (MacOS only)
+#define MAX_SPECIES    1000     // Max number of species   (MacOS only)
+#else
+#define MAX_EQN       11000     // Max number of equations
+#define MAX_SPECIES    6000     // Max number of species
+#endif
 #define MAX_SPNAME       30     // Max char length of species name
 #define MAX_IVAL         40     // Max char length of species ID ?
-#define MAX_EQNTAG       12     // Max length of equation ID in eqn file
-#define MAX_K           200     // Max length of rate expression in eqn file
+#define MAX_EQNTAG       32     // Max length of equation ID in eqn file
+#define MAX_K          1000     // Max length of rate expression in eqn file
 #define MAX_ATOMS        10     // Max number of atoms
 #define MAX_ATNAME       10     // Max char length of atom name
 #define MAX_ATNR        250     // Max number of atom tables
-#define MAX_PATH        250     // Max char length of directory paths
+#define MAX_PATH        300     // Max char length of directory paths
 #define MAX_FILES        20     // Max number of files to open
 #define MAX_FAMILIES    300     // Max number of family definitions
 #define MAX_MEMBERS     150     // Max number of family members
-#define MAX_EQNLEN      200     // Max char length of equations
+#define MAX_EQNLEN      300     // Max char length of equations
 
 #define NO_CODE 	-1
 #define max( x, y ) (x) > (y) ? (x) : (y)
@@ -169,6 +193,9 @@ extern int useLang;
 extern int useStochastic;
 extern int doFlux;
 extern int doAutoReduce;
+extern int upperCaseF90;
+extern char f90Suffix[4];
+extern char minKppVersion[30]; // size [30] must be the same as in scanner.c
 
 /* if useValues=1 KPP replaces parameters like NVAR etc.
        by their values in vector/matrix declarations */
@@ -212,6 +239,7 @@ extern char radDefault[ MAX_IVAL ];
 extern char fixDefault[ MAX_IVAL ];
 extern double cfactor;
 
+// Prototypes for functions in scanner.c
 void CmdFunction( char *cmd );
 void CmdJacobian( char *cmd );
 void CmdHessian( char *cmd );
@@ -228,7 +256,6 @@ void CmdDriver( char *cmd );
 void CmdRun( char *cmd );
 void CmdStochastic( char *cmd );
 void CmdFlux( char *cmd );
-
 void Generate();
 
 char * FileName( char *name, char* env, char *dir, char *ext );
@@ -237,5 +264,11 @@ int*  AllocIntegerVector( int n, char* message );
 int** AllocIntegerMatrix( int m, int n, char* message );
 void FreeIntegerMatrix ( int** mat, int m, int n );
 int Index( int i );
+
+// Add function prototpyes flagged as missing by the gfortran compiler,
+// in order to remove -Wimplicit-function-declaration warnings.
+//   -- Bob Yantosca (27 Apr 2022)
+//void FatalError( int status, char *fmt, ... );
+int KppVersionIsTooOld();
 
 #endif

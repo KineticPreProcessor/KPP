@@ -1,5 +1,10 @@
 # Requirements for building the KPP documentation
-sphinx
-sphinx_rtd_theme
-sphinxcontrib-bibtex 
+#
+# These Python package versions have been proven to work:
+#
+sphinx==3.5.4
+sphinx_rtd_theme==0.5.2
+sphinxcontrib-bibtex==2.2.0
 recommonmark
+docutils==0.16
+jinja2==3.0.3

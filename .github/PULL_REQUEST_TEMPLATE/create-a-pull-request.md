@@ -1,13 +1,13 @@
 ---
-name: Submit updates via pull request for KPP-for-GEOS-Chem
-about: This template instructs users to submit a pull request to KPP-for-GEOS-Chem.
+name: Submit updates via pull request for KPP
+about: This template instructs users to submit a pull request to KPP.
 title: "[PULL REQUEST]"
 labels: ''
 assignees: ''
 
 ---
 
-# KPP-for-GEOS-Chem Update Submission Form
+# KPP Update Submission Form
 
 ## Describe the update:
 
@@ -35,8 +35,8 @@ assignees: ''
 
 ### Compiler used in testing:
 <!--- Place an `x` in all the boxes that apply and write the compiler version number -->
-* [ ] Intel Fortran Compiler (aka ifort), version ___
 * [ ] GNU Fortran Compiler (aka gfortran), version ___
+* [ ] Intel Fortran Compiler (aka ifort), version ___
 
 ### Other information about testing:
 <!--- Please specify any other pertinent information about how this update was tested -->

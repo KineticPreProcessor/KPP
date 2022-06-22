@@ -16,7 +16,7 @@
 MODULE KPP_ROOT_Integrator
 
   USE KPP_ROOT_Precision
-  USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
+  USE KPP_ROOT_Global, ONLY: VAR, FIX, RCONST, TIME
   USE KPP_ROOT_Parameters, ONLY: NVAR, NSPEC, NFIX, LU_NONZERO
   USE KPP_ROOT_JacobianSP, ONLY: LU_DIAG
   USE KPP_ROOT_Jacobian, ONLY: Jac_SP_Vec, JacTR_SP_Vec
@@ -26,7 +26,14 @@ MODULE KPP_ROOT_Integrator
   IMPLICIT NONE
   PUBLIC
   SAVE
-  
+
+!~~~> Flags to determine if we should call the UPDATE_* routines from within 
+!~~~> the integrator.  If using KPP in an external model, you might want to
+!~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
+  LOGICAL, PRIVATE :: Do_Update_RCONST
+  LOGICAL, PRIVATE :: Do_Update_PHOTO
+  LOGICAL, PRIVATE :: Do_Update_SUN
+
 !~~~>  Statistics on the work performed by the SDIRK method
   INTEGER, PARAMETER :: Nfun=1, Njac=2, Nstp=3, Nacc=4,  &
            Nrej=5, Ndec=6, Nsol=7, Nsng=8,               &
@@ -40,6 +47,8 @@ SUBROUTINE INTEGRATE_ADJ( NADJ, Y, Lambda, TIN, TOUT, &
 
    USE KPP_ROOT_Parameters
    USE KPP_ROOT_Global
+   USE KPP_ROOT_Util, ONLY : Integrator_Update_Options
+
    IMPLICIT NONE
 
 !~~~> Y - Concentrations
@@ -70,30 +79,59 @@ SUBROUTINE INTEGRATE_ADJ( NADJ, Y, Lambda, TIN, TOUT, &
    KPP_REAL :: RCNTRL(20), RSTATUS(20), T1, T2
    INTEGER       :: ICNTRL(20), ISTATUS(20), Ierr
 
-   ICNTRL(:)  = 0
-   RCNTRL(:)  = 0.0_dp
-   ISTATUS(:) = 0
-   RSTATUS(:) = 0.0_dp
+   !~~~> Zero input and output arrays for safety's sake
+   ICNTRL     = 0
+   RCNTRL     = 0.0_dp
+   ISTATUS    = 0
+   RSTATUS    = 0.0_dp
 
    !~~~> fine-tune the integrator:
-   ICNTRL(5) = 8    ! Max no. of Newton iterations
-   ICNTRL(7) = 1    ! Adjoint solution by: 0=Newton, 1=direct
-   ICNTRL(8) = 1    ! Save fwd LU factorization: 0 = do *not* save, 1 = save
+   ICNTRL(5)  = 8    ! Max no. of Newton iterations
+   ICNTRL(7)  = 1    ! Adjoint solution by: 0=Newton, 1=direct
+   ICNTRL(8)  = 1    ! Save fwd LU factorization: 0 = do *not* save, 1 = save
+   ICNTRL(15) = 5    ! Call Update_SUN and Update_RCONST from w/in the int. 
 
-   ! If optional parameters are given, and if they are >0, 
-   ! then they overwrite default settings. 
-   IF (PRESENT(ICNTRL_U)) THEN
-     WHERE(ICNTRL_U(:) > 0) ICNTRL(:) = ICNTRL_U(:)
-   END IF
-   IF (PRESENT(RCNTRL_U)) THEN
-     WHERE(RCNTRL_U(:) > 0) RCNTRL(:) = RCNTRL_U(:)
-   END IF
+   !~~~> if optional parameters are given, and if they are /= 0,
+   !~~~> then use them to overwrite default settings
+   IF ( PRESENT( ICNTRL_U ) ) THEN
+      WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
+   ENDIF
+   IF ( PRESENT( RCNTRL_U ) ) THEN
+      WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
+   ENDIF
    
-   
+   !~~~> Determine the settings of the Do_Update_* flags, which determine
+   !~~~> whether or not we need to call Update_* routines in the integrator
+   !~~~> (or not, if we are calling them from a higher-level)
+   ! ICNTRL(15) = -1 ! Do not call Update_* functions within the integrator
+   !            =  0 ! Status quo
+   !            =  1 ! Call Update_RCONST from within the integrator
+   !            =  2 ! Call Update_PHOTO from within the integrator
+   !            =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
+   !            =  4 ! Call Update_SUN from within the integrator
+   !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
+   !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
+   !            =  7 ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
+   CALL Integrator_Update_Options( ICNTRL(15),          &
+                                   Do_Update_RCONST,    &
+                                   Do_Update_PHOTO,     &
+                                   Do_Update_Sun       )
+
+   !~~~> In order to remove the prior EQUIVALENCE statements (which
+   !~~~> are not thread-safe), we now have declared VAR and FIX as
+   !~~~> threadprivate pointer variables that can point to C.
+   VAR => C(1:NVAR )
+   FIX => C(NVAR+1:NSPEC)
+
+   !~~~> Call the integrator
    T1 = TIN; T2 = TOUT
-   CALL SDIRKADJ( NVAR, NADJ, T1, T2, Y, Lambda,            &
-                  RTOL, ATOL, ATOL_adj, RTOL_adj,           &
-                  RCNTRL, ICNTRL, RSTATUS, ISTATUS, Ierr )
+   CALL SDIRKADJ( NVAR,   NADJ,   T1,      T2,       Y,         &
+                  Lambda, RTOL,   ATOL,    ATOL_adj, RTOL_adj,  &
+                  RCNTRL, ICNTRL, RSTATUS, ISTATUS,  Ierr      )
+
+   !~~~> Free pointers
+   VAR => NULL()
+   FIX => NULL()
 
    !~~~> Debug option: number of steps
    ! Ntotal = Ntotal + ISTATUS(Nstp)
@@ -104,10 +142,11 @@ SUBROUTINE INTEGRATE_ADJ( NADJ, Y, Lambda, TIN, TOUT, &
         PRINT *,'SDIRK: Unsuccessful exit at T=',TIN,' (Ierr=',Ierr,')'
    ENDIF
    
-   ! if optional parameters are given for output they to return information
-   IF (PRESENT(ISTATUS_U)) ISTATUS_U(:) = ISTATUS(:)
-   IF (PRESENT(RSTATUS_U)) RSTATUS_U(:) = RSTATUS(:)
-   IF (PRESENT(Ierr_U))    Ierr_U       = Ierr
+   ! if optional parameters are given for output
+   ! use them to store information in them
+   IF ( PRESENT( ISTATUS_U ) ) ISTATUS_U = ISTATUS
+   IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
+   IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR
 
    END SUBROUTINE INTEGRATE_ADJ
 
@@ -180,7 +219,7 @@ SUBROUTINE INTEGRATE_ADJ( NADJ, Y, Lambda, TIN, TOUT, &
 !    ICNTRL(3) = Method
 !
 !    ICNTRL(4)  -> maximum number of integration steps
-!        For ICNTRL(4)=0 the default value of 1500 is used
+!        For ICNTRL(4)=0 the default value of 200000 is used
 !        Note: use a conservative estimate, since the checkpoint
 !              buffers are allocated to hold Max_no_steps
 !
@@ -199,6 +238,17 @@ SUBROUTINE INTEGRATE_ADJ( NADJ, Y, Lambda, TIN, TOUT, &
 !        ICNTRL(8)=0 : do *not* save LU factorization (the default)
 !        ICNTRL(8)=1 : save LU factorization
 !        Note: if ICNTRL(7)=1 the LU factorization is *not* saved
+!
+!    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
+!        = -1 :  Do not call Update_* functions within the integrator
+!        =  0 :  Status quo
+!        =  1 :  Call Update_RCONST from within the integrator
+!        =  2 :  Call Update_PHOTO from within the integrator
+!        =  3 :  Call Update_RCONST and Update_PHOTO from w/in the int.
+!        =  4 :  Call Update_SUN from within the integrator
+!        =  5 :  Call Update_SUN and Update_RCONST from within the int.
+!        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST from within the int.
 !
 !~~~>  Real parameters
 !
@@ -571,12 +621,12 @@ stages:DO istage = 1, rkS
 NewtonLoop:DO NewtonIter = 1, NewtonMaxit
 
 !~~~>   Prepare the loop-dependent part of the right-hand side
- 	    CALL WADD(N,Y,Z(1,istage),TMP)         	! TMP <- Y + Zi
-            CALL FUN_CHEM(T+rkC(istage)*H,TMP,RHS)	! RHS <- Fun(Y+Zi)
+            CALL WADD(N,Y,Z(1,istage),TMP)              ! TMP <- Y + Zi
+            CALL FUN_CHEM(T+rkC(istage)*H,TMP,RHS)      ! RHS <- Fun(Y+Zi)
             ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 !            RHS(1:N) = G(1:N) - Z(1:N,istage) + (H*rkGamma)*RHS(1:N)
-	    CALL WSCAL(N, H*rkGamma, RHS, 1)
-	    CALL WAXPY (N, -ONE, Z(1,istage), 1, RHS, 1)
+            CALL WSCAL(N, H*rkGamma, RHS, 1)
+            CALL WAXPY (N, -ONE, Z(1,istage), 1, RHS, 1)
             CALL WAXPY (N, ONE, G,1, RHS,1)
 
 !~~~>   Solve the linear system
@@ -1604,15 +1654,18 @@ Hloop: DO WHILE (ISING /= 0)
       SUBROUTINE FUN_CHEM( T, Y, P )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      USE KPP_ROOT_Parameters, ONLY: NVAR
-      USE KPP_ROOT_Global, ONLY: TIME, FIX, RCONST
-      USE KPP_ROOT_Function, ONLY: Fun
+      USE KPP_ROOT_Parameters, ONLY : NVAR
+      USE KPP_ROOT_Global,     ONLY : TIME, FIX, RCONST
+      USE KPP_ROOT_Function,   ONLY : Fun
+      USE KPP_ROOT_Rates,      ONLY : Update_SUN, Update_RCONST
 
       KPP_REAL :: T, Told
       KPP_REAL :: Y(NVAR), P(NVAR)
       
       Told = TIME
       TIME = T
+      IF ( Do_Update_SUN    ) CALL Update_SUN()
+      IF ( Do_Update_RCONST ) CALL Update_RCONST()
       
       CALL Fun( Y, FIX, RCONST, P )
       
@@ -1625,10 +1678,11 @@ Hloop: DO WHILE (ISING /= 0)
       SUBROUTINE JAC_CHEM( T, Y, JV )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
-      USE KPP_ROOT_Global, ONLY: TIME, FIX, RCONST
-      USE KPP_ROOT_Jacobian, ONLY: Jac_SP,LU_IROW,LU_ICOL
-  
+      USE KPP_ROOT_Parameters, ONLY : NVAR, LU_NONZERO
+      USE KPP_ROOT_Global,     ONLY : TIME, FIX, RCONST
+      USE KPP_ROOT_Jacobian,   ONLY : Jac_SP,LU_IROW,LU_ICOL
+      USE KPP_ROOT_Rates,      ONLY : Update_SUN, Update_RCONST
+
       KPP_REAL ::  T, Told
       KPP_REAL ::  Y(NVAR)
 #ifdef FULL_ALGEBRA
@@ -1640,6 +1694,8 @@ Hloop: DO WHILE (ISING /= 0)
  
       Told = TIME
       TIME = T
+      IF ( Do_Update_SUN    ) CALL Update_SUN()
+      IF ( Do_Update_RCONST ) CALL Update_RCONST()
 
 #ifdef FULL_ALGEBRA
       CALL Jac_SP(Y, FIX, RCONST, JS)

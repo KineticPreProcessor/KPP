@@ -1,0 +1,27 @@
+# Quick test pipeline:
+# 
+# This pipeline runs several example mechanisms to check for errors
+# impacting basic functionality of kpp
+
+# Run a C-I test when a push to any branch is made.
+trigger:
+  branches:
+    include:
+      - '*'
+pr:
+  branches:
+    include:
+      - '*'
+
+pool:
+  vmImage: 'ubuntu-20.04'
+# Login to Docker Hub, build the image, and push the built image
+# to Docker Hub
+steps:
+  - task: Docker@2
+    displayName: Build image
+    inputs:
+      command: build
+      buildContext: $(Build.Repository.LocalPath)   # The path to the source code repo
+      Dockerfile: .ci-pipelines/Dockerfile
+      arguments: --progress=plain
