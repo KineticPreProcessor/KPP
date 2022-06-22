@@ -52,7 +52,7 @@ int NVARST, NFIXST;
 int C_DEFAULT, C;
 int DC;
 int ARP, JVRP, NJVRP, CROW_JVRP, IROW_JVRP, ICOL_JVRP;
-int V, F, VAR, FIX; /*, FLUX;*/
+int V, F, VAR, FIX, FLUX;
 int RCONST, RCT;
 int Vdot, P_VAR, D_VAR, Aout, Vdotout;
 int StoichNum;
