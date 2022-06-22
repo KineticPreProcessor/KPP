@@ -3377,11 +3377,13 @@ case 'h':
 
   UseFile( jacobianFile );
     F90_Inline("MODULE %s_Jacobian\n", rootFileName );
-    if ( useDeclareValues )
+    if ( useDeclareValues ) {
       F90_Inline("  USE %s_Precision", rootFileName );
-    else
+    }
+    else {
       if( doAutoReduce ) F90_Inline("  USE %s_Global, ONLY: DO_JVS", rootFileName);
       F90_Inline("  USE %s_Parameters", rootFileName );
+    }
     if ( useJacSparse )
       F90_Inline("  USE %s_JacobianSP\n", rootFileName);
     F90_Inline("  IMPLICIT NONE", rootFileName );
