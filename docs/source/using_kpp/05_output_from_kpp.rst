@@ -1118,3 +1118,170 @@ Furthermore it contains the complete list of all the functions generated
 in the target source file. For each function, a brief description of the
 computation performed is attached containing also the meaning of the
 input and output parameters.
+
+=================================================================
+Output from the Integrators (:code:`ISTATUS` and :code:`RSTATUS`)
+=================================================================
+
+In order to obtain more information about the integration, KPP provides
+the arrays :code:`ISTATUS` (integer) and :code:`RSTATUS` (real). Each of
+them is an array of 20 elements. Array elements not listed here are
+either not used or are integrator-specific options. Details can be found
+in the comment lines of the individual integrator files in
+:code:`$KPP_HOME/int/`.
+
+ISTATUS
+-------
+
+.. table:: Summary of ISTATUS usage in the f90 integrators.
+           Here, Y = used.
+   :align: center
+
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | ISTATUS         | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+   +=================+===+===+===+===+===+===+===+===+===+
+   | beuler          | Y | Y | Y | Y | Y | Y | Y | Y |   |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | dvode           |   |   |   |   |   |   |   |   |   |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | exponential     |   |   |   |   |   |   |   |   |   |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | feuler          |   |   |   |   |   |   |   |   |   |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | gillespie       |   |   |   |   |   |   |   |   |   |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | lsode           | Y | Y | Y |   |   |   |   |   |   |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | radau5          | Y | Y | Y | Y | Y | Y | Y | Y |   |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | rosenbrock_adj  | Y | Y | Y | Y | Y | Y | Y | Y |   |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | rosenbrock      | Y | Y | Y | Y | Y | Y | Y | Y |   |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | rosenbrock_tlm  | Y | Y | Y | Y | Y | Y | Y | Y | Y |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | runge_kutta_adj | Y | Y | Y | Y | Y | Y | Y | Y |   |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | runge_kutta     | Y | Y | Y | Y | Y | Y | Y | Y |   |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | runge_kutta_tlm | Y | Y | Y | Y | Y | Y | Y | Y |   |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | sdirk4          | Y | Y | Y | Y | Y | Y | Y | Y |   |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | sdirk_adj       | Y | Y | Y | Y | Y | Y | Y | Y |   |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | sdirk           | Y | Y | Y | Y | Y | Y | Y | Y |   |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | sdirk_tlm       | Y | Y | Y | Y | Y | Y | Y | Y |   |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | seulex          | Y | Y | Y | Y | Y | Y | Y |   |   |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+   | tau_leap        |   |   |   |   |   |   |   |   |   |
+   +-----------------+---+---+---+---+---+---+---+---+---+
+
+.. option:: ISTATUS(1)
+
+   Number of function calls.
+
+.. option:: ISTATUS(2)
+
+   Number of Jacobian calls.
+
+.. option:: ISTATUS(3)
+
+   Number of steps.
+
+.. option:: ISTATUS(4)
+
+   Number of accepted steps.
+
+.. option:: ISTATUS(5)
+
+   Number of rejected steps (except at very beginning).
+
+.. option:: ISTATUS(6)
+
+   Number of LU decompositions.
+
+.. option:: ISTATUS(7)
+
+   Number of forward/backward substitutions.
+
+.. option:: ISTATUS(8)
+
+   Number of singular matrix decompositions.
+
+.. option:: ISTATUS(9)
+
+   Number of Hessian calls.
+
+.. option:: ISTATUS(11) ... ISTATUS(20)
+
+   currently not used
+
+RSTATUS
+-------
+
+.. table:: Summary of RSTATUS usage in the f90 integrators.
+           Here, Y = used.
+   :align: center
+
+   +-----------------+---+---+---+
+   | RSTATUS         | 1 | 2 | 3 |
+   +=================+===+===+===+
+   | beuler          | Y | Y | Y |
+   +-----------------+---+---+---+
+   | dvode           |   |   |   |
+   +-----------------+---+---+---+
+   | exponential     |   |   |   |
+   +-----------------+---+---+---+
+   | feuler          |   |   |   |
+   +-----------------+---+---+---+
+   | gillespie       |   |   |   |
+   +-----------------+---+---+---+
+   | lsode           | Y | Y |   |
+   +-----------------+---+---+---+
+   | radau5          |   |   |   |
+   +-----------------+---+---+---+
+   | rosenbrock_adj  | Y | Y | Y |
+   +-----------------+---+---+---+
+   | rosenbrock      | Y | Y | Y |
+   +-----------------+---+---+---+
+   | rosenbrock_tlm  | Y | Y | Y |
+   +-----------------+---+---+---+
+   | runge_kutta_adj | Y | Y | Y |
+   +-----------------+---+---+---+
+   | runge_kutta     | Y | Y | Y |
+   +-----------------+---+---+---+
+   | runge_kutta_tlm | Y | Y | Y |
+   +-----------------+---+---+---+
+   | sdirk4          | Y | Y |   |
+   +-----------------+---+---+---+
+   | sdirk_adj       | Y | Y | Y |
+   +-----------------+---+---+---+
+   | sdirk           | Y | Y | Y |
+   +-----------------+---+---+---+
+   | sdirk_tlm       | Y | Y | Y |
+   +-----------------+---+---+---+
+   | seulex          |   |   |   |
+   +-----------------+---+---+---+
+   | tau_leap        |   |   |   |
+   +-----------------+---+---+---+
+
+.. option:: RSTATUS(1)
+
+   :code:`Texit`, the time corresponding to the computed :math:`Y`
+   upon return.
+
+.. option:: RSTATUS(2)
+
+  :code:`Hexit`: the last accepted step before exit.
+
+.. option:: RSTATUS(3)
+
+   :code:`Hnew`: The last predicted step (not yet taken.  For multiple
+   restarts, use :code:`Hnew` as :code:`Hstart` in the subsequent run.
+
+.. option:: RSTATUS(4) ... RSTATUS(20)
+
+   currently not used

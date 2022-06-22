@@ -362,6 +362,9 @@ List of continuous integration tests
    | :file:`ros`           | Uses the Rosenbrock integrator                 |
    |                       | with the small_strato chemical mechanism.      |
    +-----------------------+------------------------------------------------+
+   | :file:`ros_split`     | Same as :file:`ros`, but tests the             |
+   |                       | :command:`#FUNCTION SPLIT` command.            |
+   +-----------------------+------------------------------------------------+
    | :file:`rosadj`        | Same as :file:`ros`, but uses the Rosenbrock   |
    |                       | adjoint integrator.                            |
    +-----------------------+------------------------------------------------+
@@ -380,7 +383,7 @@ List of continuous integration tests
    | :file:`ros_upcase`    | Same as :file:`rosenbrock90`, but tests if     |
    |                       | KPP can generate Fortran90 code with the       |
    |                       | :file:`.F90` suffix (i.e. with                 |
-   |                       | :command:`#UPPERCASE ON`.                      |
+   |                       | :command:`#UPPERCASE ON`).                     |
    +-----------------------+------------------------------------------------+
    | :file:`saprc2006`     | Uses the Rosenbrock integrator with the        |
    |                       | SAPRCNOV chemical mechanism.                   |

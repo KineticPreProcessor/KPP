@@ -52,37 +52,37 @@ LIBS =
 
 # JacobianSP
 HAS_JAC_SP =0
-ifeq ($(shell test -f KPP_ROOT_JacobianSP.f90 && echo -n yes),yes)
+ifeq ($(shell test -f KPP_ROOT_JacobianSP.f90 && echo y),y)
   HAS_JAC_SP =1
 endif
 
 # Jacobian
 HAS_JAC = 0
-ifeq ($(shell test -f KPP_ROOT_Jacobian.f90 && echo -n yes),yes)
+ifeq ($(shell test -f KPP_ROOT_Jacobian.f90 && echo y),y)
   HAS_JAC = 1
 endif
 
 # HessianSP
 HAS_HES_SP = 0
-ifeq ($(shell test -f KPP_ROOT_HessianSP.f90 && echo -n yes),yes)
+ifeq ($(shell test -f KPP_ROOT_HessianSP.f90 && echo y),y)
   HAS_HES_SP = 1
 endif
 
 # Hessian
 HAS_HES=0
-ifeq ($(shell test -f KPP_ROOT_Hessian.f90 && echo -n yes),yes)
+ifeq ($(shell test -f KPP_ROOT_Hessian.f90 && echo y),y)
   HAS_HES = 1
 endif
 
 # StoichiomSP
 HAS_STM_SP = 0
-ifeq ($(shell test -f  KPP_ROOT_StoichiomSP.f90 && echo -n yes),yes)
+ifeq ($(shell test -f  KPP_ROOT_StoichiomSP.f90 && echo y),y)
   HAS_STM_SP=1
 endif
 
 # Stoichiom
 HAS_STM = 0
-ifeq ($(shell test -f  KPP_ROOT_Stoichiom.f90 && echo -n yes),yes)
+ifeq ($(shell test -f  KPP_ROOT_Stoichiom.f90 && echo y),y)
   HAS_STM=1
 endif
 

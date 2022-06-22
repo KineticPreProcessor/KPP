@@ -334,11 +334,6 @@ CONTAINS
 !    ISTATUS(7) = No. of forward/backward substitutions
 !    ISTATUS(8) = No. of singular matrix decompositions
 !
-!    RSTATUS(1)  -> Texit, the time corresponding to the
-!                   computed Y upon return
-!    RSTATUS(2)  -> Hexit, last accepted step before exit
-!                   For multiple restarts, use Hexit as Hstart 
-!                   in the subsequent run
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       IMPLICIT NONE
@@ -534,7 +529,7 @@ CONTAINS
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    SUBROUTINE RAD_Integrator(                                         &
-        N,T,Y,Tend,Hmax,H,RelTol,AbsTol,ITOL,IDID,                    &
+        N,Tstart,Y,Tend,Hmax,H,RelTol,AbsTol,ITOL,IDID,               &
         Max_no_steps,Roundoff,FacSafe,ThetaMin,TolNewton,Qmin,Qmax,   &
         NewtonMaxit,StartNewton,Gustafsson,FacMin,FacMax,FacRej )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -556,7 +551,7 @@ CONTAINS
 #endif
                   
       !~~~> Local variables
-      KPP_REAL  :: TMP(NVAR), T, Tend, Tdirection, &
+      KPP_REAL  :: TMP(NVAR), T, Tstart, Tend, Tdirection, &
                  H, Hmax, HmaxN, Hacc, Hnew, Hopt, Hold, &
                  Fac, FacMin, Facmax, FacSafe, FacRej, FacGus, FacConv, &
                  Theta, ThetaMin, TolNewton, ERR, ERRACC,   &
@@ -575,7 +570,8 @@ CONTAINS
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       CALL RAD_Coefficients
-            
+
+      T = Tstart
       Tdirection=SIGN(1.D0,Tend-T)
       HmaxN=MIN(ABS(Hmax),ABS(Tend-T))
       H=MIN(ABS(Hmin),ABS(Hstart))
