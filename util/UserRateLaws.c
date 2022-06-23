@@ -14,18 +14,6 @@ KPP_REAL  ARR( float A0, float B0, float C0 )
       }           
 
 
-/* Simplified Arrhenius, with two arguments */
-/* Note that the argument B0 has a changed sign when compared to ARR */
-KPP_REAL  ARR2(  float A0, float B0 )
-      {
-      double ARR_RES;           
-
-      ARR_RES =  (double)A0 * exp( (double)B0/TEMP );   
-           
-      return (KPP_REAL)ARR_RES;
-      }           
-
-
 KPP_REAL  EP2( float A0, float C0, float A2, float C2, float A3, float C3)
       {                       
       double K0, K2, K3, EP2_RES;

@@ -27,24 +27,6 @@
 
   !---------------------------------------------------------------------------
 
-  FUNCTION ARR2_dp( a0, b0 ) RESULT( k )
-    ! Simplified Arrhenius with two arguments (dp args)
-    ! Note: The argument B0 has a changed sign when compared to ARR
-    REAL(dp), INTENT(IN) :: a0, b0
-    REAL(dp)             :: k
-    k = a0 * EXP(b0/TEMP)
-  END FUNCTION ARR2_dp
-
-  FUNCTION ARR2_sp( a0, b0 ) RESULT( k )
-    ! Simplified Arrhenius with two arguments (sp args)
-    ! Note: The argument B0 has a changed sign when compared to ARR
-    REAL(sp), INTENT(IN) :: a0, b0
-    REAL(dp)             :: k
-    k = DBLE(a0) * EXP(DBLE(b0)/TEMP)
-  END FUNCTION ARR2_sp
-
-  !---------------------------------------------------------------------------
-
   FUNCTION EP2_dp( a0, c0, a2, c2, a3, c3 ) RESULT( k )
     ! EP2 function (dp args)
     REAL(dp), INTENT(IN) :: a0, c0, a2, c2, a3, c3

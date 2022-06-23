@@ -7,13 +7,6 @@
       rate =  (A0) * exp(-(B0)/TEMP) * (TEMP/300.0)^(C0) ;            
    return %  ARR        
 
-%--- Simplified Arrhenius, with two arguments
-%--- Note: The argument B0 has a changed sign when compared to ARR
-   function [rate] =  ARR2( A0,B0 )
-      global TEMP CFACTOR
-      rate =  (A0) * exp( (B0)/TEMP ) ;             
-   return %  ARR2          
-
    function [rate] =  EP2(A0,C0,A2,C2,A3,C3)
       global TEMP CFACTOR                       
       K0 = (A0) * exp(-C0/TEMP);
