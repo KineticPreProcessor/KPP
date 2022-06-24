@@ -37,10 +37,10 @@
 
 #define MAX_LINE 300   // NOTE: Same as MAX_PATH in gdata.h
 
-/* Setting LEN=32 avoids problems with long species names and long
-   equation tags. A consistent change in F90_DeclareData (see below)
+/* Setting LEN=32 avoids problems with long species names and long 
+   equation tags. A consistent change in F90_DeclareData (see below) 
    is probably also necessary.                                        */
-char *F90_types[] = { "",                   /* VOID */
+char *F90_types[] = { "",                   /* VOID */ 
                       "INTEGER",            /* INT */
                       "REAL(kind=sp)",      /* FLOAT */
                       "REAL(kind=dp)",      /* DOUBLE */
@@ -127,7 +127,7 @@ int number_of_lines = 1, MAX_NO_OF_LINES = 250;
 /*  Operator Mapping: 0xaa = '*' | 0xab = '+' | 0xac = ','
                       0xad = '-' | 0xae ='.' | 0xaf = '/' */
 /* char op_mult=0xaa, op_plus=0xab, op_minus=0xad, op_dot=0xae, op_div=0xaf; */
-char op_plus='+', op_minus='-';  //, op_dot='.', op_div='/'. op_mult='*';
+char op_plus='+', op_minus='-';  //, op_dot='.', op_div='/'. op_mult='*'; 
 
   crtident = 2 + ident * 2;
   bprintf("%*s%s = ", crtident, "", ls);

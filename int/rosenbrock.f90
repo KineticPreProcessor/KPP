@@ -1325,7 +1325,6 @@ SUBROUTINE FunTemplate( T, Y, Ydot, P_VAR, D_VAR )
 
    Told = TIME
    TIME = T
-
    IF ( Do_Update_SUN    ) CALL Update_SUN()
    IF ( Do_Update_RCONST ) CALL Update_RCONST()
    CALL KPP_FUN_OR_FUN_SPLIT

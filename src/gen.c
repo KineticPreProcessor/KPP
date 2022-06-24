@@ -1,4 +1,3 @@
-
 /******************************************************************************
 
   KPP - The Kinetic PreProcessor
@@ -164,14 +163,14 @@ int i,j;
 //
   if ( useLang == F90_LANG ) {
     VAR = DefvElmP( "VAR", real,
-        "Concentrations of variable species (global)" );
+		    "Concentrations of variable species (global)" );
     FIX = DefvElmP( "FIX", real,
-        "Concentrations of fixed species (global)" );
+		    "Concentrations of fixed species (global)" );
   } else {
     VAR = DefvElm( "VAR", real, -NVAR,
-       "Concentrations of variable species (global)" );
+		   "Concentrations of variable species (global)" );
     FIX = DefvElm( "FIX", real, -NFIX,
-       "Concentrations of fixed species (global)" );
+		   "Concentrations of fixed species (global)" );
 }
 //============================================================================
   FLUX = DefvElm( "FLUX", real, -NFLUX, "Captured flux through reactions (global)" );
@@ -389,7 +388,7 @@ void GenerateGData()
 
   GlobalDeclare( RCONST );
   GlobalDeclare( TIME );
-  GlobalDeclare( SUN );
+  GlobalDeclare( SUN ); 
   GlobalDeclare( TEMP );
   GlobalDeclare( TSTART );
   GlobalDeclare( TEND );
@@ -698,6 +697,7 @@ int F_VAR, FSPLIT_VAR;
   FSPLIT_VAR = DefFnc( "Fun_SPLIT", 7,
 		       "time derivatives of variables - Split form");
 
+
   // We have added the capability to return equation rates and the
   // time derivative of variable species from Fun via optional arguments
   // Aout and VdotOut (when z_useAggregate=1)
@@ -770,7 +770,7 @@ int F_VAR, FSPLIT_VAR;
       if ( doAutoReduce ) F90_Inline("IF (DO_FUN(%d)) &",i+1);
       Assign( Elm( Vdot, i ), sum );
     }
-
+    
     /*  mz_rs_20220602+ ----------------------------------- */
     /* this block can probably be deleted */
     /* for (i = VarNr; i < VarNr; i++) { */
@@ -788,7 +788,7 @@ int F_VAR, FSPLIT_VAR;
       fprintf(functionFile, "  !### Use Vdotout to return time deriv. of variable species\n");
       fprintf(functionFile, "  IF ( PRESENT( Vdotout ) ) Vdotout = Vdot\n");
     }
-
+    
   } else {
 
     NewLines(1);
@@ -823,7 +823,7 @@ int F_VAR, FSPLIT_VAR;
       if( doAutoReduce ) F90_Inline("IF (DO_FUN(%d)) &",i+1);
       Assign( Elm( D_VAR, i ), sum );
     }
-
+    
     // Add code to calculate Vdot also for split function:
     NewLines(1);
     if ( useLang!=MATLAB_LANG ) fprintf(functionFile, "  Vdot = P_VAR - D_VAR*V\n");
@@ -981,6 +981,7 @@ int FLUX_VAR;
   FunctionEnd( FLUX_VAR );
   FreeVariable( FLUX_VAR );
 }
+
 
 
 
@@ -2066,7 +2067,7 @@ int dim;
         for( j = ibgn; j < iend; j++ ) {
           sum = Sub( sum, Mul( Elm( JVS, j ), Elm( X, icol[j] ) ) );
         }
-	      Assign( Elm( X, i ), sum );
+        Assign( Elm( X, i ), sum );
       }
     }
   }
@@ -2092,6 +2093,9 @@ int dim;
   free(crow);
   free(diag);
 }
+
+
+
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateTRSolve()
@@ -2310,19 +2314,19 @@ int UPDATE_PHOTO;
   /* F90_Inline("   USE %s_Global", rootFileName); */
   /*  mz_rs_20220212- */
   MATLAB_Inline("global SUN TEMP RCONST");
-
+  
   NewLines(1);
   WriteComment("Begin INLINED RCONST");
   NewLines(1);
 
   switch( useLang ) {
-    case C_LANG:  bprintf( InlineCode[ C_RCONST ].code );
+    case C_LANG:  bprintf( InlineCode[ C_RCONST ].code ); 
                  break;
-    case F77_LANG: bprintf( InlineCode[ F77_RCONST ].code );
+    case F77_LANG: bprintf( InlineCode[ F77_RCONST ].code ); 
                  break;
-    case F90_LANG: bprintf( InlineCode[ F90_RCONST ].code );
+    case F90_LANG: bprintf( InlineCode[ F90_RCONST ].code ); 
                  break;
-    case MATLAB_LANG: bprintf( InlineCode[ MATLAB_RCONST ].code );
+    case MATLAB_LANG: bprintf( InlineCode[ MATLAB_RCONST ].code ); 
                  break;
   }
   FlushBuf();
@@ -2539,6 +2543,7 @@ int j,dummy_species;
     FreeVariable( spc );
   }
 }
+
 
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -2848,7 +2853,7 @@ char lhsbuf[MAX_EQNLEN], rhsbuf[MAX_EQNLEN];
     {
       sprintf(buf, "%*s --> %-*s", lhs, lhsbuf, rhs, rhsbuf);
     }
-
+  
   return strlen(buf);
 }
 
@@ -3307,18 +3312,18 @@ case 'h':
     FatalError(3,"%s: Can't create file", buf );
   }
   UseFile( sparse_dataFile );
-  F90_Inline("\nMODULE %s_Precision\n", rootFileName );
-  F90_Inline("!");
-  F90_Inline("! Definition of different levels of accuracy");
-  F90_Inline("! for REAL variables using KIND parameterization");
-  F90_Inline("!");
-  F90_Inline("! KPP SP - Single precision kind");
-  F90_Inline("  INTEGER, PARAMETER :: sp = SELECTED_REAL_KIND(6,30)");
-  F90_Inline("! KPP DP - Double precision kind");
-  F90_Inline("  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(14,300)");
-  F90_Inline("! KPP QP - Quadruple precision kind");
-  F90_Inline("  INTEGER, PARAMETER :: qp = SELECTED_REAL_KIND(18,400)");
-  F90_Inline("\nEND MODULE %s_Precision\n\n", rootFileName );
+    F90_Inline("\nMODULE %s_Precision\n", rootFileName );
+    F90_Inline("!");
+    F90_Inline("! Definition of different levels of accuracy");
+    F90_Inline("! for REAL variables using KIND parameterization");
+    F90_Inline("!");
+    F90_Inline("! KPP SP - Single precision kind");
+    F90_Inline("  INTEGER, PARAMETER :: sp = SELECTED_REAL_KIND(6,30)");
+    F90_Inline("! KPP DP - Double precision kind");
+    F90_Inline("  INTEGER, PARAMETER :: dp = SELECTED_REAL_KIND(14,300)");
+    F90_Inline("! KPP QP - Quadruple precision kind");
+    F90_Inline("  INTEGER, PARAMETER :: qp = SELECTED_REAL_KIND(18,400)");
+    F90_Inline("\nEND MODULE %s_Precision\n\n", rootFileName );
 
   UseFile( initFile );
     F90_Inline("MODULE %s_Initialize\n", rootFileName );

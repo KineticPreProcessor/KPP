@@ -168,7 +168,6 @@ int blength;
 //  WriteComment("%-20s : %s", "Time", buf );
 //  WriteComment("%-20s : %s", "Working directory", getcwd(buf, MAX_PATH) );
 //===========================================================================
-
   WriteComment("%-20s : %s", "Equation file", eqFileName );
   WriteComment("%-20s : %s", "Output root filename", rootFileName );
   WriteComment("");

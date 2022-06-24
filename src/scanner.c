@@ -76,7 +76,7 @@ INLINE_KEY InlineKeys[] = { { F77_GLOBAL,     APPEND,  "F77_GLOBAL"    },
                             { F77_UTIL,       APPEND,  "F77_UTIL"      },
                             { F77_RATES,      APPEND,  "F77_RATES"     },
                             { F77_RCONST,     APPEND,  "F77_RCONST"    },
-			                      { F90_GLOBAL,     APPEND,  "F90_GLOBAL"    },
+			    { F90_GLOBAL,     APPEND,  "F90_GLOBAL"    },
                             { F90_INIT,       APPEND,  "F90_INIT"      },
                             { F90_DATA,       APPEND,  "F90_DATA"      },
                             { F90_UTIL,       APPEND,  "F90_UTIL"      },
@@ -116,6 +116,7 @@ int useDeclareValues = 0;         // if useValues=1 KPP replaces parameters
 int upperCaseF90       = 0;
 char f90Suffix[4]      = "f90";
 char minKppVersion[30] = "none";  // size [30] must be the same as in gdata.h
+
 
 char integrator[ MAX_PATH ] = "none";
 char driver[ MAX_PATH ] = "none";

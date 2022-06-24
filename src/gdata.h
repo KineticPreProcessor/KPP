@@ -97,6 +97,7 @@ enum inl_code {
 
 enum jacobian_format { JAC_OFF, JAC_FULL, JAC_LU_ROW, JAC_ROW };
 
+
 typedef short int CODE;
 typedef float EQ_VECT[ MAX_EQN ];
 
