@@ -9,7 +9,7 @@ The Kinetic PreProcessor: KPP
    <p><em>
      <sup>1</sup> Virginia Polytechnic Institute and State University, Blacksburg, VA, USA<br/>
      <sup>2</sup> Max-Planck Institute of Chemistry, Mainz, Germany<br/>
-     <sup>3</sup> Renaissance Fiber, LLC, North Carolina, USA.<br/>
+     <sup>3</sup> Renaissance Fiber, LLC, North Carolina, USA<br/>
      <sup>4</sup> Harvard University, Cambridge, MA, USA</em>
    </p>
    </hr>

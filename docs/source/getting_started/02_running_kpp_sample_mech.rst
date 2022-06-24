@@ -294,7 +294,7 @@ You should see output similar to:
 
 .. code-block:: console
 
-   This is KPP-2.5.0.
+   This is KPP-2.6.0.
 
    KPP is parsing the equation file.
    KPP is computing Jacobian sparsity structure.

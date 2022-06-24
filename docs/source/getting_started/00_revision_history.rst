@@ -5,30 +5,39 @@ KPP revision history
 Only the major new features are listed here. For a detailed description
 of the changes, read the file :file:`$KPP_HOME/CHANGELOG.md`.
 
-.. _kpp250:
+.. _kpp300:
 
-=========
-KPP 3.0.0
-=========
+=============================
+KPP 3.0.0 (currently in prep)
+=============================
 
-When you are upgrading from an older KPP version to KPP 3.0.0, a few
-minor changes in your code may be necessary:
+KPP 3.0.0 will be the next release after version 2.6.0. This version
+is currently still in preparation.
 
-- The :file:`atoms` file is now called :file:`atoms.kpp`. Thus, you have
-  to change :code:`#INCLUDE atoms` to :code:`#INCLUDE atoms.kpp` in your
-  KPP input file.
+.. attention::
 
-- If you have been using :code:`ICNTRL(5)` for maximal order in the
-  :code:`lsode` integrator, you now have to use :code:`ICNTRL(10)`
-  instead. The index 5 in the :code:`ICNTRL` array is now used
-  consistently for the maximum number of Newton iterations in all
-  integrators.
+   When you are upgrading from an older KPP version to KPP 3.0.0 or later
+   versions, a few minor changes in your code may be necessary:
+
+   - The :file:`atoms` file is now called :file:`atoms.kpp`. Thus, you have
+     to change :code:`#INCLUDE atoms` to :code:`#INCLUDE atoms.kpp` in your
+     KPP input file.
+
+   - If you have been using :code:`ICNTRL(5)` for maximal order in the
+     :code:`lsode` integrator, you now have to use :code:`ICNTRL(10)`
+     instead. The index 5 in the :code:`ICNTRL` array is now used
+     consistently for the maximum number of Newton iterations in all
+     integrators.
+
+.. _kpp260:
 
 =========
 KPP 2.6.0
 =========
 
-- autoreduce
+- Added the **rosenbrock_autoreduce** integrator :cite:`2022:Lin_et_al`
+
+.. _kpp250:
 
 =========
 KPP 2.5.0
