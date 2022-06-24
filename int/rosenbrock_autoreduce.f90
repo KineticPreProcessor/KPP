@@ -34,7 +34,7 @@ MODULE KPP_ROOT_Integrator
   LOGICAL, PRIVATE :: Do_Update_RCONST
   LOGICAL, PRIVATE :: Do_Update_PHOTO
   LOGICAL, PRIVATE :: Do_Update_SUN
-  
+
 !~~~>  Statistics on the work performed by the Rosenbrock method
   INTEGER, PARAMETER :: Nfun=1, Njac=2, Nstp=3, Nacc=4, &
                         Nrej=5, Ndec=6, Nsol=7, Nsng=8, &
@@ -125,7 +125,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
    IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
    IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR
 
- END SUBROUTINE INTEGRATE
+END SUBROUTINE INTEGRATE
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
@@ -205,6 +205,17 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !    ICNTRL(9)  -> ... append slow species when auto-reducing?
 !    ICNTRL(10) -> choose a target species instead for determining threshold?
 !                  if yes, specify idx. then RCNTRL(8) is obsolete.
+!
+!    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
+!        = -1 :  Do not call Update_* functions within the integrator
+!        =  0 :  Status quo
+!        =  1 :  Call Update_RCONST from within the integrator
+!        =  2 :  Call Update_PHOTO from within the integrator
+!        =  3 :  Call Update_RCONST and Update_PHOTO from w/in the int.
+!        =  4 :  Call Update_SUN from within the integrator
+!        =  5 :  Call Update_SUN and Update_RCONST from within the int.
+!        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO, Update_RCONST w/in the int.
 !
 !    ICNTRL(16) -> 
 !        = 0 : allow negative concentrations (default)
@@ -488,7 +499,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CONTAINS !  SUBROUTINES internal to Rosenbrock
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   
+
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  SUBROUTINE ros_ErrorMsg(Code,T,H,IERR)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2459,7 +2470,6 @@ SUBROUTINE FunTemplate( T, Y, Ydot, P_VAR, D_VAR )
 
    Told = TIME
    TIME = T
-
    IF ( Do_Update_SUN    ) CALL Update_SUN()
    IF ( Do_Update_RCONST ) CALL Update_RCONST()
    CALL KPP_FUN_OR_FUN_SPLIT
@@ -2792,4 +2802,3 @@ END SUBROUTINE APPEND
 
 
 END MODULE KPP_ROOT_Integrator
-
