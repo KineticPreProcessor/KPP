@@ -293,7 +293,7 @@ can also be accessed separately through pointer variables :code:`VAR` and
    from being used within parallel environments (e.g. such as an
    `OpenMP <https://openmp.org>`_ parallel loop).
 
-   We have modified KPP 2.5.0 and later versions to make KPP-generated
+   We have modified :ref:`kpp250` and later versions to make KPP-generated
    Fortran90 code thread-safe.  :code:`VAR` and
    :code:`FIX` are now :code:`POINTER` variables that
    point to the proper slices of the :code:`C` array.  They are also
