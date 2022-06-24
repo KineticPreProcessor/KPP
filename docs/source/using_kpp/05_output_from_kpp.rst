@@ -104,7 +104,7 @@ angle brackets, e.g.:
 
 .. code-block:: console
 
-   <J1> NO2 + hv = NO + O : 0.533*SUN;
+    <1> NO2 + hv = NO + O3P :  6.69e-1*(SUN/60.0e0);
 
 If the equation tags are switched on, KPP also generates the
 :code:`PARAMETER` array :code:`EQN_TAGS`. In combination with
@@ -114,7 +114,7 @@ describe a reaction:
 
 .. code-block:: none
 
-   PRINT*, ’Reaction J1 is:’, EQN_NAMES( tag2num( ’J1’ ) )
+   PRINT*, ’Reaction 1 is:’, EQN_NAMES( tag2num( ’1’ ) )
 
 .. _Precision:
 

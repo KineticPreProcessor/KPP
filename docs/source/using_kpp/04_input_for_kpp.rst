@@ -141,22 +141,35 @@ part of the species composition. Examples for these sections are:
 
 The chemical mechanism is specified in the :command:`#EQUATIONS`
 section. Each equation is written in the natural way in which a
-chemist would write it, e.g.:
+chemist would write it:
 
 .. code-block:: console
 
    #EQUATIONS
-     NO2 + hv = NO + O : 0.533*SUN;
-     OH + NO2 = HNO3 : k_3rd(temp,
-       cair,2.E-30,3.,2.5E-11,0.,0.6);
+
+   <1> NO2 + hv = NO + O3P :  6.69e-1*(SUN/60.0e0);
+   <2> O3P + O2 + AIR = O3 :  ARR_ac(5.68e-34,  -2.80e0);
+   <3> O3P + O3 = 2O2 :       ARR_ab(8.00e-12, 2060.0e0);
+   <4> O3P + NO + AIR = NO2 : ARR_ac(1.00e-31,  -1.60e0);
+   ... etc ...
+
+.. note::
+
+   The above example is taken from the :command:`saprc99` mechanism
+   (see :file:`models/saprc99.eqn`), with some whitespace deleted for
+   clarity.  Optional :ref:`equation tags <eqntags-cmd>` are specified
+   by text within :code:`< >` angle brackets.  Functions that compute
+   **saprc99** equation rates (e.g. :code:`ARR_ac`,
+   :code:`ARR_ab`) are defined in :file:`util/UserRateLaws.f90`
+   and :file:`util/UserRateLawsInterfaces.f90`.
 
 Only the names of already defined species can be used. The rate
 coefficient has to be placed at the end of each equation, separated by a
 colon. The rate coefficient does not necessarily need to be a numerical
-value. Instead, it can be a valid expression in the
-:ref:`target language <language-cmd>`. If there are several
-:command:`#EQUATIONS` sections in the input, their contents will be
-concatenated.
+value. Instead, it can be a valid expression (or a call to an
+:ref:`inlined rate law function <inlined-code>`) in the :ref:`target
+language <language-cmd>`.  If there are several :command:`#EQUATIONS`
+sections in the input, their contents will be concatenated.
 
 A minus sign in an equation shows that a species is consumed in a
 reaction but it does not affect the reaction rate. For example, the
@@ -200,8 +213,9 @@ surface can be written as:
    O3 = PROD : v_d_O3;
 
 The same equation must not occur twice in the :command:`#EQUATIONS`
-section. For example, you may have both the gas-phase reaction of :literal:`N2O5` with
-water in your mechanism and also the heterogeneous reaction on aerosols:
+section. For example, you may have both the gas-phase reaction of
+:literal:`N2O5` with water in your mechanism and also the
+heterogeneous reaction on aerosols:
 
 .. code-block:: console
 
@@ -212,7 +226,7 @@ These reactions must be merged by adding the rate coefficients:
 
 .. code-block:: console
 
-   N2O5 + H2O = 2 HNO3 : k_gas+k_aerosol;
+   N2O5 + H2O = 2 HNO3 : k_gas + k_aerosol;
 
 .. _families:
 
@@ -531,12 +545,12 @@ mechanisms with and without sulfuric acid, you can use this code:
 #EQNTAGS
 --------
 
-Each reaction in the :command:`#EQNTAGS` section may start with an
+Each reaction in the :ref:`equations` section may start with an
 equation tag which is enclosed in angle brackets, e.g.:
 
 .. code-block:: console
 
-   <J1> NO2 + hv = NO + O : 0.533*SUN;
+   <1> NO2 + hv = NO + O3P :  6.69e-1*(SUN/60.0e0);
 
 With :command:`#EQNTAGS` set to :command:`ON`, this equation tag can
 be used to refer to a specific equation
@@ -982,34 +996,35 @@ files, as shown in :ref:`table-aux-files`.
 .. table:: Table 2: Auxiliary files for Fortran90
    :align: center
 
-   +-----------------------------+--------------------------------------------+
-   | File                        | Contents                                   |
-   +=============================+============================================+
-   | ``dFun_dRcoeff.f90``        | Derivatives with respect to reaction       |
-   |                             | rates.                                     |
-   +-----------------------------+--------------------------------------------+
-   | ``dJac_dRcoeff.f90``        | Derivatives with respect to reaction       |
-   |                             | rates.                                     |
-   +-----------------------------+--------------------------------------------+
-   | ``Makefile_f90`` and        | Makefiles to build Fortran-90 code.        |
-   | ``Makefile_upper_F90``      |                                            |
-   +-----------------------------+--------------------------------------------+
-   | ``Mex_Fun.f90``             | Mex files.                                 |
-   +-----------------------------+--------------------------------------------+
-   | ``Mex_Jac_SP.f90``          | Mex files.                                 |
-   +-----------------------------+--------------------------------------------+
-   | ``Mex_Hessian.f90``         | Mex files.                                 |
-   +-----------------------------+--------------------------------------------+
-   | ``sutil.f90``               | Sparse utility functions.                  |
-   +-----------------------------+--------------------------------------------+
-   | ``tag2num.f90``             | Function related to equation tags.         |
-   +-----------------------------+--------------------------------------------+
-   | ``UpdateSun.f90``           | Function related to solar zenith angle.    |
-   +-----------------------------+--------------------------------------------+
-   | ``UserRateLaws.f90``        | User-defined rate-law functions.           |
-   +-----------------------------+--------------------------------------------+
-   | ``util.f90``                | Input/output utilities.                    |
-   +-----------------------------+--------------------------------------------+
+   +--------------------------------+------------------------------------------+
+   | File                           | Contents                                 |
+   +================================+==========================================+
+   | ``dFun_dRcoeff.f90``           | Derivatives with respect to reaction     |
+   |                                | rates.                                   |
+   +--------------------------------+------------------------------------------+
+   | ``dJac_dRcoeff.f90``           | Derivatives with respect to reaction     |
+   |                                | rates.                                   |
+   +--------------------------------+------------------------------------------+
+   | ``Makefile_f90`` and           | Makefiles to build Fortran-90 code.      |
+   | ``Makefile_upper_F90``         |                                          |
+   +--------------------------------+------------------------------------------+
+   | ``Mex_Fun.f90``                | Mex files.                               |
+   +--------------------------------+------------------------------------------+
+   | ``Mex_Jac_SP.f90``             | Mex files.                               |
+   +--------------------------------+------------------------------------------+
+   | ``Mex_Hessian.f90``            | Mex files.                               |
+   +--------------------------------+------------------------------------------+
+   | ``sutil.f90``                  | Sparse utility functions.                |
+   +--------------------------------+------------------------------------------+
+   | ``tag2num.f90``                | Function related to equation tags.       |
+   +--------------------------------+------------------------------------------+
+   | ``UpdateSun.f90``              | Function related to solar zenith angle.  |
+   +--------------------------------+------------------------------------------+
+   | ``UserRateLaws.f90`` and       | User-defined rate-law functions.         |
+   | ``UserRateLawsInterfaces.f90`` |                                          |
+   +--------------------------------+------------------------------------------+
+   | ``util.f90``                   | Input/output utilities.                  |
+   +--------------------------------+------------------------------------------+
 
 .. _list-of-symbols-replaced:
 
@@ -1178,7 +1193,7 @@ ICNTRL
 .. option:: ICNTRL(16)
 
    Treatment of negative concentrations:
-            
+
    :code:`= 0` : Leave negative values unchanged
 
    :code:`= 1` : Set negative values to zero
@@ -1194,7 +1209,7 @@ ICNTRL
    :code:`= 0` : Only return error number
 
    :code:`= 1` : Verbose error output
-            
+
 .. option:: ICNTRL(18) ... ICNTRL(20)
 
    currently not used
@@ -1299,4 +1314,3 @@ RCNTRL
 .. option:: RCNTRL(12) ... RCNTRL(20)
 
    currently not used
-
