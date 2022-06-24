@@ -201,10 +201,10 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !    ICNTRL(4)  -> maximum number of integration steps
 !        For ICNTRL(4)=0) the default value of 200000 is used
 !
-!    ICNTRL(8)  -> use auto-reduce solver? set threshold in RCNTRL(8)
-!    ICNTRL(9)  -> ... append slow species when auto-reducing?
-!    ICNTRL(10) -> choose a target species instead for determining threshold?
-!                  if yes, specify idx. then RCNTRL(8) is obsolete.
+!    ICNTRL(12)  -> use auto-reduce solver? set threshold in RCNTRL(12)
+!    ICNTRL(13)  -> ... append slow species when auto-reducing?
+!    ICNTRL(14) -> choose a target species instead for determining threshold?
+!                  if yes, specify idx. then RCNTRL(12) is obsolete.
 !
 !    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
 !        = -1 :  Do not call Update_* functions within the integrator
@@ -233,8 +233,8 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !    RCNTRL(7)  -> FacSafe, by which the new step is slightly smaller
 !         than the predicted value  (default=0.9)
 !
-!    RCNTRL(8)  -> threshold for auto-reduction (req. RCNTRL(8)) (default=100)
-!    RCNTRL(10) -> AR threshold ratio (default=0.01)
+!    RCNTRL(12) -> threshold for auto-reduction (req. ICNTRL(12)) (default=100)
+!    RCNTRL(14) -> AR threshold ratio (default=0.01)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
 !
@@ -266,7 +266,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !                   For multiple restarts, use Hnew as Hstart
 !                     in the subsequent run
 !    RSTATUS(4)  -> ARthr, last auto-reduction threshold determined
-!                   only if AR is on (ICNTRL(8)) and key spc (ICNTRL(10))
+!                   only if AR is on (ICNTRL(12)) and key spc (ICNTRL(14))
 !
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -353,11 +353,11 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 
 !~~~> Auto-reduction toggle
    Autoreduce    = .false.
-   IF (ICNTRL(8) == 1) Autoreduce = .true.
+   IF (ICNTRL(12) == 1) Autoreduce = .true.
 
-   Autoreduce_Append = ICNTRL(9) == 1
+   Autoreduce_Append = ICNTRL(13) == 1
 !~~~> Target species (if zero, uses the regular threshold)
-   AR_target_spc = ICNTRL(10)
+   AR_target_spc = ICNTRL(14)
 
 !~~~>  Unit roundoff (1+Roundoff>1)
    Roundoff = WLAMCH('E')
@@ -443,13 +443,13 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
     END DO
 !~~~> Auto-reduction threshold
     Redux_threshold = 1.d2
-    IF (RCNTRL(8) > ZERO) THEN
-       Redux_Threshold = RCNTRL(8)
-    ELSEIF (RCNTRL(8) < ZERO) THEN
+    IF (RCNTRL(12) > ZERO) THEN
+       Redux_Threshold = RCNTRL(12)
+    ELSEIF (RCNTRL(12) < ZERO) THEN
        Autoreduce = .false.
     ENDIF
-!~~~> Auto-reduction threshold ratio (only if ICNTRL(10) is not zero)
-    AR_thr_ratio = RCNTRL(10)
+!~~~> Auto-reduction threshold ratio (only if ICNTRL(14) is not zero)
+    AR_thr_ratio = RCNTRL(14)
 !~~~>  CALL Auto-reducing Rosenbrock method
     IF ( Autoreduce .and. .not. Autoreduce_Append ) THEN
          ! ros_yIntegrator is the aggressively micro-optimized revision by Haipeng Lin.

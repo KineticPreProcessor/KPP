@@ -1154,27 +1154,27 @@ ICNTRL
 
    :code:`= 1` : Zero
 
-.. option:: ICNTRL(8)
+.. option:: ICNTRL(11)
+
+   Gustafsson step size controller
+
+.. option:: ICNTRL(12)
 
    (Solver-specific for :code:`rosenbrock_autoreduce`) Controls whether auto-reduction
    of the mechanism is performed. If set to :code:`= 0`, then the integrator behaves
    the same as :code:`rosenbrock`.
 
-.. option:: ICNTRL(9)
+.. option:: ICNTRL(13)
 
    (Solver-specific for :code:`rosenbrock_autoreduce`) Controls whether in auto-reduction
    species production and loss rates are scanned throughout the internal time steps
    of the integrator for repartitioning.
 
-.. option:: ICNTRL(10)
+.. option:: ICNTRL(14)
 
    (Solver-specific for :code:`rosenbrock_autoreduce`) If set to :code:`> 0`, then the
    threshold is calculated based on the max of production and loss rate of the species
-   ID specified in :code:`ICNTRL(10)` multiplied by :code:`RCNTRL(10)`.
-
-.. option:: ICNTRL(11)
-
-   Gustafsson step size controller
+   ID specified in :code:`ICNTRL(14)` multiplied by :code:`RCNTRL(14)`.
 
 .. option:: ICNTRL(15)
 
@@ -1249,7 +1249,7 @@ RCNTRL
    +------------------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
    | rosenbrock_tlm         | Y | Y | Y | Y | Y | Y | Y |   |   |    |    |    |    |    |    |    |    |    |    |
    +------------------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
-   | rosenbrock_autoreduce  | Y | Y | Y | Y | Y | Y | Y | s |   | s  |    |    |    |    |    |    |    |    |    |
+   | rosenbrock_autoreduce  | Y | Y | Y | Y | Y | Y | Y |   |   |    |    | s  |    | s  |    |    |    |    |    |
    +------------------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
    | runge_kutta_adj        | Y | Y | Y | Y | Y | Y | Y | Y | Y | Y  | Y  |    |    |    |    |    |    |    |    |
    +------------------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
@@ -1305,10 +1305,6 @@ RCNTRL
    :code:`ThetaMin`. If the Newton convergence rate is smaller than
    ThetaMin, the Jacobian is not recomputed.
 
-   (Solver-specific for :code:`rosenbrock_autoreduce`) Used to specify
-   the threshold for auto-reduction partitioning, if :code:`ICNTRL(8) = 1`,
-   and :code:`ICNTRL(10) = 0`. Will be ignored if :code:`ICNTRL(10) > 0`.
-
 .. option:: RCNTRL(9)
 
    :code:`NewtonTol`, the stopping criterion for Newton’s method.
@@ -1317,18 +1313,26 @@ RCNTRL
 
    :code:`Qmin`
 
-   (Solver-specific for :code:`rosenbrock_autoreduce`) Used to specify
-   the multiplier for threshold for auto-reduction partitioning, if :code:`ICNTRL(8) = 1`,
-   and :code:`ICNTRL(10) > 0`, :code:`RCNTRL(10)` is multiplied against max
-   of production and loss rates of species :code:`ICNTRL(10)` to produce
-   the partitioning threshold, ignoring :code:`RCNTRL(8)`.
-
 .. option:: RCNTRL(11)
 
    :code:`Qmax`. If :code:`Qmin < Hnew/Hold < Qmax`, then the step
    size is kept constant and the LU factorization is reused.
 
-.. option:: RCNTRL(12) ... RCNTRL(20)
+.. option:: RCNTRL(12)
+
+   (Solver-specific for :code:`rosenbrock_autoreduce`) Used to specify
+   the threshold for auto-reduction partitioning, if :code:`ICNTRL(12) = 1`,
+   and :code:`ICNTRL(14) = 0`. Will be ignored if :code:`ICNTRL(14) > 0`.
+
+.. option:: RCNTRL(14)
+
+   (Solver-specific for :code:`rosenbrock_autoreduce`) Used to specify
+   the multiplier for threshold for auto-reduction partitioning, if :code:`ICNTRL(12) = 1`,
+   and :code:`ICNTRL(14) > 0`, :code:`RCNTRL(14)` is multiplied against max
+   of production and loss rates of species :code:`ICNTRL(14)` to produce
+   the partitioning threshold, ignoring :code:`RCNTRL(12)`.
+
+.. option:: RCNTRL(15) ... RCNTRL(20)
 
    currently not used
 
