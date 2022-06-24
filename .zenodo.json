@@ -34,6 +34,6 @@
 	"climate-modeling",
 	"fortran-90"
     ],
-    "license": "GNU GPLv3",
+    "license": "GNU General Public License v2.0 or later",
     "upload_type": "software"
 }
