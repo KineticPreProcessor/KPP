@@ -10,4 +10,7 @@ This is the repository for the The Kinetic PreProcessor (KPP) source code.
 KPP is distributed under [GPLv3, the general public license](https://github.com/KineticPreProcessor/KPP/blob/main/LICENSE.txt).
 
 ## Documentation
-Please see our comprehensive KPP User's Guide (https://kpp.readthedocs.io) for installation and usage instructions.
+Please see our comprehensive KPP User's Guide
+([html](https://kpp.readthedocs.io),
+[pdf](https://kpp.readthedocs.io/_/downloads/en/latest/pdf/)) for
+installation and usage instructions.

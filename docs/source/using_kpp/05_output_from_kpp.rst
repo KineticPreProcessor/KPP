@@ -1217,7 +1217,7 @@ ISTATUS
 
    Number of Hessian calls.
 
-.. option:: ISTATUS(11) ... ISTATUS(20)
+.. option:: ISTATUS(10) ... ISTATUS(20)
 
    currently not used
 
