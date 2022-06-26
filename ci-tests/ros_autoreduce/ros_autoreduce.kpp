@@ -1,0 +1,5 @@
+#MODEL      saprc99
+#INTEGRATOR rosenbrock_autoreduce
+#AUTOREDUCE on
+#LANGUAGE   Fortran90
+#DRIVER     general_autoreduce
