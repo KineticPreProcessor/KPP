@@ -1383,6 +1383,10 @@ RCNTRL
    of production and loss rates of species :code:`ICNTRL(14)` to produce
    the partitioning threshold, ignoring :code:`RCNTRL(12)`.
 
-.. option:: RCNTRL(15) ... RCNTRL(20)
+.. option:: RCNTRL(10) ... RCNTRL(19)
+
+   (Solver-specific for :code:`seulex`)
+
+.. option:: RCNTRL(20)
 
    currently not used
