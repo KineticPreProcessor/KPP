@@ -33,3 +33,21 @@
      MODULE PROCEDURE FALL_dp
      MODULE PROCEDURE FALL_sp
   END INTERFACE FALL
+
+  PRIVATE :: k3rd_jpl_dp, k3rd_jpl_sp
+  INTERFACE k3rd_jpl
+     MODULE PROCEDURE k3rd_jpl_dp
+     MODULE PROCEDURE k3rd_jpl_sp
+  END INTERFACE k3rd_jpl
+
+  PRIVATE :: k3rd_jpl_activation_dp, k3rd_jpl_activation_sp
+  INTERFACE  k3rd_jpl_activation
+     MODULE PROCEDURE  k3rd_jpl_activation_dp
+     MODULE PROCEDURE  k3rd_jpl_activation_sp
+  END INTERFACE  k3rd_jpl_activation
+
+  PRIVATE :: k3rd_iupac_dp, k3rd_iupac_sp
+  INTERFACE k3rd_iupac
+     MODULE PROCEDURE k3rd_iupac_dp
+     MODULE PROCEDURE k3rd_iupac_sp
+  END INTERFACE k3rd_iupac
