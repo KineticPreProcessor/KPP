@@ -12,6 +12,7 @@ F90_rk
 F90_rktlm
 F90_ros
 F90_rosadj
+F90_ros_autoreduce
 F90_rosenbrock
 F90_ros_split
 F90_rostlm
