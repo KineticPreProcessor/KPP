@@ -853,6 +853,55 @@ special rate coefficient:
      REAL(dp) :: k_DMS_OH
    #ENDINLINE
 
+Inlining code can be useful to introduce additional state variables
+(such as temperature, humidity, etc.) for use by KPP routines, such as
+for calculating rate coefficients.
+
+If a large number of state variables need to be held in inline code, or
+require intermediate computation that may be repeated for many rate
+coefficients, a derived type object should be used for efficiency.
+
+The GEOS-Chem model introduces a derived type object, :code:`State_Het`, which holds quantities
+used for heterogeneous chemistry calculation, such as cloud liquid water content,
+aerosol size distribution, pH and/or alkalinity, and the intermediate quantities
+necessary for computation. This avoids recomputing intermediate quantities
+(especially numerically expensive operations such as exponentials) repeatedly,
+and also avoids excessive variables cluttering the inlined code in :command:`F90_GLOBAL`,
+as well as unnecessary memory use.
+
+An example of a derived-type object being included:
+
+.. code-block:: F90
+
+   #INLINE F90_GLOBAL
+     TYPE, PUBLIC :: HetState
+        LOGICAL  :: debugBox       ! Are we in a debugging box?
+        REAL(dp) :: AVO            ! Avogadro's constant [molec/mol]
+        LOGICAL  :: natSurface     ! Is there NAT in this box?
+        LOGICAL  :: pscBox         ! Are there polar strat clouds?
+        LOGICAL  :: stratBox       ! Are we in the stratosphere
+        ! ... more variables below ...
+     END TYPE HetState
+     TYPE(HetState), TARGET, PUBLIC :: State_Het
+     !$OMP THREADPRIVATE( State_Het )
+
+This global variable :code:`State_Het` can then be used globally in KPP.
+
+To avoid cluttering up the KPP input file, an additional input file can be introduced:
+
+.. code-block:: F90
+
+   #INLINE F90_GLOBAL
+   ! Inline common variables into KPP_ROOT_Global.F90
+   #include "commonIncludeVars.H"
+   #ENDINLINE
+
+where extra code is included in a separate file, :code:`commonIncludeVars.H`.
+
+In future versions of KPP, the global state will be reorganized into derived type
+objects as well.
+
+
 .. _inline-type-f90-init:
 
 F90_INIT

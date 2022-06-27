@@ -336,6 +336,25 @@ for each of the Rosenbrock methods (:ref:`rosenbrock-ros-2`,
 :ref:`rosenbrock-ros-3`, :ref:`rosenbrock-ros-4`,
 :ref:`rosenbrock-rodas-3`, :ref:`rosenbrock-rodas-4`).
 
+.. _rosenbrock-autoreduce:
+
+Rosenbrock with mechanism auto-reduction
+-----------------------------------------
+
+**Integrator file:** :file:`int/rosenbrock_autoreduce.f90`
+
+Mechanism auto-reduction (described in :cite:`2022:Lin_et_al`) expands previous work by :cite:`2020_Shen_et_al`, :cite:`2010:Santillana_et_al` to a computationally efficient implementation in KPP, avoiding memory re-allocation, re-compile of the code, and on-the-fly mechanism reduction based on dynamically determined production and loss rate thresholds.
+
+We define a threshold :math:`\delta` which can be fixed (as in :cite:`2010:Santillana_et_al`) or determined by the production and loss rates of a "target species" scaled by a factor :math:`\delta = max(P_{target}, L_{target}) * \alpha_{target}`.
+
+For each species :math:`i`, the species is partitioned as "slow" iff.
+
+.. math::
+
+   max(P_i, L_i) < \delta
+
+if the species is partitioned as "slow", it is solved explicitly (decoupled from the rest of the mechanism) using a first-order approximation. Otherwise, "fast" species are retained in the implicit Rosenbrock solver.
+
 .. _rk-methods:
 
 ============================
