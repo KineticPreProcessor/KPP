@@ -185,7 +185,7 @@ mex:    $(ALLOBJ)
 	$(MEX) FC#$(FC) -fortran -O KPP_ROOT_mex_Hessian.F90 $(ALLOBJ)
 
 clean:
-	rm -f KPP_ROOT*.o KPP_ROOT*.mod \
+	rm -f *.o *.mod \
 	KPP_ROOT*.dat KPP_ROOT.exe KPP_ROOT*.mexglx \
 	KPP_ROOT.map
 
