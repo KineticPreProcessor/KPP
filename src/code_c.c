@@ -196,7 +196,9 @@ char buf[ MAX_LINE ];
   vsprintf( buf, fmt, args );
   va_end( args );
 
-  bprintf( "/* %-*s */\n", LINE_LENGTH - 6, buf );
+  // Now use // comments for C-language output (Bob Yantosca, 27 Jun 2022)
+  //bprintf( "/* %-*s */\n", LINE_LENGTH - 6, buf );
+  bprintf( "// %s ", LINE_LENGTH, buf );
 
   FlushBuf();
 }

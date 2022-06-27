@@ -146,13 +146,13 @@ int blength;
   WriteComment("KPP is distributed under GPL, the general public licence");
   WriteComment("      (http://www.gnu.org/copyleft/gpl.html)");
   WriteComment("(C) 1995-1997, V. Damian & A. Sandu, CGRER, Univ. Iowa" );
-  WriteComment("(C) 1997-2005, A. Sandu, Michigan Tech, Virginia Tech" );
+  WriteComment("(C) 1997-2022, A. Sandu, Michigan Tech, Virginia Tech" );
   WriteComment("    With important contributions from:" );
-  WriteComment("       M. Damian,   Villanova University, USA");
+  WriteComment("       M. Damian,   Villanova University, Philadelphia, PA, USA");
   WriteComment("       R. Sander,   Max-Planck Institute for Chemistry, Mainz, Germany");
-  WriteComment("       M. Long,     Harvard University, USA");
-  WriteComment("       H. Lin,      Harvard University, USA");
-  WriteComment("       R. Yantosca, Harvard University, USA");
+  WriteComment("       M. Long,     Renaissance Fiber, LLC, North Carolina, USA");
+  WriteComment("       H. Lin,      Harvard University, Cambridge, MA, USA");
+  WriteComment("       R. Yantosca, Harvard University, Cambridge, MA, USA");
   WriteComment("");
 
   WriteComment("%-20s : %s", "File", bufname );
