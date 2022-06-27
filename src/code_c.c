@@ -198,7 +198,7 @@ char buf[ MAX_LINE ];
 
   // Now use // comments for C-language output (Bob Yantosca, 27 Jun 2022)
   //bprintf( "/* %-*s */\n", LINE_LENGTH - 6, buf );
-  bprintf( "// %s ", LINE_LENGTH, buf );
+  bprintf( "// %-s\n", buf );
 
   FlushBuf();
 }
