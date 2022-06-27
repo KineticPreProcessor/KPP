@@ -544,10 +544,10 @@ CONTAINS
 
 #ifdef FULL_ALGEBRA
       KPP_REAL  :: FJAC(NVAR,NVAR), E1(NVAR,NVAR)
-      DOUBLE COMPLEX :: E2(NVAR,NVAR)   
+      COMPLEX(kind=dp) :: E2(NVAR,NVAR)   
 #else
       KPP_REAL  :: FJAC(LU_NONZERO), E1(LU_NONZERO)
-      DOUBLE COMPLEX :: E2(LU_NONZERO)   
+      COMPLEX(kind=dp) :: E2(LU_NONZERO)   
 #endif
                   
       !~~~> Local variables
@@ -1011,10 +1011,10 @@ accept:IF (ERR < ONE) THEN !~~~> STEP IS ACCEPTED
       INTEGER :: N, ISING
 #ifdef FULL_ALGEBRA      
       KPP_REAL ::  FJAC(N,N)
-      DOUBLE COMPLEX :: E2(N,N)
+      COMPLEX(kind=dp) :: E2(N,N)
 #else      
       KPP_REAL ::  FJAC(LU_NONZERO)
-      DOUBLE COMPLEX :: E2(LU_NONZERO)
+      COMPLEX(kind=dp) :: E2(LU_NONZERO)
 #endif      
       KPP_REAL :: ALPHA, BETA
       INTEGER :: IP2(N), i, j
@@ -1049,15 +1049,15 @@ accept:IF (ERR < ONE) THEN !~~~> STEP IS ACCEPTED
       INTEGER :: N,IP1(NVAR),IP2(NVAR),ISING
 #ifdef FULL_ALGEBRA      
       KPP_REAL  :: FJAC(NVAR,NVAR), E1(NVAR,NVAR)
-      DOUBLE COMPLEX :: E2(NVAR,NVAR)
+      COMPLEX(kind=dp) :: E2(NVAR,NVAR)
 #else      
       KPP_REAL  :: FJAC(LU_NONZERO), E1(LU_NONZERO)
-      DOUBLE COMPLEX :: E2(LU_NONZERO)
+      COMPLEX(kind=dp) :: E2(LU_NONZERO)
 #endif      
       KPP_REAL :: Z1(N),Z2(N),Z3(N),   &
                F1(N),F2(N),F3(N),CONT(N),   &
                GAMMA,ALPHA,BETA
-      DOUBLE COMPLEX :: BC(N)
+      COMPLEX(kind=dp) :: BC(N)
       INTEGER :: i,j
       KPP_REAL :: S2, S3
 !
