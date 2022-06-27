@@ -932,7 +932,16 @@ F90_RCONST
 ----------
 
 This inline type can be used to define time-dependent values of rate
-coefficients.  You may inline code expressions:
+coefficients. You may inline :code:`USE` statements that reference
+modules where rate coefficients are computed:
+
+.. code-block:: F90
+
+   #INLINE F90_RCONST
+     USE MyRateFunctionModule
+   #ENDINLINE
+
+or define variables directly, e.g.:
 
 .. code-block:: F90
 
@@ -940,19 +949,13 @@ coefficients.  You may inline code expressions:
      k_DMS_OH = 1.E-9*EXP(5820./temp)*C(ind_O2)/ &
        (1.E30+5.*EXP(6280./temp)*C(ind_O2))
    #ENDINLINE
-
-or :code:`USE` statements that reference modules where rate
-coefficients are computed:
-
-.. code-block:: F90
-
-   #INLINE F90_RCONST
-   USE MyRateFunctionModule
-   #ENDINLINE
-
-The inlined code will be placed directly into the
-:code:`UPDATE_RCONST` routine in the :ref:`Rates` function.
+   
+Note that the :code:`USE` statements must precede any variable
+definitions.
     
+The inlined code will be placed directly into the :code:`UPDATE_RCONST`
+routine in the :ref:`Rates` function.
+
 .. _f90-util:
 
 F90_UTIL
