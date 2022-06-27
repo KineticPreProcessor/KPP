@@ -861,36 +861,21 @@ If a large number of state variables need to be held in inline code, or
 require intermediate computation that may be repeated for many rate
 coefficients, a derived type object should be used for efficiency.
 
-The `GEOS-Chem model <http://geos-chem.org>`_ model introduces a
-derived type object, :code:`State_Het`, which holds quantities used
-for heterogeneous chemistry calculation, such as cloud liquid water
-content, aerosol size distribution, pH and/or alkalinity, and the
-intermediate quantities necessary for computation. This avoids
-recomputing intermediate quantities (especially numerically expensive
-operations such as exponentials) repeatedly, and also avoids excessive
-variables cluttering the inlined code in :command:`F90_GLOBAL`, as
-well as unnecessary memory use.
-
 An example of a derived-type object being included:
 
 .. code-block:: F90
 
    #INLINE F90_GLOBAL
-     TYPE, PUBLIC :: HetState
-        LOGICAL  :: debugBox       ! Are we in a debugging box?
-        REAL(dp) :: AVO            ! Avogadro's constant [molec/mol]
-        LOGICAL  :: natSurface     ! Is there NAT in this box?
-        LOGICAL  :: pscBox         ! Are there polar strat clouds?
-        LOGICAL  :: stratBox       ! Are we in the stratosphere
-        ! ... more variables below ...
-     END TYPE HetState
-     TYPE(HetState), TARGET, PUBLIC :: State_Het
-     !$OMP THREADPRIVATE( State_Het )
+     TYPE, PUBLIC :: ObjGlobal_t
+        ! ... add variable fields to this type ...
+     END TYPE ObjGlobal_t
+     TYPE(ObjGlobal_t), TARGET, PUBLIC :: ObjGlobal
+     !$OMP THREADPRIVATE( ObjGlobal )
 
-This global variable :code:`State_Het` can then be used globally in KPP.
+This global variable :code:`ObjGlobal` can then be used globally in KPP.
 
-To avoid cluttering up the KPP input file, an additional input file
-can be introduced:
+Another way to avoid cluttering up the KPP input file is to add global
+variables into a header file that can be :code:`#include`-d:
 
 .. code-block:: F90
 
@@ -902,8 +887,7 @@ can be introduced:
 where extra code is included in a separate file, :code:`commonIncludeVars.H`.
 
 In future versions of KPP, the global state will be reorganized into
-derived type objects as well. 
-
+derived type objects as well.
 
 .. _inline-type-f90-init:
 
@@ -948,7 +932,7 @@ F90_RCONST
 ----------
 
 This inline type can be used to define time-dependent values of rate
-coefficients that were declared with:
+coefficients.  You may inline code expressions:
 
 .. code-block:: F90
 
@@ -957,6 +941,18 @@ coefficients that were declared with:
        (1.E30+5.*EXP(6280./temp)*C(ind_O2))
    #ENDINLINE
 
+or :code:`USE` statements that reference modules where rate
+coefficients are computed:
+
+.. code-block:: F90
+
+   #INLINE F90_RCONST
+   USE MyRateFunctionModule
+   #ENDINLINE
+
+The inlined code will be placed directly into the
+:code:`UPDATE_RCONST` routine in the :ref:`Rates` function.
+    
 .. _f90-util:
 
 F90_UTIL
@@ -1250,7 +1246,7 @@ ICNTRL
 .. option:: ICNTRL(16)
 
    Treatment of negative concentrations:
-            
+
    :code:`= 0` : Leave negative values unchanged
 
    :code:`= 1` : Set negative values to zero
@@ -1266,7 +1262,7 @@ ICNTRL
    :code:`= 0` : Only return error number
 
    :code:`= 1` : Verbose error output
-            
+
 .. option:: ICNTRL(18) ... ICNTRL(20)
 
    currently not used
@@ -1387,4 +1383,3 @@ RCNTRL
 .. option:: RCNTRL(15) ... RCNTRL(20)
 
    currently not used
-
