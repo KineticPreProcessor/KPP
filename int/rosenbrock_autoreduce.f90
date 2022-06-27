@@ -298,7 +298,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
    INTEGER       :: i, UplimTol, Max_no_steps
    LOGICAL       :: Autonomous, VectorTol, Autoreduce, Autoreduce_Append
    INTEGER       :: AR_target_spc
-   REAL(kind=dp) :: AR_thr_ratio
+   KPP_REAL :: AR_thr_ratio
 !~~~>   Parameters
    KPP_REAL, PARAMETER :: ZERO = 0.0_dp, ONE  = 1.0_dp
    KPP_REAL, PARAMETER :: DeltaMin = 1.0E-5_dp
@@ -781,44 +781,44 @@ Stage: DO istage = 1, ros_S
   IMPLICIT NONE
 
 !~~~> Input: the initial condition at Tstart; Output: the solution at T
-   REAL(kind=dp), INTENT(INOUT) :: Y(N)
+   KPP_REAL, INTENT(INOUT) :: Y(N)
 !~~~> Input: integration interval
-   REAL(kind=dp), INTENT(IN) :: Tstart,Tend
+   KPP_REAL, INTENT(IN) :: Tstart,Tend
 !~~~> Output: time at which the solution is returned (T=Tend if success)
-   REAL(kind=dp), INTENT(OUT) ::  T
+   KPP_REAL, INTENT(OUT) ::  T
 !~~~> Input: tolerances
-   REAL(kind=dp), INTENT(IN) ::  AbsTol(N), RelTol(N)
+   KPP_REAL, INTENT(IN) ::  AbsTol(N), RelTol(N)
 !~~~> Input: integration parameters
    LOGICAL, INTENT(IN) :: Autonomous, VectorTol
-   REAL(kind=dp), INTENT(IN) :: Hstart, Hmin, Hmax
+   KPP_REAL, INTENT(IN) :: Hstart, Hmin, Hmax
    INTEGER, INTENT(IN) :: Max_no_steps
-   REAL(kind=dp), INTENT(IN) :: Roundoff, FacMin, FacMax, FacRej, FacSafe
+   KPP_REAL, INTENT(IN) :: Roundoff, FacMin, FacMax, FacRej, FacSafe
 !~~~> Autoreduction threshold
-   REAL(kind=dp), INTENT(IN) :: threshold
+   KPP_REAL, INTENT(IN) :: threshold
 !~~~> Output: Error indicator
    INTEGER, INTENT(OUT) :: IERR
 ! ~~~~ Local variables
-   REAL(kind=dp) :: Ynew(N), Fcn0(N), Fcn(N), Prod(N), Loss(N), LossY(N)
-   REAL(kind=dp) :: K(NVAR*ros_S), dFdT(N)
+   KPP_REAL :: Ynew(N), Fcn0(N), Fcn(N), Prod(N), Loss(N), LossY(N)
+   KPP_REAL :: K(NVAR*ros_S), dFdT(N)
 #ifdef FULL_ALGEBRA
-   REAL(kind=dp) :: Jac0(N,N), Ghimj(N,N)
+   KPP_REAL :: Jac0(N,N), Ghimj(N,N)
 #else
-   REAL(kind=dp) :: Jac0(LU_NONZERO), Ghimj(LU_NONZERO)
-   REAL(kind=dp) :: cGhimj(LU_NONZERO) ! not known at this point what cNONZERO will be
+   KPP_REAL :: Jac0(LU_NONZERO), Ghimj(LU_NONZERO)
+   KPP_REAL :: cGhimj(LU_NONZERO) ! not known at this point what cNONZERO will be
 #endif
-   REAL(kind=dp) :: H, Hnew, HC, HG, Fac, Tau
-   REAL(kind=dp) :: Err, Yerr(N), Yerrsub(NVAR)
+   KPP_REAL :: H, Hnew, HC, HG, Fac, Tau
+   KPP_REAL :: Err, Yerr(N), Yerrsub(NVAR)
    INTEGER :: Pivot(N), Direction, ioffset, j, istage
    LOGICAL :: RejectLastH, RejectMoreH, Singular, Reduced
 !~~~>  Local parameters
-   REAL(kind=dp), PARAMETER :: ZERO = 0.0_dp, ONE  = 1.0_dp
-   REAL(kind=dp), PARAMETER :: DeltaMin = 1.0E-5_dp
+   KPP_REAL, PARAMETER :: ZERO = 0.0_dp, ONE  = 1.0_dp
+   KPP_REAL, PARAMETER :: DeltaMin = 1.0E-5_dp
    INTEGER :: SPC
-   REAL(kind=dp) :: alpha_factor ! hplin 4/10/22
+   KPP_REAL :: alpha_factor ! hplin 4/10/22
 !      Inline local parameters for AR.
    INTEGER :: II, III, idx, nrmv, s
-   REAL(kind=dp), INTENT(IN) :: AR_thr_ratio
-   REAL(kind=dp) :: AR_thr
+   KPP_REAL, INTENT(IN) :: AR_thr_ratio
+   KPP_REAL :: AR_thr
    INTEGER, INTENT(IN) :: AR_target_spc
 !~~~>  Initial preparations
    DO_SLV  = .true.
@@ -1234,44 +1234,44 @@ Stage: DO istage = 1, ros_S
   IMPLICIT NONE
 
 !~~~> Input: the initial condition at Tstart; Output: the solution at T
-   REAL(kind=dp), INTENT(INOUT) :: Y(N)
+   KPP_REAL, INTENT(INOUT) :: Y(N)
 !~~~> Input: integration interval
-   REAL(kind=dp), INTENT(IN) :: Tstart,Tend
+   KPP_REAL, INTENT(IN) :: Tstart,Tend
 !~~~> Output: time at which the solution is returned (T=Tend if success)
-   REAL(kind=dp), INTENT(OUT) ::  T
+   KPP_REAL, INTENT(OUT) ::  T
 !~~~> Input: tolerances
-   REAL(kind=dp), INTENT(IN) ::  AbsTol(N), RelTol(N)
+   KPP_REAL, INTENT(IN) ::  AbsTol(N), RelTol(N)
 !~~~> Input: integration parameters
    LOGICAL, INTENT(IN) :: Autonomous, VectorTol
-   REAL(kind=dp), INTENT(IN) :: Hstart, Hmin, Hmax
+   KPP_REAL, INTENT(IN) :: Hstart, Hmin, Hmax
    INTEGER, INTENT(IN) :: Max_no_steps
-   REAL(kind=dp), INTENT(IN) :: Roundoff, FacMin, FacMax, FacRej, FacSafe
+   KPP_REAL, INTENT(IN) :: Roundoff, FacMin, FacMax, FacRej, FacSafe
 !~~~> Autoreduction threshold
-   REAL(kind=dp), INTENT(IN) :: threshold
+   KPP_REAL, INTENT(IN) :: threshold
 !~~~> Output: Error indicator
    INTEGER, INTENT(OUT) :: IERR
 ! ~~~~ Local variables
-   REAL(kind=dp) :: Ynew(N), Fcn0(N), Fcn(N), Prod(N), Loss(N), LossY(N), Prd0(N), Los0(N)
-   REAL(kind=dp) :: K(NVAR*ros_S), dFdT(N)
+   KPP_REAL :: Ynew(N), Fcn0(N), Fcn(N), Prod(N), Loss(N), LossY(N), Prd0(N), Los0(N)
+   KPP_REAL :: K(NVAR*ros_S), dFdT(N)
 #ifdef FULL_ALGEBRA
-   REAL(kind=dp) :: Jac0(N,N), Ghimj(N,N)
+   KPP_REAL :: Jac0(N,N), Ghimj(N,N)
 #else
-   REAL(kind=dp) :: Jac0(LU_NONZERO), Ghimj(LU_NONZERO)
-   REAL(kind=dp) :: cGhimj(LU_NONZERO) ! not known at this point what cNONZERO will be
+   KPP_REAL :: Jac0(LU_NONZERO), Ghimj(LU_NONZERO)
+   KPP_REAL :: cGhimj(LU_NONZERO) ! not known at this point what cNONZERO will be
 #endif
-   REAL(kind=dp) :: H, Hnew, HC, HG, Fac, Tau
-   REAL(kind=dp) :: Err, Yerr(N), Yerrsub(NVAR)
+   KPP_REAL :: H, Hnew, HC, HG, Fac, Tau
+   KPP_REAL :: Err, Yerr(N), Yerrsub(NVAR)
    INTEGER :: Pivot(N), Direction, ioffset, j, istage
    LOGICAL :: RejectLastH, RejectMoreH, Singular, Reduced
 !~~~>  Local parameters
-   REAL(kind=dp), PARAMETER :: ZERO = 0.0_dp, ONE  = 1.0_dp
-   REAL(kind=dp), PARAMETER :: DeltaMin = 1.0E-5_dp
+   KPP_REAL, PARAMETER :: ZERO = 0.0_dp, ONE  = 1.0_dp
+   KPP_REAL, PARAMETER :: DeltaMin = 1.0E-5_dp
    INTEGER :: SPC
-   REAL(kind=dp) :: alpha_factor ! hplin 4/10/22
+   KPP_REAL :: alpha_factor ! hplin 4/10/22
 !      Inline local parameters for AR.
    INTEGER :: II, III, idx, nrmv, s
-   REAL(kind=dp), INTENT(IN) :: AR_thr_ratio
-   REAL(kind=dp) :: AR_thr
+   KPP_REAL, INTENT(IN) :: AR_thr_ratio
+   KPP_REAL :: AR_thr
    INTEGER, INTENT(IN) :: AR_target_spc
 !~~~>  Initial preparations
    DO_SLV  = .true.
@@ -1666,10 +1666,10 @@ Stage: DO istage = 1, ros_S
  END SUBROUTINE ros_yIntegratorA
 
  SUBROUTINE AutoReduce_1stOrder(i,Y,P,k,Ti,Tf)
-   REAL(kind=dp), INTENT(INOUT) :: Y
-   REAL(kind=dp), INTENT(IN)    :: P,k,Ti,Tf
+   KPP_REAL, INTENT(INOUT) :: Y
+   KPP_REAL, INTENT(IN)    :: P,k,Ti,Tf
    INTEGER, INTENT(IN)          :: i
-   REAL(kind=dp)                :: term
+   KPP_REAL                :: term
 
    if (k .le. 1.d-30) return
    if (Y .le. 1.d-30) return
@@ -2492,12 +2492,12 @@ SUBROUTINE FunSplitF( T, Y, Ydot, P_VAR, D_VAR, DY_VAR )
  USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
  USE KPP_ROOT_Function, ONLY: Fun_SPLITF
 !~~~> Input variables
-   REAL(kind=dp) :: T, Y(NVAR)
+   KPP_REAL :: T, Y(NVAR)
 !~~~> Output variables
-   REAL(kind=dp) :: Ydot(NVAR)
-   REAL(kind=dp) :: P_VAR(NVAR), D_VAR(NVAR), DY_VAR(NVAR)
+   KPP_REAL :: Ydot(NVAR)
+   KPP_REAL :: P_VAR(NVAR), D_VAR(NVAR), DY_VAR(NVAR)
 !~~~> Local variables
-   REAL(kind=dp) :: Told, P(NVAR), D(NVAR)
+   KPP_REAL :: Told, P(NVAR), D(NVAR)
    P    = 0.d0
    D    = 0.d0
    Told = TIME
@@ -2523,12 +2523,12 @@ SUBROUTINE FunSplitN( T, Y, Ydot)
  USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
  USE KPP_ROOT_Function, ONLY: Fun_SPLITF
 !~~~> Input variables
-   REAL(kind=dp) :: T, Y(NVAR)
+   KPP_REAL :: T, Y(NVAR)
 !~~~> Output variables
-   REAL(kind=dp) :: Ydot(NVAR)
-   REAL(kind=dp) :: P_VAR(NVAR), D_VAR(NVAR)
+   KPP_REAL :: Ydot(NVAR)
+   KPP_REAL :: P_VAR(NVAR), D_VAR(NVAR)
 !~~~> Local variables
-   REAL(kind=dp) :: Told, P(NVAR), D(NVAR)
+   KPP_REAL :: Told, P(NVAR), D(NVAR)
 
    P    = 0.d0
    D    = 0.d0
@@ -2625,142 +2625,6 @@ SUBROUTINE cKppDecomp( JVS, IER )
       END DO
       
 END SUBROUTINE cKppDecomp
-
-!--------------------------------------------------------------
-SUBROUTINE cWAXPY(N,Alpha,X,incX,Y,incY,fN,indx)
-!--------------------------------------------------------------
-!     constant times a vector plus a vector: y <- y + Alpha*x
-!     only for incX=incY=1
-!     after BLAS
-!     replace this by the function from the optimized BLAS implementation:
-!         CALL SAXPY(N,Alpha,X,1,Y,1) or  CALL DAXPY(N,Alpha,X,1,Y,1)
-!
-!     Revision:
-!     -- Aug. 27, 2021: Added fN and indx as arguments to permit 
-!        subsetting Y as required to preserve the length of Y 
-!        and minimze array copying.
-!--------------------------------------------------------------
-
-  INTEGER  :: i,incX,incY,M,MP1,N,fN,indx(N)
-  KPP_REAL :: X(N),Y(fN),Alpha
-  KPP_REAL, PARAMETER :: ZERO = 0.0_dp
-  
-  IF (Alpha .EQ. ZERO) RETURN
-  IF (N .LE. 0) RETURN
-  
-  M = MOD(N,4)
-  IF( M .NE. 0 ) THEN
-     DO i = 1,M
-        Y(indx(i)) = Y(indx(i)) + Alpha*X(i)
-     END DO
-     IF( N .LT. 4 ) RETURN
-  END IF
-  MP1 = M + 1
-  DO i = MP1,N,4
-     Y(indx(i))     = Y(indx(i)) + Alpha*X(i)
-     Y(indx(i + 1)) = Y(indx(i + 1)) + Alpha*X(i + 1)
-     Y(indx(i + 2)) = Y(indx(i + 2)) + Alpha*X(i + 2)
-     Y(indx(i + 3)) = Y(indx(i + 3)) + Alpha*X(i + 3)
-  END DO
-  
-END SUBROUTINE cWAXPY
-
-! Unoptimized version
-SUBROUTINE REDUCE(threshold,P,L,IERR)
-  USE KPP_ROOT_JacobianSP
-
-  REAL(dp), INTENT(IN) :: P(NVAR), L(NVAR), threshold
-!        INTEGER              :: iSPC_MAP(NVAR)
-  INTEGER              :: i, ii, iii, idx, nrmv, s
-  INTEGER              :: IERR
-  LOGICAL              :: SKIP
-
-  iSPC_MAP = 0
-  NRMV = 0
-  S    = 1
-
-  ! If all species will be deactivated, just to 1st order approx
-  ! hplin: patch this out ... maxval is very expensive here
-  ! if (maxval(P) .lt. threshold .and. maxval(L) .lt. threshold .and. .not. keepActive) then
-  !    IERR = -98
-  !    return
-  ! endif
-
-  ! Checks should be kept out of tight inner loops.
-  IF(keepActive) THEN
-   DO i=1,NVAR
-     ! Short-circuiting using SKIP is very important here.
-     if (.not. keepSpcActive(i) .and. &
-         abs(L(i)).lt.threshold .and. abs(P(i)).lt.threshold) then ! per Shen et al., 2020
-        NRMV=NRMV+1
-        RMV(NRMV) = i
-        DO_SLV(i) = .false.
-        DO_FUN(i) = .false.
-        cycle
-     endif
-     SPC_MAP(S)  = i ! Add to full spc map.
-     iSPC_MAP(i) = S
-     S=S+1
-   ENDDO
-  ENDIF
-
-  IF (.not. keepActive) THEN
-    DO i=1,NVAR
-     ! Short-circuiting using SKIP is very important here.
-     if (abs(L(i)).lt.threshold .and. abs(P(i)).lt.threshold) then ! per Shen et al., 2020
-        NRMV=NRMV+1
-        RMV(NRMV) = i
-        DO_SLV(i) = .false.
-        DO_FUN(i) = .false.
-        cycle
-     endif
-     SPC_MAP(S)  = i ! Add to full spc map.
-     iSPC_MAP(i) = S
-     S=S+1
-   ENDDO
-  ENDIF
-
-  rNVAR    = NVAR-NRMV ! Number of active species in the reduced mechanism
-
-  ! Problem size cut-off. If problem is greater than some fraction of the
-  ! full, just solve the full (via error value) -- MSL
-  ! if (dble(rNVAR)/dble(NVAR) .ge. 1.1) then ! Set to 1.1 to deactive it. The results can't be > 1
-  !    IERR = -99
-  !    return
-  ! endif
-
-  II  = 1
-  III = 1
-  idx = 0
-  DO i = 1,LU_NONZERO
-     IF ((DO_SLV(LU_IROW(i))).and.(DO_SLV(LU_ICOL(i)))) THEN
-        idx=idx+1 ! counter for the number of non-zero elements in the reduced Jacobian
-        cLU_IROW(idx) = iSPC_MAP(LU_IROW(i))
-        cLU_ICOL(idx) = iSPC_MAP(LU_ICOL(i))
-        JVS_MAP(idx)  = i
-        
-        IF (idx.gt.1) THEN
-           IF (cLU_IROW(idx).ne.cLU_IROW(idx-1)) THEN
-              II=II+1
-              cLU_CROW(II) = idx
-           ENDIF
-           IF (cLU_IROW(idx).eq.cLU_ICOL(idx)) THEN
-              III=III+1
-              cLU_DIAG(III) = idx
-           ENDIF
-        ENDIF
-        cycle
-     ENDIF
-     DO_JVS(i) = .false.
-  ENDDO
-
-  cNONZERO = idx
-
-  cLU_CROW(1)       = 1 ! 1st index = 1
-  cLU_DIAG(1)       = 1 ! 1st index = 1
-  cLU_CROW(rNVAR+1) = cNONZERO+1
-  cLU_DIAG(rNVAR+1) = cLU_DIAG(rNVAR)+1
-END SUBROUTINE REDUCE
 
 SUBROUTINE APPEND(IDX)
   USE KPP_ROOT_JacobianSP

@@ -29,6 +29,16 @@ is currently still in preparation.
      consistently for the maximum number of Newton iterations in all
      integrators.
 
+   - The utility functions :code:`ARR`, :code:`ARR2`, :code:`k_3rd` and
+     :code:`k_arr` have been replaced by the new set of the consistent
+     functions :code:`ARR_abc`, :code:`ARR_ab`, :code:`ARR_ac`,
+     :code:`k3rd_jpl`, :code:`k3rd_jpl_activation`, and
+     :code:`k3rd_iupac`. We recommend to upgrade to the new functions,
+     which all use the temperature from the :code:`temp` variable in
+     :file:`ROOT_Global.f90`. Alternatively, it is possible to copy the
+     old functions into a separate file and make them available via
+     :code:`F90_RCONST`.         
+
 .. _kpp260:
 
 =========

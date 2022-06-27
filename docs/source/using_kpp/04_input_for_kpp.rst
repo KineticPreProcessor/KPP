@@ -867,6 +867,42 @@ special rate coefficient:
      REAL(dp) :: k_DMS_OH
    #ENDINLINE
 
+Inlining code can be useful to introduce additional state variables
+(such as temperature, humidity, etc.) for use by KPP routines, such as
+for calculating rate coefficients.
+
+If a large number of state variables need to be held in inline code, or
+require intermediate computation that may be repeated for many rate
+coefficients, a derived type object should be used for efficiency.
+
+An example of a derived-type object being included:
+
+.. code-block:: F90
+
+   #INLINE F90_GLOBAL
+     TYPE, PUBLIC :: ObjGlobal_t
+        ! ... add variable fields to this type ...
+     END TYPE ObjGlobal_t
+     TYPE(ObjGlobal_t), TARGET, PUBLIC :: ObjGlobal
+     !$OMP THREADPRIVATE( ObjGlobal )
+
+This global variable :code:`ObjGlobal` can then be used globally in KPP.
+
+Another way to avoid cluttering up the KPP input file is to add global
+variables into a header file that can be :code:`#include`-d:
+
+.. code-block:: F90
+
+   #INLINE F90_GLOBAL
+   ! Inline common variables into KPP_ROOT_Global.F90
+   #include "commonIncludeVars.H"
+   #ENDINLINE
+
+where extra code is included in a separate file, :code:`commonIncludeVars.H`.
+
+In future versions of KPP, the global state will be reorganized into
+derived type objects as well.
+
 .. _inline-type-f90-init:
 
 F90_INIT
@@ -910,7 +946,16 @@ F90_RCONST
 ----------
 
 This inline type can be used to define time-dependent values of rate
-coefficients that were declared with:
+coefficients. You may inline :code:`USE` statements that reference
+modules where rate coefficients are computed:
+
+.. code-block:: F90
+
+   #INLINE F90_RCONST
+     USE MyRateFunctionModule
+   #ENDINLINE
+
+or define variables directly, e.g.:
 
 .. code-block:: F90
 
@@ -918,6 +963,12 @@ coefficients that were declared with:
      k_DMS_OH = 1.E-9*EXP(5820./temp)*C(ind_O2)/ &
        (1.E30+5.*EXP(6280./temp)*C(ind_O2))
    #ENDINLINE
+   
+Note that the :code:`USE` statements must precede any variable
+definitions.
+    
+The inlined code will be placed directly into the :code:`UPDATE_RCONST`
+routine in the :ref:`Rates` function.
 
 .. _f90-util:
 

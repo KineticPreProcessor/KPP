@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ########################################################################
-### CI tests for github.com/KineticPreProcessor/KPP                 ###
+### CI tests for github.com/KineticPreProcessor/KPP                  ###
 ### NOTE: This script runs CI-tests manually (for testing/debugging) ###
 ########################################################################
 
