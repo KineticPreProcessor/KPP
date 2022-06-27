@@ -45,7 +45,7 @@ char *C_types[] = { "void",   /* VOID */
                     "double", /* DOUBLE */
                     "char *", /* STRING */
                     "char *"  /* DOUBLESTRING */
-                  }; 
+                  };
 
 // Local definitions of function prototypes just for code_c.c
 // This will avoid "implicit function declaration" warnings
@@ -86,26 +86,26 @@ void C_WriteSymbol( int op )
 {
   switch( op ) {
     case ADD:   bprintf("+");
-                AllowBreak(); 
+                AllowBreak();
     		break;
-    case SUB:   bprintf("-"); 
-                AllowBreak(); 
+    case SUB:   bprintf("-");
+                AllowBreak();
     		break;
-    case MUL:   bprintf("*"); 
-                AllowBreak(); 
+    case MUL:   bprintf("*");
+                AllowBreak();
     		break;
-    case DIV:   bprintf("/"); 
-                AllowBreak(); 
+    case DIV:   bprintf("/");
+                AllowBreak();
     		break;
     case POW:   bprintf("power");
-                break;		
+                break;
     case O_PAREN: bprintf("(");
-                AllowBreak(); 
-                break;            
+                AllowBreak();
+                break;
     case C_PAREN: bprintf(")");
-                break;            
+                break;
     case NONE:
-                break;            
+                break;
   }
 }
 
@@ -120,8 +120,8 @@ int first;
 int number_of_lines = 1, MAX_NO_OF_LINES = 99;
 int jfound;
 
-/*  Operator Mapping: 0xaa = '*' | 0xab = '+' | 0xac = ',' 
-                      0xad = '-' | 0xae ='.' | 0xaf = '/' */		      
+/*  Operator Mapping: 0xaa = '*' | 0xab = '+' | 0xac = ','
+                      0xad = '-' | 0xae ='.' | 0xaf = '/' */
 /* char op_mult=0xaa, op_plus=0xab, op_minus=0xad, op_dot=0xae, op_div=0xaf; */
 char op_plus='+', op_minus='-'; //op_dot='.', op_div='/', op_mult='*';
 
@@ -135,7 +135,7 @@ char op_plus='+', op_minus='-'; //op_dot='.', op_div='/', op_mult='*';
     jfound = 0;
     if ( number_of_lines >= MAX_NO_OF_LINES ) {/* if a new line needs to be started */
      for( j=linelg; j>5; j-- ) /* split row here if +, -, or comma */
-       if ( ( rs[j] == op_plus )||( rs[j] == op_minus )||( rs[j]==',' ) ) { 
+       if ( ( rs[j] == op_plus )||( rs[j] == op_minus )||( rs[j]==',' ) ) {
         jfound = 1; i=j; break;
 	}
     }
@@ -148,31 +148,31 @@ char op_plus='+', op_minus='-'; //op_dot='.', op_div='/', op_mult='*';
       printf("\n Warning: possible error in continuation lines for %s = ...",ls);
       i = linelg;
      }
-    } 
+    }
     while ( rs[i-1] & 0x80 ) i--; /* put all operators on the next row */
     while ( rs[i] == ',' ) i++; /* put commas on the current row */
-    
+
     /*for( i=linelg; i>10; i-- )
-      if( ( rs[i] & 0x80 ) || ( rs[i] == ',' ) ) 
+      if( ( rs[i] & 0x80 ) || ( rs[i] == ',' ) )
         break;
     if( i < 10 ) {
       printf("\nPossible error when cutting lines");
       i = linelg;
     }*/
-    
-    c = rs[i]; 
+
+    c = rs[i];
     rs[i] = 0;
-    if ( first ) { 
+    if ( first ) {
       bprintf("%s", rs );
       linelg++;
       first = 0;
     } else {
-      bprintf("\n%*s%s", start, "", rs );      
+      bprintf("\n%*s%s", start, "", rs );
       if ( jfound ) {
          bprintf(";\n%*s%s = %s", crtident, "", ls, ls);
 	 number_of_lines = 1;
 	 }
-    }  
+    }
     rs[i] = c;
     rs += i;
     number_of_lines++;
@@ -180,7 +180,7 @@ char op_plus='+', op_minus='-'; //op_dot='.', op_div='/', op_mult='*';
 
   if ( number_of_lines > MAX_NO_OF_LINES )
      printf("\n Warning: many continuation lines (%d) for %s = ...",number_of_lines,ls);
-  
+
   if ( first ) bprintf("%s;\n", rs );
           else bprintf("\n%*s%s;\n", start, "", rs );
 
@@ -205,7 +205,7 @@ char buf[ MAX_LINE ];
 
 
 char * C_Decl( int v )
-{ 
+{
 static char buf[120];
 VARIABLE *var;
 char *baseType;
@@ -214,58 +214,62 @@ char maxj[20];
 
   var = varTable[ v ];
   baseType = C_types[ var->baseType ];
-  
+
   *buf = 0;
-  
+
   switch( var->type ) {
-    case ELM:   
+    case ELM:
               sprintf( buf, "%s %s", baseType, var->name );
 		break;
-    case VELM:  
+    case VELM:
               if( var->maxi > 0 ) sprintf( maxi, "%d", var->maxi );
               if( var->maxi == 0 ) sprintf( maxi, "%d", 1 );
                 /*  else sprintf( maxi, "%s", varTable[ -var->maxi ]->name);  */
               if ( var->maxi < 0 ) {
-		    if (varTable[ -var->maxi ]->value < 0) 
+		    if (varTable[ -var->maxi ]->value < 0)
 		      sprintf( maxi, "%s", varTable[ -var->maxi ]->name );
-		    else  
+		    else
 		      sprintf( maxi, "%d", (varTable[-var->maxi]->value)==0?
 		           1:varTable[-var->maxi]->value );
-	      }  
-                /*if( (var->maxi == 0) || 
+	      }
+                /*if( (var->maxi == 0) ||
                     ((var->maxi < 0) && (varTable[ -var->maxi ]->maxi == 0)) )
                   sprintf( maxi, "%s+1", maxi );*/
-              if( fncPrototipe ) 
+              if( fncPrototipe )
                   sprintf( buf, "%s %s[]", baseType, var->name );
-              else  
+              else
                   sprintf( buf, "%s %s[%s]", baseType, var->name, maxi );
               break;
-    case MELM:  
+    case MELM:
               if( var->maxi > 0 ) sprintf( maxi, "%d", var->maxi );
-              else { 
+              else {
 		 if (varTable[ -var->maxi ]->value < 0)
 		    sprintf( maxi, "%s", varTable[ -var->maxi ]->name );
-		 else  
+		 else
 		    sprintf( maxi, "%d", (varTable[-var->maxi]->value)==0?
 		           1:varTable[-var->maxi]->value );
-	      }  
-                /* if( (var->maxi == 0) || 
+	      }
+                /* if( (var->maxi == 0) ||
                     ((var->maxi < 0) && (varTable[ -var->maxi ]->maxi == 0)) )
                   strcat( maxi, "+1"); */
               if( var->maxj > 0 ) sprintf( maxj, "%d", var->maxj );
               else {
 		  if (varTable[ -var->maxj ]->value < 0)
 		     sprintf( maxj, "%s", varTable[ -var->maxj ]->name );
-		  else  
+		  else
 		     sprintf( maxj, "%d", (varTable[-var->maxj]->value)==0?
 		           1:varTable[-var->maxj]->value );
 	      }
-              if( fncPrototipe ) 
+              if( fncPrototipe ) {
                   sprintf( buf, "%s %s[][]", baseType, var->name );
-              else  
+	          printf( "buf prototype %s\n", buf );
+              } else {
                   sprintf( buf, "%s %s[%s][%s]",
-                        baseType, var->name, maxi, maxj );  
-		break;
+                        baseType, var->name, maxi, maxj );
+	          printf( "buf not prototype %s\n", buf );
+              }
+	      break;
+
     default:
                 Message( "Can not declare type %d", var->type );
                 Message( "v = %d", v );
@@ -276,22 +280,22 @@ char maxj[20];
 
 void C_Declare( int v )
 {
-  bprintf("%-40s", strcat( C_Decl(v), ";" ) ); 
+  bprintf("%-40s", strcat( C_Decl(v), ";" ) );
   if( varTable[ v ]->comment )
     bprintf(" /* %s */\n", varTable[ v ]->comment );
-  else 
-    bprintf("\n");   
+  else
+    bprintf("\n");
 
   FlushBuf();
 }
 
 void C_ExternDeclare( int v )
 {
-  bprintf("extern %-40s", strcat( C_Decl(v), ";" ) ); 
+  bprintf("extern %-40s", strcat( C_Decl(v), ";" ) );
   if( varTable[ v ]->comment )
     bprintf(" /* %s */\n", varTable[ v ]->comment );
-  else 
-    bprintf("\n");   
+  else
+    bprintf("\n");
 
   FlushBuf();
 }
@@ -314,38 +318,38 @@ int maxCols = MAX_COLS;
   ival = (int*) values;
   dval = (double*) values;
   cval = (char**) values;
-  
+
   if( var->comment )
       bprintf(" /* %s */\n\n", var->comment );
-        
+
   switch( var->type ) {
     case VELM: bprintf( "  %s  %s[] = {\n%5s", C_types[var->baseType], var->name, " " );
                for( i = 0; i < n; i++ ) {
                  switch( var->baseType ) {
                    case INT: bprintf( "%3d",  ival[i] ); maxCols=12; break;
-                   case DOUBLE: 
+                   case DOUBLE:
                    case REAL:bprintf( "%5lg", dval[i] ); maxCols=8; break;
                    case STRING:bprintf( "\"%s\"", cval[i] ); maxCols=8; break;
                    case DOUBLESTRING:bprintf( "\"%s\"", cval[i] ); maxCols=1; break;
                  }
                  if( i < n-1 ) bprintf( "," );
                  if( (i+1) % maxCols == 0 ) bprintf( "\n%5s", " " );
-               }  
+               }
                if( n == 0 ) bprintf( "0" );
                bprintf( " }; \n\n" );
                break;
-               
+
     case ELM:  bprintf( "  %s %s = ", C_types[var->baseType], var->name );
                switch( var->baseType ) {
                  case INT: bprintf( "%d",  *ival ); break;
-                 case DOUBLE: 
+                 case DOUBLE:
                  case REAL:bprintf( "%lg", *dval ); break;
                  case STRING:bprintf( "\"%s\"", *cval ); break;
                  case DOUBLESTRING:bprintf( "\"%s\"", *cval ); break;
                }
                bprintf( ";\n\n" );
                break;
-               
+
     default:   printf( "\n Function not defined !\n" );
                break;
   }
@@ -353,34 +357,34 @@ int maxCols = MAX_COLS;
   FlushBuf();
 }
 
-void C_DeclareConstant( int v, char *val ) 
+void C_DeclareConstant( int v, char *val )
 {
 VARIABLE *var;
 int ival;
 char dummy_val[100];           /* used just to avoid strange behaviour of
                                   sscanf when compiled with gcc */
-                                  
+
   strcpy(dummy_val,val);val = dummy_val;
-  
+
   var = varTable[ v ];
 
-  if( sscanf(val, "%d", &ival) == 1 ) 
+  if( sscanf(val, "%d", &ival) == 1 )
     if( ival == 0 ) var->maxi = 0;
                else var->maxi = 1;
   else
-    var->maxi = -1;       
+    var->maxi = -1;
 
   switch( var->type ) {
     case CONST: bprintf("#define %-20s %-10s ", var->name, val );
-                break;       
+                break;
     default:
                 printf( "Invalid constant: %d", var->type );
                 break;
   }
   if( varTable[ v ]->comment )
     bprintf(" /* %s */\n", varTable[ v ]->comment );
-  else 
-    bprintf("\n");   
+  else
+    bprintf("\n");
 
   FlushBuf();
 }
@@ -395,29 +399,35 @@ int narg;
   name = varTable[ f ]->name;
   narg = varTable[ f ]->maxi;
 
-  fncPrototipe = 1;
+  // NOTE: When fncPrototipe=1, it will write a multi-dimensional variable
+  // without array dimensions.  This will cause a compiler error, at least
+  // with gcc.  Set fncPrototipe = 0 to force declaring variables with
+  // the proper dimensions.
+  //   -- Bob Yantosca (27 Jun 2022)
+  //fncPrototipe = 1;
+  fncPrototipe = 0;
 
   bprintf("void %s( \n", name );
   for( i = 0; i < narg-1; i++ ) {
     v = vars[ i ];
-    bprintf("  %-38s", strcat( C_Decl(v), "," ) ); 
+    bprintf("  %-38s", strcat( C_Decl(v), "," ) );
     if( varTable[ v ]->comment )
       bprintf(" /* %s */\n", varTable[ v ]->comment );
-    else 
-      bprintf("\n");   
+    else
+      bprintf("\n");
   }
   if( narg >= 1 ) {
     v = vars[ i ];
     bprintf("  %-38s", C_Decl(v) );
     if( varTable[ v ]->comment )
       bprintf(" /* %s */\n", varTable[ v ]->comment );
-    else 
-      bprintf("\n");   
+    else
+      bprintf("\n");
   }
   bprintf(")");
 
   fncPrototipe = 0;
-  
+
   FlushBuf();
 }
 
@@ -430,8 +440,8 @@ int narg;
 
   narg = varTable[ f ]->maxi;
 
-  Va_start( args, f );  
-  for( i = 0; i < narg; i++ ) 
+  Va_start( args, f );
+  for( i = 0; i < narg; i++ )
     vars[i] = va_arg( args, int );
   va_end( args );
   C_FunctionStart( f, vars );
@@ -449,16 +459,16 @@ int narg;
 
   narg = varTable[ f ]->maxi;
 
-  Va_start( args, f );  
-  for( i = 0; i < narg; i++ ) 
+  Va_start( args, f );
+  for( i = 0; i < narg; i++ )
     vars[i] = va_arg( args, int );
   va_end( args );
-  
+
   CommentFncBegin( f, vars );
   C_FunctionStart( f, vars );
   bprintf("\n");
   bprintf("{\n");
-  
+
   FlushBuf();
 
   MapFunctionComment( f, vars );
@@ -479,19 +489,19 @@ Va_list args;
 char buf[ MAX_K ];
 
   if( useLang != C_LANG ) return;
-  
+
   Va_start( args, fmt );
   vsprintf( buf, fmt, args );
   va_end( args );
   bprintf( "%s\n",buf );
-  
+
   FlushBuf();
 }
 
 void Use_C()
-{ 
+{
   WriteElm 	    = C_WriteElm;
-  WriteSymbol 	    = C_WriteSymbol;  
+  WriteSymbol 	    = C_WriteSymbol;
   WriteAssign 	    = C_WriteAssign;
   WriteComment 	    = C_WriteComment;
   DeclareConstant   = C_DeclareConstant;
@@ -499,7 +509,7 @@ void Use_C()
   ExternDeclare     = C_ExternDeclare;
   GlobalDeclare     = C_GlobalDeclare;
   InitDeclare       = C_InitDeclare;
-  
+
   FunctionStart     = C_FunctionStart;
   FunctionPrototipe = C_FunctionPrototipe;
   FunctionBegin     = C_FunctionBegin;
@@ -508,40 +518,40 @@ void Use_C()
   OpenFile( &param_headerFile,   rootFileName, "_Parameters.h", "Parameter Header File" );
   OpenFile( &initFile, rootFileName, "_Initialize.c", "Initialization File" );
   OpenFile( &driverFile, rootFileName, "_Main.c", "Main Program File" );
-  OpenFile( &integratorFile, rootFileName, "_Integrator.c", 
+  OpenFile( &integratorFile, rootFileName, "_Integrator.c",
                    "Numerical Integrator (Time-Stepping) File" );
-  OpenFile( &linalgFile, rootFileName, "_LinearAlgebra.c", 
+  OpenFile( &linalgFile, rootFileName, "_LinearAlgebra.c",
                    "Linear Algebra Data and Routines File" );
-  OpenFile( &functionFile, rootFileName, "_Function.c", 
+  OpenFile( &functionFile, rootFileName, "_Function.c",
                    "The ODE Function of Chemical Model File" );
-  OpenFile( &jacobianFile, rootFileName, "_Jacobian.c", 
+  OpenFile( &jacobianFile, rootFileName, "_Jacobian.c",
                    "The ODE Jacobian of Chemical Model File" );
-  OpenFile( &rateFile, rootFileName, "_Rates.c", 
+  OpenFile( &rateFile, rootFileName, "_Rates.c",
                    "The Reaction Rates File" );
   if ( useStochastic )
-    OpenFile( &stochasticFile, rootFileName, "_Stochastic.c", 
+    OpenFile( &stochasticFile, rootFileName, "_Stochastic.c",
                    "The Stochastic Chemical Model File" );
   if ( useStoicmat ) {
-    OpenFile( &stoichiomFile, rootFileName, "_Stoichiom.c", 
+    OpenFile( &stoichiomFile, rootFileName, "_Stoichiom.c",
                    "The Stoichiometric Chemical Model File" );
-    OpenFile( &sparse_stoicmFile, rootFileName, "_StoichiomSP.c", 
+    OpenFile( &sparse_stoicmFile, rootFileName, "_StoichiomSP.c",
                    "Sparse Stoichiometric Data Structures File" );
-  }		   
-  OpenFile( &utilFile, rootFileName, "_Util.c", 
+  }
+  OpenFile( &utilFile, rootFileName, "_Util.c",
                    "Auxiliary Routines File" );
   OpenFile( &sparse_dataFile, rootFileName, "_Sparse.h", "Sparse Data Header File" );
   OpenFile( &global_dataFile, rootFileName, "_Global.h", "Global Data Header File" );
   if ( useJacSparse ) {
      OpenFile( &sparse_jacFile, rootFileName, "_JacobianSP.c",
-        "Sparse Jacobian Data Structures File" );  
+        "Sparse Jacobian Data Structures File" );
   }
   if ( useHessian ) {
      OpenFile( &hessianFile, rootFileName, "_Hessian.c", "Hessian File" );
      OpenFile( &sparse_hessFile, rootFileName, "_HessianSP.c",
          "Sparse Hessian Data Structures File" );
-  }   
-  OpenFile( &mapFile, rootFileName, ".map", 
+  }
+  OpenFile( &mapFile, rootFileName, ".map",
                    "Map File with Human-Readable Information" );
-  OpenFile( &monitorFile, rootFileName, "_Monitor.c", 
+  OpenFile( &monitorFile, rootFileName, "_Monitor.c",
                    "Utility Data Initialization" );
-} 
+}
