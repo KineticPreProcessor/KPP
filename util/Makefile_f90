@@ -185,7 +185,7 @@ clean:
 	KPP_ROOT.map
 
 distclean:
-	rm -f KPP_ROOT*.o KPP_ROOT*.mod \
+	rm -f *.o *.mod \
 	KPP_ROOT*.dat KPP_ROOT.exe KPP_ROOT.map \
 	KPP_ROOT_*.f90 KPP_ROOT_*.f90 KPP_ROOT_*.mexglx \
 	results*.m
