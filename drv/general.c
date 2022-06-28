@@ -16,14 +16,15 @@ int main()
   KPP_REAL dval[NSPEC];
   int i;
 
+
   //=========================================================================
   // Initialization
   //=========================================================================
 
   // Time variables
-  TSTART = 3600*12;
-  TEND   = TSTART + 3600*24*5;
-  DT     = 3600.;
+  TSTART = 3600.0 * 12,0;
+  TEND   = TSTART + 3600.0 * 24.0 * 5,0;
+  DT     = 3600.0;
 
   // Initial temperature
   TEMP   = 236.21;
@@ -60,7 +61,7 @@ int main()
     // Print species information
     GetMass( C, dval );
     printf("\n%6.1f%% %7.2f   ",
-	   (TIME-TSTART)/(TEND-TSTART)*100.0, TIME/3600/0 );
+	   (TIME-TSTART)/(TEND-TSTART)*100.0, TIME/3600.0 );
     for( i = 0; i < NMONITOR; i++ )
       printf( "%9.3e  ", C[ MONITOR[i] ]/CFACTOR );
     for( i = 0; i < NMASS; i++ )

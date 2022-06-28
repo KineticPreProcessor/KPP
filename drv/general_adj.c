@@ -86,7 +86,7 @@ int main() {
 
   // Print species information
   GetMass( C, DVAL );
-  printf("\n%6.1f%% %7.2f   ", (TIME-TSTART)/(TEND-TSTART)*100, TIME/3600 );
+  printf("\n%6.1f%% %7.2f   ", (TIME-TSTART)/(TEND-TSTART)*100.0, TIME/3600.0 );
   for( i = 0; i < NMONITOR; i++ )
     printf( "%9.3e  ", C[ MONITOR[i] ]/CFACTOR );
   for( i = 0; i < NMASS; i++ )
