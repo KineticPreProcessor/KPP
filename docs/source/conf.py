@@ -53,7 +53,7 @@ class RefStyle(UnsrtStyle):
     default_name_style = LastFirst
     default_sort_style = None
     default_label_style = LabelStyle
-
+    
     def __init__(self):
        super().__init__()
        self.abbreviate_names = True
@@ -111,7 +111,7 @@ html_theme_options = {
 
 latex_theme = "howto"
 latex_logo = "_static/kpp-logo.png"
-latex_show_pagerefs = True
+#latex_show_pagerefs = True
 latex_show_urls = "footnote"
 
 latex_elements = {
