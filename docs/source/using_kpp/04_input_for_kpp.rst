@@ -947,7 +947,7 @@ F90_RCONST
 
 This inline type can be used to define time-dependent values of rate
 coefficients. You may inline :code:`USE` statements that reference
-modules where rate coefficients are computed:
+modules where rate coefficients are computed, e.g.:
 
 .. code-block:: F90
 

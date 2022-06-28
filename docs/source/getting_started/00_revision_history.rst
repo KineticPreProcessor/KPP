@@ -37,7 +37,7 @@ is currently still in preparation.
      which all use the temperature from the :code:`temp` variable in
      :file:`ROOT_Global.f90`. Alternatively, it is possible to copy the
      old functions into a separate file and make them available via
-     :code:`F90_RCONST`.         
+     :ref:`f90-RCONST`.
 
 .. _kpp260:
 
