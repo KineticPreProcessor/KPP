@@ -262,11 +262,9 @@ char maxj[20];
 	      }
               if( fncPrototipe ) {
                   sprintf( buf, "%s %s[][]", baseType, var->name );
-	          printf( "buf prototype %s\n", buf );
               } else {
                   sprintf( buf, "%s %s[%s][%s]",
                         baseType, var->name, maxi, maxj );
-	          printf( "buf not prototype %s\n", buf );
               }
 	      break;
 
@@ -313,6 +311,7 @@ int * ival;
 double * dval;
 char ** cval;
 int maxCols = MAX_COLS;
+ char thisEqn[MAX_EQNLEN];
 
   var = varTable[ v ];
   ival = (int*) values;
@@ -326,11 +325,28 @@ int maxCols = MAX_COLS;
     case VELM: bprintf( "  %s  %s[] = {\n%5s", C_types[var->baseType], var->name, " " );
                for( i = 0; i < n; i++ ) {
                  switch( var->baseType ) {
-                   case INT: bprintf( "%3d",  ival[i] ); maxCols=12; break;
+                   case INT:
+		     bprintf( "%3d",  ival[i] );
+		     maxCols=12;
+		     break;
                    case DOUBLE:
-                   case REAL:bprintf( "%5lg", dval[i] ); maxCols=8; break;
-                   case STRING:bprintf( "\"%s\"", cval[i] ); maxCols=8; break;
-                   case DOUBLESTRING:bprintf( "\"%s\"", cval[i] ); maxCols=1; break;
+                   case REAL:
+		     bprintf( "%5lg", dval[i] );
+		     maxCols=8;
+		     break;
+                   case STRING:
+		     bprintf( "\"%s\"", cval[i] );
+		     maxCols=8;
+		     break;
+		   case DOUBLESTRING:
+		     // Bug fix: To avoid a segmentation fault, copy the
+		     // string from cval[i] to string variable thisEqn
+		     // before passing it to bprintf.
+		     //  -- Bob Yantosca (28 Jun 2022)
+		     strncpy( thisEqn, cval[i], MAX_EQNLEN+1 );
+		     bprintf( "\"%s\"", thisEqn );
+		     maxCols=1;
+		     break;
                  }
                  if( i < n-1 ) bprintf( "," );
                  if( (i+1) % maxCols == 0 ) bprintf( "\n%5s", " " );
