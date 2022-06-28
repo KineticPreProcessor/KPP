@@ -37,7 +37,7 @@ is currently still in preparation.
      which all use the temperature from the :code:`temp` variable in
      :file:`ROOT_Global.f90`. Alternatively, it is possible to copy the
      old functions into a separate file and make them available via
-     :code:`F90_RCONST`.         
+     :ref:`f90-RCONST`.
 
 .. _kpp260:
 
@@ -127,7 +127,7 @@ NOTE: Contains KPP Modifications specific to GEOS-Chem:
 KPP 2.3.1_gc
 ============
 
-NOTE: KPP modifications specific to GEOS-Chem:
+NOTE: KPP modifications specific to GEOS-Chem
 
 ALSO NOTE: ReadTheDocs documentation has been updated in :ref:`kpp250`
 to remove GEOS-Chem specific information.
@@ -266,7 +266,7 @@ KPP 2.1
 =======
 
 - Fortran90 output has been available since the preliminary version
-  “1.1-f90-alpha12” provided in :cite:`2005:Sander_et_al`.
+  “1.1-f90-alpha12” provided in :cite:t:`2005:Sander_et_al`.
 
 - Matlab is a new target language (see Sect. `4.4 <#sec:matlab>`__).
 
