@@ -668,7 +668,7 @@ in-place LU factorization :math:`P` as computed by and perform sparse
 backward and forward substitutions (using :math:`P` or its
 transpose). The sparse linear algebra routines :code:`KppDecomp` and
 :code:`KppSolve` are extremely efficient, as shown by
-:cite:`1996:Sandu_et_al`.
+:cite:t:`1996:Sandu_et_al`.
 
 .. _Stoichiom-and-StoichiomSP:
 

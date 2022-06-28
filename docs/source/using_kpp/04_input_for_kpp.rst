@@ -746,7 +746,7 @@ Reordering of the species is performed in order to minimize the fill-in
 during the LU factorization, and therefore preserve the sparsity
 structure and increase efficiency. The reordering is done using a
 diagonal markowitz algorithm. The details are explained in
-:cite:`1996:Sandu_et_al`. The default is :command:`ON`.
+:cite:t:`1996:Sandu_et_al`. The default is :command:`ON`.
 :command:`OFF` means that KPP does not reorder the species. The order
 of the variables is the order in which the species are
 declared in the :command:`#DEFVAR` section.

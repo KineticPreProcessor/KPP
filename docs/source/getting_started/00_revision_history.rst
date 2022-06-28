@@ -266,7 +266,7 @@ KPP 2.1
 =======
 
 - Fortran90 output has been available since the preliminary version
-  “1.1-f90-alpha12” provided in :cite:`2005:Sander_et_al`.
+  “1.1-f90-alpha12” provided in :cite:t:`2005:Sander_et_al`.
 
 - Matlab is a new target language (see Sect. `4.4 <#sec:matlab>`__).
 

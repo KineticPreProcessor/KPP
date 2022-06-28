@@ -104,7 +104,7 @@ Rosenbrock methods
 **Integrator file:** :file:`int/rosenbrock.f90`
 
 An :math:`s`-stage Rosenbrock method (cf. Section IV.7 in
-:cite:`1991:Hairer_and_Wanner`) computes the next-step solution by the
+:cite:t:`1991:Hairer_and_Wanner`) computes the next-step solution by the
 formulas
 
 .. _alt-rosenbrock:
@@ -343,15 +343,15 @@ Rosenbrock with mechanism auto-reduction
 
 **Integrator file:** :file:`int/rosenbrock_autoreduce.f90`
 
-Mechanism auto-reduction (described in :cite:`2022:Lin_et_al`) expands
-previous work by :cite:`2020:Shen_et_al`,
-:cite:`2010:Santillana_et_al` to a computationally efficient
-implementation in KPP, avoiding memory re-allocation, re-compile of
-the code, and on-the-fly mechanism reduction based on dynamically
-determined  production and loss rate thresholds.
+Mechanism auto-reduction (described in :cite:t:`2022:Lin_et_al`) expands
+previous work by :cite:t:`2020:Shen_et_al` and
+:cite:t:`2010:Santillana_et_al` to a computationally efficient
+implementation in KPP, avoiding memory re-allocation, re-compile of the
+code, and on-the-fly mechanism reduction based on dynamically determined
+production and loss rate thresholds.
 
 We define a threshold :math:`\delta` which can be fixed (as in
-:cite:`2010:Santillana_et_al`) or determined by the production and
+:cite:t:`2010:Santillana_et_al`) or determined by the production and
 loss rates of a "target species" scaled by a factor
 
 .. math::
@@ -380,7 +380,7 @@ Runge-Kutta (aka RK) methods
 ============================
 
 A general :math:`s`-stage Runge-Kutta method is defined as (see
-Section II.1 of :cite:`1993:Hairer_Norsett_and_Wanner`)
+Section II.1 of :cite:t:`1993:Hairer_Norsett_and_Wanner`)
 
 .. math::
 
@@ -420,7 +420,7 @@ RADAU5
 
 This Runge-Kutta method of order 5 based on RADAU-IIA quadrature
 is stiffly accurate. The KPP implementation follows the original
-implementation of :cite:`1991:Hairer_and_Wanner`, Section IV.10. While
+implementation of :cite:t:`1991:Hairer_and_Wanner`, Section IV.10. While
 RADAU5 is relatively expensive (when compared to the Rosenbrock
 methods), it is more robust and is useful to obtain accurate reference
 solutions.
@@ -430,7 +430,7 @@ SDIRK
 **Integrator file:** :file:`int/sdirk.f90`,
 
 SDIRK is an L-stable, singly-diagonally-implicit Runge-Kutta method. The
-implementation is based on :cite:`1991:Hairer_and_Wanner`. Several
+implementation is based on :cite:t:`1991:Hairer_and_Wanner`. Several
 variants are available:
 
   - Sdirk 2a, 2b: 2 stages, order 2
@@ -442,7 +442,7 @@ SDIRK4
 **Integrator file:** :file:`int/sdirk4.f90`
 
 SDIRK4 is an L-stable, singly-diagonally-implicit Runge-Kutta method
-of order 4. The implementation is based on :cite:`1991:Hairer_and_Wanner`.
+of order 4. The implementation is based on :cite:t:`1991:Hairer_and_Wanner`.
 
 SEULEX
 ------
@@ -450,7 +450,7 @@ SEULEX
 
 SEULEX is a variable  order stiff extrapolation code able to produce
 highly accurate solutions. The KPP implementation is based on the
-implementation of :cite:`1991:Hairer_and_Wanner`.
+implementation of :cite:t:`1991:Hairer_and_Wanner`.
 
 .. _rk-tlm:
 
@@ -511,7 +511,7 @@ Backward differentiation formulas
 
 Backward differentiation formulas (BDF) are linear multistep methods
 with excellent stability properties for the integration of chemical
-systems (cf. :cite:`1991:Hairer_and_Wanner`, Section V.1). The
+systems (cf. :cite:t:`1991:Hairer_and_Wanner`, Section V.1). The
 :math:`k`-step BDF method reads
 
 .. math::
