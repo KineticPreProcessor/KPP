@@ -127,7 +127,7 @@ NOTE: Contains KPP Modifications specific to GEOS-Chem:
 KPP 2.3.1_gc
 ============
 
-NOTE: KPP modifications specific to GEOS-Chem:
+NOTE: KPP modifications specific to GEOS-Chem
 
 ALSO NOTE: ReadTheDocs documentation has been updated in :ref:`kpp250`
 to remove GEOS-Chem specific information.
