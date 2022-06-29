@@ -3,7 +3,8 @@ KPP revision history
 ####################
 
 Only the major new features are listed here. For a detailed description
-of the changes, read the file :file:`$KPP_HOME/CHANGELOG.md`.
+of the changes, read `CHANGELOG.md
+<https://github.com/KineticPreProcessor/KPP/blob/main/CHANGELOG.md>`_.
 
 .. _kpp300:
 
@@ -23,12 +24,6 @@ is currently still in preparation.
      to change :code:`#INCLUDE atoms` to :code:`#INCLUDE atoms.kpp` in your
      KPP input file.
 
-   - If you have been using :code:`ICNTRL(5)` for maximal order in the
-     :code:`lsode` integrator, you now have to use :code:`ICNTRL(10)`
-     instead. The index 5 in the :code:`ICNTRL` array is now used
-     consistently for the maximum number of Newton iterations in all
-     integrators.
-
    - The utility functions :code:`ARR`, :code:`ARR2`, :code:`k_3rd` and
      :code:`k_arr` have been replaced by the new set of the consistent
      functions :code:`ARR_abc`, :code:`ARR_ab`, :code:`ARR_ac`,
@@ -39,13 +34,19 @@ is currently still in preparation.
      old functions into a separate file and make them available via
      :ref:`f90-RCONST`.
 
+   - If you have been using :code:`ICNTRL(5)` for maximal order in the
+     :code:`lsode` integrator, you now have to use :code:`ICNTRL(10)`
+     instead. The index 5 in the :code:`ICNTRL` array is now used
+     consistently for the maximum number of Newton iterations in all
+     integrators.
+
 .. _kpp260:
 
 =========
 KPP 2.6.0
 =========
 
-- Added the **rosenbrock_autoreduce** integrator :cite:`2022:Lin_et_al`
+- Added the **rosenbrock_autoreduce** integrator :cite:`2022:Lin_et_al`.
 
 .. _kpp250:
 
@@ -59,7 +60,7 @@ KPP 2.5.0
   stream.  Previously hardwired code has been removed and replaced
   with code selectable via KPP commands.
 
-- Added a new forward-Euler method integrator (:program:`feuler.f90`).
+- Added a new forward-Euler method integrator (:file:`feuler.f90`).
 
 - Added KPP commands :command:`#MINVERSION` and :command:`#UPPERCASEF90`
   (along with corresponding continuous integration tests).
@@ -104,7 +105,7 @@ KPP 2.4.0
 KPP 2.3.2_gc
 ============
 
-NOTE: Contains KPP Modifications specific to GEOS-Chem:
+NOTE: Contains KPP Modifications specific to GEOS-Chem.
 
 - Added workaround for F90 derived-type objects in inlined code
   (i.e. properly parse :code:`State_Het%xArea`, etc).
@@ -127,7 +128,7 @@ NOTE: Contains KPP Modifications specific to GEOS-Chem:
 KPP 2.3.1_gc
 ============
 
-NOTE: KPP modifications specific to GEOS-Chem
+NOTE: KPP modifications specific to GEOS-Chem.
 
 ALSO NOTE: ReadTheDocs documentation has been updated in :ref:`kpp250`
 to remove GEOS-Chem specific information.
@@ -146,7 +147,7 @@ to remove GEOS-Chem specific information.
 KPP 2.3.0_gc
 ============
 
-NOTE: Contains KPP modifications specific to GEOS-Chem
+NOTE: Contains KPP modifications specific to GEOS-Chem.
 
 - Added :file:`README.md` for the GC_updates branch.
 
@@ -176,7 +177,7 @@ NOTE: Contains KPP modifications specific to GEOS-Chem
 KPP 2.2.5_gc
 ============
 
-NOTE: Contains KPP modifications specific to GEOS-Chem
+NOTE: Contains KPP modifications specific to GEOS-Chem.
 
 - Increase :code:`MAX_INLINE` from 20000 to 50000
 
@@ -186,7 +187,7 @@ NOTE: Contains KPP modifications specific to GEOS-Chem
 KPP 2.2.4_gc
 ============
 
-NOTE: Contains KPP modifications specific to GEOS-Chem
+NOTE: Contains KPP modifications specific to GEOS-Chem.
 
 - Add MIT license files for GC_updates branch and update
   :file:`README.md` accordingly
@@ -254,7 +255,8 @@ KPP 2.2.3
 
 - New Rosebrock method :code:`Rang3` was added.
 
-- The new KPP command :code:`#DECLARE` was added (see :ref:`declare-cmd`).
+- The new KPP command :command:`#DECLARE` was added (see
+  :ref:`declare-cmd`).
 
 - Several vector and array functions from :program:`BLAS` (:code:`WCOPY`,
   :code:`WAXPY`, etc.) were replaced by Fortran90 expressions.

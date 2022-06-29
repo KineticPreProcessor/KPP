@@ -4,18 +4,18 @@
 Input for KPP
 #############
 
-KPP basically handles two types of files: **Kinetic description files** and
-**auxiliary files**.  Kinetic description files are in KPP syntax and
-described in the following sections.  Auxiliary files are described in
-the section entitled :ref:`auxiliary-files-and-the-substitution-preprocessor`.
+KPP basically handles two types of input files: **Kinetic description
+files** and **auxiliary files**. Kinetic description files are in KPP
+syntax and described in the following sections. Auxiliary files are
+described in the section entitled
+:ref:`auxiliary-files-and-the-substitution-preprocessor`.
 
 KPP kinetic description files specify the chemical equations, the
 initial values of each of the species involved, the integration
 parameters, and many other options. The KPP preprocessor parses the
 kinetic description files and generates several output files. Files
 that are written in KPP syntax have one of the suffixes :file:`.kpp`,
-:file:`.spc`, :file:`.eqn`, or :file:`def`. An exception is the file
-:file:`atoms`, which has no suffix.
+:file:`.spc`, :file:`.eqn`, or :file:`def`.
 
 The following general rules define the structure of a kinetic
 description file:
@@ -40,10 +40,11 @@ combined. The include files can be nested up to 10 levels. KPP will
 parse these files as if they were a single big file. By carefully
 splitting the chemical description, KPP can be configured for a broad
 range of users. In this way the users can have direct access to that
-part of the model that they are interested in, and all the other
-details can be hidden inside several include files. Often, a file with
-atom definitions is included first, then species definitions, and
-finally the equations of the chemical mechanism.
+part of the model that they are interested in, and all the other details
+can be hidden inside several include files. Often, the atom definitions
+(:file:`atoms.kpp`) are included first, then species definitions
+(:file:`*.spc`), and finally the equations of the chemical mechanism
+(:file:`*.eqn`).
 
 .. _kpp-sections:
 
@@ -87,11 +88,11 @@ description file.
 #CHECK
 ------
 
-KPP is able to do a mass balance checking for all equations. Some
-chemical equations are not balanced for all atoms, and this might still
-be correct from a chemical point of view. To accommodate for this, KPP
-can perform mass balance checking only for the list of atoms specified
-in the :command:`#CHECK` section, e.g.:
+KPP is able to do mass balance checks for all equations. Some chemical
+equations are not balanced for all atoms, and this might still be
+correct from a chemical point of view. To accommodate for this, KPP can
+perform mass balance checking only for the list of atoms specified in
+the :command:`#CHECK` section, e.g.:
 
 .. code-block:: console
 
@@ -109,20 +110,17 @@ atom can also be used to control mass balance checking.
 
 There are two ways to declare new species together with their atom
 composition: :command:`#DEFVAR` and :command:`#DEFFIX`. These sections
-define all the species that will be used in the chemical
-mechanism. Species can be variable or fixed. The type is implicitly
-specified by defining the species in the appropriate sections. A
-species can be considered fixed if its concentration does not vary too
-much. The variable species are medium or short lived species and their
-concentrations vary in time. This division of species into different
-categories is helpful for integrators that benefit from treating them
-differently.
+define all the species that will be used in the chemical mechanism.
+Species can be variable or fixed. The type is implicitly specified by
+defining the species in the appropriate sections. A fixed species does
+not vary through chemical reactions.
 
 For each species the user has to declare the atom composition. This
 information is used for mass balance checking. If the species is a
-lumped species without an exact composition, it can be ignored. To do
-this one can declare the predefined atom :command:`IGNORE` as being
-part of the species composition. Examples for these sections are:
+lumped species without an exact composition, its composition can be
+ignored. To do this one can declare the predefined atom
+:command:`IGNORE` as being part of the species composition. Examples for
+these sections are:
 
 .. code-block:: console
 
@@ -147,11 +145,11 @@ chemist would write it:
 
    #EQUATIONS
 
-   <1> NO2 + hv = NO + O3P :  6.69e-1*(SUN/60.0e0);
-   <2> O3P + O2 + AIR = O3 :  ARR_ac(5.68e-34,  -2.80e0);
-   <3> O3P + O3 = 2O2 :       ARR_ab(8.00e-12, 2060.0e0);
-   <4> O3P + NO + AIR = NO2 : ARR_ac(1.00e-31,  -1.60e0);
-   ... etc ...
+   <R1> NO2 + hv = NO + O3P :  6.69e-1*(SUN/60.0);
+   <R2> O3P + O2 + AIR = O3 :  ARR_ac(5.68e-34,  -2.80);
+   <R3> O3P + O3 = 2O2 :       ARR_ab(8.00e-12, 2060.0);
+   <R4> O3P + NO + AIR = NO2 : ARR_ac(1.00e-31,  -1.60);
+   //... etc ...
 
 .. note::
 
@@ -188,8 +186,7 @@ parameterize organic reactions that branch into several side reactions:
 
 .. code-block:: console
 
-   CH4 + O1D = .75 CH3O2 + .75 OH + .25 HCHO
-               + 0.4 H + .05 H2 : k_CH4_O1D;
+   CH4 + O1D = .75 CH3O2 + .75 OH + .25 HCHO + 0.4 H + .05 H2 : k_CH4_O1D;
 
 KPP provides two pre-defined dummy species: :literal:`hv` and
 :literal:`PROD`. Using dummy species does not affect the numerics of
@@ -450,7 +447,7 @@ using parameters from the :ref:`Parameters` file. :command:`#DECLARE VALUE`
 will replace each parameter with its value.
 
 For example, the global array variable :code:`C` is declared in the
-:ref:`Global` file generated by KPP.  In the :command:`small_strato`
+:ref:`Global` file generated by KPP.  In the :program:`small_strato`
 example (described in :ref:`running-kpp-with-an-example-mechanism`),
 :code:`C` has dimension :code:`NSPEC=7`. Using  :command:`#DECLARE
 SYMBOL` will generate the following code in :ref:`Global`:
@@ -469,12 +466,11 @@ Whereas :command:`#DECLARE VALUE` will generate this code instead:
      REAL(kind=dp), TARGET :: C(7)
      !$OMP THREADPRIVATE( C )
 
-We recommend using :command:`#DECLARE SYMBOL`, as most modern
-compilers will automatically replace each parameter (e.g. :code:`NSPEC`)
-with its value (e.g :code:`7`).  This prevents repeated lookups of
-the parameter value, which leads to inefficient execution.  But if you are
-using a very old compiler that is not as sophisticated,
-:command:`#DECLARE VALUE` might result in better-optmized code.
+We recommend using :command:`#DECLARE SYMBOL`, as most modern compilers
+will automatically replace each parameter (e.g. :code:`NSPEC`) with its
+value (e.g :code:`7`). However, if you are using a very old compiler
+that is not as sophisticated, :command:`#DECLARE VALUE` might result in
+better-optmized code.
 
 .. _double-cmd:
 
@@ -550,12 +546,11 @@ equation tag which is enclosed in angle brackets, e.g.:
 
 .. code-block:: console
 
-   <1> NO2 + hv = NO + O3P :  6.69e-1*(SUN/60.0e0);
+   <R1> NO2 + hv = NO + O3P :  6.69e-1*(SUN/60.0);
 
-With :command:`#EQNTAGS` set to :command:`ON`, this equation tag can
-be used to refer to a specific equation
-(cf. :ref:`lookat-and-monitor`). The default for :command:`#EQNTAGS`
-is :command:`OFF`.
+With :command:`#EQNTAGS` set to :command:`ON`, this equation tag can be
+used to refer to a specific equation (cf. :ref:`monitor`). The default
+for :command:`#EQNTAGS` is :command:`OFF`.
 
 .. _function-cmd:
 
@@ -585,10 +580,10 @@ command turns the Hessian generation on (see section
 The :command:`#INCLUDE` command instructs KPP to look for the file
 specified as a parameter and parse the content of this file before
 proceeding to the next line. This allows the atoms definition, the
-species definition and even the equation definition to be shared
-between several models. Moreover this allows for custom configuration
-of KPP to accommodate various classes of users. Include files can be
-either in one of the KPP directories or in the current directory.
+species definition and the equation definition to be shared between
+several models. Moreover this allows for custom configuration of KPP to
+accommodate various classes of users. Include files can be either in one
+of the KPP directories or in the current directory.
 
 .. _integrator-cmd:
 
@@ -601,13 +596,13 @@ suffix. The effect of
 
 .. code-block:: console
 
-   #INTEGRATOR integrator-name
+   #INTEGRATOR integrator_name
 
 is similar to:
 
 .. code-block:: console
 
-   #INCLUDE $KPP_HOME/int/integrator-name.def
+   #INCLUDE $KPP_HOME/int/integrator_name.def
 
 The :command:`#INTEGRATOR` command allows the use of different
 integration techniques on the same model. If it occurs twice, the second
@@ -620,7 +615,6 @@ e.g.:
 .. code-block:: console
 
    #INTEGRATOR ./mydeffile
-   #INTFILE ./myintegrator
 
 .. _intfile-cmd:
 
@@ -651,8 +645,8 @@ place.
 The :command:`#JACOBIAN` command controls which functions are generated
 to compute the Jacobian. The option :command:`OFF` inhibits the
 generation of the Jacobian routine. The option :command:`FULL` generates
-the Jacobian as a square :code:`NVAR x NVAR` matrix. It should be used
-if the integrator needs the whole Jacobians. The options
+the Jacobian as a square :code:`NVAR x NVAR` matrix. It should only be
+used if the integrator needs the whole Jacobians. The options
 :command:`SPARSE_ROW` and :command:`SPARSE_LU_ROW` (the default) both
 generate the Jacobian in sparse (compressed on rows) format. They should
 be used if the integrator needs the whole Jacobian, but in a sparse
@@ -675,10 +669,8 @@ The :command:`#LANGUAGE` command selects the target language in which the
 code file is to be generated. Available options are :command:`Fortran90`,
 :command:`C`, or :command:`matlab`.
 
-.. tip::
-
-   You can select the suffix (:code:`.F90` or :code:`.f90`) to use for
-   Fortran90 source code generated by KPP (cf. :ref:`uppercasef90-cmd`).
+You can select the suffix (:code:`.F90` or :code:`.f90`) to use for
+Fortran90 source code generated by KPP (cf. :ref:`uppercasef90-cmd`).
 
 .. _mex-cmd:
 
@@ -721,17 +713,17 @@ quit with an error message unless you are using KPP 2.4.0 or later.
 
 The chemical model contains the description of the atoms, species, and
 chemical equations. It also contains default initial values for the
-species and default options including the best integrator for the model.
-In the simplest case, the main kinetic description file, i.e. the one
-passed as parameter to KPP, can contain just a single line selecting the
-model. KPP tries to find a file with the name of the model and the
+species and default options including a suitable integrator for the
+model. In the simplest case, the main kinetic description file, i.e. the
+one passed as parameter to KPP, can contain just a single line selecting
+the model. KPP tries to find a file with the name of the model and the
 suffix :file:`.def` in the :file:`$KPP_HOME/models` subdirectory. This
-file is then parsed. The content of the model definition file is
-written in the KPP language. The model definition file points to a
-species file and an equation file. The species file includes further
-the atom definition file. All default values regarding the model are
-automatically selected. For convenience, the best integrator and
-driver for the given model are also automatically selected.
+file is then parsed. The content of the model definition file is written
+in the KPP language. The model definition file points to a species file
+and an equation file. The species file includes further the atom
+definition file. All default values regarding the model are
+automatically selected. For convenience, the best integrator and driver
+for the given model are also automatically selected.
 
 The :command:`#MODEL` command is optional, and intended for using a
 predefined model. Users who supply their own reaction mechanism do not
@@ -745,7 +737,7 @@ need it.
 Reordering of the species is performed in order to minimize the fill-in
 during the LU factorization, and therefore preserve the sparsity
 structure and increase efficiency. The reordering is done using a
-diagonal markowitz algorithm. The details are explained in
+diagonal Markowitz algorithm. The details are explained in
 :cite:t:`1996:Sandu_et_al`. The default is :command:`ON`.
 :command:`OFF` means that KPP does not reorder the species. The order
 of the variables is the order in which the species are

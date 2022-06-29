@@ -81,10 +81,9 @@ with `Spack <https://spack.readthedocs.io>`_.
 gcc
 ---
 
-KPP uses the `GNU Compiler Collection (aka gcc)
-<https://gcc.gnu.org/>`_ by default.  A version of gcc comes
-pre-installed with most Linux or MacOS systems.  To test if gcc is
-installed on your system, type:
+KPP uses the `GNU Compiler Collection <https://gcc.gnu.org/>`_ (aka gcc)
+by default. A version of gcc comes pre-installed with most Linux or
+MacOS systems. To test if gcc is installed on your system, type:
 
 .. code-block :: console
 
