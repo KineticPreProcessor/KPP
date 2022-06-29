@@ -169,8 +169,8 @@ The code to update the rate constants is in :file:`ROOT_Rates.f90` (or
 ROOT_Parameters
 ---------------
 
-The global parameters listed in :ref:`table-par` are defined and
-initialized in :file:`ROOT_Parameters.f90` (or :file:`.F90`).
+Global parameters are defined and initialized in
+:file:`ROOT_Parameters.f90` (or :file:`.F90`):
 
 .. _table-par:
 
@@ -231,8 +231,8 @@ Hessian, etc.
 ROOT_Global
 -----------
 
-The global variables listed in :ref:`table-glob` are declared in
-:file:`ROOT_Global.f90` (or :file:`.F90`).
+Several global variables are declared in :file:`ROOT_Global.f90` (or
+:file:`.F90`):
 
 .. _table-glob:
 
@@ -246,27 +246,27 @@ The global variables listed in :ref:`table-glob` are declared in
    +-------------------------+---------------------------------------------+
    | :code:`VAR(:)`          | Concentrations, variable species (pointer)  |
    +-------------------------+---------------------------------------------+
-   | :code:`FIX(:)`          | Concentrations, fixed species (pointer)	   |
+   | :code:`FIX(:)`          | Concentrations, fixed species (pointer)     |
    +-------------------------+---------------------------------------------+
-   | :code:`RCONST(NREACT)`  | Rate coefficient values			   |
+   | :code:`RCONST(NREACT)`  | Rate coefficient values                     |
    +-------------------------+---------------------------------------------+
-   | :code:`TIME`            | Current integration time			   |
+   | :code:`TIME`            | Current integration time                    |
    +-------------------------+---------------------------------------------+
-   | :code:`SUN`             | Sun intensity between 0 and 1		   |
+   | :code:`SUN`             | Sun intensity between 0 and 1               |
    +-------------------------+---------------------------------------------+
-   | :code:`TEMP`            | Temperature				   |
+   | :code:`TEMP`            | Temperature                                 |
    +-------------------------+---------------------------------------------+
-   | :code:`TSTART, TEND`    | Simulation start/end time		   |
+   | :code:`TSTART, TEND`    | Simulation start/end time                   |
    +-------------------------+---------------------------------------------+
-   | :code:`DT`              | Simulation step				   |
+   | :code:`DT`              | Simulation time step                        |
    +-------------------------+---------------------------------------------+
-   | :code:`ATOL(NSPEC)`     | Absolute tolerances			   |
+   | :code:`ATOL(NSPEC)`     | Absolute tolerances                         |
    +-------------------------+---------------------------------------------+
-   | :code:`RTOL(NSPEC)`     | Relative tolerances			   |
+   | :code:`RTOL(NSPEC)`     | Relative tolerances                         |
    +-------------------------+---------------------------------------------+
-   | :code:`STEPMIN`         | Lower bound for time step		   |
+   | :code:`STEPMIN`         | Lower bound for time step                   |
    +-------------------------+---------------------------------------------+
-   | :code:`STEPMAX`         | Upper bound for time step		   |
+   | :code:`STEPMAX`         | Upper bound for time step                   |
    +-------------------------+---------------------------------------------+
    | :code:`CFACTOR`         | Conversion factor                           |
    +-------------------------+---------------------------------------------+
@@ -420,7 +420,7 @@ The Jacobian matrix for our example contains 18 non-zero elements:
 It defines how the temporal change of each chemical species depends on
 all other species. For example, :math:`\mathbf{J}(5,2)` shows that :math:`NO_2`
 (species number 5) is affected by :math:`O` (species number 2) via
-reaction number R9. The sparse data structures for the Jacobian are
+reaction R9. The sparse data structures for the Jacobian are
 declared and initialized in :file:`ROOT_JacobianSP.f90` (or
 :file:`.F90`). The code for the ODE Jacobian and
 sparse multiplications is in :file:`ROOT_Jacobian.f90` (or
@@ -432,15 +432,14 @@ sparse multiplications is in :file:`ROOT_Jacobian.f90` (or
    :command:`#JACOBIAN SPARSE_LU_ROW` to the KPP definition file will
    create the file :file:`ROOT_JacobianSP.f90` (or :file:`.F90`).
 
-The Jacobian of the ODE function is automatically constructed by
-KPP. KPP generates the Jacobian subroutine :code:`Jac` or
-:code:`JacSP`  where the latter is generated when the sparse format is
-required. Using the variable species :code:`V`, the fixed
-species :code:`F`, and the rate coefficients :code:`RCT` as input, the
-subroutine calculates the Jacobian :code:`JVS`. The default data
-structures for the sparse compressed on rows Jacobian
-representation are shown in :ref:`table-jac` (for the case where the LU fill-in
-is accounted for).
+The Jacobian of the ODE function is automatically constructed by KPP.
+KPP generates the Jacobian subroutine :code:`Jac` or :code:`JacSP` where
+the latter is generated when the sparse format is required. Using the
+variable species :code:`V`, the fixed species :code:`F`, and the rate
+coefficients :code:`RCT` as input, the subroutine calculates the
+Jacobian :code:`JVS`. The default data structures for the sparse
+compressed on rows Jacobian representation (for the case where the LU
+fill-in is accounted for) are:
 
 .. _table-jac:
 
@@ -530,16 +529,6 @@ in :file:`ROOT_Hessian.f90` (or :file:`.F90`). The Hessian
 function and associated sparse multiplications are in
 :code:`ROOT_HessianSP.f90` (or :code:`.F90`).
 
-.. tip::
-
-   Adding :command:`#HESSIAN ON` to the KPP definition file will
-   create the file :file:`ROOT_Hessian.f90` (or :file:`.F90`)
-
-   Additionally, if either :command:`#JACOBIAN SPARSE ROW` or
-   :command:`#JACOBIAN SPARSE_LU_ROW` are also added to the KPP
-   definition file, the file :file:`ROOT_HessianSP.f90` (or
-   :file:`.F90`) will also be created.
-
 The Hessian contains the second order derivatives of the time derivative
 functions. More exactly, the Hessian is a 3-tensor such that
 
@@ -549,7 +538,7 @@ functions. More exactly, the Hessian is a 3-tensor such that
      \qquad 1 \le i,j,k \le N_{\rm var}~.
    \label{eqn:Hessian1}
 
-KPP generates the routine :code:`Hessian` (see :ref:`table-hess-fun`) below:
+KPP generates the routine :code:`Hessian`:
 
 .. _table-hess-fun:
 

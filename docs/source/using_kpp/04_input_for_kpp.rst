@@ -792,13 +792,13 @@ Inlined Code
 In order to offer maximum flexibility, KPP allows the user to include
 pieces of code in the kinetic description file. Inlined code begins on a
 new line with :command:`#INLINE` and the *inline_type*. Next, one or
-more lines of code follow, written in the target language (Fortran90,
-C, or Matlab) as specified by the *inline_type*. The inlined code ends
-with :command:`#ENDINLINE`. The code is inserted into the KPP output
-at a position which is also determined by *inline_type* as explained
-in :ref:`table-inl-type`. If two inline commands with the same inline
-type are declared, then the contents of the second is appended to the
-first one.
+more lines of code follow, written in the target language (Fortran90, C,
+or Matlab) as specified by the *inline_type*. The inlined code ends with
+:command:`#ENDINLINE`. The code is inserted into the KPP output at a
+position which is also determined by *inline_type* as shown in
+:ref:`table-inl-type`. If two inline commands with the same inline type
+are declared, then the contents of the second is appended to the first
+one.
 
 .. _list-of-inlined-types:
 
@@ -807,8 +807,7 @@ List of inlined types
 
 In this manual, we show the inline types for Fortran90. The inline
 types for the other languages are produced by replacing :code:`F90`
-by :code:`C`, or :code:`matlab`, respectively, as shown in
-:ref:`table-inl-type`:
+by :code:`C`, or :code:`matlab`, respectively.
 
 .. _table-inl-type:
 
@@ -863,11 +862,9 @@ Inlining code can be useful to introduce additional state variables
 (such as temperature, humidity, etc.) for use by KPP routines, such as
 for calculating rate coefficients.
 
-If a large number of state variables need to be held in inline code, or
+If a large number of state variables needs to be held in inline code, or
 require intermediate computation that may be repeated for many rate
-coefficients, a derived type object should be used for efficiency.
-
-An example of a derived-type object being included:
+coefficients, a derived type object should be used for efficiency, e.g.:
 
 .. code-block:: F90
 
@@ -877,20 +874,19 @@ An example of a derived-type object being included:
      END TYPE ObjGlobal_t
      TYPE(ObjGlobal_t), TARGET, PUBLIC :: ObjGlobal
      !$OMP THREADPRIVATE( ObjGlobal )
+   #ENDINLINE
 
 This global variable :code:`ObjGlobal` can then be used globally in KPP.
 
-Another way to avoid cluttering up the KPP input file is to add global
-variables into a header file that can be :code:`#include`-d:
+Another way to avoid cluttering up the KPP input file is to
+:code:`#include` a header file with global variables:
 
 .. code-block:: F90
 
    #INLINE F90_GLOBAL
-   ! Inline common variables into KPP_ROOT_Global.F90
-   #include "commonIncludeVars.H"
+   ! Inline common variables into KPP_ROOT_Global.f90
+   #include "commonIncludeVars.f90"
    #ENDINLINE
-
-where extra code is included in a separate file, :code:`commonIncludeVars.H`.
 
 In future versions of KPP, the global state will be reorganized into
 derived type objects as well.
@@ -901,7 +897,7 @@ F90_INIT
 --------
 
 This inline type can be used to define initial values before the start of the
-integartion, e.g.:
+integration, e.g.:
 
 .. code-block:: F90
 
@@ -975,15 +971,15 @@ This inline type can be used to define utility subroutines.
 Auxiliary files and the substitution preprocessor
 =================================================
 
-The `auxiliary files <auxiliary-files-for-fortran-90_>`_ are
-templates for integrators, drivers, and utilities. They are inserted
-into the KPP output after being run through the substitution
-preprocessor. This preprocessor replaces `several placeholder symbols
-<list-of-symbols-replaced_>`_ in the template files
-with their particular values in the model at hand. Usually, only
-:command:`KPP_ROOT` and :command:`KPP_REAL` are needed because the other
-values can also be obtained via the variables listed in
-:ref:`table-inl-type`.
+The `auxiliary files <auxiliary-files-for-fortran-90_>`_ in the
+:file:`$KPP_HOME/util` subdirectory are templates for integrators,
+drivers, and utilities. They are inserted into the KPP output after
+being run through the substitution preprocessor. This preprocessor
+replaces `several placeholder symbols <list-of-symbols-replaced_>`_ in
+the template files with their particular values in the model at hand.
+Usually, only :command:`KPP_ROOT` and :command:`KPP_REAL` are needed
+because the other values can also be obtained via the variables listed
+in :ref:`table-inl-type`.
 
 :command:`KPP_REAL` is replaced by the appropriate single or double
 precision declaration  type. Depending on the target language KPP will
@@ -995,14 +991,15 @@ must be used:
 
    KPP_REAL :: BIG(1000)
 
-When used with the option :code:`DOUBLE on`, the above line will be
+When used with the command :command:`#DOUBLE ON`, the above line will be
 automatically translated into:
 
 .. code-block:: F90
 
    REAL(kind=dp) :: BIG(1000)
 
-and when used with the option :code:`DOUBLE off`, the same line will become:
+and when used with the command :command:`#DOUBLE OFF`, the same line will
+become:
 
 .. code-block:: F90
 
@@ -1030,9 +1027,6 @@ in the generated Fortran90 output file.
 
 List of auxiliary files for Fortran90
 --------------------------------------
-
-KPP inline codes or other instructions contained in the following
-files, as shown in :ref:`table-aux-files`.
 
 .. _table-aux-files:
 
@@ -1073,9 +1067,6 @@ files, as shown in :ref:`table-aux-files`.
 
 List of symbols replaced by the substitution preprocessor
 ---------------------------------------------------------
-
-The following symbols in KPP-generated source code will be replaced
-with corresponding values, as highlighted in :ref:`table-sym-repl`.
 
 .. _table-sym-repl:
 
@@ -1119,10 +1110,8 @@ In order to offer more control over the integrator, KPP provides the
 arrays :code:`ICNTRL` (integer) and :code:`RCNTRL` (real). Each of them
 is an array of 20 elements that allow the fine-tuning of the integrator.
 All integrators (except for :code:`tau_leap` and :code:`gillespie`) use
-:code:`ICNTRL` and :code:`RCNTRL`. Array elements not listed here are
-either not used or are integrator-specific options. Details can be found
-in the comment lines of the individual integrator files in
-:code:`$KPP_HOME/int/`.
+:code:`ICNTRL` and :code:`RCNTRL`. Details can be found in the comment
+lines of the individual integrator files in :code:`$KPP_HOME/int/`.
 
 ICNTRL
 ------
