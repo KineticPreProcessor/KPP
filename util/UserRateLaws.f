@@ -14,18 +14,6 @@ C Arrhenius
       END           
 
 
-C Simplified Arrhenius, with two arguments
-C Note: The argument B0 has a changed sign when compared to ARR
-      KPP_REAL FUNCTION ARR2( A0,B0 )
-      INCLUDE 'KPP_ROOT_Parameters.h'
-      INCLUDE 'KPP_ROOT_Global.h'
-                 
-      REAL A0,B0     
-      ARR2 =  DBLE(A0) * EXP( DBLE(B0)/TEMP )   
-           
-      RETURN
-      END           
-
       KPP_REAL FUNCTION EP2(A0,C0,A2,C2,A3,C3)
       INCLUDE 'KPP_ROOT_Parameters.h'                       
       INCLUDE 'KPP_ROOT_Global.h'

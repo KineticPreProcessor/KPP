@@ -45,7 +45,8 @@ char *F90_types[] = { "",                   /* VOID */
                       "REAL(kind=sp)",      /* FLOAT */
                       "REAL(kind=dp)",      /* DOUBLE */
                       "CHARACTER(LEN=32)",  /* STRING */
-                      "CHARACTER(LEN=100)"  /* DOUBLESTRING */
+                      "CHARACTER(LEN=100)", /* DOUBLESTRING */
+                      "LOGICAL"             /* LOGICAL */
                   };
 
 /*************************************************************************************************/

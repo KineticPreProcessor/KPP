@@ -125,6 +125,7 @@ void CmdRun( char *cmd );
 void CmdStochastic( char *cmd );
 void CmdStoicmat( char *cmd );
 void CmdFlux( char *cmd );
+void CmdAutoReduce( char *cmd );
 void CmdUpperCaseF90( char *cmd );
 void CmdMinVersion( char *cmd );
 void CmdUse( char *cmd );

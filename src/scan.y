@@ -94,7 +94,7 @@
 %token      TPTID USEID
 %type <str> TPTID USEID
 %type <str> rate eqntag
-%token FLUX
+%token FLUX AUTOREDUCE
 %token      PLSPC
 %type <str> PLSPC
 %token UPPERCASEF90
@@ -212,6 +212,8 @@ section	        : JACOBIAN PARAMETER
 		  { SparseData( $2 ); }
                 | FLUX PARAMETER
 		  { CmdFlux( $2 ); }
+                | AUTOREDUCE PARAMETER
+		  { CmdAutoReduce( $2 ); }
                 | UPPERCASEF90 PARAMETER
 		  { CmdUpperCaseF90( $2 ); }
                 | MINVERSION PARAMETER
@@ -381,9 +383,8 @@ lefths          : expresion EQNEQUAL
                   { eqState = RHS; }
                 ;   
 righths         : expresion EQNCOLON
-                   { ProcessTerm( eqState, "+", "1", "RR" ); /*Add a prod/loss species as last prod.*/ 
-		    eqState = RAT;
-		  }
+                  { ProcessTerm( eqState, "+", "1", "RR" ); /*Add a prod/loss species as last prod.*/ 
+		                eqState = RAT; }
                 ;
 expresion       : expresion EQNSIGN term
                   { ProcessTerm( eqState, $2, crt_coef, crt_term ); 

@@ -361,6 +361,7 @@ STOICH  {LIT}[a-zA-Z_0-9]*[*]
                          { "FLUX",          PRM_STATE, FLUX         },
                          { "UPPERCASEF90",  PRM_STATE, UPPERCASEF90 },
                          { "MINVERSION",    PRM_STATE, MINVERSION   },
+                         { "AUTOREDUCE",    PRM_STATE, AUTOREDUCE   },
                          { 0,               0,         0            }
                        };
 

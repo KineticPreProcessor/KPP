@@ -45,7 +45,7 @@ int **LUstructJ;
 
 ICODE InlineCode[ INLINE_OPT ];
 
-int NSPEC, NVAR, NVARACT, NFIX, NREACT, NFLUX;
+int NSPEC, NVAR, NVARP1, NVARACT, NFIX, NREACT, NFLUX;
 int NVARST, NFIXST;
 /* int PI; */
 int C_DEFAULT, C;
@@ -75,10 +75,13 @@ int TSTART, TEND, DT;
 int ATOL, RTOL, STEPMIN, STEPMAX, CFACTOR;
 int V_USER, CL;
 int NMLCV, NMLCF, SCT, PROPENSITY, VOLUME, IRCT;
-int FLUX_MAP;
 int FAM,NFAM;
 
 int Jac_NZ, LU_Jac_NZ, nzr;
+
+/* for autoreduce functionality - msl, hplin, 12/8/21 */
+int DO_SLV, DO_JVS, DO_FUN, cLU_IROW, cLU_ICOL, cLU_DIAG, cLU_CROW;
+int SPC_MAP, iSPC_MAP, RMV, JVS_MAP, RNVAR, cNONZERO, keepActive, keepSpcActive;
 
 NODE *sum, *prod;
 int real;
@@ -138,7 +141,7 @@ int i,j;
 
   NSPEC   = DefConst( "NSPEC",   INT, "Number of chemical species" );
   NVAR    = DefConst( "NVAR",    INT, "Number of Variable species" );
-  NFLUX   = DefConst( "NFLUX",   INT, "Number of Reaction Flux species" );
+  /*NFLUX   = DefConst( "NFLUX",   INT, "Number of Reaction Flux species" );*/
   NVARACT = DefConst( "NVARACT", INT, "Number of Active species" );
   NFIX    = DefConst( "NFIX",    INT, "Number of Fixed species" );
   NREACT  = DefConst( "NREACT",  INT, "Number of reactions" );
@@ -207,7 +210,7 @@ int i,j;
   DT     = DefElm( "DT", real, "Integration step");
 
   A  = DefvElm( "A", real, -NREACT, "Rate for each equation" );
-  RR = DefvElm( "RR", real, -NREACT, "Flux for each equation" );
+  /*RR = DefvElm( "RR", real, -NREACT, "Flux for each equation" );*/
 
   ARP  = DefvElm( "ARP", real, -NREACT, "Reactant product in each equation" );
   NJVRP    = DefConst( "NJVRP",   INT, "Length of sparse Jacobian JVRP" );
@@ -266,7 +269,7 @@ int i,j;
   }
 //============================================================================
   CL = DefvElm( "CL", real, -NSPEC, "Concentration of all species (local)" );
-  DC = DefvElm( "DC", real, -NSPEC, "Fluxes of all species" );
+  /*DC = DefvElm( "DC", real, -NSPEC, "Fluxes of all species" );*/
   ATOL = DefvElm( "ATOL", real, -NVAR, "Absolute tolerance" );
   RTOL = DefvElm( "RTOL", real, -NVAR, "Relative tolerance" );
 
@@ -287,9 +290,27 @@ int i,j;
   SPC_NAMES  = DefvElm( "SPC_NAMES", STRING, -NSPEC, "Names of chemical species" );
   FAM_NAMES  = DefvElm( "FAM_NAMES", STRING, -NFAM, "Names of chemical familes" );
 
-  FLUX_MAP   = DefvElm( "FLUX_MAP", INT, -NREACT, "Map-to-SPEC indeces for FLUX species" );
+  /*FLUX_MAP   = DefvElm( "FLUX_MAP", INT, -NREACT, "Map-to-SPEC indeces for FLUX species" );*/
 
   CFACTOR  = DefElm( "CFACTOR", real, "Conversion factor for concentration units");
+
+  /* Autoreduction structures */
+  NVARP1        = DefConst( "NVAR+1",  INT, "Number of Variable species + 1" );
+  DO_JVS        = DefvElm("DO_JVS", LOGICAL, -LU_NONZERO, "");
+  DO_SLV        = DefvElm("DO_SLV", LOGICAL, -NVARP1    , "");
+  DO_FUN        = DefvElm("DO_FUN", LOGICAL, -NVAR      , "");
+  cLU_IROW      = DefvElm("cLU_IROW", INT, -LU_NONZERO  , "");
+  cLU_ICOL      = DefvElm("cLU_ICOL", INT, -LU_NONZERO  , "");
+  cLU_CROW      = DefvElm("cLU_CROW", INT, -NVARP1  , "");
+  cLU_DIAG      = DefvElm("cLU_DIAG", INT, -NVARP1  , "");
+  JVS_MAP       = DefvElm("JVS_MAP", INT, -LU_NONZERO, "");
+  SPC_MAP       = DefvElm("SPC_MAP", INT, -NVAR, "");
+  iSPC_MAP      = DefvElm("iSPC_MAP", INT, -NVAR, "");
+  RMV           = DefvElm("RMV", INT, -NVAR, "");
+  RNVAR         = DefElm("rNVAR", INT, "");
+  cNONZERO      = DefElm("cNONZERO", INT, "");
+  keepSpcActive = DefvElm("KEEPSPCACTIVE", LOGICAL, -NVAR, "");
+  keepActive    = DefElm("KEEPACTIVE", LOGICAL,"");
 
   Aout = DefvElmO( "Aout", real, -NREACT,
 		   "Optional argument to return equation rate constants" );
@@ -367,7 +388,7 @@ void GenerateGData()
 
   GlobalDeclare( RCONST );
   GlobalDeclare( TIME );
-  GlobalDeclare( SUN ); 
+  GlobalDeclare( SUN );
   GlobalDeclare( TEMP );
   GlobalDeclare( TSTART );
   GlobalDeclare( TEND );
@@ -398,7 +419,7 @@ void GenerateGData()
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateMonitorData()
 {
-int i, j;
+int i;
 int  *lookat;
 int  *moni;
 char *snames[MAX_SPECIES];
@@ -408,7 +429,7 @@ char *seqn[MAX_EQN];
 char *sfam[MAX_FAMILIES];
 char *bufeqn, *p;
 int dim;
-int flxind[MAX_EQN];
+//int flxind[MAX_EQN];
 
 
   /* Allocate local data structures */
@@ -433,7 +454,7 @@ int flxind[MAX_EQN];
   }
   InitDeclare( SPC_NAMES, SpcNr, (void*)snames );
 
-  if (doFlux == 1) {
+  /*if (doFlux == 1) {
     NewLines(1);
     j = 0;
     for (i = 0; i < SpcNr; i++) {
@@ -443,7 +464,7 @@ int flxind[MAX_EQN];
       }
     }
     InitDeclare( FLUX_MAP, EqnNr, (void*)flxind );
-  }
+  }*/
 
   nlookat = 0;
   for (i = 0; i < SpcNr; i++)
@@ -681,14 +702,15 @@ int F_VAR, FSPLIT_VAR;
   // time derivative of variable species from Fun via optional arguments
   // Aout and VdotOut (when z_useAggregate=1)
   //   -- Bob Yantosca (03 May 2022)
-  if( z_useAggregate )
+  if( z_useAggregate ) {
     FunctionBegin( F_VAR, V, F, RCT, Vdot, Aout, Vdotout );
-  else 
+  }
+  else {
     FunctionBegin( FSPLIT_VAR, V, F, RCT, Vdot, P_VAR, D_VAR, Aout );
+  }
 
   if ( (useLang==MATLAB_LANG)&&(!z_useAggregate) )
      printf("\nWarning: in the function definition move P_VAR to output vars\n");
-
 
   if ( useLang!=F90_LANG ) { /* A is a module variable in F90 */
     NewLines(1);
@@ -730,7 +752,7 @@ int F_VAR, FSPLIT_VAR;
   // Add code to return equation rates via optional argument Aout
   //   -- Bob Yantosca (29 Apr 2022)
   NewLines(1);
-  if ( useLang!=MATLAB_LANG ) {
+  if ( useLang == F90_LANG ) {
     fprintf(functionFile, "  !### Use Aout to return equation rates\n");
     fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n");
   }
@@ -741,25 +763,32 @@ int F_VAR, FSPLIT_VAR;
 
     for (i = 0; i < VarNr; i++) {
       sum = Const(0);
-      for (j = 0; j < EqnNr; j++)
+      for (j = 0; j < EqnNr; j++) {
         sum = Add( sum, Mul( Const( Stoich[i][j] ), Elm( A, j ) ) );
+      }
+      if ( doAutoReduce ) F90_Inline("IF (DO_FUN(%d)) &",i+1);
       Assign( Elm( Vdot, i ), sum );
     }
-    for (i = VarNr; i < VarNr; i++) {
-      sum = Const(0);
-      for (j = 0; j < EqnNr; j++)
-        sum = Add( sum, Mul( Const( Stoich[i][j] ), Elm( A, j ) ) );
-      Assign( Elm( Vdot, i ), sum );
-    }
+
+    /*  mz_rs_20220602+ ----------------------------------- */
+    /* this block can probably be deleted */
+    /* for (i = VarNr; i < VarNr; i++) { */
+    /*   sum = Const(0); */
+    /*   for (j = 0; j < EqnNr; j++) */
+    /*     sum = Add( sum, Mul( Const( Stoich[i][j] ), Elm( A, j ) ) ); */
+    /*   Assign( Elm( Vdot, i ), sum ); */
+    /* } */
+    /*  mz_rs_20220602- ----------------------------------- */
 
     // Add code to return time derivative of variable species (Vdotout)
     //   -- Bob Yantosca (03 May 2022)
     NewLines(1);
-    if ( useLang!=MATLAB_LANG ) {
+    //if ( useLang!=MATLAB_LANG ) {
+    if ( useLang == F90_LANG ) {
       fprintf(functionFile, "  !### Use Vdotout to return time deriv. of variable species\n");
       fprintf(functionFile, "  IF ( PRESENT( Vdotout ) ) Vdotout = Vdot\n");
     }
-    
+
   } else {
 
     NewLines(1);
@@ -769,6 +798,126 @@ int F_VAR, FSPLIT_VAR;
       sum = Const(0);
       for (j = 0; j < EqnNr; j++)
         sum = Add( sum, Mul( Const( Stoich_Right[i][j] ), Elm( A, j ) ) );
+      if( doAutoReduce ) F90_Inline("IF (DO_FUN(%d)) &",i+1);
+      Assign( Elm( P_VAR, i ), sum );
+    }
+
+    NewLines(1);
+    WriteComment("Destruction function");
+
+    for (i = 0; i < VarNr; i++) {
+      sum = Const(0);
+      for(j=0; j<EqnNr; j++) {
+        if ( Stoich_Left[i][j] == 0 ) continue;
+        prod = Mul( RConst( j ), Const( Stoich_Left[i][j] ) );
+        for (l = 0; l < VarNr; l++) {
+          m=(int)Stoich_Left[l][j] - (l==i);
+          for (k = 1; k <= m; k++ )
+            prod = Mul( prod, Elm( V, l ) );
+        }
+        for ( ; l < SpcNr; l++)
+          for (k = 1; k <= (int)Stoich_Left[l][j]; k++ )
+            prod = Mul( prod, Elm( F, l - VarNr  ) );
+        sum = Add( sum, prod );
+      }
+      if( doAutoReduce ) F90_Inline("IF (DO_FUN(%d)) &",i+1);
+      Assign( Elm( D_VAR, i ), sum );
+    }
+
+    // Add code to calculate Vdot also for split function:
+    NewLines(1);
+    if ( useLang == F90_LANG ) {
+      // For F90, we can do operations on arrays
+      fprintf(functionFile, "  Vdot = P_VAR - D_VAR*V\n");
+    } else if ( useLang == C_LANG ) {
+      // For C, we have to explicitly loop over elements
+      fprintf(functionFile, "  for( int n=0; n<NVAR; n++ ) {\n");
+      fprintf(functionFile, "    Vdot[n] = P_VAR[n] - D_VAR[n]*V[n];\n");
+      fprintf(functionFile, "  }\n");
+    }
+  }
+
+  if( z_useAggregate )
+    MATLAB_Inline("\n   Vdot = Vdot(:);\n");
+  else
+    MATLAB_Inline("\n   P_VAR = P_VAR(:);\n   D_VAR = D_VAR(:);\n");
+
+  if( z_useAggregate )
+    FunctionEnd( F_VAR );
+  else
+    FunctionEnd( FSPLIT_VAR );
+
+  FreeVariable( F_VAR );
+  FreeVariable( FSPLIT_VAR );
+
+  /** hplin 4/10/22 add FUN_Split2 which overrides DO_FUN. only used for 1st order-autoreduce **/
+  if(!z_useAggregate && doAutoReduce) {
+    /* add a copy of FSPLIT that does not react to DO_FUN() */
+    fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+    fprintf(functionFile, "!\n");
+    fprintf(functionFile, "! Fun_SPLITF - time derivatives of variables - Split form\n");
+    fprintf(functionFile, "!  same as Fun_Split, but does not react to DO_FUN.\n");
+    fprintf(functionFile, "!   Arguments :\n");
+    fprintf(functionFile, "!      V         - Concentrations of variable species (local)\n");
+    fprintf(functionFile, "!      F         - Concentrations of fixed species (local)\n");
+    fprintf(functionFile, "!      RCT       - Rate constants (local)\n");
+    fprintf(functionFile, "!      P_VAR     - Production term\n");
+    fprintf(functionFile, "!      D_VAR     - Destruction term\n");
+    fprintf(functionFile, "!      Aout      - Array to return rxn rates for diagnostics (OPTIONAL)\n");
+    fprintf(functionFile, "! Haipeng Lin (hplin) - Apr 10 2022 KPP 3.0.0-AR\n");
+    fprintf(functionFile, "!\n");
+    fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
+    fprintf(functionFile, "SUBROUTINE Fun_SPLITF ( V, F, RCT, P_VAR, D_VAR, Aout )\n\n");
+    fprintf(functionFile, "! V - Concentrations of variable species (local)\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: V(NVAR)\n");
+    fprintf(functionFile, "! F - Concentrations of fixed species (local)\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: F(NFIX)\n");
+    fprintf(functionFile, "! RCT - Rate constants (local)\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: RCT(NREACT)\n");
+    fprintf(functionFile, "! P_VAR - Production term\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: P_VAR(NVAR)\n");
+    fprintf(functionFile, "! D_VAR - Destruction term\n");
+    fprintf(functionFile, "  REAL(kind=dp) :: D_VAR(NVAR)\n");
+    fprintf(functionFile, "!### Aout - Array for returning KPP reaction rates for diagnostics\n");
+    fprintf(functionFile, "  REAL(kind=dp), OPTIONAL :: Aout(NREACT)\n");
+
+    NewLines(1);
+    WriteComment("Computation of equation rates");
+
+    for(j=0; j<EqnNr; j++) {
+      used = 0;
+      for (i = 0; i < VarNr; i++) {
+        if ( Stoich_Right[i][j] != 0 ) {
+          used = 1;
+          break;
+        }
+      }
+
+      if ( used ) {
+        prod = RConst( j );
+        for (i = 0; i < VarNr; i++)
+          for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
+            prod = Mul( prod, Elm( V, i ) );
+        for ( ; i < SpcNr; i++)
+          for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
+            prod = Mul( prod, Elm( F, i - VarNr ) );
+        Assign( Elm( A, j ), prod );
+      }
+    }
+
+    if ( useLang == F90_LANG ) {
+      fprintf(functionFile, "\n\n!### KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)\n");
+      fprintf(functionFile, "!### Use Aout to return reaction rates\n");
+      fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n\n");
+    }
+    NewLines(1);
+    WriteComment("Production function");
+
+    for (i = 0; i < VarNr; i++) {
+      sum = Const(0);
+      for (j = 0; j < EqnNr; j++)
+        sum = Add( sum, Mul( Const( Stoich_Right[i][j] ), Elm( A, j ) ) );
+      /* if( doAutoReduce ) F90_Inline("IF (DO_FUN(%d)) &",i+1); */ /* purpose of existence */
       Assign( Elm( P_VAR, i ), sum );
     }
 
@@ -792,30 +941,10 @@ int F_VAR, FSPLIT_VAR;
       }
       Assign( Elm( D_VAR, i ), sum );
     }
-    
-    // Add code to calculate Vdot also for split function:
-    NewLines(1);
-    if ( useLang!=MATLAB_LANG ) fprintf(functionFile, "  Vdot = P_VAR - D_VAR*V\n");
 
-  }
-
-  if( z_useAggregate )
-    MATLAB_Inline("\n   Vdot = Vdot(:);\n");
-  else
-    MATLAB_Inline("\n   P_VAR = P_VAR(:);\n   D_VAR = D_VAR(:);\n");
-
-  if( z_useAggregate )
-    FunctionEnd( F_VAR );
-  else
-    FunctionEnd( FSPLIT_VAR );
-
-  FreeVariable( F_VAR );
-  FreeVariable( FSPLIT_VAR );
+    fprintf(functionFile, "END SUBROUTINE Fun_SPLITF\n");
+  } // end if doAutoReduce
 }
-
-
-
-
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateFlux()
@@ -1212,6 +1341,7 @@ int Jac_SP, Jac;
             sum = Add( sum, Mul( Const( Stoich[i][k] ), Elm( BV, structB[k][j]-1 ) ) );
         }
 	/* Comment the B */
+	 if( doAutoReduce ) F90_Inline("IF (DO_JVS(%d)) &",nElm+1);
 	 WriteComment("JVS(%d) = Jac_FULL(%d,%d)",
 	          Index(nElm),Index(i),Index(j));
          Assign( Elm( JVS, nElm ), sum );
@@ -1942,8 +2072,10 @@ int dim;
     if( ibgn <= iend ) {
       sum = Elm( X, i );
       if ( ibgn < iend ) {
-        for( j = ibgn; j < iend; j++ )
+	      if( doAutoReduce ) F90_Inline("IF (DO_SLV(%d)) &",i+1);
+        for( j = ibgn; j < iend; j++ ) {
           sum = Sub( sum, Mul( Elm( JVS, j ), Elm( X, icol[j] ) ) );
+        }
         Assign( Elm( X, i ), sum );
       }
     }
@@ -1953,8 +2085,10 @@ int dim;
     ibgn = diag[i] + 1;
     iend = crow[i+1];
     sum = Elm( X, i );
-    for( j = ibgn; j < iend; j++ )
+    if( doAutoReduce ) F90_Inline("IF (DO_SLV(%d)) &",i+1);
+    for( j = ibgn; j < iend; j++ ) {
       sum = Sub( sum, Mul( Elm( JVS, j ), Elm( X, icol[j] ) ) );
+    }
     sum = Div( sum, Elm( JVS, diag[i] ) );
     Assign( Elm( X, i ), sum );
   }
@@ -2189,19 +2323,19 @@ int UPDATE_PHOTO;
   /* F90_Inline("   USE %s_Global", rootFileName); */
   /*  mz_rs_20220212- */
   MATLAB_Inline("global SUN TEMP RCONST");
-  
+
   NewLines(1);
   WriteComment("Begin INLINED RCONST");
   NewLines(1);
 
   switch( useLang ) {
-    case C_LANG:  bprintf( InlineCode[ C_RCONST ].code ); 
+    case C_LANG:  bprintf( InlineCode[ C_RCONST ].code );
                  break;
-    case F77_LANG: bprintf( InlineCode[ F77_RCONST ].code ); 
+    case F77_LANG: bprintf( InlineCode[ F77_RCONST ].code );
                  break;
-    case F90_LANG: bprintf( InlineCode[ F90_RCONST ].code ); 
+    case F90_LANG: bprintf( InlineCode[ F90_RCONST ].code );
                  break;
-    case MATLAB_LANG: bprintf( InlineCode[ MATLAB_RCONST ].code ); 
+    case MATLAB_LANG: bprintf( InlineCode[ MATLAB_RCONST ].code );
                  break;
   }
   FlushBuf();
@@ -2324,7 +2458,7 @@ int j,dummy_species;
   NewLines(1);
   DeclareConstant( NSPEC,   ascii( max(SpcNr, 1) ) );
   DeclareConstant( NVAR,    ascii( max(VarNr, 1) ) );
-  DeclareConstant( NFLUX,   ascii( max(plNr+1,  1)  ) );
+  /* DeclareConstant( NFLUX,   ascii( max(plNr+1,  1)  ) ); */
   DeclareConstant( NFAM,    ascii( max(FamilyNr,1)  ) );
   DeclareConstant( NVARACT, ascii( max(VarActiveNr, 1) ) );
   DeclareConstant( NFIX,    ascii( max(FixNr, 1) ) );
@@ -2542,6 +2676,26 @@ void GenerateGlobalHeader()
   ExternDeclare( RTOL );
   ExternDeclare( STEPMIN );
   ExternDeclare( STEPMAX );
+  if (doAutoReduce) {
+    ExternDeclare(DO_JVS);
+    ExternDeclare(DO_SLV);
+    ExternDeclare(DO_FUN);
+    ExternDeclare(cLU_IROW);
+    ExternDeclare(cLU_ICOL);
+    ExternDeclare(cLU_CROW);
+    ExternDeclare(cLU_DIAG);
+    ExternDeclare(JVS_MAP);
+    ExternDeclare(SPC_MAP);
+    ExternDeclare(iSPC_MAP);
+    ExternDeclare(RMV);
+    ExternDeclare(RNVAR);
+    ExternDeclare(cNONZERO);
+    ExternDeclare(keepSpcActive);
+    ExternDeclare(keepActive);
+    /* hplin 10/19/21 */
+    WriteOMPThreadPrivate(" DO_JVS, DO_SLV, DO_FUN, cLU_IROW, cLU_ICOL, cLU_CROW");
+    WriteOMPThreadPrivate(" cLU_DIAG, JVS_MAP, SPC_MAP, iSPC_MAP, RMV, rNVAR, cNONZERO, KEEPACTIVE "); /* msl_20160419 */
+  }
   ExternDeclare( CFACTOR );
   if (useStochastic)
       ExternDeclare( VOLUME );
@@ -2708,7 +2862,7 @@ char lhsbuf[MAX_EQNLEN], rhsbuf[MAX_EQNLEN];
     {
       sprintf(buf, "%*s --> %-*s", lhs, lhsbuf, rhs, rhsbuf);
     }
-  
+
   return strlen(buf);
 }
 
@@ -3193,22 +3347,29 @@ case 'h':
 
   UseFile( global_dataFile );
     F90_Inline("MODULE %s_Global\n", rootFileName );
-    if ( useDeclareValues )
+    if ( useDeclareValues ) {
       F90_Inline("  USE %s_Precision", rootFileName );
-    else
-      if ( useDouble )
-	F90_Inline("  USE %s_Parameters, ONLY: dp, NSPEC, NVAR, NFIX, NREACT", rootFileName);
-      else
-	F90_Inline("  USE %s_Parameters, ONLY: sp, NSPEC, NVAR, NFIX, NREACT", rootFileName);
+    }
+    else {
+      if ( useDouble ) {
+	      F90_Inline("  USE %s_Parameters, ONLY: dp, NSPEC, NVAR, NFIX, NREACT, LU_NONZERO", rootFileName);
+      }
+      else {
+	      F90_Inline("  USE %s_Parameters, ONLY: sp, NSPEC, NVAR, NFIX, NREACT, LU_NONZERO", rootFileName);
+      }
+    }
 
     F90_Inline("  PUBLIC\n  SAVE\n");
 
   UseFile( functionFile );
     F90_Inline("MODULE %s_Function\n", rootFileName );
-    if ( useDeclareValues )
+    if ( useDeclareValues ) {
       F90_Inline("  USE %s_Precision", rootFileName );
-    else
+    }
+    else {
+      if( doAutoReduce ) F90_Inline("  USE %s_Global, only : DO_FUN", rootFileName );
       F90_Inline("  USE %s_Parameters", rootFileName );
+    }
     F90_Inline("  IMPLICIT NONE\n", rootFileName );
     Declare( A ); /*  mz_rs_20050117 */
     if ( useLang == F90_LANG || useLang == F77_LANG ) WriteOMPThreadPrivate(" A "); /* msl_20160419 */
@@ -3223,6 +3384,8 @@ case 'h':
     F90_Inline("  USE %s_Global", rootFileName );
     F90_Inline("  IMPLICIT NONE", rootFileName );
     F90_Inline("  INTEGER, PARAMETER :: ASSOC = 1, DISSOC = 2", rootFileName );
+    NewLines(1);
+    IncludeCode( "%s/util/UserRateLawsInterfaces", Home );
     F90_Inline("\nCONTAINS\n\n");
 
   if ( useStochastic ) {
@@ -3244,10 +3407,13 @@ case 'h':
 
   UseFile( jacobianFile );
     F90_Inline("MODULE %s_Jacobian\n", rootFileName );
-    if ( useDeclareValues )
+    if ( useDeclareValues ) {
       F90_Inline("  USE %s_Precision", rootFileName );
-    else
+    }
+    else {
+      if( doAutoReduce ) F90_Inline("  USE %s_Global, ONLY: DO_JVS", rootFileName);
       F90_Inline("  USE %s_Parameters", rootFileName );
+    }
     if ( useJacSparse )
       F90_Inline("  USE %s_JacobianSP\n", rootFileName);
     F90_Inline("  IMPLICIT NONE", rootFileName );
@@ -3292,6 +3458,7 @@ case 'h':
 
    UseFile( linalgFile );
     F90_Inline("MODULE %s_LinearAlgebra\n", rootFileName);
+    if( doAutoReduce ) F90_Inline("  USE %s_Global, ONLY: DO_SLV", rootFileName);
     F90_Inline("  USE %s_Parameters", rootFileName );
     /* mz_rs_20050511+ if( useJacSparse ) added */
     if ( useJacSparse )
@@ -3471,12 +3638,12 @@ int n;
   GenerateGData();
 
 
-  if ( doFlux == 1 ) {
+  /*if ( doFlux == 1 ) {
     printf("\nKPP is generating the ODE function with flux enabled:");
   }
-  else {
+  else {*/
     printf("\nKPP is generating the ODE function:");
-  }
+  /*}*/
   printf("\n    - %s_Function",rootFileName);
   GenerateFun(1); /* setting useAggregate=1, generate SUBROUTINE Fun*/
   GenerateFun(0); /* setting useAggregate=0, generate SUBROUTINE FUN_SPLIT */

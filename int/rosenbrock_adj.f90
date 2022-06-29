@@ -205,16 +205,16 @@ SUBROUTINE RosenbrockADJ( Y, NADJ, Lambda,             &
 !                       returns Ydot = Y' = F(T,Y)
 !- SUBROUTINE Jac( T, Y, Jcb ) = Jacobian of the ODE function,
 !                       returns Jcb = dF/dY
-!-    ICNTRL(1:10)    = integer inputs parameters
-!-    RCNTRL(1:10)    = real inputs parameters
+!-    ICNTRL(1:20)    = integer inputs parameters
+!-    RCNTRL(1:20)    = real inputs parameters
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
 !~~~>     OUTPUT ARGUMENTS:
 !
 !-    Y(NVAR)    -> vector of final states (at T->Tend)
 !-    Lambda(NVAR,NADJ) -> vector of final sensitivities (at T=Tend)
-!-    ICNTRL(11:20)   -> integer output parameters
-!-    RCNTRL(11:20)   -> real output parameters
+!-    ISTATUS(1:20)   -> integer output parameters
+!-    RSTATUS(1:20)   -> real output parameters
 !-    IERR       -> job status upon return
 !       - succes (positive value) or failure (negative value) -
 !           =  1 : Success
@@ -300,10 +300,6 @@ SUBROUTINE RosenbrockADJ( Y, NADJ, Lambda,             &
 !    RCNTRL(7)  -> FacSafe, by which the new step is slightly smaller
 !         than the predicted value  (default=0.9)
 !
-!    RCNTRL(8)  -> ThetaMin. If Newton convergence rate smaller
-!                  than ThetaMin the Jacobian is not recomputed;
-!                  (default=0.001)
-!
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
 !~~~>     OUTPUT PARAMETERS:
@@ -324,6 +320,7 @@ SUBROUTINE RosenbrockADJ( Y, NADJ, Lambda,             &
 !    RSTATUS(1)  -> Texit, the time corresponding to the
 !                   computed Y upon return
 !    RSTATUS(2)  -> Hexit, last accepted step before exit
+!    RSTATUS(3)  -> Hnew
 !    For multiple restarts, use Hexit as Hstart in the following run
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

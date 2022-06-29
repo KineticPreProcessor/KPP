@@ -109,6 +109,7 @@ int useEqntags     = 0;
 int useLang        = F77_LANG;
 int useStochastic  = 0;
 int doFlux         = 0;
+int doAutoReduce   = 0;
 int useDeclareValues = 0;         // if useValues=1 KPP replaces parameters
                                   // like NVAR etc. by their values in vector
                                   // or matrix declarations
@@ -400,6 +401,26 @@ void CmdFlux( char *cmd )
     return;
   }
   ScanError("'%s': Unknown parameter for #FLUX [ON|OFF]", cmd );
+}
+
+/*msl Oct 17, 2021*/
+void CmdAutoReduce( char *cmd )
+{
+  if( EqNoCase( cmd, "OFF" ) ) {
+    doAutoReduce = 0;
+    return;
+  }
+  if( EqNoCase( cmd, "ON" ) ) {
+    doAutoReduce = 1;
+
+    /* hplin 10/18/21. the first pass it will say none, then the correct integrator. match both */
+    if(strcmp(integrator, "rosenbrock_autoreduce") != 0 && strcmp(integrator, "none") != 0) {
+      ScanError("If #AUTOREDUCE on, #INTEGRATOR must be rosenbrock_autoreduce.");
+    }
+
+    return;
+  }
+  ScanError("'%s': Unknown parameter for #AUTOREDUCE [ON|OFF]", cmd );
 }
 
 void CmdUpperCaseF90( char *cmd )

@@ -1,9 +1,54 @@
+.. _kpp-revision-history:
+
 ####################
 KPP revision history
 ####################
 
 Only the major new features are listed here. For a detailed description
-of the changes, read the file :file:`$KPP_HOME/CHANGELOG.md`.
+of the changes, read `CHANGELOG.md
+<https://github.com/KineticPreProcessor/KPP/blob/main/CHANGELOG.md>`_.
+
+.. _kpp300:
+
+=============================
+KPP 3.0.0 (currently in prep)
+=============================
+
+KPP 3.0.0 will be the next release after version 2.6.0. This version
+is currently still in preparation.
+
+.. attention::
+
+   When you are upgrading from an older KPP version to KPP 3.0.0 or later
+   versions, a few minor changes in your code may be necessary:
+
+   - The :file:`atoms` file is now called :file:`atoms.kpp`. Thus, you have
+     to change :code:`#INCLUDE atoms` to :code:`#INCLUDE atoms.kpp` in your
+     KPP input file.
+
+   - The utility functions :code:`ARR`, :code:`ARR2`, :code:`k_3rd` and
+     :code:`k_arr` have been replaced by the new set of the consistent
+     functions :code:`ARR_abc`, :code:`ARR_ab`, :code:`ARR_ac`,
+     :code:`k3rd_jpl`, :code:`k3rd_jpl_activation`, and
+     :code:`k3rd_iupac`. We recommend to upgrade to the new functions,
+     which all use the temperature from the :code:`temp` variable in
+     :file:`ROOT_Global.f90`. Alternatively, it is possible to copy the
+     old functions into a separate file and make them available via
+     :ref:`f90-rconst`.
+
+   - If you have been using :code:`ICNTRL(5)` for maximal order in the
+     :code:`lsode` integrator, you now have to use :code:`ICNTRL(10)`
+     instead. The index 5 in the :code:`ICNTRL` array is now used
+     consistently for the maximum number of Newton iterations in all
+     integrators.
+
+.. _kpp260:
+
+=========
+KPP 2.6.0
+=========
+
+- Added the **rosenbrock_autoreduce** integrator :cite:t:`Lin_et_al._2022`.
 
 .. _kpp250:
 
@@ -17,7 +62,7 @@ KPP 2.5.0
   stream.  Previously hardwired code has been removed and replaced
   with code selectable via KPP commands.
 
-- Added a new forward-Euler method integrator (:program:`feuler.f90`).
+- Added a new forward-Euler method integrator (:file:`feuler.f90`).
 
 - Added KPP commands :command:`#MINVERSION` and :command:`#UPPERCASEF90`
   (along with corresponding continuous integration tests).
@@ -62,7 +107,7 @@ KPP 2.4.0
 KPP 2.3.2_gc
 ============
 
-NOTE: Contains KPP Modifications specific to GEOS-Chem:
+NOTE: Contains KPP Modifications specific to GEOS-Chem.
 
 - Added workaround for F90 derived-type objects in inlined code
   (i.e. properly parse :code:`State_Het%xArea`, etc).
@@ -85,7 +130,7 @@ NOTE: Contains KPP Modifications specific to GEOS-Chem:
 KPP 2.3.1_gc
 ============
 
-NOTE: KPP modifications specific to GEOS-Chem:
+NOTE: KPP modifications specific to GEOS-Chem.
 
 ALSO NOTE: ReadTheDocs documentation has been updated in :ref:`kpp250`
 to remove GEOS-Chem specific information.
@@ -104,7 +149,7 @@ to remove GEOS-Chem specific information.
 KPP 2.3.0_gc
 ============
 
-NOTE: Contains KPP modifications specific to GEOS-Chem
+NOTE: Contains KPP modifications specific to GEOS-Chem.
 
 - Added :file:`README.md` for the GC_updates branch.
 
@@ -134,7 +179,7 @@ NOTE: Contains KPP modifications specific to GEOS-Chem
 KPP 2.2.5_gc
 ============
 
-NOTE: Contains KPP modifications specific to GEOS-Chem
+NOTE: Contains KPP modifications specific to GEOS-Chem.
 
 - Increase :code:`MAX_INLINE` from 20000 to 50000
 
@@ -144,7 +189,7 @@ NOTE: Contains KPP modifications specific to GEOS-Chem
 KPP 2.2.4_gc
 ============
 
-NOTE: Contains KPP modifications specific to GEOS-Chem
+NOTE: Contains KPP modifications specific to GEOS-Chem.
 
 - Add MIT license files for GC_updates branch and update
   :file:`README.md` accordingly
@@ -199,7 +244,7 @@ KPP 2.2.3
 
 - A new function called :code:`k_3rd_iupac` is available, calculating
   third-order rate coefficients using the formula used by IUPAC
-  :cite:`2004:IUPAC`.
+  :cite:`Atkinson_et_al._2004`.
 
 - While previous versions of KPP were using :program:`yacc` (yet another
   compiler compiler), the current version has been modified to be
@@ -212,7 +257,8 @@ KPP 2.2.3
 
 - New Rosebrock method :code:`Rang3` was added.
 
-- The new KPP command :code:`#DECLARE` was added (see :ref:`declare-cmd`).
+- The new KPP command :command:`#DECLARE` was added (see
+  :ref:`declare-cmd`).
 
 - Several vector and array functions from :program:`BLAS` (:code:`WCOPY`,
   :code:`WAXPY`, etc.) were replaced by Fortran90 expressions.
@@ -224,7 +270,7 @@ KPP 2.1
 =======
 
 - Fortran90 output has been available since the preliminary version
-  “1.1-f90-alpha12” provided in :cite:`2005:Sander_et_al`.
+  “1.1-f90-alpha12” provided in :cite:t:`Sander_et_al._2005`.
 
 - Matlab is a new target language (see Sect. `4.4 <#sec:matlab>`__).
 

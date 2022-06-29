@@ -11,11 +11,11 @@ KPP numerical integrators preserve the linear invariants (i.e., mass) of
 the chemical system.
 
 KPP implements several Rosenbrock methods: ROS–2
-:cite:`1999:Verwer`, ROS–3 :cite:`1997:Sandu_et_al_2`,
-RODAS–3 :cite:`1997:Sandu_et_al_2`, ROS–4
-:cite:`1991:Hairer_and_Wanner`, and RODAS–4
-:cite:`1991:Hairer_and_Wanner`. For each of them KPP implements the
-tangent linear model (direct decoupled  ensitivity) and the adjoint
+(:cite:t:`Verwer_et_al._1999`), ROS–3 (:cite:t:`Sandu_et_al._1997b`),
+RODAS–3 (:cite:t:`Sandu_et_al._1997b`), ROS–4
+(:cite:t:`Hairer_and_Wanner_1991`), and RODAS–4
+(:cite:t:`Hairer_and_Wanner_1991`). For each of them KPP implements the
+tangent linear model (direct decoupled sensitivity) and the adjoint
 models. The implementations distinguish between sensitivities with
 respect to initial values and sensitivities with respect to parameters
 for efficiency.
@@ -32,7 +32,7 @@ in KPP. The symbols used in the formulas are explained in
 
 .. _table-symbols:
 
-.. table:: Table 20. Symbols used in numerical methods
+.. table:: Symbols used in numerical methods
    :align: center
 
    +----------------------------------+----------------------------------+
@@ -104,7 +104,7 @@ Rosenbrock methods
 **Integrator file:** :file:`int/rosenbrock.f90`
 
 An :math:`s`-stage Rosenbrock method (cf. Section IV.7 in
-:cite:`1991:Hairer_and_Wanner`) computes the next-step solution by the
+:cite:t:`Hairer_and_Wanner_1991`) computes the next-step solution by the
 formulas
 
 .. _alt-rosenbrock:
@@ -296,10 +296,12 @@ The method requires a single `n \times n` LU decomposition per
 step to obtain both the concentrations and the sensitivities.
 
 KPP contains tangent linear models (for direct decoupled sensitivity
-analysis) for each of the Rosenbrock methods (ROS–2, ROS–3, ROS–4,
-RODAS–3, and RODAS–4). The implementations distinguish between
-sensitivities with respect to initial values and sensitivities with
-respect to parameters for efficiency.
+analysis) for each of the Rosenbrock methods (:ref:`rosenbrock-ros-2`,
+:ref:`rosenbrock-ros-3`, :ref:`rosenbrock-ros-4`,
+:ref:`rosenbrock-rodas-3`, and :ref:`rosenbrock-rodas-4`). The
+implementations distinguish between sensitivities with respect to
+initial values and sensitivities with respect to parameters for
+efficiency.
 
 .. _rosenbrock-adjoint:
 
@@ -336,6 +338,43 @@ for each of the Rosenbrock methods (:ref:`rosenbrock-ros-2`,
 :ref:`rosenbrock-ros-3`, :ref:`rosenbrock-ros-4`,
 :ref:`rosenbrock-rodas-3`, :ref:`rosenbrock-rodas-4`).
 
+.. _rosenbrock-autoreduce:
+
+Rosenbrock with mechanism auto-reduction
+-----------------------------------------
+
+**Integrator file:** :file:`int/rosenbrock_autoreduce.f90`
+
+Mechanism auto-reduction (described in :cite:t:`2022:Lin_et_al`) expands
+previous work by :cite:t:`Shen_et_al._2020` and
+:cite:t:`Santillana_et_al._2010` to a computationally efficient
+implementation in KPP, avoiding memory re-allocation, re-compile of the
+code, and on-the-fly mechanism reduction based on dynamically determined
+production and loss rate thresholds.
+
+We define a threshold :math:`\delta` which can be fixed (as in
+:cite:t:`Santillana_et_al._2010`) or determined by the production and
+loss rates of a "target species" scaled by a factor
+
+.. math::
+
+   \begin{aligned}
+   \delta = max(P_{target}, L_{target}) * \alpha_{target}`.
+   \end{aligned}
+
+For each species :math:`i`, the species is partitioned as "slow" iff.
+
+.. math::
+
+   \begin{aligned}
+   max(P_i, L_i) < \delta
+   \end{aligned}
+
+if the species is partitioned as "slow", it is solved explicitly
+(decoupled from the rest of the mechanism) using a first-order
+approximation. Otherwise, "fast" species are retained in the implicit
+Rosenbrock solver.
+
 .. _rk-methods:
 
 ============================
@@ -343,7 +382,7 @@ Runge-Kutta (aka RK) methods
 ============================
 
 A general :math:`s`-stage Runge-Kutta method is defined as (see
-Section II.1 of :cite:`1993:Hairer_Norsett_and_Wanner`)
+Section II.1 of :cite:t:`Hairer_Norsett_and_Wanner_1993`)
 
 .. math::
 
@@ -383,7 +422,7 @@ RADAU5
 
 This Runge-Kutta method of order 5 based on RADAU-IIA quadrature
 is stiffly accurate. The KPP implementation follows the original
-implementation of :cite:`1991:Hairer_and_Wanner`, Section IV.10. While
+implementation of :cite:t:`Hairer_and_Wanner_1991`, Section IV.10. While
 RADAU5 is relatively expensive (when compared to the Rosenbrock
 methods), it is more robust and is useful to obtain accurate reference
 solutions.
@@ -393,7 +432,7 @@ SDIRK
 **Integrator file:** :file:`int/sdirk.f90`,
 
 SDIRK is an L-stable, singly-diagonally-implicit Runge-Kutta method. The
-implementation is based on :cite:`1991:Hairer_and_Wanner`. Several
+implementation is based on :cite:t:`Hairer_and_Wanner_1991`. Several
 variants are available:
 
   - Sdirk 2a, 2b: 2 stages, order 2
@@ -405,7 +444,7 @@ SDIRK4
 **Integrator file:** :file:`int/sdirk4.f90`
 
 SDIRK4 is an L-stable, singly-diagonally-implicit Runge-Kutta method
-of order 4. The implementation is based on :cite:`1991:Hairer_and_Wanner`.
+of order 4. The implementation is based on :cite:t:`Hairer_and_Wanner_1991`.
 
 SEULEX
 ------
@@ -413,7 +452,7 @@ SEULEX
 
 SEULEX is a variable  order stiff extrapolation code able to produce
 highly accurate solutions. The KPP implementation is based on the
-implementation of :cite:`1991:Hairer_and_Wanner`.
+implementation of :cite:t:`Hairer_and_Wanner_1991`.
 
 .. _rk-tlm:
 
@@ -474,7 +513,7 @@ Backward differentiation formulas
 
 Backward differentiation formulas (BDF) are linear multistep methods
 with excellent stability properties for the integration of chemical
-systems (cf. :cite:`1991:Hairer_and_Wanner`, Section V.1). The
+systems (cf. :cite:t:`Hairer_and_Wanner_1991`, Section V.1). The
 :math:`k`-step BDF method reads
 
 .. math::
@@ -492,7 +531,8 @@ LSODE
 -----
 **Integrator file:** :file:`int/lsode.f90`
 
-LSODE, the Livermore ODE solver :cite:`1993:LSODE`, implements backward
+LSODE, the Livermore ODE solver
+(:cite:t:`Radhakrishnan_and_Hindmarsh_1993`), implements backward
 differentiation formula (BDF) methods for stiff problems.  LSODE has
 been translated to Fortran90 for the incorporation into the KPP library.
 
@@ -501,214 +541,24 @@ VODE
 
 **Integrator file:** :file:`int/dvode.f90`
 
-VODE :cite:`1989:VODE` uses another formulation of backward
-differentiation formulas. The version of VODE present in the KPP
-library uses directly the KPP sparse linear algebra routines.
+VODE (:cite:t:`Brown_Byrne_and_Hindmarsh_1989`) uses another formulation
+of backward differentiation formulas. The version of VODE present in
+the KPP library uses directly the KPP sparse linear algebra routines.
 
 BEULER
 ------
 
 **Integrator file:** :file:`int/beuler.f90`
 
-=====
-Other
-=====
+Backward Euler integration method.
+
+.. _other-methods:
+
+=========================
+Other integration methods
+=========================
 
 FEULER
 ------
 
 **Integrator file:** :file:`int/feuler.f90`
-
-.. _integrator-input-output:
-
-=============================
-Integrator inputs and outputs
-=============================
-
-In order to offer more control over the integrator, the KPP-generated
-subroutine provides the :ref:`optional-int-inputs`. Each of them is an
-array of 20 elements that allow the fine-tuning of the integrator.
-
-Similarly, to obtain more information about the integration, the
-subroutine provides the :ref:`optional-int-outputs`, which are also
-also arrays of 20 elements.
-
-.. _optional-int-inputs:
-
-Optional integrator input parameters
-------------------------------------
-
-Optional integer (:code:`ICNTRL_U`) and real
-(:code:`RCNTRL_U`) input parameters subroutine :code:`INTEGRATE`.
-Setting any elements to zero will activate their default values. Array
-elements not listed here are either not used or integrator-specific options.
-Details can be found in the comment lines of the individual integrator files
-:code:`$KPP_HOME/int/*.f90`.
-
-.. option:: ICNTRL_U(1)
-
-   :code:`= 1`: :math:`F = F(y)`, i.e. independent of t (autonomous)
-
-   :code:`= 0`: :math:`F = F(t,y)`, i.e. depends on t (non-autonomous)
-
-   This option is only available for some of the integrators.
-
-.. option:: ICNTRL_U(2)
-
-   The absolute (:code:`ATOL`) and relative (:code:`RTOL`) tolerances
-   can be expressed by either a scalar or individually for each
-   species in a vector:
-
-   :code:`= 0` : :code:`NVAR` -dimensional vector
-
-   :code:`= 1` : scalar
-
-.. option:: ICNTRL_U(3)
-
-   Selection of a specific method (only available for some of the
-   integrators).
-
-.. option:: ICNTRL_U(4)
-
-   Maximum number of integration steps.
-
-.. option:: ICNTRL_U(5)
-
-   Maximum number of Newton iterations (only available for some of the
-   integrators).
-
-.. option:: ICNTRL_U(6)
-
-   Starting values of Newton iterations (only avaialble for some of
-   the integrators).
-
-   :code:`= 0` : Interpolated
-
-   :code:`= 1` : Zero
-
-.. option:: ICNTRL_U(15)
-
-   This determines which :code:`Update_*` subroutines are called
-   within the integrator.
-
-   :code:`= -1` : Do not call any :code:`Update_*` subroutines
-
-   :code:`=  0` :  Use the integrator-specific default values
-
-   :code:`>  1` : A number between 1 and 7, derived by adding up bits
-   with values 4, 2, and 1.  The first digit (4) activates
-   :code:`Update_SUN`.  The second digit (2) activates
-   :code:`Update_PHOTO`.  The third digit (1) activates
-   :code:`Update_RCONST`.    |
-
-   For example :code:`ICNTRL(15)=6)` (4+2) will activate the calls to
-   :code:`Update_SUN` and :code:`Update_PHOTO`, but not to
-   :code:`Update_RCONST`.
-
-.. option:: RCNTRL_U(1)
-
-   :code:`Hmin`, the lower bound of the integration step size. It is
-   not recommended to change the default value of zero.
-
-.. option:: RCNTRL_U(2)
-
-   :code:`Hmax`, the upper bound of the integration step size.
-
-.. option:: RCNTRL_U(3)
-
-   :code:`Hstart`, the starting value of the integration step size.
-
-.. option:: RCNTRL_U(4)
-
-   :code:`FacMin`, lower bound on step decrease factor.
-
-.. option:: RCNTRL_U(5)
-
-   :code:`FacMax`, upper bound on step increase factor.
-
-.. option:: RCNTRL_U(6)
-
-   :code:`FacRej`, step decrease factor after multiple rejections.
-
-.. option:: RCNTRL_U(7)
-
-   :code:`FacSafe`, the factor by which the new step is slightly
-   smaller than the predicted value.
-
-.. option:: RCNTRL_U(8)
-
-   :code:`ThetaMin`. If the Newton convergence rate is smaller than
-   ThetaMin, the Jacobian is not recomputed (only available for some
-   of the integrators).
-
-.. option:: RCNTRL_U(9)
-
-   :code:`NewtonTol`, the stopping criterion for Newton’s method (only
-   available for some of the integrators).
-
-.. option:: RCNTRL_U(10)
-
-   :code:`Qmin` (only available for some of the integrators).
-
-.. option:: RCNTRL_U(11)
-
-   :code:`Qmax`. If :code:`Qmin < Hnew/Hold < Qmax`, then the step
-   size is kept constant and the LU factorization is reused (only
-   available for some of the integrators).
-
-.. _optional-int-outputs:
-
-Optional integrator output parameters
--------------------------------------
-
-Optional integer (:code:`ISTATUS_U`) and real (:code:`RSTATUS_U`)
-output parameters of subroutine :code:`INTEGRATE`.  Array elements not
-listed here are either not used or are integrator-specific options.
-Details can be found in the comment lines of the individual integrator files
-:code:`$KPP_HOME/int/*.f90`.
-
-.. option:: ISTATUS_U(1)
-
-    Number of function calls.
-
-.. option:: ISTATUS_U(2)
-
-   Number of Jacobian calls.
-
-.. option:: ISTATUS_U(3)
-
-   Number of steps.
-
-.. option:: ISTATUS_U(4)
-
-   Number of accepted steps.
-
-.. option:: ISTATUS_U(5)
-
-   Number of rejected steps (except at very beginning).
-
-.. option:: ISTATUS_U(6)
-
-   Number of LU decompositions.
-
-.. option:: ISTATUS_U(7)
-
-   Number of forward/backward substitutions.
-
-.. option:: ISTATUS_U(8)
-
-   Number of singular matrix decompositions.
-
-.. option:: RSTATUS_U(1)
-
-   :code:`Texit`, the time corresponding to the computed :math:`Y`
-   upon return.
-
-.. option:: RSTATUS_U(2)
-
-  :code:`Hexit`: the last accepted step before exit.
-
-.. option:: RSTATUS_U(3)
-
-   :code:`Hnew`: The last predicted step (not yet taken.  For multiple
-   restarts, use :code:`Hnew` as :code:`Hstart` in the subsequent run.

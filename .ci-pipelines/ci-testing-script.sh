@@ -4,12 +4,12 @@
 ### CI tests for github.com/KineticPreProcessor/KPP                  ###
 ########################################################################
 
-# List of tests (add more as necessary; separate each with a space)
-all_tests="radau90 rk rktlm ros rosadj rosenbrock90 rostlm saprc2006 sd sdadj small_f90 ros_upcase small_strato seulex90"
+# Get the list of CI test folders in ALL_TESTS
+source ./ci-testing-list.sh
 
 # Run each test
 # Check status of each individual operation and exit if any do not complete
-for this_test in $all_tests; do
+for this_test in $ALL_TESTS; do
 
     cd /kpp/ci-tests/$this_test
     [ $? -ne 0 ] && exit 1
@@ -35,24 +35,6 @@ for this_test in $all_tests; do
     echo ""
     echo ">>>>>>>> $this_test test was successful! <<<<<<<<"
     echo ""
-
-done
-
-# Run the ros_minver test, which tests if KPP will fail when the
-# current version is older than the version specified #MINVERSION.
-# NOTE: This test succeeds when KPP fails, so run it separately!
-for this_test in "ros_minver"; do
-
-    cd /kpp/ci-tests/$this_test
-    [ $? -ne 0 ] && exit 1
-
-    echo ""
-    echo ">>>>>>>> Generating $this_test mechanism with KPP <<<<<<<<"
-    echo ""
-    ../../bin/kpp $this_test.kpp
-    [ $? -eq 0 ] && exit 1
-
-    cd ..
 
 done
 

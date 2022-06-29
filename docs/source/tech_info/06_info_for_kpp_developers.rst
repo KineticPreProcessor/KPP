@@ -24,7 +24,7 @@ following subdirectories:
 
 .. _table-kpp-dirs:
 
-.. table:: Table 17. KPP source code files
+.. table:: KPP source code files
    :align: center
 
    +-----------------------+-------------------------------------+
@@ -344,7 +344,7 @@ List of continuous integration tests
 
 .. _table-ci-tests:
 
-.. table:: Table 18. Continuous integration tests
+.. table:: Continuous integration tests
    :align: center
 
    +-----------------------+------------------------------------------------+
@@ -361,6 +361,9 @@ List of continuous integration tests
    +-----------------------+------------------------------------------------+
    | :file:`ros`           | Uses the Rosenbrock integrator                 |
    |                       | with the small_strato chemical mechanism.      |
+   +-----------------------+------------------------------------------------+
+   | :file:`ros_split`     | Same as :file:`ros`, but tests the             |
+   |                       | :command:`#FUNCTION SPLIT` command.            |
    +-----------------------+------------------------------------------------+
    | :file:`rosadj`        | Same as :file:`ros`, but uses the Rosenbrock   |
    |                       | adjoint integrator.                            |
@@ -380,7 +383,7 @@ List of continuous integration tests
    | :file:`ros_upcase`    | Same as :file:`rosenbrock90`, but tests if     |
    |                       | KPP can generate Fortran90 code with the       |
    |                       | :file:`.F90` suffix (i.e. with                 |
-   |                       | :command:`#UPPERCASE ON`.                      |
+   |                       | :command:`#UPPERCASE ON`).                     |
    +-----------------------+------------------------------------------------+
    | :file:`saprc2006`     | Uses the Rosenbrock integrator with the        |
    |                       | SAPRCNOV chemical mechanism.                   |
@@ -416,7 +419,7 @@ The files that are needed to run the C-I tests are located in the
 
 .. _table-ci-pipelines:
 
-.. table:: Table 19. Files needed to execute C-I tests
+.. table:: Files needed to execute C-I tests
    :align: center
 
    +-------------------------------------+------------------------------------+

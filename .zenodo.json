@@ -14,15 +14,15 @@
 	},
 	{
 	    "name": "Michael Long",
-	    "affiliation": "Harvard University"
+	    "affiliation": "Renaissance Fiber, LLC, North Carolina, USA"
 	},
 	{
 	    "name": "Robert Yantosca",
-	    "affiliation": "Harvard University"
+	    "affiliation": "Harvard University, Cambridge, MA, USA"
 	},
 	{
 	    "name": "Haipeng Lin",
-	    "affiliation": "Harvard University"
+	    "affiliation": "Harvard University, Cambridge, MA, USA"
 	}
     ],
     "description": "The Kinetic Pre-Processor (KPP)",
@@ -34,6 +34,6 @@
 	"climate-modeling",
 	"fortran-90"
     ],
-    "license": "GNU GPLv3",
+    "license": "GNU General Public License v2.0 or later",
     "upload_type": "software"
 }

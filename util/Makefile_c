@@ -54,7 +54,7 @@ clean:
 
 distclean:
 	rm -f $(SPOBJ) $(OBJ) KPP_ROOT.exe KPP_ROOT*.dat \
-	KPP_ROOT_*.c KPP_ROOT_*.h KPP_ROOT_*.map KPP_ROOT_*.mexglx
+	KPP_ROOT_*.c KPP_ROOT_*.h KPP_ROOT*.map KPP_ROOT_*.mexglx
 
 KPP_ROOT_Monitor.o: KPP_ROOT_Monitor.c $(HEADERS)
 	$(CC) $(COPT) -c $<

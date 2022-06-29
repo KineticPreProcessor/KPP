@@ -334,11 +334,6 @@ CONTAINS
 !    ISTATUS(7) = No. of forward/backward substitutions
 !    ISTATUS(8) = No. of singular matrix decompositions
 !
-!    RSTATUS(1)  -> Texit, the time corresponding to the
-!                   computed Y upon return
-!    RSTATUS(2)  -> Hexit, last accepted step before exit
-!                   For multiple restarts, use Hexit as Hstart 
-!                   in the subsequent run
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       IMPLICIT NONE
@@ -534,7 +529,7 @@ CONTAINS
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    SUBROUTINE RAD_Integrator(                                         &
-        N,T,Y,Tend,Hmax,H,RelTol,AbsTol,ITOL,IDID,                    &
+        N,Tstart,Y,Tend,Hmax,H,RelTol,AbsTol,ITOL,IDID,               &
         Max_no_steps,Roundoff,FacSafe,ThetaMin,TolNewton,Qmin,Qmax,   &
         NewtonMaxit,StartNewton,Gustafsson,FacMin,FacMax,FacRej )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -549,14 +544,14 @@ CONTAINS
 
 #ifdef FULL_ALGEBRA
       KPP_REAL  :: FJAC(NVAR,NVAR), E1(NVAR,NVAR)
-      DOUBLE COMPLEX :: E2(NVAR,NVAR)   
+      COMPLEX(kind=dp) :: E2(NVAR,NVAR)   
 #else
       KPP_REAL  :: FJAC(LU_NONZERO), E1(LU_NONZERO)
-      DOUBLE COMPLEX :: E2(LU_NONZERO)   
+      COMPLEX(kind=dp) :: E2(LU_NONZERO)   
 #endif
                   
       !~~~> Local variables
-      KPP_REAL  :: TMP(NVAR), T, Tend, Tdirection, &
+      KPP_REAL  :: TMP(NVAR), T, Tstart, Tend, Tdirection, &
                  H, Hmax, HmaxN, Hacc, Hnew, Hopt, Hold, &
                  Fac, FacMin, Facmax, FacSafe, FacRej, FacGus, FacConv, &
                  Theta, ThetaMin, TolNewton, ERR, ERRACC,   &
@@ -575,7 +570,8 @@ CONTAINS
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       CALL RAD_Coefficients
-            
+
+      T = Tstart
       Tdirection=SIGN(1.D0,Tend-T)
       HmaxN=MIN(ABS(Hmax),ABS(Tend-T))
       H=MIN(ABS(Hmin),ABS(Hstart))
@@ -1015,10 +1011,10 @@ accept:IF (ERR < ONE) THEN !~~~> STEP IS ACCEPTED
       INTEGER :: N, ISING
 #ifdef FULL_ALGEBRA      
       KPP_REAL ::  FJAC(N,N)
-      DOUBLE COMPLEX :: E2(N,N)
+      COMPLEX(kind=dp) :: E2(N,N)
 #else      
       KPP_REAL ::  FJAC(LU_NONZERO)
-      DOUBLE COMPLEX :: E2(LU_NONZERO)
+      COMPLEX(kind=dp) :: E2(LU_NONZERO)
 #endif      
       KPP_REAL :: ALPHA, BETA
       INTEGER :: IP2(N), i, j
@@ -1053,15 +1049,15 @@ accept:IF (ERR < ONE) THEN !~~~> STEP IS ACCEPTED
       INTEGER :: N,IP1(NVAR),IP2(NVAR),ISING
 #ifdef FULL_ALGEBRA      
       KPP_REAL  :: FJAC(NVAR,NVAR), E1(NVAR,NVAR)
-      DOUBLE COMPLEX :: E2(NVAR,NVAR)
+      COMPLEX(kind=dp) :: E2(NVAR,NVAR)
 #else      
       KPP_REAL  :: FJAC(LU_NONZERO), E1(LU_NONZERO)
-      DOUBLE COMPLEX :: E2(LU_NONZERO)
+      COMPLEX(kind=dp) :: E2(LU_NONZERO)
 #endif      
       KPP_REAL :: Z1(N),Z2(N),Z3(N),   &
                F1(N),F2(N),F3(N),CONT(N),   &
                GAMMA,ALPHA,BETA
-      DOUBLE COMPLEX :: BC(N)
+      COMPLEX(kind=dp) :: BC(N)
       INTEGER :: i,j
       KPP_REAL :: S2, S3
 !

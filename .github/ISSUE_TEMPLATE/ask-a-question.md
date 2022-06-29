@@ -7,4 +7,4 @@ assignees: ''
 
 ---
 
-# Ask a question about KPP-for-GEOS-Chem:
+# Ask a question about KPP:

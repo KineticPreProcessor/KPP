@@ -29,7 +29,7 @@
 
 ******************************************************************************/
 
-#define KPP_VERSION "2.5.0"
+#define KPP_VERSION "2.6.0"
 
 #ifndef _GDATA_H_
 #define _GDATA_H_
@@ -193,6 +193,7 @@ extern int useEqntags;
 extern int useLang;
 extern int useStochastic;
 extern int doFlux;
+extern int doAutoReduce;
 extern int upperCaseF90;
 extern char f90Suffix[4];
 extern char minKppVersion[30]; // size [30] must be the same as in scanner.c

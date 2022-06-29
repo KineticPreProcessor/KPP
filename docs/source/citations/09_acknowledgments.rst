@@ -4,17 +4,30 @@
 Acknowledgements
 ################
 
-This work has been supported by the `United States Environmental
-Protection Agency <https://www.epa.gov>`_ (grant number 84001401,
-title: *Improving Chemical Mechanisms for regional/global models in
-support of US air quality management: Application to the GEOS-Chem model*).
+This work has been supported by:
+
+- The US EPA `Science to Achieve Results (EPA-STAR)
+  <https://www.epa.gov/research-grants/air-research-grants>`_
+  program (grant # `R840014
+  <https://cfpub.epa.gov/ncer_abstracts/index.cfm/fuseaction/display.abstractDetail/abstract_id/11083/report/0>`_);
+
+- The NASA `Modeling, Analysis, and Prediction (MAP)
+  <https://map.nasa.gov>`_ program;
+
+- The NASA `Atmospheric Composition Modeling and Analysis
+  (ACMAP)
+  <https://airbornescience.nasa.gov/category/Discipline/Atmospheric_Composition_Modeling_and_Analysis_Program>`_ program;
+
+- The NASA `Advanced Systems Information Technology (AIST)
+  <https://esto.nasa.gov/aist>`_ program (grant #
+  `AIST-18-0011 <https://esto.nasa.gov/project-selections-for-aist-18/#martin>`_)
 
 We would also like to thank Lucas Estrada for his assistance in
 setting up the :ref:`ci-tests` on `Azure DevOps Pipelines
 <https://azure.microsoft.com/en-us/services/devops/pipelines/>`_. and
 for assistance with debugging.
 
-Parts of this user manual are based on :cite:`1996:Damian-Iordache`.
+Parts of this user manual are based on :cite:t:`Damian-Iordache_1996`.
 
 We thank Jason Lander for his suggestions how
 to migrate from to :program:`yacc` to :program:`bison`.

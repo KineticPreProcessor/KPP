@@ -1,0 +1,4 @@
+#MODEL      small_strato
+#INTEGRATOR sdirk
+#LANGUAGE   C
+#DRIVER     general
