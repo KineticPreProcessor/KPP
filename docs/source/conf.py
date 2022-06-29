@@ -39,7 +39,7 @@ extensions = [
 bibtex_default_style = "refstyle"
 bibtex_reference_style = "author_year"
 
-from pybtex.style.formatting.unsrt import Style as UnsrtStyle
+from pybtex.style.formatting.alpha import Style as AlphaStyle
 from pybtex.style.names.lastfirst import NameStyle as LastFirst
 from pybtex.style.template import join, words, optional, sentence
 from pybtex.style.labels import BaseLabelStyle
@@ -49,7 +49,12 @@ class LabelStyle(BaseLabelStyle):
         for entry in sorted_entries:
             yield entry.key.replace("_", " ").replace("et al.", "et al.,")
 
-class RefStyle(UnsrtStyle):
+class RefStyle(AlphaStyle):
+    # We have to use the Pybtex class for alphabetic sorting,
+    # which is imported and renamed to AlphaStyle.  This will
+    # sort citations by author last name, and then by year (since
+    # we have used the "author_year" reference style above.
+    #   -- Bob Yantosca (28 Jun 2022)
     default_name_style = LastFirst
     default_sort_style = None
     default_label_style = LabelStyle
