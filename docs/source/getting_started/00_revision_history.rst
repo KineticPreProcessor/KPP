@@ -1,3 +1,5 @@
+.. _kpp-revision-history:
+
 ####################
 KPP revision history
 ####################
@@ -32,7 +34,7 @@ is currently still in preparation.
      which all use the temperature from the :code:`temp` variable in
      :file:`ROOT_Global.f90`. Alternatively, it is possible to copy the
      old functions into a separate file and make them available via
-     :ref:`f90-RCONST`.
+     :ref:`f90-rconst`.
 
    - If you have been using :code:`ICNTRL(5)` for maximal order in the
      :code:`lsode` integrator, you now have to use :code:`ICNTRL(10)`
@@ -46,7 +48,7 @@ is currently still in preparation.
 KPP 2.6.0
 =========
 
-- Added the **rosenbrock_autoreduce** integrator :cite:`2022:Lin_et_al`.
+- Added the **rosenbrock_autoreduce** integrator :cite:t:`Lin_et_al._2022`.
 
 .. _kpp250:
 
@@ -242,7 +244,7 @@ KPP 2.2.3
 
 - A new function called :code:`k_3rd_iupac` is available, calculating
   third-order rate coefficients using the formula used by IUPAC
-  :cite:`2004:IUPAC`.
+  :cite:`Atkinson_et_al._2004`.
 
 - While previous versions of KPP were using :program:`yacc` (yet another
   compiler compiler), the current version has been modified to be
@@ -268,7 +270,7 @@ KPP 2.1
 =======
 
 - Fortran90 output has been available since the preliminary version
-  “1.1-f90-alpha12” provided in :cite:t:`2005:Sander_et_al`.
+  “1.1-f90-alpha12” provided in :cite:t:`Sander_et_al._2005`.
 
 - Matlab is a new target language (see Sect. `4.4 <#sec:matlab>`__).
 

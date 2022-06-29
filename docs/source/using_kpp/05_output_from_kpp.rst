@@ -151,7 +151,7 @@ The code to update the rate constants is in :file:`ROOT_Rates.f90` (or
 
 .. _table-rat-fun:
 
-.. table:: Table 4: Fortran90 subrotutines in ROOT_Rates
+.. table:: Fortran90 subrotutines in ROOT_Rates
    :align: center
 
    +-----------------------+--------------------------------------+
@@ -174,7 +174,7 @@ Global parameters are defined and initialized in
 
 .. _table-par:
 
-.. table:: Table 5: Parameters Declared in ROOT_Parameters
+.. table:: Parameters Declared in ROOT_Parameters
    :align: center
 
    +----------------+---------------------------------------------+---------+
@@ -236,7 +236,7 @@ Several global variables are declared in :file:`ROOT_Global.f90` (or
 
 .. _table-glob:
 
-.. table:: Table 6: Global Variables Declared in ROOT_Global
+.. table:: Global Variables Declared in ROOT_Global
    :align: center
 
    +-------------------------+---------------------------------------------+
@@ -443,7 +443,7 @@ fill-in is accounted for) are:
 
 .. _table-jac:
 
-.. table:: Table 7: Sparse Jacobian Data Structures
+.. table:: Sparse Jacobian Data Structures
    :align: center
 
    +------------------------------+-------------------------------------+
@@ -504,7 +504,7 @@ user-supplied vector :code:`UV` without any indirect addressing.
 
 .. _table-jac-fun:
 
-.. table:: Table 8: Fortran90 subroutines in ROOT_Jacobian
+.. table:: Fortran90 subroutines in ROOT_Jacobian
    :align: center
 
    +----------------------+----------------------------------------------+
@@ -542,7 +542,7 @@ KPP generates the routine :code:`Hessian`:
 
 .. _table-hess-fun:
 
-.. table:: Table 9: Fortran90 functions in ROOT_Hessian
+.. table:: Fortran90 functions in ROOT_Hessian
    :align: center
 
    +--------------------+--------------------------------------+
@@ -577,7 +577,7 @@ hold the indices of nonzero entries as illustrated in :ref:`table-hess`.
 
 .. _table-hess:
 
-.. table:: Table 10: Sparse Hessian Data
+.. table:: Sparse Hessian Data
    :align: center
 
    +-------------------------+----------------------------------------------+
@@ -639,7 +639,7 @@ returns a value that is nonzero if singularity is detected.
 
 .. _table-la-fun:
 
-.. table:: Table 11: Fortran90 functions in ROOT_LinearAlgebra
+.. table:: Fortran90 functions in ROOT_LinearAlgebra
    :align: center
 
    +--------------------+--------------------------------------+
@@ -657,7 +657,7 @@ in-place LU factorization :math:`P` as computed by and perform sparse
 backward and forward substitutions (using :math:`P` or its
 transpose). The sparse linear algebra routines :code:`KppDecomp` and
 :code:`KppSolve` are extremely efficient, as shown by
-:cite:t:`1996:Sandu_et_al`.
+:cite:t:`Sandu_et_al._1996`.
 
 .. _Stoichiom-and-StoichiomSP:
 
@@ -695,7 +695,7 @@ vector at position :code:`CCOL_STOICM(j)` and ends at
 
 .. _table-sto:
 
-.. table:: Table 12: Sparse Stoichiometric Matrix
+.. table:: Sparse Stoichiometric Matrix
    :align: center
 
    +-------------------------------+-----------------------------------------+
@@ -712,7 +712,7 @@ vector at position :code:`CCOL_STOICM(j)` and ends at
 
 .. _table-sto-fun:
 
-.. table:: Table 13: Fortran90 functions in ROOT_Stoichiom
+.. table:: Fortran90 functions in ROOT_Stoichiom
    :align: center
 
    +-------------------------+--------------------------------------------+
@@ -751,7 +751,7 @@ parameter :code:`NJVRP` holds the number of nonzero elements. For our
 
 .. _table-jvrp:
 
-.. table:: Table 14:. Sparse Data for Jacobian of Reactant Products
+.. table:: Sparse Data for Jacobian of Reactant Products
    :align: center
 
    +-------------------------------+-----------------------------------------+
@@ -840,7 +840,7 @@ routines, some of which are summarized in :ref:`table-util-fun`.
 
 .. _table-util-fun:
 
-.. table:: Table 15: Fortran90 subrotutines in ROOT_Util
+.. table:: Fortran90 subrotutines in ROOT_Util
    :align: center
 
    +---------------------------+---------------------------------------------+
@@ -1014,7 +1014,7 @@ format into a Matlab sparse matrix.
 
 .. _table-matlab:
 
-.. table:: Table 16: List of Matlab model files
+.. table:: List of Matlab model files
    :align: center
 
    +----------------------------------+-------------------------------------+
@@ -1122,6 +1122,8 @@ in the comment lines of the individual integrator files in
 ISTATUS
 -------
 
+.. _table-istatus:
+
 .. table:: Summary of ISTATUS usage in the f90 integrators.
            Here, Y = used.
    :align: center
@@ -1212,6 +1214,8 @@ ISTATUS
 
 RSTATUS
 -------
+
+.. _table-rstatus:
 
 .. table:: Summary of RSTATUS usage in the f90 integrators.
            Here, Y = used, s = solver specific usage.

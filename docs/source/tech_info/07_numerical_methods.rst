@@ -11,11 +11,11 @@ KPP numerical integrators preserve the linear invariants (i.e., mass) of
 the chemical system.
 
 KPP implements several Rosenbrock methods: ROS–2
-:cite:`1999:Verwer`, ROS–3 :cite:`1997:Sandu_et_al_2`,
-RODAS–3 :cite:`1997:Sandu_et_al_2`, ROS–4
-:cite:`1991:Hairer_and_Wanner`, and RODAS–4
-:cite:`1991:Hairer_and_Wanner`. For each of them KPP implements the
-tangent linear model (direct decoupled  ensitivity) and the adjoint
+(:cite:t:`Verwer_et_al._1999`), ROS–3 (:cite:t:`Sandu_et_al._1997b`),
+RODAS–3 (:cite:t:`Sandu_et_al._1997b`), ROS–4
+(:cite:t:`Hairer_and_Wanner_1991`), and RODAS–4
+(:cite:t:`Hairer_and_Wanner_1991`). For each of them KPP implements the
+tangent linear model (direct decoupled sensitivity) and the adjoint
 models. The implementations distinguish between sensitivities with
 respect to initial values and sensitivities with respect to parameters
 for efficiency.
@@ -32,7 +32,7 @@ in KPP. The symbols used in the formulas are explained in
 
 .. _table-symbols:
 
-.. table:: Table 20. Symbols used in numerical methods
+.. table:: Symbols used in numerical methods
    :align: center
 
    +----------------------------------+----------------------------------+
@@ -104,7 +104,7 @@ Rosenbrock methods
 **Integrator file:** :file:`int/rosenbrock.f90`
 
 An :math:`s`-stage Rosenbrock method (cf. Section IV.7 in
-:cite:t:`1991:Hairer_and_Wanner`) computes the next-step solution by the
+:cite:t:`Hairer_and_Wanner_1991`) computes the next-step solution by the
 formulas
 
 .. _alt-rosenbrock:
@@ -296,10 +296,12 @@ The method requires a single `n \times n` LU decomposition per
 step to obtain both the concentrations and the sensitivities.
 
 KPP contains tangent linear models (for direct decoupled sensitivity
-analysis) for each of the Rosenbrock methods (ROS–2, ROS–3, ROS–4,
-RODAS–3, and RODAS–4). The implementations distinguish between
-sensitivities with respect to initial values and sensitivities with
-respect to parameters for efficiency.
+analysis) for each of the Rosenbrock methods (:ref:`rosenbrock-ros-2`,
+:ref:`rosenbrock-ros-3`, :ref:`rosenbrock-ros-4`,
+:ref:`rosenbrock-rodas-3`, and :ref:`rosenbrock-rodas-4`). The
+implementations distinguish between sensitivities with respect to
+initial values and sensitivities with respect to parameters for
+efficiency.
 
 .. _rosenbrock-adjoint:
 
@@ -344,14 +346,14 @@ Rosenbrock with mechanism auto-reduction
 **Integrator file:** :file:`int/rosenbrock_autoreduce.f90`
 
 Mechanism auto-reduction (described in :cite:t:`2022:Lin_et_al`) expands
-previous work by :cite:t:`2020:Shen_et_al` and
-:cite:t:`2010:Santillana_et_al` to a computationally efficient
+previous work by :cite:t:`Shen_et_al._2020` and
+:cite:t:`Santillana_et_al._2010` to a computationally efficient
 implementation in KPP, avoiding memory re-allocation, re-compile of the
 code, and on-the-fly mechanism reduction based on dynamically determined
 production and loss rate thresholds.
 
 We define a threshold :math:`\delta` which can be fixed (as in
-:cite:t:`2010:Santillana_et_al`) or determined by the production and
+:cite:t:`Santillana_et_al._2010`) or determined by the production and
 loss rates of a "target species" scaled by a factor
 
 .. math::
@@ -380,7 +382,7 @@ Runge-Kutta (aka RK) methods
 ============================
 
 A general :math:`s`-stage Runge-Kutta method is defined as (see
-Section II.1 of :cite:t:`1993:Hairer_Norsett_and_Wanner`)
+Section II.1 of :cite:t:`Hairer_Norsett_and_Wanner_1993`)
 
 .. math::
 
@@ -420,7 +422,7 @@ RADAU5
 
 This Runge-Kutta method of order 5 based on RADAU-IIA quadrature
 is stiffly accurate. The KPP implementation follows the original
-implementation of :cite:t:`1991:Hairer_and_Wanner`, Section IV.10. While
+implementation of :cite:t:`Hairer_and_Wanner_1991`, Section IV.10. While
 RADAU5 is relatively expensive (when compared to the Rosenbrock
 methods), it is more robust and is useful to obtain accurate reference
 solutions.
@@ -430,7 +432,7 @@ SDIRK
 **Integrator file:** :file:`int/sdirk.f90`,
 
 SDIRK is an L-stable, singly-diagonally-implicit Runge-Kutta method. The
-implementation is based on :cite:t:`1991:Hairer_and_Wanner`. Several
+implementation is based on :cite:t:`Hairer_and_Wanner_1991`. Several
 variants are available:
 
   - Sdirk 2a, 2b: 2 stages, order 2
@@ -442,7 +444,7 @@ SDIRK4
 **Integrator file:** :file:`int/sdirk4.f90`
 
 SDIRK4 is an L-stable, singly-diagonally-implicit Runge-Kutta method
-of order 4. The implementation is based on :cite:t:`1991:Hairer_and_Wanner`.
+of order 4. The implementation is based on :cite:t:`Hairer_and_Wanner_1991`.
 
 SEULEX
 ------
@@ -450,7 +452,7 @@ SEULEX
 
 SEULEX is a variable  order stiff extrapolation code able to produce
 highly accurate solutions. The KPP implementation is based on the
-implementation of :cite:t:`1991:Hairer_and_Wanner`.
+implementation of :cite:t:`Hairer_and_Wanner_1991`.
 
 .. _rk-tlm:
 
@@ -511,7 +513,7 @@ Backward differentiation formulas
 
 Backward differentiation formulas (BDF) are linear multistep methods
 with excellent stability properties for the integration of chemical
-systems (cf. :cite:t:`1991:Hairer_and_Wanner`, Section V.1). The
+systems (cf. :cite:t:`Hairer_and_Wanner_1991`, Section V.1). The
 :math:`k`-step BDF method reads
 
 .. math::
@@ -529,7 +531,8 @@ LSODE
 -----
 **Integrator file:** :file:`int/lsode.f90`
 
-LSODE, the Livermore ODE solver :cite:`1993:LSODE`, implements backward
+LSODE, the Livermore ODE solver
+(:cite:t:`Radhakrishnan_and_Hindmarsh_1993`), implements backward
 differentiation formula (BDF) methods for stiff problems.  LSODE has
 been translated to Fortran90 for the incorporation into the KPP library.
 
@@ -538,9 +541,9 @@ VODE
 
 **Integrator file:** :file:`int/dvode.f90`
 
-VODE :cite:`1989:VODE` uses another formulation of backward
-differentiation formulas. The version of VODE present in the KPP
-library uses directly the KPP sparse linear algebra routines.
+VODE (:cite:t:`Brown_Byrne_and_Hindmarsh_1989`) uses another formulation
+of backward differentiation formulas. The version of VODE present in
+the KPP library uses directly the KPP sparse linear algebra routines.
 
 BEULER
 ------

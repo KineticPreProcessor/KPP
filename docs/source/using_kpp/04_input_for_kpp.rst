@@ -383,7 +383,9 @@ A KPP command begins on a new line with a :code:`#` sign, followed by a
 command name and one or more parameters.  Details about each command
 are given in the following subsections.
 
-.. table::
+.. _table-cmd-defaults:
+
+.. table:: Default values for KPP commands
    :align: center
 
    +--------------------------+-----------------------+
@@ -738,7 +740,7 @@ Reordering of the species is performed in order to minimize the fill-in
 during the LU factorization, and therefore preserve the sparsity
 structure and increase efficiency. The reordering is done using a
 diagonal Markowitz algorithm. The details are explained in
-:cite:t:`1996:Sandu_et_al`. The default is :command:`ON`.
+:cite:t:`Sandu_et_al._1996`. The default is :command:`ON`.
 :command:`OFF` means that KPP does not reorder the species. The order
 of the variables is the order in which the species are
 declared in the :command:`#DEFVAR` section.
@@ -811,7 +813,7 @@ by :code:`C`, or :code:`matlab`, respectively.
 
 .. _table-inl-type:
 
-.. table:: Table 1: KPP inlined types
+.. table:: KPP inlined types
    :align: center
 
    +-----------------+-------------------+---------------------+---------------------+
@@ -1030,7 +1032,7 @@ List of auxiliary files for Fortran90
 
 .. _table-aux-files:
 
-.. table:: Table 2: Auxiliary files for Fortran90
+.. table:: Auxiliary files for Fortran90
    :align: center
 
    +--------------------------------+------------------------------------------+
@@ -1070,7 +1072,7 @@ List of symbols replaced by the substitution preprocessor
 
 .. _table-sym-repl:
 
-.. table:: Table 3: Symbols and their replacements
+.. table:: Symbols and their replacements
    :align: center
 
    +--------------------------+-------------------------------+----------------------------+
@@ -1116,7 +1118,9 @@ lines of the individual integrator files in :code:`$KPP_HOME/int/`.
 ICNTRL
 ------
 
-.. table:: Table 4: Summary of ICNTRL usage in the f90 integrators.
+.. _table-icntrl:
+
+.. table:: Summary of ICNTRL usage in the f90 integrators.
            Here, Y = used, and s = solver-specific usage.
    :align: center
 
@@ -1269,7 +1273,9 @@ ICNTRL
 RCNTRL
 ------
 
-.. table:: Table 5: Summary of RCNTRL usage in the f90 integrators.
+.. _table-rcntrl:
+
+.. table:: Summary of RCNTRL usage in the f90 integrators.
            Here, Y = used, and s = solver-specific usage.
    :align: center
 
