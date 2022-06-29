@@ -24,7 +24,7 @@ following subdirectories:
 
 .. _table-kpp-dirs:
 
-.. table:: Table 17. KPP source code files
+.. table:: KPP source code files
    :align: center
 
    +-----------------------+-------------------------------------+
@@ -344,7 +344,7 @@ List of continuous integration tests
 
 .. _table-ci-tests:
 
-.. table:: Table 18. Continuous integration tests
+.. table:: Continuous integration tests
    :align: center
 
    +-----------------------+------------------------------------------------+
@@ -419,7 +419,7 @@ The files that are needed to run the C-I tests are located in the
 
 .. _table-ci-pipelines:
 
-.. table:: Table 19. Files needed to execute C-I tests
+.. table:: Files needed to execute C-I tests
    :align: center
 
    +-------------------------------------+------------------------------------+
