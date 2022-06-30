@@ -859,8 +859,6 @@ KPP generates several utility subroutines and functions in the file
    +-----------------------------------+---------------------------------------------+
    | :code:`tag2num`                   | Calculate reaction number from equation tag |
    +-----------------------------------+---------------------------------------------+
-   | :code:`ComputeFamilies`           |                                             |
-   +-----------------------------------+---------------------------------------------+
    | :code:`Integrator_Update_Options` | Choose :code:`Update_RCONST/PHOTO/SUN`      |
    +-----------------------------------+---------------------------------------------+
            
