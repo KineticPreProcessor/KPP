@@ -343,7 +343,7 @@ Rosenbrock with mechanism auto-reduction
 
 **Integrator file:** :file:`int/rosenbrock_autoreduce.f90`
 
-Mechanism auto-reduction (described in :cite:t:`2022:Lin_et_al`) expands
+Mechanism auto-reduction (described in :cite:t:`Lin_et_al._2022`) expands
 previous work by :cite:t:`Santillana_et_al._2010` and
 :cite:t:`Shen_et_al._2020` to a computationally efficient implementation
 in KPP, avoiding memory re-allocation, re-compile of the code, and

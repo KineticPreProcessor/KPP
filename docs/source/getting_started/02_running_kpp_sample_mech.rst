@@ -50,9 +50,9 @@ The sections below outline the steps necessary to build and run a
 
 .. _example-step-1:
 
-==================================
+=====================================
 1. Create a directory for the example
-==================================
+=====================================
 
 Create a directory in which to build and run the example mechanism:
 

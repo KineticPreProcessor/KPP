@@ -684,7 +684,7 @@ ODE function, Jacobian, and Hessian, for the target languages C,
 Fortran77, and Fortran90. The default is :command:`#MEX ON`. With
 :command:`#MEX OFF`, no Mex files are generated.
 
-.. _inversion-cmd:
+.. _minversion-cmd:
 
 #MINVERSION
 -----------

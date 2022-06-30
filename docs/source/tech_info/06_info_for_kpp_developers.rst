@@ -336,66 +336,66 @@ List of continuous integration tests
 .. table:: Continuous integration tests
    :align: center
 
-   +-----------------------+------------------------------------------------+
-   | C-I test              | Description                                    |
-   +=======================+================================================+
-   | :file:`radau90`       | Uses the Runge-Kutta radau5 integrator         |
-   |                       | with the SAPRC99 chemical mechanism.           |
-   +-----------------------+------------------------------------------------+
-   | :file:`rk`            | Uses the Runge-Kutta integrator                |
-   |                       | with the small_strato chemical mechanism.      |
-   +-----------------------+------------------------------------------------+
-   | :file:`rktlm`         | Same as :file:`rk`, but uses the Runge-Kutta   |
-   |                       | tangent-linear-model integrator.               |
-   +-----------------------+------------------------------------------------+
-   | :file:`ros`           | Uses the Rosenbrock integrator                 |
-   |                       | with the small_strato chemical mechanism.      |
-   +-----------------------+------------------------------------------------+
-   | :file:`ros_split`     | Same as :file:`ros`, but tests the             |
-   |                       | :command:`#FUNCTION SPLIT` command.            |
-   +-----------------------+------------------------------------------------+
-   | :file:`rosadj`        | Same as :file:`ros`, but uses the Rosenbrock   |
-   |                       | adjoint integrator.                            |
-   +-----------------------+------------------------------------------------+
-   | :file:`rostlm`        | Same as :file:`ros`, but uses the Rosenbrock   |
-   |                       | tangent linear method integrator.              |
-   +-----------------------+------------------------------------------------+
-   | :file:`rosenbrock90`  | Uses the Rosenbrock integrator with the        |
-   |                       | SAPRC99 chemical mechanism.                    |
-   +-----------------------+------------------------------------------------+
-   | :file:`ros_minver`    | Same as :file:`rosenbrock90`, but tests the    |
-   |                       | :command:`#MINVERSION` command. This test      |
-   |                       | is successful if the bulding of the            |
-   |                       | mechanism fails with a "KPP version too old"   |
-   |                       | error.                                         |
-   +-----------------------+------------------------------------------------+
-   | :file:`ros_upcase`    | Same as :file:`rosenbrock90`, but tests if     |
-   |                       | KPP can generate Fortran90 code with the       |
-   |                       | :file:`.F90` suffix (i.e. with                 |
-   |                       | :command:`#UPPERCASE ON`).                     |
-   +-----------------------+------------------------------------------------+
-   | :file:`saprc2006`     | Uses the Rosenbrock integrator with the        |
-   |                       | SAPRCNOV chemical mechanism.                   |
-   +-----------------------+------------------------------------------------+
-   | :file:`sd`            | Uses the Runge-Kutta SDIRK integrator          |
-   |                       | with the small_strato chemical mechanism.      |
-   +-----------------------+------------------------------------------------+
-   | :file:`sdadj`         | Same as :file:`sdadj`, but uses the            |
-   |                       | Runge-Kutta SDIRK Adjoint integrator.          |
-   +-----------------------+------------------------------------------------+
-   | :file:`small_f90`     | Uses the LSODE integrator with the             |
-   |                       | small_strato chemical mechanism.               |
-   +-----------------------+------------------------------------------------+
-   | :file:`small_strato`  | Uses the Rosenbrock integrator with the        |
-   |                       | small_strato chemical mechanism.  This uses    |
-   |                       | the same options as the example described in   |
-   |                       | :ref:`running-kpp-with-an-example-mechanism`.  |
-   +-----------------------+------------------------------------------------+
+   +------------------------+-----------+-----------------+-----------------------+
+   | C-I test               | Language  | Model           | Integrator            |
+   +========================+===========+=================+=======================+
+   | ``C_rk``               | C         | small_strato    | runge_kutta           |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``C_rosadj``           | C         | small_strato    | rosenbrock_adj        |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``C_sd``               | C         | small_strato    | sdirk                 |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``C_sdadj``            | C         | small_strato    | sdirk_adj             |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``C_small_strato``     | C         | small_strato    | rosenbrock            |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``F90_lsode``          | Fortran90 | small_strato    | lsode                 |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``F90_radau``          | Fortran90 | saprc99         | radau5                |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``F90_rk``             | Fortran90 | small_strato    | runge_kutta           |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``F90_rktlm``          | Fortran90 | small_strato    | runge_kutta_tlm       |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``F90_ros``            | Fortran90 | small_strato    | rosenbrock            |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``F90_ros_autoreduce`` | Fortran90 | saprc99         | rosenbrock_autoreduce | 
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``F90_ros_split``      | Fortran90 | small_strato    | rosenbrock            |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``F90_ros_upcase``     | Fortran90 | saprc99         | rosenbrock            |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``F90_rosadj``         | Fortran90 | small_strato    | rosenbrock_adj        |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``F90_rosenbrock``     | Fortran90 | saprc99         | rosenbrock            |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``F90_rostlm``         | Fortran90 | small_strato    | rosenbrock_tlm        |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``F90_saprc_2006``     | Fortran90 | saprcnov        | rosenbrock            |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``F90_sd``             | Fortran90 | small_strato    | sdirk                 |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``F90_sdadj``          | Fortran90 | small_strato    | sdirk_adj             |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``F90_seulex``         | Fortran90 | saprcnov        | seulex                |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``F90_small_strato``   | Fortran90 | small_strato    | rosenbrock            |
+   +------------------------+-----------+-----------------+-----------------------+
+   | ``X_minver``           | Fortran90 | small_strato    | runge_kutta           |
+   +------------------------+-----------+-----------------+-----------------------+
+
+Notes about C-I tests:
+
+#. :file:`F90_ros_split` also uses :command:`#FUNCTION SPLIT`.
+#. :file:`F90_ros_upcase` also uses :command:`#UPPERCASEF90 ON`.
+#. :file:`F90_small_strato` is the example from
+   :ref:`running-kpp-with-an-example-mechanism`.
+#. :file:`X_minver` tests if the :ref:`minversion-cmd` command works
+   properly. 
 
 Each continuous integration test is contained in a subdirectory of
-:file:`$KPP_HOME/ci-tests` in a KPP definition file (ending in
-:file:`.kpp`) from :file:`$KPP_HOME/models/` or
-:file:`$KPP_HOME/examples/`.
+:file:`$KPP_HOME/ci-tests`.  In each subdirectory is a KPP definition
+file (ending in :file:`.kpp`).
 
 .. _running-ci-tests-on-azure:
 
