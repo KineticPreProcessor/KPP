@@ -458,7 +458,6 @@ SYMBOL` will generate the following code in :ref:`Global`:
 
    ! C - Concentration of all species
      REAL(kind=dp), TARGET :: C(NSPEC)
-     !$OMP THREADPRIVATE( C )
 
 Whereas :command:`#DECLARE VALUE` will generate this code instead:
 
@@ -466,7 +465,6 @@ Whereas :command:`#DECLARE VALUE` will generate this code instead:
 
    ! C - Concentration of all species
      REAL(kind=dp), TARGET :: C(7)
-     !$OMP THREADPRIVATE( C )
 
 We recommend using :command:`#DECLARE SYMBOL`, as most modern compilers
 will automatically replace each parameter (e.g. :code:`NSPEC`) with its
@@ -875,7 +873,6 @@ coefficients, a derived type object should be used for efficiency, e.g.:
         ! ... add variable fields to this type ...
      END TYPE ObjGlobal_t
      TYPE(ObjGlobal_t), TARGET, PUBLIC :: ObjGlobal
-     !$OMP THREADPRIVATE( ObjGlobal )
    #ENDINLINE
 
 This global variable :code:`ObjGlobal` can then be used globally in KPP.

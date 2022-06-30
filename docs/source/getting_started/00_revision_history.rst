@@ -158,7 +158,7 @@ NOTE: Contains KPP modifications specific to GEOS-Chem.
 - Add :code:`Aout` argument to return reaction rates from
   :code:`SUBROUTINE Fun`.
 
-- Rename :file:`KPP/kpp_2.2.3_01` folder to :file:`KPP/kpp-code`.
+- Rename :file:`KPP/kpp_2.2.3_01` directory to :file:`KPP/kpp-code`.
 
 - Now write :file:`gckpp_Model.F90` and :file:`gckpp_Precision.F90`
   from :code:`gen.c`.

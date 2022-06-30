@@ -28,14 +28,10 @@ a new
 issue <https://github.com/KineticPreProcessor/KPP/issues/new/choose>`__
 and select the “ask a question” template.
 
-=====================
-How to submit changes
-=====================
+===============================================
+How to submit changes or request an enhancement
+===============================================
 
-Please see “Contributing Guidelines”.
+See `CONTRIBUTING.md
+<https://github.com/KineticPreProcessor/KPP/blob/main/CONTRIBUTING.md>`_.
 
-=============================
-How to request an enhancement
-=============================
-
-Please see “Contributing Guidelines”.

@@ -26,9 +26,7 @@ programming templates. Some minimal programming may be required from the
 users in order to construct their own application from the KPP building
 blocks.
 
-In the following sections we introduce the numerical methods implemented
-in KPP. The symbols used in the formulas are explained in
-:ref:`table-symbols`.
+The symbols used in the formulas of the following sections are:
 
 .. _table-symbols:
 
@@ -346,10 +344,10 @@ Rosenbrock with mechanism auto-reduction
 **Integrator file:** :file:`int/rosenbrock_autoreduce.f90`
 
 Mechanism auto-reduction (described in :cite:t:`2022:Lin_et_al`) expands
-previous work by :cite:t:`Shen_et_al._2020` and
-:cite:t:`Santillana_et_al._2010` to a computationally efficient
-implementation in KPP, avoiding memory re-allocation, re-compile of the
-code, and on-the-fly mechanism reduction based on dynamically determined
+previous work by :cite:t:`Santillana_et_al._2010` and
+:cite:t:`Shen_et_al._2020` to a computationally efficient implementation
+in KPP, avoiding memory re-allocation, re-compile of the code, and
+on-the-fly mechanism reduction based on dynamically determined
 production and loss rate thresholds.
 
 We define a threshold :math:`\delta` which can be fixed (as in
@@ -359,7 +357,7 @@ loss rates of a "target species" scaled by a factor
 .. math::
 
    \begin{aligned}
-   \delta = max(P_{target}, L_{target}) * \alpha_{target}`.
+   \delta = max(P_{target}, L_{target}) * \alpha_{target}.
    \end{aligned}
 
 For each species :math:`i`, the species is partitioned as "slow" iff.

@@ -299,7 +299,7 @@ can also be accessed separately through pointer variables :code:`VAR` and
    point to the proper slices of the :code:`C` array.  They are also
    nullified when no longer needed.  :code:`VAR` and :code:`FIX` are
    now also kept internal to the various integrator files located in
-   the :file:`$KPP_HOME/int` folder.
+   the :file:`$KPP_HOME/int` directory.
 
 .. _Function:
 
@@ -833,34 +833,37 @@ implemented (the template file name is :code:`general_stochastic`.).
 ROOT_Util
 ---------
 
-The utility and input/output functions are in :file:`ROOT_Util.f90`
-(or :file:`ROOT_Util.F90`).  In addition to the chemical system
-description routines discussed above, KPP generates several utility
-routines, some of which are summarized in :ref:`table-util-fun`.
+In addition to the chemical system description routines discussed above,
+KPP generates several utility subroutines and functions in the file
+:file:`ROOT_Util.f90` (or :file:`.F90`).
 
 .. _table-util-fun:
 
-.. table:: Fortran90 subrotutines in ROOT_Util
+.. table:: Fortran90 subroutines and functions in ROOT_Util
    :align: center
 
-   +---------------------------+---------------------------------------------+
-   | Function                  | Description                                 |
-   +===========================+=============================================+
-   | :code:`GetMass`           | Check mass balance for selected atoms       |
-   +---------------------------+---------------------------------------------+
-   | :code:`Shuffle_kpp2user`  | Shuffle concentration vector                |
-   +---------------------------+---------------------------------------------+
-   | :code:`Shuffle_user2kpp`  | Shuffle concentration vector                |
-   +---------------------------+---------------------------------------------+
-   | :code:`InitSaveData`      | Utility for :command:`#LOOKAT` command      |
-   +---------------------------+---------------------------------------------+
-   | :code:`SaveData`          | Utility for :command:`#LOOKAT` command      |
-   +---------------------------+---------------------------------------------+
-   | :code:`CloseSaveData`     | Utility for :command:`#LOOKAT` command      |
-   +---------------------------+---------------------------------------------+
-   | :code:`tag2num`           | Calculate reaction number from equation tag |
-   +---------------------------+---------------------------------------------+
-
+   +-----------------------------------+---------------------------------------------+
+   | Function                          | Description                                 |
+   +===================================+=============================================+
+   | :code:`GetMass`                   | Check mass balance for selected atoms       |
+   +-----------------------------------+---------------------------------------------+
+   | :code:`Shuffle_kpp2user`          | Shuffle concentration vector                |
+   +-----------------------------------+---------------------------------------------+
+   | :code:`Shuffle_user2kpp`          | Shuffle concentration vector                |
+   +-----------------------------------+---------------------------------------------+
+   | :code:`InitSaveData`              | Utility for :command:`#LOOKAT` command      |
+   +-----------------------------------+---------------------------------------------+
+   | :code:`SaveData`                  | Utility for :command:`#LOOKAT` command      |
+   +-----------------------------------+---------------------------------------------+
+   | :code:`CloseSaveData`             | Utility for :command:`#LOOKAT` command      |
+   +-----------------------------------+---------------------------------------------+
+   | :code:`tag2num`                   | Calculate reaction number from equation tag |
+   +-----------------------------------+---------------------------------------------+
+   | :code:`ComputeFamilies`           |                                             |
+   +-----------------------------------+---------------------------------------------+
+   | :code:`Integrator_Update_Options` | Choose :code:`Update_RCONST/PHOTO/SUN`      |
+   +-----------------------------------+---------------------------------------------+
+           
 The subroutines :code:`InitSaveData`, :code:`SaveData`, and
 :code:`CloseSaveData` can be used to print the concentration of the
 species that were selected with :command:`#LOOKAT` to the file
@@ -889,13 +892,11 @@ mex-functions gives the same numerical results, but the computational
 time could be considerably smaller, especially for large kinetic
 systems.
 
-If possible we recommend to build mex files using the C
-language, as Matlab offers most mex interface options for the C
-language. Moreover,Matlab distributions come with a native C
-compiler (:program:`lcc`) for building executable functions from mex
-files. Fortran77 mex files work well on most platforms without
-additional efforts. However, the mex files built using Fortran90 may
-require further platform-specific tuning of the mex
+If possible we recommend to build mex files using the C language, as
+Matlab offers most mex interface options for the C language. Moreover,
+Matlab distributions come with a native C compiler (:program:`lcc`) for
+building executable functions from mex files. The mex files built using
+Fortran90 may require further platform-specific tuning of the mex
 compiler options.
 
 .. _C-code:
@@ -960,18 +961,17 @@ function, Jacobian, and Hessian to be called directly from Matlab
 The Matlab code
 ===============
 
-`Matlab <http://www.mathworks.com/products/matlab/>`_ provides a high-level
-programming environment that allows algorithm development, numerical
-computations, and data analysis and visualization. The KPP-generated
-Matlab code allows for a rapid prototyping of chemical kinetic schemes,
-and for a convenient analysis and visualization of the results.
-Differences between different kinetic mechanisms can be easily
+`Matlab <http://www.mathworks.com/products/matlab/>`_ provides a
+high-level programming environment that allows algorithm development,
+numerical computations, and data analysis and visualization. The
+KPP-generated Matlab code allows for a rapid prototyping of chemical
+kinetic schemes, and for a convenient analysis and visualization of the
+results. Differences between different kinetic mechanisms can be easily
 understood. The Matlab code can be used to derive reference numerical
 solutions, which are then compared against the results obtained with
-user-supplied numerical techniques. Last but not least Matlab is an
-excellent environment for educational purposes. KPP/Matlab can be used
-to teach students fundamentals of chemical kinetics and chemical
-numerical simulations.
+user-supplied numerical techniques. KPP/Matlab can also be used to teach
+students fundamentals of chemical kinetics and chemical numerical
+simulations.
 
 Each Matlab function has to reside in a separate m-file. Function calls
 use the m-function-file names to reference the function. Consequently,
@@ -1115,9 +1115,8 @@ Output from the Integrators (:code:`ISTATUS` and :code:`RSTATUS`)
 In order to obtain more information about the integration, KPP provides
 the arrays :code:`ISTATUS` (integer) and :code:`RSTATUS` (real). Each of
 them is an array of 20 elements. Array elements not listed here are
-either not used or are integrator-specific options. Details can be found
-in the comment lines of the individual integrator files in
-:code:`$KPP_HOME/int/`.
+currently not used. Details can be found in the comment lines of the
+individual integrator files in :code:`$KPP_HOME/int/`.
 
 ISTATUS
 -------
@@ -1210,7 +1209,7 @@ ISTATUS
 
 .. option:: ISTATUS(10) ... ISTATUS(20)
 
-   currently not used
+   Currently not used.
 
 RSTATUS
 -------
@@ -1288,4 +1287,4 @@ RSTATUS
 
 .. option:: RSTATUS(5) ... RSTATUS(20)
 
-   currently not used
+   Currently not used.

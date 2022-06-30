@@ -51,10 +51,10 @@ The sections below outline the steps necessary to build and run a
 .. _example-step-1:
 
 ==================================
-1. Create a folder for the example
+1. Create a directory for the example
 ==================================
 
-Create a folder in which to build and run the example mechanism:
+Create a directory in which to build and run the example mechanism:
 
 .. code-block:: console
 
@@ -63,7 +63,7 @@ Create a folder in which to build and run the example mechanism:
    $ cd small_strato_example
 
 In the following sections we will refer to
-:file:`$HOME/small_strato_example` as "the example folder".
+:file:`$HOME/small_strato_example` as "the example directory".
 
 .. _example-step-2:
 
@@ -71,12 +71,12 @@ In the following sections we will refer to
 2. Create a KPP Definition File
 ===============================
 
-Create a KPP definition file in the example folder.  The name
+Create a KPP definition file in the example directory.  The name
 of this file will always be :file:`ROOT.kpp`, where :file:`ROOT` is
 the name of the chemical mechanism.
 
 For this example, write the following lines into a file named
-:file:`small_strato.kpp` in the example folder:
+:file:`small_strato.kpp` in the example directory:
 
 .. code-block:: console
 
@@ -88,9 +88,9 @@ For this example, write the following lines into a file named
 .. important::
 
    KPP will look for the relevant files (e.g. mechanism definition,
-   driver, etc.) in the proper subfolders of :envvar:`KPP_HOME`.
+   driver, etc.) in the proper subdirectories of :envvar:`KPP_HOME`.
    Therefore you won't need to copy these manually to the example
-   folder.
+   directory.
 
 We will now look at the :ref:`kpp-commands` in :file:`small_strato.kpp`.
 
@@ -217,7 +217,7 @@ KPP-generated solver code.  In this example we are using Fortran90.
 ----------------------
 
 The :ref:`integrator-cmd` command selects a numerical integration routine
-from the templates provided in the :file:`$KPP_HOME/int` folder, or
+from the templates provided in the :file:`$KPP_HOME/int` directory, or
 implemented by the user.
 
 In this example, the :ref:`Rosenbrock integrator <rosenbrock-methods>`
@@ -231,7 +231,7 @@ and the Fortran90 language have been been specified. Therefore, the file
 ---------------
 
 The :ref:`driver-cmd` command selects a specific main program (located
-in the :file:`$KPP_HOME/drv` folder):
+in the :file:`$KPP_HOME/drv` directory):
 
 #. :file:`general_adj.f90` : Used with integrators that use the
    discrete adjoint method
@@ -250,7 +250,7 @@ either adjoint or tangent-linear methods, so the
 3. Build the mechanism with KPP
 ===============================
 
-Now that all the necessary files have been copied to the example folder,
+Now that all the necessary files have been copied to the example directory,
 the :program:`small_strato` mechanism can be built. Type:
 
 .. code-block:: console
