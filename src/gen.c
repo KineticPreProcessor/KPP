@@ -45,12 +45,12 @@ int **LUstructJ;
 
 ICODE InlineCode[ INLINE_OPT ];
 
-int NSPEC, NVAR, NVARP1, NVARACT, NFIX, NREACT, NFLUX;
+int NSPEC, NVAR, NVARP1, NVARACT, NFIX, NREACT;
 int NVARST, NFIXST;
 int C_DEFAULT, C;
 int DC;
 int ARP, JVRP, NJVRP, CROW_JVRP, IROW_JVRP, ICOL_JVRP;
-int V, F, VAR, FIX, FLUX;
+int V, F, VAR, FIX;
 int RCONST, RCT;
 int Vdot, P_VAR, D_VAR, Aout, Vdotout;
 int StoichNum;
@@ -135,7 +135,6 @@ int i,j;
 
   NSPEC   = DefConst( "NSPEC",   INT, "Number of chemical species" );
   NVAR    = DefConst( "NVAR",    INT, "Number of Variable species" );
-  /*NFLUX   = DefConst( "NFLUX",   INT, "Number of Reaction Flux species" );*/
   NVARACT = DefConst( "NVARACT", INT, "Number of Active species" );
   NFIX    = DefConst( "NFIX",    INT, "Number of Fixed species" );
   NREACT  = DefConst( "NREACT",  INT, "Number of reactions" );
@@ -167,8 +166,6 @@ int i,j;
 		   "Concentrations of fixed species (global)" );
 }
 //============================================================================
-  FLUX = DefvElm( "FLUX", real, -NFLUX, "Captured flux through reactions (global)" );
-
   V = DefvElm( "V", real, -NVAR, "Concentrations of variable species (local)" );
   F = DefvElm( "F", real, -NFIX, "Concentrations of fixed species (local)" );
 
@@ -912,48 +909,6 @@ int F_VAR, FSPLIT_VAR;
     fprintf(functionFile, "END SUBROUTINE Fun_SPLITF\n");
   } // end if doAutoReduce
 }
-
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-void GenerateFlux()
-{
-int i, j;
-int FLUX_VAR;
-
-  if( VarNr == 0 ) return;
-
-  FLUX_VAR = DefFnc( "Flux", 3, "calculate production & loss terms from reaction flux");
-
-  FunctionBegin( FLUX_VAR, RR, P_VAR, D_VAR );
-
-  NewLines(1);
-  WriteComment("Production function");
-
-  for (i = 0; i < VarNr; i++) {
-    sum = Const(0);
-    for (j = 0; j < EqnNr; j++)
-      sum = Add( sum, Mul( Const( Stoich_Right[i][j] ), Elm( RR, j ) ) );
-    Assign( Elm( P_VAR, i ), sum );
-  }
-
-  NewLines(1);
-  WriteComment("Destruction function");
-
-  /* msl_20160421 */
-  for (i = 0; i < VarNr; i++) {
-    sum = Const(0);
-    for (j = 0; j < EqnNr; j++)
-      sum = Add( sum, Mul( Const( Stoich_Left[i][j] ), Elm( RR, j ) ) );
-    Assign( Elm( D_VAR, i ), sum );
-  }
-
-
-  //MATLAB_Inline("\n   P_VAR = P_VAR(:);\n   D_VAR = D_VAR(:);\n");
-
-  FunctionEnd( FLUX_VAR );
-  FreeVariable( FLUX_VAR );
-}
-
-
 
 
 
@@ -2413,7 +2368,6 @@ int j,dummy_species;
   NewLines(1);
   DeclareConstant( NSPEC,   ascii( max(SpcNr, 1) ) );
   DeclareConstant( NVAR,    ascii( max(VarNr, 1) ) );
-  /* DeclareConstant( NFLUX,   ascii( max(plNr+1,  1)  ) ); */
   DeclareConstant( NFAM,    ascii( max(FamilyNr,1)  ) );
   DeclareConstant( NVARACT, ascii( max(VarActiveNr, 1) ) );
   DeclareConstant( NFIX,    ascii( max(FixNr, 1) ) );
@@ -3541,7 +3495,6 @@ int n;
   GenerateFun(1); /* setting useAggregate=1, generate SUBROUTINE Fun*/
   GenerateFun(0); /* setting useAggregate=0, generate SUBROUTINE FUN_SPLIT */
   GenerateStoichNum();
-  if (doFlux == 1) GenerateFlux();
 
   if ( useStochastic ) {
     printf("\nKPP is generating the Stochastic description:");
