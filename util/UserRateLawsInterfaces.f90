@@ -1,14 +1,20 @@
-  PRIVATE :: ARR_dp, ARR_sp
-  INTERFACE ARR
-     MODULE PROCEDURE ARR_dp
-     MODULE PROCEDURE ARR_sp
-  END INTERFACE ARR
+  PRIVATE :: ARR_abc_dp, ARR_abc_sp
+  INTERFACE ARR_abc
+     MODULE PROCEDURE ARR_abc_dp
+     MODULE PROCEDURE ARR_abc_sp
+  END INTERFACE ARR_abc
 
-  PRIVATE :: ARR2_dp, ARR2_sp
-  INTERFACE ARR2
-     MODULE PROCEDURE ARR2_dp
-     MODULE PROCEDURE ARR2_sp
-  END INTERFACE ARR2
+  PRIVATE :: ARR_ab_dp, ARR_ab_sp
+  INTERFACE ARR_ab
+     MODULE PROCEDURE ARR_ab_dp
+     MODULE PROCEDURE ARR_ab_sp
+  END INTERFACE ARR_ab
+
+  PRIVATE :: ARR_ac_dp, ARR_ac_sp
+  INTERFACE ARR_ac
+     MODULE PROCEDURE ARR_ac_dp
+     MODULE PROCEDURE ARR_ac_sp
+  END INTERFACE ARR_ac
 
   PRIVATE :: EP2_dp, EP2_sp
   INTERFACE EP2
@@ -28,26 +34,20 @@
      MODULE PROCEDURE FALL_sp
   END INTERFACE FALL
 
-  PRIVATE :: k_3rd_dp, k_3rd_sp
-  INTERFACE k_3rd
-     MODULE PROCEDURE k_3rd_dp
-     MODULE PROCEDURE k_3rd_sp
-  END INTERFACE k_3rd
+  PRIVATE :: k3rd_jpl_dp, k3rd_jpl_sp
+  INTERFACE k3rd_jpl
+     MODULE PROCEDURE k3rd_jpl_dp
+     MODULE PROCEDURE k3rd_jpl_sp
+  END INTERFACE k3rd_jpl
 
-  PRIVATE :: k_3rd_jpl_activation_dp, k_3rd_jpl_activation_sp
-  INTERFACE  k_3rd_jpl_activation
-     MODULE PROCEDURE  k_3rd_jpl_activation_dp
-     MODULE PROCEDURE  k_3rd_jpl_activation_sp
-  END INTERFACE  k_3rd_jpl_activation
+  PRIVATE :: k3rd_jpl_activation_dp, k3rd_jpl_activation_sp
+  INTERFACE  k3rd_jpl_activation
+     MODULE PROCEDURE  k3rd_jpl_activation_dp
+     MODULE PROCEDURE  k3rd_jpl_activation_sp
+  END INTERFACE  k3rd_jpl_activation
 
-  PRIVATE :: k_3rd_iupac_dp, k_3rd_iupac_sp
-  INTERFACE k_3rd_iupac
-     MODULE PROCEDURE k_3rd_iupac_dp
-     MODULE PROCEDURE k_3rd_iupac_sp
-  END INTERFACE k_3rd_iupac
-
-  PRIVATE :: k_arr_dp, k_arr_sp
-  INTERFACE k_arr
-     MODULE PROCEDURE k_arr_dp
-     MODULE PROCEDURE k_arr_sp
-  END INTERFACE k_arr
+  PRIVATE :: k3rd_iupac_dp, k3rd_iupac_sp
+  INTERFACE k3rd_iupac
+     MODULE PROCEDURE k3rd_iupac_dp
+     MODULE PROCEDURE k3rd_iupac_sp
+  END INTERFACE k3rd_iupac

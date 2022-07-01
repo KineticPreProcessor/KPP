@@ -18,7 +18,7 @@ Clone the KPP source code from the `KPP Github repository
    $ cd $HOME
    $ git clone https://github.com/KineticPreProcessor/KPP.git
 
-This will create a folder named KPP in your home directory.
+This will create a directory named KPP in your home directory.
 
 ========================================
 Define the KPP_HOME environment variable
@@ -62,7 +62,7 @@ Now if you type:
 
    $ echo $PATH
 
-You should see the :envvar:`$KPP_HOME/bin` folder placed at the end of
+You should see the :envvar:`$KPP_HOME/bin` directory placed at the end of
 the :envvar:`PATH` variable.
 
 .. _test-for-dependencies:
@@ -81,10 +81,9 @@ with `Spack <https://spack.readthedocs.io>`_.
 gcc
 ---
 
-KPP uses the `GNU Compiler Collection (aka gcc)
-<https://gcc.gnu.org/>`_ by default.  A version of gcc comes
-pre-installed with most Linux or MacOS systems.  To test if gcc is
-installed on your system, type:
+KPP uses the `GNU Compiler Collection <https://gcc.gnu.org/>`_ (aka gcc)
+by default. A version of gcc comes pre-installed with most Linux or
+MacOS systems. To test if gcc is installed on your system, type:
 
 .. code-block :: console
 

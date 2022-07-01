@@ -104,7 +104,7 @@ angle brackets, e.g.:
 
 .. code-block:: console
 
-   <J1> NO2 + hv = NO + O : 0.533*SUN;
+    <R1> NO2 + hv = NO + O3P :  6.69e-1*(SUN/60.0e0);
 
 If the equation tags are switched on, KPP also generates the
 :code:`PARAMETER` array :code:`EQN_TAGS`. In combination with
@@ -114,7 +114,7 @@ describe a reaction:
 
 .. code-block:: none
 
-   PRINT*, ’Reaction J1 is:’, EQN_NAMES( tag2num( ’J1’ ) )
+   PRINT*, ’Reaction 1 is:’, EQN_NAMES( tag2num( ’R1’ ) )
 
 .. _Precision:
 
@@ -151,7 +151,7 @@ The code to update the rate constants is in :file:`ROOT_Rates.f90` (or
 
 .. _table-rat-fun:
 
-.. table:: Table 4: Fortran90 subrotutines in ROOT_Rates
+.. table:: Fortran90 subrotutines in ROOT_Rates
    :align: center
 
    +-----------------------+--------------------------------------+
@@ -169,12 +169,12 @@ The code to update the rate constants is in :file:`ROOT_Rates.f90` (or
 ROOT_Parameters
 ---------------
 
-The global parameters listed in :ref:`table-par` are defined and
-initialized in :file:`ROOT_Parameters.f90` (or :file:`.F90`).
+Global parameters are defined and initialized in
+:file:`ROOT_Parameters.f90` (or :file:`.F90`):
 
 .. _table-par:
 
-.. table:: Table 5: Parameters Declared in ROOT_Parameters
+.. table:: Parameters Declared in ROOT_Parameters
    :align: center
 
    +----------------+---------------------------------------------+---------+
@@ -204,7 +204,7 @@ initialized in :file:`ROOT_Parameters.f90` (or :file:`.F90`).
    +----------------+---------------------------------------------+---------+
 
 Example values listed in the 3rd column are taken from the
-:command:`small_strato` mechanism (cf.
+:program:`small_strato` mechanism (cf.
 :ref:`running-kpp-with-an-example-mechanism`).
 
 KPP orders the variable species such that the sparsity pattern of the
@@ -231,12 +231,12 @@ Hessian, etc.
 ROOT_Global
 -----------
 
-The global variables listed in :ref:`table-glob` are declared in
-:file:`ROOT_Global.f90` (or :file:`.F90`).
+Several global variables are declared in :file:`ROOT_Global.f90` (or
+:file:`.F90`):
 
 .. _table-glob:
 
-.. table:: Table 6: Global Variables Declared in ROOT_Global
+.. table:: Global Variables Declared in ROOT_Global
    :align: center
 
    +-------------------------+---------------------------------------------+
@@ -246,27 +246,27 @@ The global variables listed in :ref:`table-glob` are declared in
    +-------------------------+---------------------------------------------+
    | :code:`VAR(:)`          | Concentrations, variable species (pointer)  |
    +-------------------------+---------------------------------------------+
-   | :code:`FIX(:)`          | Concentrations, fixed species (pointer)	   |
+   | :code:`FIX(:)`          | Concentrations, fixed species (pointer)     |
    +-------------------------+---------------------------------------------+
-   | :code:`RCONST(NREACT)`  | Rate coefficient values			   |
+   | :code:`RCONST(NREACT)`  | Rate coefficient values                     |
    +-------------------------+---------------------------------------------+
-   | :code:`TIME`            | Current integration time			   |
+   | :code:`TIME`            | Current integration time                    |
    +-------------------------+---------------------------------------------+
-   | :code:`SUN`             | Sun intensity between 0 and 1		   |
+   | :code:`SUN`             | Sun intensity between 0 and 1               |
    +-------------------------+---------------------------------------------+
-   | :code:`TEMP`            | Temperature				   |
+   | :code:`TEMP`            | Temperature                                 |
    +-------------------------+---------------------------------------------+
-   | :code:`TSTART, TEND`    | Simulation start/end time		   |
+   | :code:`TSTART, TEND`    | Simulation start/end time                   |
    +-------------------------+---------------------------------------------+
-   | :code:`DT`              | Simulation step				   |
+   | :code:`DT`              | Simulation time step                        |
    +-------------------------+---------------------------------------------+
-   | :code:`ATOL(NSPEC)`     | Absolute tolerances			   |
+   | :code:`ATOL(NSPEC)`     | Absolute tolerances                         |
    +-------------------------+---------------------------------------------+
-   | :code:`RTOL(NSPEC)`     | Relative tolerances			   |
+   | :code:`RTOL(NSPEC)`     | Relative tolerances                         |
    +-------------------------+---------------------------------------------+
-   | :code:`STEPMIN`         | Lower bound for time step		   |
+   | :code:`STEPMIN`         | Lower bound for time step                   |
    +-------------------------+---------------------------------------------+
-   | :code:`STEPMAX`         | Upper bound for time step		   |
+   | :code:`STEPMAX`         | Upper bound for time step                   |
    +-------------------------+---------------------------------------------+
    | :code:`CFACTOR`         | Conversion factor                           |
    +-------------------------+---------------------------------------------+
@@ -299,14 +299,14 @@ can also be accessed separately through pointer variables :code:`VAR` and
    point to the proper slices of the :code:`C` array.  They are also
    nullified when no longer needed.  :code:`VAR` and :code:`FIX` are
    now also kept internal to the various integrator files located in
-   the :file:`$KPP_HOME/int` folder.
+   the :file:`$KPP_HOME/int` directory.
 
 .. _Function:
 
 ROOT_Function
 -------------
 
-The chemical ODE system for our :command:`small_strato` example
+The chemical ODE system for our :program:`small_strato` example
 (described in :ref:`running-kpp-with-an-example-mechanism`) is:
 
 .. math::
@@ -336,7 +336,7 @@ respectively. :code:`A` and :code:`Vdot` may be returned to the
 calling program (for diagnostic purposes) with optional ouptut
 arguments :code:`Aout` and :code:`Vdotout`. Below is the Fortran90
 code generated by KPP for the ODE function of our
-:command:`small_strato` example.
+:program:`small_strato` example.
 
 .. code-block:: F90
 
@@ -420,7 +420,7 @@ The Jacobian matrix for our example contains 18 non-zero elements:
 It defines how the temporal change of each chemical species depends on
 all other species. For example, :math:`\mathbf{J}(5,2)` shows that :math:`NO_2`
 (species number 5) is affected by :math:`O` (species number 2) via
-reaction number R9. The sparse data structures for the Jacobian are
+reaction R9. The sparse data structures for the Jacobian are
 declared and initialized in :file:`ROOT_JacobianSP.f90` (or
 :file:`.F90`). The code for the ODE Jacobian and
 sparse multiplications is in :file:`ROOT_Jacobian.f90` (or
@@ -432,19 +432,18 @@ sparse multiplications is in :file:`ROOT_Jacobian.f90` (or
    :command:`#JACOBIAN SPARSE_LU_ROW` to the KPP definition file will
    create the file :file:`ROOT_JacobianSP.f90` (or :file:`.F90`).
 
-The Jacobian of the ODE function is automatically constructed by
-KPP. KPP generates the Jacobian subroutine :code:`Jac` or
-:code:`JacSP`  where the latter is generated when the sparse format is
-required. Using the variable species :code:`V`, the fixed
-species :code:`F`, and the rate coefficients :code:`RCT` as input, the
-subroutine calculates the Jacobian :code:`JVS`. The default data
-structures for the sparse compressed on rows Jacobian
-representation are shown in :ref:`table-jac` (for the case where the LU fill-in
-is accounted for).
+The Jacobian of the ODE function is automatically constructed by KPP.
+KPP generates the Jacobian subroutine :code:`Jac` or :code:`JacSP` where
+the latter is generated when the sparse format is required. Using the
+variable species :code:`V`, the fixed species :code:`F`, and the rate
+coefficients :code:`RCT` as input, the subroutine calculates the
+Jacobian :code:`JVS`. The default data structures for the sparse
+compressed on rows Jacobian representation (for the case where the LU
+fill-in is accounted for) are:
 
 .. _table-jac:
 
-.. table:: Table 7: Sparse Jacobian Data Structures
+.. table:: Sparse Jacobian Data Structures
    :align: center
 
    +------------------------------+-------------------------------------+
@@ -467,7 +466,7 @@ Jacobian in row order. Each row :code:`I` starts at position
 :code:`LU_NONZERO+1`. The location of the :code:`I`-th diagonal
 element is :code:`LU_DIAG(I)`. The sparse element :code:`JVS(K)` is
 the Jacobian entry in row :code:`LU_IROW(K)` and column
-:code:`LU_ICOL(K`). For the :command:`small_strato` example KPP
+:code:`LU_ICOL(K`). For the :program:`small_strato` example KPP
 generates the following Jacobian sparse data structure:
 
 .. code-block:: F90
@@ -493,7 +492,7 @@ during the computation.
    :align: center
 
    Figure 2: The sparsity pattern of the Jacobian for the
-   :command:`small_strato` example. All non-zero elements are marked
+   :program:`small_strato` example. All non-zero elements are marked
    with a bullet. Note that even though :math:`\mathbf{J}(3,5)` is
    zero, it is also included here because of the fill-in.
 
@@ -505,7 +504,7 @@ user-supplied vector :code:`UV` without any indirect addressing.
 
 .. _table-jac-fun:
 
-.. table:: Table 8: Fortran90 subroutines in ROOT_Jacobian
+.. table:: Fortran90 subroutines in ROOT_Jacobian
    :align: center
 
    +----------------------+----------------------------------------------+
@@ -530,16 +529,6 @@ in :file:`ROOT_Hessian.f90` (or :file:`.F90`). The Hessian
 function and associated sparse multiplications are in
 :code:`ROOT_HessianSP.f90` (or :code:`.F90`).
 
-.. tip::
-
-   Adding :command:`#HESSIAN ON` to the KPP definition file will
-   create the file :file:`ROOT_Hessian.f90` (or :file:`.F90`)
-
-   Additionally, if either :command:`#JACOBIAN SPARSE ROW` or
-   :command:`#JACOBIAN SPARSE_LU_ROW` are also added to the KPP
-   definition file, the file :file:`ROOT_HessianSP.f90` (or
-   :file:`.F90`) will also be created.
-
 The Hessian contains the second order derivatives of the time derivative
 functions. More exactly, the Hessian is a 3-tensor such that
 
@@ -549,11 +538,11 @@ functions. More exactly, the Hessian is a 3-tensor such that
      \qquad 1 \le i,j,k \le N_{\rm var}~.
    \label{eqn:Hessian1}
 
-KPP generates the routine :code:`Hessian` (see :ref:`table-hess-fun`) below:
+KPP generates the routine :code:`Hessian`:
 
 .. _table-hess-fun:
 
-.. table:: Table 9: Fortran90 functions in ROOT_Hessian
+.. table:: Fortran90 functions in ROOT_Hessian
    :align: center
 
    +--------------------+--------------------------------------+
@@ -588,7 +577,7 @@ hold the indices of nonzero entries as illustrated in :ref:`table-hess`.
 
 .. _table-hess:
 
-.. table:: Table 10: Sparse Hessian Data
+.. table:: Sparse Hessian Data
    :align: center
 
    +-------------------------+----------------------------------------------+
@@ -650,7 +639,7 @@ returns a value that is nonzero if singularity is detected.
 
 .. _table-la-fun:
 
-.. table:: Table 11: Fortran90 functions in ROOT_LinearAlgebra
+.. table:: Fortran90 functions in ROOT_LinearAlgebra
    :align: center
 
    +--------------------+--------------------------------------+
@@ -668,7 +657,7 @@ in-place LU factorization :math:`P` as computed by and perform sparse
 backward and forward substitutions (using :math:`P` or its
 transpose). The sparse linear algebra routines :code:`KppDecomp` and
 :code:`KppSolve` are extremely efficient, as shown by
-:cite:`1996:Sandu_et_al`.
+:cite:t:`Sandu_et_al._1996`.
 
 .. _Stoichiom-and-StoichiomSP:
 
@@ -706,7 +695,7 @@ vector at position :code:`CCOL_STOICM(j)` and ends at
 
 .. _table-sto:
 
-.. table:: Table 12: Sparse Stoichiometric Matrix
+.. table:: Sparse Stoichiometric Matrix
    :align: center
 
    +-------------------------------+-----------------------------------------+
@@ -723,7 +712,7 @@ vector at position :code:`CCOL_STOICM(j)` and ends at
 
 .. _table-sto-fun:
 
-.. table:: Table 13: Fortran90 functions in ROOT_Stoichiom
+.. table:: Fortran90 functions in ROOT_Stoichiom
    :align: center
 
    +-------------------------+--------------------------------------------+
@@ -752,7 +741,7 @@ vector, i.e.:
 The matrix :code:`JVRP` is sparse and is computed and stored in row
 compressed sparse format, as shown in :ref:`table-hess-fun`. The
 parameter :code:`NJVRP` holds the number of nonzero elements. For our
-:command:`small_strato` example:
+:program:`small_strato` example:
 
 .. code-block:: F90
 
@@ -762,7 +751,7 @@ parameter :code:`NJVRP` holds the number of nonzero elements. For our
 
 .. _table-jvrp:
 
-.. table:: Table 14:. Sparse Data for Jacobian of Reactant Products
+.. table:: Sparse Data for Jacobian of Reactant Products
    :align: center
 
    +-------------------------------+-----------------------------------------+
@@ -844,34 +833,35 @@ implemented (the template file name is :code:`general_stochastic`.).
 ROOT_Util
 ---------
 
-The utility and input/output functions are in :file:`ROOT_Util.f90`
-(or :file:`ROOT_Util.F90`).  In addition to the chemical system
-description routines discussed above, KPP generates several utility
-routines, some of which are summarized in :ref:`table-util-fun`.
+In addition to the chemical system description routines discussed above,
+KPP generates several utility subroutines and functions in the file
+:file:`ROOT_Util.f90` (or :file:`.F90`).
 
 .. _table-util-fun:
 
-.. table:: Table 15: Fortran90 subrotutines in ROOT_Util
+.. table:: Fortran90 subroutines and functions in ROOT_Util
    :align: center
 
-   +---------------------------+---------------------------------------------+
-   | Function                  | Description                                 |
-   +===========================+=============================================+
-   | :code:`GetMass`           | Check mass balance for selected atoms       |
-   +---------------------------+---------------------------------------------+
-   | :code:`Shuffle_kpp2user`  | Shuffle concentration vector                |
-   +---------------------------+---------------------------------------------+
-   | :code:`Shuffle_user2kpp`  | Shuffle concentration vector                |
-   +---------------------------+---------------------------------------------+
-   | :code:`InitSaveData`      | Utility for :command:`#LOOKAT` command      |
-   +---------------------------+---------------------------------------------+
-   | :code:`SaveData`          | Utility for :command:`#LOOKAT` command      |
-   +---------------------------+---------------------------------------------+
-   | :code:`CloseSaveData`     | Utility for :command:`#LOOKAT` command      |
-   +---------------------------+---------------------------------------------+
-   | :code:`tag2num`           | Calculate reaction number from equation tag |
-   +---------------------------+---------------------------------------------+
-
+   +-----------------------------------+---------------------------------------------+
+   | Function                          | Description                                 |
+   +===================================+=============================================+
+   | :code:`GetMass`                   | Check mass balance for selected atoms       |
+   +-----------------------------------+---------------------------------------------+
+   | :code:`Shuffle_kpp2user`          | Shuffle concentration vector                |
+   +-----------------------------------+---------------------------------------------+
+   | :code:`Shuffle_user2kpp`          | Shuffle concentration vector                |
+   +-----------------------------------+---------------------------------------------+
+   | :code:`InitSaveData`              | Utility for :command:`#LOOKAT` command      |
+   +-----------------------------------+---------------------------------------------+
+   | :code:`SaveData`                  | Utility for :command:`#LOOKAT` command      |
+   +-----------------------------------+---------------------------------------------+
+   | :code:`CloseSaveData`             | Utility for :command:`#LOOKAT` command      |
+   +-----------------------------------+---------------------------------------------+
+   | :code:`tag2num`                   | Calculate reaction number from equation tag |
+   +-----------------------------------+---------------------------------------------+
+   | :code:`Integrator_Update_Options` | Choose :code:`Update_RCONST/PHOTO/SUN`      |
+   +-----------------------------------+---------------------------------------------+
+           
 The subroutines :code:`InitSaveData`, :code:`SaveData`, and
 :code:`CloseSaveData` can be used to print the concentration of the
 species that were selected with :command:`#LOOKAT` to the file
@@ -900,27 +890,12 @@ mex-functions gives the same numerical results, but the computational
 time could be considerably smaller, especially for large kinetic
 systems.
 
-If possible we recommend to build mex files using the C
-language, as Matlab offers most mex interface options for the C
-language. Moreover,Matlab distributions come with a native C
-compiler (:program:`lcc`) for building executable functions from mex
-files. Fortran77 mex files work well on most platforms without
-additional efforts. However, the mex files built using Fortran90 may
-require further platform-specific tuning of the mex
+If possible we recommend to build mex files using the C language, as
+Matlab offers most mex interface options for the C language. Moreover,
+Matlab distributions come with a native C compiler (:program:`lcc`) for
+building executable functions from mex files. The mex files built using
+Fortran90 may require further platform-specific tuning of the mex
 compiler options.
-
-.. _Makefile:
-
-============
-The Makefile
-============
-
-KPP produces a Makefile that allows for an easy compilation of all
-KPP-generated source files. The file name is
-:file:`Makefile_ROOT`. The Makefile assumes that  the selected driver
-contains the main program. However, if no driver was selected
-(i.e. :command:`#DRIVER none`), it is necessary to add the name of the
-main program file manually to the Makefile.
 
 .. _C-code:
 
@@ -984,18 +959,17 @@ function, Jacobian, and Hessian to be called directly from Matlab
 The Matlab code
 ===============
 
-`Matlab <http://www.mathworks.com/products/matlab/>`_ provides a high-level
-programming environment that allows algorithm development, numerical
-computations, and data analysis and visualization. The KPP-generated
-Matlab code allows for a rapid prototyping of chemical kinetic schemes,
-and for a convenient analysis and visualization of the results.
-Differences between different kinetic mechanisms can be easily
+`Matlab <http://www.mathworks.com/products/matlab/>`_ provides a
+high-level programming environment that allows algorithm development,
+numerical computations, and data analysis and visualization. The
+KPP-generated Matlab code allows for a rapid prototyping of chemical
+kinetic schemes, and for a convenient analysis and visualization of the
+results. Differences between different kinetic mechanisms can be easily
 understood. The Matlab code can be used to derive reference numerical
 solutions, which are then compared against the results obtained with
-user-supplied numerical techniques. Last but not least Matlab is an
-excellent environment for educational purposes. KPP/Matlab can be used
-to teach students fundamentals of chemical kinetics and chemical
-numerical simulations.
+user-supplied numerical techniques. KPP/Matlab can also be used to teach
+students fundamentals of chemical kinetics and chemical numerical
+simulations.
 
 Each Matlab function has to reside in a separate m-file. Function calls
 use the m-function-file names to reference the function. Consequently,
@@ -1038,7 +1012,7 @@ format into a Matlab sparse matrix.
 
 .. _table-matlab:
 
-.. table:: Table 16: List of Matlab model files
+.. table:: List of Matlab model files
    :align: center
 
    +----------------------------------+-------------------------------------+
@@ -1098,6 +1072,19 @@ format into a Matlab sparse matrix.
    | :file:`ROOT_Shuffle_user2kpp.m`  | Shuffle concentration vector        |
    +----------------------------------+-------------------------------------+
 
+.. _Makefile:
+
+============
+The Makefile
+============
+
+KPP produces a Makefile that allows for an easy compilation of all
+KPP-generated source files. The file name is :file:`Makefile_ROOT`. The
+Makefile assumes that the selected driver contains the main program.
+However, if no driver was selected (i.e. :command:`#DRIVER none`), it is
+necessary to add the name of the main program file manually to the
+Makefile.
+
 .. _Map:
 
 ============
@@ -1126,12 +1113,13 @@ Output from the Integrators (:code:`ISTATUS` and :code:`RSTATUS`)
 In order to obtain more information about the integration, KPP provides
 the arrays :code:`ISTATUS` (integer) and :code:`RSTATUS` (real). Each of
 them is an array of 20 elements. Array elements not listed here are
-either not used or are integrator-specific options. Details can be found
-in the comment lines of the individual integrator files in
-:code:`$KPP_HOME/int/`.
+currently not used. Details can be found in the comment lines of the
+individual integrator files in :code:`$KPP_HOME/int/`.
 
 ISTATUS
 -------
+
+.. _table-istatus:
 
 .. table:: Summary of ISTATUS usage in the f90 integrators.
            Here, Y = used.
@@ -1217,12 +1205,14 @@ ISTATUS
 
    Number of Hessian calls.
 
-.. option:: ISTATUS(11) ... ISTATUS(20)
+.. option:: ISTATUS(10) ... ISTATUS(20)
 
-   currently not used
+   Currently not used.
 
 RSTATUS
 -------
+
+.. _table-rstatus:
 
 .. table:: Summary of RSTATUS usage in the f90 integrators.
            Here, Y = used, s = solver specific usage.
@@ -1295,4 +1285,4 @@ RSTATUS
 
 .. option:: RSTATUS(5) ... RSTATUS(20)
 
-   currently not used
+   Currently not used.

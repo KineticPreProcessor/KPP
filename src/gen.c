@@ -290,7 +290,7 @@ int i,j;
   /*FLUX_MAP   = DefvElm( "FLUX_MAP", INT, -NREACT, "Map-to-SPEC indeces for FLUX species" );*/
 
   CFACTOR  = DefElm( "CFACTOR", real, "Conversion factor for concentration units");
-  
+
   /* Autoreduction structures */
   NVARP1        = DefConst( "NVAR+1",  INT, "Number of Variable species + 1" );
   DO_JVS        = DefvElm("DO_JVS", LOGICAL, -LU_NONZERO, "");
@@ -385,7 +385,7 @@ void GenerateGData()
 
   GlobalDeclare( RCONST );
   GlobalDeclare( TIME );
-  GlobalDeclare( SUN ); 
+  GlobalDeclare( SUN );
   GlobalDeclare( TEMP );
   GlobalDeclare( TSTART );
   GlobalDeclare( TEND );
@@ -709,12 +709,15 @@ int F_VAR, FSPLIT_VAR;
   if ( (useLang==MATLAB_LANG)&&(!z_useAggregate) )
      printf("\nWarning: in the function definition move P_VAR to output vars\n");
 
-
   if ( useLang!=F90_LANG ) { /* A is a module variable in F90 */
     NewLines(1);
     WriteComment("Local variables");
     Declare( A );
     if ( useLang==F77_LANG ) WriteOMPThreadPrivate("A");
+  }
+  if (useLang==MATLAB_LANG) {
+    MATLAB_Inline("A=zeros(1,length(RCT));");
+    MATLAB_Inline("Vdot=zeros(1,length(V));");
   }
   NewLines(1);
   WriteComment("Computation of equation rates");
@@ -750,7 +753,7 @@ int F_VAR, FSPLIT_VAR;
   // Add code to return equation rates via optional argument Aout
   //   -- Bob Yantosca (29 Apr 2022)
   NewLines(1);
-  if ( useLang!=MATLAB_LANG ) {
+  if ( useLang == F90_LANG ) {
     fprintf(functionFile, "  !### Use Aout to return equation rates\n");
     fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n");
   }
@@ -767,7 +770,7 @@ int F_VAR, FSPLIT_VAR;
       if ( doAutoReduce ) F90_Inline("IF (DO_FUN(%d)) &",i+1);
       Assign( Elm( Vdot, i ), sum );
     }
-    
+
     /*  mz_rs_20220602+ ----------------------------------- */
     /* this block can probably be deleted */
     /* for (i = VarNr; i < VarNr; i++) { */
@@ -781,11 +784,12 @@ int F_VAR, FSPLIT_VAR;
     // Add code to return time derivative of variable species (Vdotout)
     //   -- Bob Yantosca (03 May 2022)
     NewLines(1);
-    if ( useLang!=MATLAB_LANG ) {
+    //if ( useLang!=MATLAB_LANG ) {
+    if ( useLang == F90_LANG ) {
       fprintf(functionFile, "  !### Use Vdotout to return time deriv. of variable species\n");
       fprintf(functionFile, "  IF ( PRESENT( Vdotout ) ) Vdotout = Vdot\n");
     }
-    
+
   } else {
 
     NewLines(1);
@@ -820,15 +824,22 @@ int F_VAR, FSPLIT_VAR;
       if( doAutoReduce ) F90_Inline("IF (DO_FUN(%d)) &",i+1);
       Assign( Elm( D_VAR, i ), sum );
     }
-    
+
     // Add code to calculate Vdot also for split function:
     NewLines(1);
-    if ( useLang!=MATLAB_LANG ) fprintf(functionFile, "  Vdot = P_VAR - D_VAR*V\n");
-
+    if ( useLang == F90_LANG ) {
+      // For F90, we can do operations on arrays
+      fprintf(functionFile, "  Vdot = P_VAR - D_VAR*V\n");
+    } else if ( useLang == C_LANG ) {
+      // For C, we have to explicitly loop over elements
+      fprintf(functionFile, "  for( int n=0; n<NVAR; n++ ) {\n");
+      fprintf(functionFile, "    Vdot[n] = P_VAR[n] - D_VAR[n]*V[n];\n");
+      fprintf(functionFile, "  }\n");
+    }
   }
 
   if( z_useAggregate )
-    MATLAB_Inline("\n   Vdot = Vdot(:);\n");
+    MATLAB_Inline("\n   Vdotout = Vdot(:);\n");
   else
     MATLAB_Inline("\n   P_VAR = P_VAR(:);\n   D_VAR = D_VAR(:);\n");
 
@@ -895,9 +906,11 @@ int F_VAR, FSPLIT_VAR;
       }
     }
 
-    fprintf(functionFile, "\n\n!### KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)\n");
-    fprintf(functionFile, "!### Use Aout to return reaction rates\n");
-    fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n\n");
+    if ( useLang == F90_LANG ) {
+      fprintf(functionFile, "\n\n!### KPP 2.3.0_gc, Bob Yantosca (11 Feb 2021)\n");
+      fprintf(functionFile, "!### Use Aout to return reaction rates\n");
+      fprintf(functionFile, "  IF ( PRESENT( Aout ) ) Aout = A\n\n");
+    }
     NewLines(1);
     WriteComment("Production function");
 
@@ -1292,6 +1305,10 @@ int Jac_SP, Jac;
     /* DeclareConstant( NTMPB,   ascii( nonzeros_B ) ); */
     varTable[ NTMPB ] -> value = nonzeros_B;
     Declare( BV );
+  }
+  if (useLang == MATLAB_LANG) {
+    MATLAB_Inline("B=zeros(1,%d);",nonzeros_B);
+    MATLAB_Inline("JVS=zeros(1,length(LU_IROW));");
   }
 
   NewLines(1);
@@ -2311,19 +2328,19 @@ int UPDATE_PHOTO;
   /* F90_Inline("   USE %s_Global", rootFileName); */
   /*  mz_rs_20220212- */
   MATLAB_Inline("global SUN TEMP RCONST");
-  
+
   NewLines(1);
   WriteComment("Begin INLINED RCONST");
   NewLines(1);
 
   switch( useLang ) {
-    case C_LANG:  bprintf( InlineCode[ C_RCONST ].code ); 
+    case C_LANG:  bprintf( InlineCode[ C_RCONST ].code );
                  break;
-    case F77_LANG: bprintf( InlineCode[ F77_RCONST ].code ); 
+    case F77_LANG: bprintf( InlineCode[ F77_RCONST ].code );
                  break;
-    case F90_LANG: bprintf( InlineCode[ F90_RCONST ].code ); 
+    case F90_LANG: bprintf( InlineCode[ F90_RCONST ].code );
                  break;
-    case MATLAB_LANG: bprintf( InlineCode[ MATLAB_RCONST ].code ); 
+    case MATLAB_LANG: bprintf( InlineCode[ MATLAB_RCONST ].code );
                  break;
   }
   FlushBuf();
@@ -2850,7 +2867,7 @@ char lhsbuf[MAX_EQNLEN], rhsbuf[MAX_EQNLEN];
     {
       sprintf(buf, "%*s --> %-*s", lhs, lhsbuf, rhs, rhsbuf);
     }
-  
+
   return strlen(buf);
 }
 

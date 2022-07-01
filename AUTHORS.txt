@@ -1,10 +1,9 @@
-Authors for KPP (19 Apr 2022)
+Authors for KPP (30 Jun 2022)
 
 Name            Github handle
 -----           -------------
 Adrian Sandu    @adrian-sandu
 Rolf Sander     @RolfSander
-Josue Bock      @JosueBock
 Michael Long    @msl3v
 Bob Yantosca    @yantosca
 Haipeng Lin     @jimmielin

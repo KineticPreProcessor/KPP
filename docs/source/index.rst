@@ -21,14 +21,15 @@ The Kinetic PreProcessor: KPP
    </p>
 
 This site provides instructions for :program:`KPP`, the Kinetic PreProcessor.
-   
+
 Contributions (e.g., suggestions, edits, revisions) would be greatly
 appreciated. See :ref:`editing-this-user-guide` and our
-:ref:`contributing-guidelines` If you find something hard to
-understand---let us know!  
-   
+contributing guidelines.  If you find something hard to
+understand---let us know!
+
 .. toctree::
    :caption: Getting Started
+   :maxdepth: 2
 
    getting_started/00_revision_history.rst
    getting_started/01_installation.rst
@@ -36,12 +37,14 @@ understand---let us know!
 
 .. toctree::
    :caption: Using KPP
+   :maxdepth: 2
 
    using_kpp/04_input_for_kpp.rst
    using_kpp/05_output_from_kpp.rst
 
 .. toctree::
    :caption: Technical information
+   :maxdepth: 2
 
    tech_info/06_info_for_kpp_developers.rst
    tech_info/07_numerical_methods.rst
@@ -49,14 +52,16 @@ understand---let us know!
 
 .. toctree::
    :caption: KPP Reference
+   :maxdepth: 2
 
    citations/09_acknowledgments.rst
    citations/10_kpp_references.rst
 
 .. toctree::
    :caption: Help and Support
+   :maxdepth: 2
 
-   reference/known-bugs.rst 
+   reference/known-bugs.rst
    reference/SUPPORT.rst
    reference/CONTRIBUTING.rst
    reference/editing_these_docs.rst

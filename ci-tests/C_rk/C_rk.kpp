@@ -1,0 +1,4 @@
+#MODEL      small_strato
+#INTEGRATOR runge_kutta
+#LANGUAGE   C
+#DRIVER     general

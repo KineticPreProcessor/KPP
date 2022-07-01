@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- C-lanugage updates
+  - Restored driver programs `general.c` and `general_adj.c`
+  - Updated rate-law functions in `util/UserRateLaws.c`
+  - Added C-I tests for C-language integrators (using the
+    `small_strato` mechanism 
+  - Now use `//` instead of `/* */` comment strings 
+- ReadTheDocs documentation updates:
+  - Authors in the reference page are now listed alphabetically
+  - In-text citations now use the :cite:t style (e.g. "Smith et al [2000]")
+  - Corrected several omissions
+  - Removed table numbers from tables (to reduce confusion)
+- Added a C-I test for `rosenbrock_autoreduce`
+  
+### Changed
+
+- Renamed CI-test folders for clarity
+- DOUBLE_COMPLEX is now replaced by COMPLEX(kind=dp)
+- Fixed incorrect license string in .zenodo.json
+
 ## [2.6.0]
 
 ### Added

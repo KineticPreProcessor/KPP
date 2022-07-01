@@ -50,7 +50,7 @@ SUBROUTINE KppDecompCmplx( JVS, IER )
   USE KPP_ROOT_JacobianSP
 
       INTEGER        :: IER
-      DOUBLE COMPLEX :: JVS(LU_NONZERO), W(NVAR), a
+      COMPLEX(kind=dp) :: JVS(LU_NONZERO), W(NVAR), a
       KPP_REAL  :: b = 0.0
       INTEGER        :: k, kk, j, jj
 
@@ -196,7 +196,7 @@ SUBROUTINE KppSolveCmplx( JVS, X )
   USE KPP_ROOT_JacobianSP
 
       INTEGER        :: i, j
-      DOUBLE COMPLEX :: JVS(LU_NONZERO), X(NVAR), sum
+      COMPLEX(kind=dp) :: JVS(LU_NONZERO), X(NVAR), sum
 
       DO i=1,NVAR
          DO j = LU_CROW(i), LU_DIAG(i)-1 
@@ -258,7 +258,7 @@ SUBROUTINE KppSolveTRCmplx( JVS, X )
   USE KPP_ROOT_JacobianSP
 
       INTEGER        :: i, j
-      DOUBLE COMPLEX :: JVS(LU_NONZERO), X(NVAR)
+      COMPLEX(kind=dp) :: JVS(LU_NONZERO), X(NVAR)
 
       DO i=1,NVAR
         X(i) = X(i)/JVS(LU_DIAG(i))

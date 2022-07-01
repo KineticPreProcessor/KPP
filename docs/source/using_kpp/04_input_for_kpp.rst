@@ -4,18 +4,18 @@
 Input for KPP
 #############
 
-KPP basically handles two types of files: **Kinetic description files** and
-**auxiliary files**.  Kinetic description files are in KPP syntax and
-described in the following sections.  Auxiliary files are described in
-the section entitled :ref:`auxiliary-files-and-the-substitution-preprocessor`.
+KPP basically handles two types of input files: **Kinetic description
+files** and **auxiliary files**. Kinetic description files are in KPP
+syntax and described in the following sections. Auxiliary files are
+described in the section entitled
+:ref:`auxiliary-files-and-the-substitution-preprocessor`.
 
 KPP kinetic description files specify the chemical equations, the
 initial values of each of the species involved, the integration
 parameters, and many other options. The KPP preprocessor parses the
 kinetic description files and generates several output files. Files
 that are written in KPP syntax have one of the suffixes :file:`.kpp`,
-:file:`.spc`, :file:`.eqn`, or :file:`def`. An exception is the file
-:file:`atoms`, which has no suffix.
+:file:`.spc`, :file:`.eqn`, or :file:`def`.
 
 The following general rules define the structure of a kinetic
 description file:
@@ -40,10 +40,11 @@ combined. The include files can be nested up to 10 levels. KPP will
 parse these files as if they were a single big file. By carefully
 splitting the chemical description, KPP can be configured for a broad
 range of users. In this way the users can have direct access to that
-part of the model that they are interested in, and all the other
-details can be hidden inside several include files. Often, a file with
-atom definitions is included first, then species definitions, and
-finally the equations of the chemical mechanism.
+part of the model that they are interested in, and all the other details
+can be hidden inside several include files. Often, the atom definitions
+(:file:`atoms.kpp`) are included first, then species definitions
+(:file:`*.spc`), and finally the equations of the chemical mechanism
+(:file:`*.eqn`).
 
 .. _kpp-sections:
 
@@ -87,11 +88,11 @@ description file.
 #CHECK
 ------
 
-KPP is able to do a mass balance checking for all equations. Some
-chemical equations are not balanced for all atoms, and this might still
-be correct from a chemical point of view. To accommodate for this, KPP
-can perform mass balance checking only for the list of atoms specified
-in the :command:`#CHECK` section, e.g.:
+KPP is able to do mass balance checks for all equations. Some chemical
+equations are not balanced for all atoms, and this might still be
+correct from a chemical point of view. To accommodate for this, KPP can
+perform mass balance checking only for the list of atoms specified in
+the :command:`#CHECK` section, e.g.:
 
 .. code-block:: console
 
@@ -109,20 +110,17 @@ atom can also be used to control mass balance checking.
 
 There are two ways to declare new species together with their atom
 composition: :command:`#DEFVAR` and :command:`#DEFFIX`. These sections
-define all the species that will be used in the chemical
-mechanism. Species can be variable or fixed. The type is implicitly
-specified by defining the species in the appropriate sections. A
-species can be considered fixed if its concentration does not vary too
-much. The variable species are medium or short lived species and their
-concentrations vary in time. This division of species into different
-categories is helpful for integrators that benefit from treating them
-differently.
+define all the species that will be used in the chemical mechanism.
+Species can be variable or fixed. The type is implicitly specified by
+defining the species in the appropriate sections. A fixed species does
+not vary through chemical reactions.
 
 For each species the user has to declare the atom composition. This
 information is used for mass balance checking. If the species is a
-lumped species without an exact composition, it can be ignored. To do
-this one can declare the predefined atom :command:`IGNORE` as being
-part of the species composition. Examples for these sections are:
+lumped species without an exact composition, its composition can be
+ignored. To do this one can declare the predefined atom
+:command:`IGNORE` as being part of the species composition. Examples for
+these sections are:
 
 .. code-block:: console
 
@@ -141,22 +139,35 @@ part of the species composition. Examples for these sections are:
 
 The chemical mechanism is specified in the :command:`#EQUATIONS`
 section. Each equation is written in the natural way in which a
-chemist would write it, e.g.:
+chemist would write it:
 
 .. code-block:: console
 
    #EQUATIONS
-     NO2 + hv = NO + O : 0.533*SUN;
-     OH + NO2 = HNO3 : k_3rd(temp,
-       cair,2.E-30,3.,2.5E-11,0.,0.6);
+
+   <R1> NO2 + hv = NO + O3P :  6.69e-1*(SUN/60.0);
+   <R2> O3P + O2 + AIR = O3 :  ARR_ac(5.68e-34,  -2.80);
+   <R3> O3P + O3 = 2O2 :       ARR_ab(8.00e-12, 2060.0);
+   <R4> O3P + NO + AIR = NO2 : ARR_ac(1.00e-31,  -1.60);
+   //... etc ...
+
+.. note::
+
+   The above example is taken from the :command:`saprc99` mechanism
+   (see :file:`models/saprc99.eqn`), with some whitespace deleted for
+   clarity.  Optional :ref:`equation tags <eqntags-cmd>` are specified
+   by text within :code:`< >` angle brackets.  Functions that compute
+   **saprc99** equation rates (e.g. :code:`ARR_ac`,
+   :code:`ARR_ab`) are defined in :file:`util/UserRateLaws.f90`
+   and :file:`util/UserRateLawsInterfaces.f90`.
 
 Only the names of already defined species can be used. The rate
 coefficient has to be placed at the end of each equation, separated by a
 colon. The rate coefficient does not necessarily need to be a numerical
-value. Instead, it can be a valid expression in the
-:ref:`target language <language-cmd>`. If there are several
-:command:`#EQUATIONS` sections in the input, their contents will be
-concatenated.
+value. Instead, it can be a valid expression (or a call to an
+:ref:`inlined rate law function <inlined-code>`) in the :ref:`target
+language <language-cmd>`.  If there are several :command:`#EQUATIONS`
+sections in the input, their contents will be concatenated.
 
 A minus sign in an equation shows that a species is consumed in a
 reaction but it does not affect the reaction rate. For example, the
@@ -175,8 +186,7 @@ parameterize organic reactions that branch into several side reactions:
 
 .. code-block:: console
 
-   CH4 + O1D = .75 CH3O2 + .75 OH + .25 HCHO
-               + 0.4 H + .05 H2 : k_CH4_O1D;
+   CH4 + O1D = .75 CH3O2 + .75 OH + .25 HCHO + 0.4 H + .05 H2 : k_CH4_O1D;
 
 KPP provides two pre-defined dummy species: :literal:`hv` and
 :literal:`PROD`. Using dummy species does not affect the numerics of
@@ -200,8 +210,9 @@ surface can be written as:
    O3 = PROD : v_d_O3;
 
 The same equation must not occur twice in the :command:`#EQUATIONS`
-section. For example, you may have both the gas-phase reaction of :literal:`N2O5` with
-water in your mechanism and also the heterogeneous reaction on aerosols:
+section. For example, you may have both the gas-phase reaction of
+:literal:`N2O5` with water in your mechanism and also the
+heterogeneous reaction on aerosols:
 
 .. code-block:: console
 
@@ -212,7 +223,7 @@ These reactions must be merged by adding the rate coefficients:
 
 .. code-block:: console
 
-   N2O5 + H2O = 2 HNO3 : k_gas+k_aerosol;
+   N2O5 + H2O = 2 HNO3 : k_gas + k_aerosol;
 
 .. _families:
 
@@ -372,7 +383,9 @@ A KPP command begins on a new line with a :code:`#` sign, followed by a
 command name and one or more parameters.  Details about each command
 are given in the following subsections.
 
-.. table::
+.. _table-cmd-defaults:
+
+.. table:: Default values for KPP commands
    :align: center
 
    +--------------------------+-----------------------+
@@ -436,7 +449,7 @@ using parameters from the :ref:`Parameters` file. :command:`#DECLARE VALUE`
 will replace each parameter with its value.
 
 For example, the global array variable :code:`C` is declared in the
-:ref:`Global` file generated by KPP.  In the :command:`small_strato`
+:ref:`Global` file generated by KPP.  In the :program:`small_strato`
 example (described in :ref:`running-kpp-with-an-example-mechanism`),
 :code:`C` has dimension :code:`NSPEC=7`. Using  :command:`#DECLARE
 SYMBOL` will generate the following code in :ref:`Global`:
@@ -445,7 +458,6 @@ SYMBOL` will generate the following code in :ref:`Global`:
 
    ! C - Concentration of all species
      REAL(kind=dp), TARGET :: C(NSPEC)
-     !$OMP THREADPRIVATE( C )
 
 Whereas :command:`#DECLARE VALUE` will generate this code instead:
 
@@ -453,14 +465,12 @@ Whereas :command:`#DECLARE VALUE` will generate this code instead:
 
    ! C - Concentration of all species
      REAL(kind=dp), TARGET :: C(7)
-     !$OMP THREADPRIVATE( C )
 
-We recommend using :command:`#DECLARE SYMBOL`, as most modern
-compilers will automatically replace each parameter (e.g. :code:`NSPEC`)
-with its value (e.g :code:`7`).  This prevents repeated lookups of
-the parameter value, which leads to inefficient execution.  But if you are
-using a very old compiler that is not as sophisticated,
-:command:`#DECLARE VALUE` might result in better-optmized code.
+We recommend using :command:`#DECLARE SYMBOL`, as most modern compilers
+will automatically replace each parameter (e.g. :code:`NSPEC`) with its
+value (e.g :code:`7`). However, if you are using a very old compiler
+that is not as sophisticated, :command:`#DECLARE VALUE` might result in
+better-optmized code.
 
 .. _double-cmd:
 
@@ -531,17 +541,16 @@ mechanisms with and without sulfuric acid, you can use this code:
 #EQNTAGS
 --------
 
-Each reaction in the :command:`#EQNTAGS` section may start with an
+Each reaction in the :ref:`equations` section may start with an
 equation tag which is enclosed in angle brackets, e.g.:
 
 .. code-block:: console
 
-   <J1> NO2 + hv = NO + O : 0.533*SUN;
+   <R1> NO2 + hv = NO + O3P :  6.69e-1*(SUN/60.0);
 
-With :command:`#EQNTAGS` set to :command:`ON`, this equation tag can
-be used to refer to a specific equation
-(cf. :ref:`lookat-and-monitor`). The default for :command:`#EQNTAGS`
-is :command:`OFF`.
+With :command:`#EQNTAGS` set to :command:`ON`, this equation tag can be
+used to refer to a specific equation (cf. :ref:`monitor`). The default
+for :command:`#EQNTAGS` is :command:`OFF`.
 
 .. _function-cmd:
 
@@ -571,10 +580,10 @@ command turns the Hessian generation on (see section
 The :command:`#INCLUDE` command instructs KPP to look for the file
 specified as a parameter and parse the content of this file before
 proceeding to the next line. This allows the atoms definition, the
-species definition and even the equation definition to be shared
-between several models. Moreover this allows for custom configuration
-of KPP to accommodate various classes of users. Include files can be
-either in one of the KPP directories or in the current directory.
+species definition and the equation definition to be shared between
+several models. Moreover this allows for custom configuration of KPP to
+accommodate various classes of users. Include files can be either in one
+of the KPP directories or in the current directory.
 
 .. _integrator-cmd:
 
@@ -587,13 +596,13 @@ suffix. The effect of
 
 .. code-block:: console
 
-   #INTEGRATOR integrator-name
+   #INTEGRATOR integrator_name
 
 is similar to:
 
 .. code-block:: console
 
-   #INCLUDE $KPP_HOME/int/integrator-name.def
+   #INCLUDE $KPP_HOME/int/integrator_name.def
 
 The :command:`#INTEGRATOR` command allows the use of different
 integration techniques on the same model. If it occurs twice, the second
@@ -606,7 +615,6 @@ e.g.:
 .. code-block:: console
 
    #INTEGRATOR ./mydeffile
-   #INTFILE ./myintegrator
 
 .. _intfile-cmd:
 
@@ -637,8 +645,8 @@ place.
 The :command:`#JACOBIAN` command controls which functions are generated
 to compute the Jacobian. The option :command:`OFF` inhibits the
 generation of the Jacobian routine. The option :command:`FULL` generates
-the Jacobian as a square :code:`NVAR x NVAR` matrix. It should be used
-if the integrator needs the whole Jacobians. The options
+the Jacobian as a square :code:`NVAR x NVAR` matrix. It should only be
+used if the integrator needs the whole Jacobians. The options
 :command:`SPARSE_ROW` and :command:`SPARSE_LU_ROW` (the default) both
 generate the Jacobian in sparse (compressed on rows) format. They should
 be used if the integrator needs the whole Jacobian, but in a sparse
@@ -661,10 +669,8 @@ The :command:`#LANGUAGE` command selects the target language in which the
 code file is to be generated. Available options are :command:`Fortran90`,
 :command:`C`, or :command:`matlab`.
 
-.. tip::
-
-   You can select the suffix (:code:`.F90` or :code:`.f90`) to use for
-   Fortran90 source code generated by KPP (cf. :ref:`uppercasef90-cmd`).
+You can select the suffix (:code:`.F90` or :code:`.f90`) to use for
+Fortran90 source code generated by KPP (cf. :ref:`uppercasef90-cmd`).
 
 .. _mex-cmd:
 
@@ -678,7 +684,7 @@ ODE function, Jacobian, and Hessian, for the target languages C,
 Fortran77, and Fortran90. The default is :command:`#MEX ON`. With
 :command:`#MEX OFF`, no Mex files are generated.
 
-.. _inversion-cmd:
+.. _minversion-cmd:
 
 #MINVERSION
 -----------
@@ -707,17 +713,17 @@ quit with an error message unless you are using KPP 2.4.0 or later.
 
 The chemical model contains the description of the atoms, species, and
 chemical equations. It also contains default initial values for the
-species and default options including the best integrator for the model.
-In the simplest case, the main kinetic description file, i.e. the one
-passed as parameter to KPP, can contain just a single line selecting the
-model. KPP tries to find a file with the name of the model and the
+species and default options including a suitable integrator for the
+model. In the simplest case, the main kinetic description file, i.e. the
+one passed as parameter to KPP, can contain just a single line selecting
+the model. KPP tries to find a file with the name of the model and the
 suffix :file:`.def` in the :file:`$KPP_HOME/models` subdirectory. This
-file is then parsed. The content of the model definition file is
-written in the KPP language. The model definition file points to a
-species file and an equation file. The species file includes further
-the atom definition file. All default values regarding the model are
-automatically selected. For convenience, the best integrator and
-driver for the given model are also automatically selected.
+file is then parsed. The content of the model definition file is written
+in the KPP language. The model definition file points to a species file
+and an equation file. The species file includes further the atom
+definition file. All default values regarding the model are
+automatically selected. For convenience, the best integrator and driver
+for the given model are also automatically selected.
 
 The :command:`#MODEL` command is optional, and intended for using a
 predefined model. Users who supply their own reaction mechanism do not
@@ -731,8 +737,8 @@ need it.
 Reordering of the species is performed in order to minimize the fill-in
 during the LU factorization, and therefore preserve the sparsity
 structure and increase efficiency. The reordering is done using a
-diagonal markowitz algorithm. The details are explained in
-:cite:`1996:Sandu_et_al`. The default is :command:`ON`.
+diagonal Markowitz algorithm. The details are explained in
+:cite:t:`Sandu_et_al._1996`. The default is :command:`ON`.
 :command:`OFF` means that KPP does not reorder the species. The order
 of the variables is the order in which the species are
 declared in the :command:`#DEFVAR` section.
@@ -786,13 +792,13 @@ Inlined Code
 In order to offer maximum flexibility, KPP allows the user to include
 pieces of code in the kinetic description file. Inlined code begins on a
 new line with :command:`#INLINE` and the *inline_type*. Next, one or
-more lines of code follow, written in the target language (Fortran90,
-C, or Matlab) as specified by the *inline_type*. The inlined code ends
-with :command:`#ENDINLINE`. The code is inserted into the KPP output
-at a position which is also determined by *inline_type* as explained
-in :ref:`table-inl-type`. If two inline commands with the same inline
-type are declared, then the contents of the second is appended to the
-first one.
+more lines of code follow, written in the target language (Fortran90, C,
+or Matlab) as specified by the *inline_type*. The inlined code ends with
+:command:`#ENDINLINE`. The code is inserted into the KPP output at a
+position which is also determined by *inline_type* as shown in
+:ref:`table-inl-type`. If two inline commands with the same inline type
+are declared, then the contents of the second is appended to the first
+one.
 
 .. _list-of-inlined-types:
 
@@ -801,12 +807,11 @@ List of inlined types
 
 In this manual, we show the inline types for Fortran90. The inline
 types for the other languages are produced by replacing :code:`F90`
-by :code:`C`, or :code:`matlab`, respectively, as shown in
-:ref:`table-inl-type`:
+by :code:`C`, or :code:`matlab`, respectively.
 
 .. _table-inl-type:
 
-.. table:: Table 1: KPP inlined types
+.. table:: KPP inlined types
    :align: center
 
    +-----------------+-------------------+---------------------+---------------------+
@@ -853,13 +858,45 @@ special rate coefficient:
      REAL(dp) :: k_DMS_OH
    #ENDINLINE
 
+Inlining code can be useful to introduce additional state variables
+(such as temperature, humidity, etc.) for use by KPP routines, such as
+for calculating rate coefficients.
+
+If a large number of state variables needs to be held in inline code, or
+require intermediate computation that may be repeated for many rate
+coefficients, a derived type object should be used for efficiency, e.g.:
+
+.. code-block:: F90
+
+   #INLINE F90_GLOBAL
+     TYPE, PUBLIC :: ObjGlobal_t
+        ! ... add variable fields to this type ...
+     END TYPE ObjGlobal_t
+     TYPE(ObjGlobal_t), TARGET, PUBLIC :: ObjGlobal
+   #ENDINLINE
+
+This global variable :code:`ObjGlobal` can then be used globally in KPP.
+
+Another way to avoid cluttering up the KPP input file is to
+:code:`#include` a header file with global variables:
+
+.. code-block:: F90
+
+   #INLINE F90_GLOBAL
+   ! Inline common variables into KPP_ROOT_Global.f90
+   #include "commonIncludeVars.f90"
+   #ENDINLINE
+
+In future versions of KPP, the global state will be reorganized into
+derived type objects as well.
+
 .. _inline-type-f90-init:
 
 F90_INIT
 --------
 
 This inline type can be used to define initial values before the start of the
-integartion, e.g.:
+integration, e.g.:
 
 .. code-block:: F90
 
@@ -896,7 +933,16 @@ F90_RCONST
 ----------
 
 This inline type can be used to define time-dependent values of rate
-coefficients that were declared with:
+coefficients. You may inline :code:`USE` statements that reference
+modules where rate coefficients are computed, e.g.:
+
+.. code-block:: F90
+
+   #INLINE F90_RCONST
+     USE MyRateFunctionModule
+   #ENDINLINE
+
+or define variables directly, e.g.:
 
 .. code-block:: F90
 
@@ -904,6 +950,12 @@ coefficients that were declared with:
      k_DMS_OH = 1.E-9*EXP(5820./temp)*C(ind_O2)/ &
        (1.E30+5.*EXP(6280./temp)*C(ind_O2))
    #ENDINLINE
+   
+Note that the :code:`USE` statements must precede any variable
+definitions.
+    
+The inlined code will be placed directly into the :code:`UPDATE_RCONST`
+routine in the :ref:`Rates` function.
 
 .. _f90-util:
 
@@ -918,15 +970,15 @@ This inline type can be used to define utility subroutines.
 Auxiliary files and the substitution preprocessor
 =================================================
 
-The `auxiliary files <auxiliary-files-for-fortran-90_>`_ are
-templates for integrators, drivers, and utilities. They are inserted
-into the KPP output after being run through the substitution
-preprocessor. This preprocessor replaces `several placeholder symbols
-<list-of-symbols-replaced_>`_ in the template files
-with their particular values in the model at hand. Usually, only
-:command:`KPP_ROOT` and :command:`KPP_REAL` are needed because the other
-values can also be obtained via the variables listed in
-:ref:`table-inl-type`.
+The `auxiliary files <auxiliary-files-for-fortran-90_>`_ in the
+:file:`$KPP_HOME/util` subdirectory are templates for integrators,
+drivers, and utilities. They are inserted into the KPP output after
+being run through the substitution preprocessor. This preprocessor
+replaces `several placeholder symbols <list-of-symbols-replaced_>`_ in
+the template files with their particular values in the model at hand.
+Usually, only :command:`KPP_ROOT` and :command:`KPP_REAL` are needed
+because the other values can also be obtained via the variables listed
+in :ref:`table-inl-type`.
 
 :command:`KPP_REAL` is replaced by the appropriate single or double
 precision declaration  type. Depending on the target language KPP will
@@ -938,14 +990,15 @@ must be used:
 
    KPP_REAL :: BIG(1000)
 
-When used with the option :code:`DOUBLE on`, the above line will be
+When used with the command :command:`#DOUBLE ON`, the above line will be
 automatically translated into:
 
 .. code-block:: F90
 
    REAL(kind=dp) :: BIG(1000)
 
-and when used with the option :code:`DOUBLE off`, the same line will become:
+and when used with the command :command:`#DOUBLE OFF`, the same line will
+become:
 
 .. code-block:: F90
 
@@ -974,54 +1027,49 @@ in the generated Fortran90 output file.
 List of auxiliary files for Fortran90
 --------------------------------------
 
-KPP inline codes or other instructions contained in the following
-files, as shown in :ref:`table-aux-files`.
-
 .. _table-aux-files:
 
-.. table:: Table 2: Auxiliary files for Fortran90
+.. table:: Auxiliary files for Fortran90
    :align: center
 
-   +-----------------------------+--------------------------------------------+
-   | File                        | Contents                                   |
-   +=============================+============================================+
-   | ``dFun_dRcoeff.f90``        | Derivatives with respect to reaction       |
-   |                             | rates.                                     |
-   +-----------------------------+--------------------------------------------+
-   | ``dJac_dRcoeff.f90``        | Derivatives with respect to reaction       |
-   |                             | rates.                                     |
-   +-----------------------------+--------------------------------------------+
-   | ``Makefile_f90`` and        | Makefiles to build Fortran-90 code.        |
-   | ``Makefile_upper_F90``      |                                            |
-   +-----------------------------+--------------------------------------------+
-   | ``Mex_Fun.f90``             | Mex files.                                 |
-   +-----------------------------+--------------------------------------------+
-   | ``Mex_Jac_SP.f90``          | Mex files.                                 |
-   +-----------------------------+--------------------------------------------+
-   | ``Mex_Hessian.f90``         | Mex files.                                 |
-   +-----------------------------+--------------------------------------------+
-   | ``sutil.f90``               | Sparse utility functions.                  |
-   +-----------------------------+--------------------------------------------+
-   | ``tag2num.f90``             | Function related to equation tags.         |
-   +-----------------------------+--------------------------------------------+
-   | ``UpdateSun.f90``           | Function related to solar zenith angle.    |
-   +-----------------------------+--------------------------------------------+
-   | ``UserRateLaws.f90``        | User-defined rate-law functions.           |
-   +-----------------------------+--------------------------------------------+
-   | ``util.f90``                | Input/output utilities.                    |
-   +-----------------------------+--------------------------------------------+
+   +--------------------------------+------------------------------------------+
+   | File                           | Contents                                 |
+   +================================+==========================================+
+   | ``dFun_dRcoeff.f90``           | Derivatives with respect to reaction     |
+   |                                | rates.                                   |
+   +--------------------------------+------------------------------------------+
+   | ``dJac_dRcoeff.f90``           | Derivatives with respect to reaction     |
+   |                                | rates.                                   |
+   +--------------------------------+------------------------------------------+
+   | ``Makefile_f90`` and           | Makefiles to build Fortran-90 code.      |
+   | ``Makefile_upper_F90``         |                                          |
+   +--------------------------------+------------------------------------------+
+   | ``Mex_Fun.f90``                | Mex files.                               |
+   +--------------------------------+------------------------------------------+
+   | ``Mex_Jac_SP.f90``             | Mex files.                               |
+   +--------------------------------+------------------------------------------+
+   | ``Mex_Hessian.f90``            | Mex files.                               |
+   +--------------------------------+------------------------------------------+
+   | ``sutil.f90``                  | Sparse utility functions.                |
+   +--------------------------------+------------------------------------------+
+   | ``tag2num.f90``                | Function related to equation tags.       |
+   +--------------------------------+------------------------------------------+
+   | ``UpdateSun.f90``              | Function related to solar zenith angle.  |
+   +--------------------------------+------------------------------------------+
+   | ``UserRateLaws.f90`` and       | User-defined rate-law functions.         |
+   | ``UserRateLawsInterfaces.f90`` |                                          |
+   +--------------------------------+------------------------------------------+
+   | ``util.f90``                   | Input/output utilities.                  |
+   +--------------------------------+------------------------------------------+
 
 .. _list-of-symbols-replaced:
 
 List of symbols replaced by the substitution preprocessor
 ---------------------------------------------------------
 
-The following symbols in KPP-generated source code will be replaced
-with corresponding values, as highlighted in :ref:`table-sym-repl`.
-
 .. _table-sym-repl:
 
-.. table:: Table 3: Symbols and their replacements
+.. table:: Symbols and their replacements
    :align: center
 
    +--------------------------+-------------------------------+----------------------------+
@@ -1061,15 +1109,15 @@ In order to offer more control over the integrator, KPP provides the
 arrays :code:`ICNTRL` (integer) and :code:`RCNTRL` (real). Each of them
 is an array of 20 elements that allow the fine-tuning of the integrator.
 All integrators (except for :code:`tau_leap` and :code:`gillespie`) use
-:code:`ICNTRL` and :code:`RCNTRL`. Array elements not listed here are
-either not used or are integrator-specific options. Details can be found
-in the comment lines of the individual integrator files in
-:code:`$KPP_HOME/int/`.
+:code:`ICNTRL` and :code:`RCNTRL`. Details can be found in the comment
+lines of the individual integrator files in :code:`$KPP_HOME/int/`.
 
 ICNTRL
 ------
 
-.. table:: Table 4: Summary of ICNTRL usage in the f90 integrators.
+.. _table-icntrl:
+
+.. table:: Summary of ICNTRL usage in the f90 integrators.
            Here, Y = used, and s = solver-specific usage.
    :align: center
 
@@ -1198,7 +1246,7 @@ ICNTRL
 .. option:: ICNTRL(16)
 
    Treatment of negative concentrations:
-            
+
    :code:`= 0` : Leave negative values unchanged
 
    :code:`= 1` : Set negative values to zero
@@ -1214,7 +1262,7 @@ ICNTRL
    :code:`= 0` : Only return error number
 
    :code:`= 1` : Verbose error output
-            
+
 .. option:: ICNTRL(18) ... ICNTRL(20)
 
    currently not used
@@ -1222,7 +1270,9 @@ ICNTRL
 RCNTRL
 ------
 
-.. table:: Table 5: Summary of RCNTRL usage in the f90 integrators.
+.. _table-rcntrl:
+
+.. table:: Summary of RCNTRL usage in the f90 integrators.
            Here, Y = used, and s = solver-specific usage.
    :align: center
 
@@ -1332,7 +1382,10 @@ RCNTRL
    of production and loss rates of species :code:`ICNTRL(14)` to produce
    the partitioning threshold, ignoring :code:`RCNTRL(12)`.
 
-.. option:: RCNTRL(15) ... RCNTRL(20)
+.. option:: RCNTRL(10) ... RCNTRL(19)
+
+   (Solver-specific for :code:`seulex`)
+
+.. option:: RCNTRL(20)
 
    currently not used
-

@@ -32,6 +32,11 @@ PROGRAM KPP_ROOT_Driver
       ! ICNTRL(14) = 74
       ! RCNTRL(14) = 1e-4
 
+!~~~> Don't update rates within the integrator,
+!~~~> as this will slow down the autoreduction code.
+!~~~>  -- Bob Yantosca (27 Jun 2022)
+      ICNTRL(15)  = -1
+
 !~~~> Set default species concentrations
       CALL Initialize()
 
