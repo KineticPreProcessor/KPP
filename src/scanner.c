@@ -122,14 +122,9 @@ char integrator[ MAX_PATH ] = "none";
 char driver[ MAX_PATH ] = "none";
 char runArgs[  MAX_PATH ] = "";
 
-/*  mz_rs_20050701+ */
-/* char varDefault[ MAX_IVAL ] = "1.E-8"; */
-/* char fixDefault[ MAX_IVAL ] = "1.E-8"; */
-/* double cfactor = 1.09E+10; */
 char varDefault[ MAX_IVAL ] = "0.";
 char fixDefault[ MAX_IVAL ] = "0.";
 double cfactor = 1.;
-/*  mz_rs_20050701- */
 
 ATOM crtAtoms[ MAX_ATOMS ];
 int crtAtomNr = 0;
@@ -713,7 +708,6 @@ int err;
       }
       if ( AtomTable[i].check == DO_CHECK ) {
         err = 1;
-        //sprintf(errmsg, "%s %s", errmsg, AtomTable[i].name );
 	strncat( errmsg, " ", 2 );
 	strncat( errmsg,  AtomTable[i].name, strlen(AtomTable[i].name)+1 );
         continue;
@@ -757,8 +751,8 @@ int code;
 CODE crtSpec;
 double val;
 char buf[40];
-char spstr[40]; /* msl_270416 */
-char eqNr[40]; /* msl_270416 */
+char spstr[40];
+char eqNr[40];
  
  if ( EqNoCase(spname, "RR") ) {
    if ( doFlux == 1 ) {
@@ -766,7 +760,6 @@ char eqNr[40]; /* msl_270416 */
      strcpy( spstr, spname );
      strcat( spstr, eqNr );
      DeclareSpecies( PL_SPC, spstr );
-     /*printf("\nAdded species %s to %d (LHS=%d; RHS=%d)",spstr,side,LHS,RHS);*/ /*msl*/
    }
    else {
      return; /* Because FLUX is not ON. Thus, add no new species. */
@@ -817,9 +810,6 @@ int code;
     ScanError("Undefined species %s.", spname );
     return;
   }
-
-  /* ... */                
-
 }
 
 void CheckLump( char *spname )
@@ -831,9 +821,6 @@ int code;
     ScanError("Undefined species %s.", spname );
     return;
   }
-
-  /* ... */                
-
 }
 
 void AddLookAt( char *spname )
@@ -937,7 +924,7 @@ void AddInlineCode( char * ctx, char * s )
 {
 ICODE * c;
 int i, key, type;
-int totallength; /* mz_rs_20050607 */
+int totallength;
   
   c = NULL;
   
@@ -953,7 +940,6 @@ int totallength; /* mz_rs_20050607 */
     return;
   }
 
-  /*  mz_rs_20050607+ */
   if (c->code) 
     totallength = strlen( c->code )+strlen( s );
   else
@@ -961,7 +947,6 @@ int totallength; /* mz_rs_20050607 */
   if (totallength>MAX_INLINE)
     ScanError("\nInline code for %s is too long (%d>%d).\nIncrease MAX_INLINE in scan.h and recompile kpp!", 
               ctx, totallength, MAX_INLINE);    
-  /*  mz_rs_20050607- */
 
   switch( type ) {
     case APPEND:  c->code = AppendString( c->code, s, &c->maxlen, MAX_INLINE );
@@ -1047,17 +1032,9 @@ char buf[40];
   strcat( buf, coef ); 
   sscanf( buf, "%lf", &val );
 
-  /*  switch( type ) {
-      case LOSS_FAM:*/
   Stoich_Right[ crtSpec ][ EqNr ] = val;
   Stoich[ crtSpec ][ EqNr ]       = val;
 
-  /*if ( type == LOSS_FAM ) {
-  printf("\nLOSS Species %s with Stoich[%d][%d] = %f. SpcNr=%d. Code=%d. ReverseCode=%d",spname,crtSpec,EqNr,Stoich[crtSpec][EqNr],SpcNr,Code[crtSpec],ReverseCode[ code ]);
-  }
-  if ( type == PROD_FAM ) {
-  printf("\nPROD Species %s with Stoich[%d][%d] = %f. SpcNr=%d. Code=%d. ReverseCode=%d",spname,crtSpec,EqNr,Stoich[crtSpec][EqNr],SpcNr,Code[crtSpec],ReverseCode[ code ]);
-  }*/
 }
            
 int FindFamily( char *famname )
@@ -1085,39 +1062,10 @@ void ScanEquations( MEMBER crtMbr ) {
   for( i=0; i<EqnNr; i++ ) {
     if ( Stoich_Left[ crtCode ][ i ] > 0 ) {
       Loss_Coeff[ FamilyNr ][ i ] += Stoich_Left[ crtCode ][ i ] * crtMbr.coeff;
-      /*printf("\nAdded %s to loss family eq. %i ... %f",crtMbr.name,i,Stoich_Left[ crtCode ][ i ]);*/
     }
     if ( Stoich_Right[ crtCode ][ i ] > 0 ) {
       Prod_Coeff[ FamilyNr ][ i ] += Stoich_Right[ crtCode ][ i ] * crtMbr.coeff;
-      /*printf("\nAdded %s to prod family eq. %i ... %f",crtMbr.name,i,Stoich_Right[ crtCode ][ i ]);*/
     }
-    /* ---------------------------------------------------------------------------------------------*/
-    /* ---------------------------------------------------------------------------------------------*/
-    /* -- THE CODE BELOW PERMITS CALCULATION OF GROSS PROD/LOSS FAMILIES. CURRENTLY ONLY NET     -- */
-    /* -- PROD/LOSS FAMILIES ARE CALCULATED. THE VARIABLE STRUCTURES REMAIN IN PLACE FOR GROSS   -- */
-    /* -- P/L CALCULATION AND ARE SIMPLY MODIFIED TO PROVIDE THE NET RESULT. MSL - Nov. 3, 2016  -- */
-    /* ---------------------------------------------------------------------------------------------*/
-    /* ---------------------------------------------------------------------------------------------*/
-    /*switch( type ) {
-    case LOSS_FAM:
-      if ( Stoich_Left[ crtCode ][ i ] > 0 ) {
-        // Then this species is part of this equations's LHS
-        tmpval = 1;
-	coeff = Stoich_Left[ crtCode ][ i ] * crtMbr.coeff;
-	Loss_Coeff[ FamilyNr ][ i ] += Stoich_Left[ crtCode ][ i ] * crtMbr.coeff;
-	break; }
-      else break;
-    case PROD_FAM:
-      if ( Stoich_Right[ crtCode ][ i ] > 0 ) {
-      // Then this species is part of this equations's RHS
-      tmpval = 1;
-	coeff = Stoich_Right[ crtCode ][ i ] * crtMbr.coeff;
-	Prod_Coeff[ FamilyNr ][ i ] += Stoich_Right[ crtCode ][ i ] * crtMbr.coeff;
-	break; }
-      else break;
-    }*/
-    /* ---------------------------------------------------------------------------------------------*/
-    /* ---------------------------------------------------------------------------------------------*/    
   }
 }
 
@@ -1164,7 +1112,6 @@ void FinalizeFamily()
 	if ( (Loss_Coeff[ FamilyNr ][ i ] - Prod_Coeff[ FamilyNr ][ i ]) > 0. ) {
 	  sprintf(eqNr, "%d", FamilyNr );
 	  strcpy( spstr, FamilyTable[ FamilyNr ].name );
-	  //strcat( spstr, eqNr );
 	  // -- -- Scan all species to see if RR_<i> exists. -- --
 	  newSpcCode = FindSpecies( spstr );
 	  // -- -- If not, then declare it                   -- --
@@ -1181,7 +1128,6 @@ void FinalizeFamily()
 	if ( (Prod_Coeff[ FamilyNr ][ i ] - Loss_Coeff[ FamilyNr ][ i ]) > 0. ) {
 	  sprintf(eqNr, "%d", FamilyNr );
 	  strcpy( spstr, FamilyTable[ FamilyNr ].name );
-	  //strcat( spstr, eqNr );
 	  // -- -- Scan all species to see if RR_<i> exists. -- --
 	  newSpcCode = FindSpecies( spstr );
 	  // -- -- If not, then declare it                   -- --

@@ -81,7 +81,7 @@ int ExpandNode( NODE *n, int lastop );
 NODE * LookUpSubst( NODE *n );
 
 FILE * param_headerFile   = 0;
-FILE * initFile = 0; /*  mz_rs_20050117 */
+FILE * initFile = 0;
 FILE * driverFile = 0;
 FILE * integratorFile = 0;
 FILE * linalgFile = 0;
@@ -228,9 +228,6 @@ char *p;
 
 void WriteDelim()
 {
-/*
-  WriteComment("****************************************************************");
-*/
   WriteComment("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 }
 
@@ -402,8 +399,6 @@ FILE *oldf;
 
   oldf = UseFile( mapFile );
   FunctionStart( f, vars );
-  /*NewLines(1);
-  CommentFncBegin( f, vars );*/
   FlushBuf();
   UseFile( oldf );
 }
@@ -896,7 +891,6 @@ int narg;
   va_end( args );
 
   CommentFncBegin( f, vars );
-  /* MapFunctionComment( f, vars ); */
 }
 
 void CommentFunctionEnd( int f )

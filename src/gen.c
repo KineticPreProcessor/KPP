@@ -47,7 +47,6 @@ ICODE InlineCode[ INLINE_OPT ];
 
 int NSPEC, NVAR, NVARP1, NVARACT, NFIX, NREACT, NFLUX;
 int NVARST, NFIXST;
-/* int PI; */
 int C_DEFAULT, C;
 int DC;
 int ARP, JVRP, NJVRP, CROW_JVRP, IROW_JVRP, ICOL_JVRP;
@@ -109,11 +108,9 @@ char * ascid(double x)
 static char s[40];
 
   sprintf(s, "%12.6e", x);
-  /* if (useDouble && ( (useLang==F77_LANG)||(useLang==F90_LANG) ) ) { */
   if (useDouble && (useLang==F77_LANG))
     s[strlen(s)-4] = 'd';
   if (useDouble && (useLang==F90_LANG))
-    //sprintf(s, "%s_dp",s);
     strncat( s, "_dp", 4 );
   return s;
 }
@@ -207,7 +204,6 @@ int i,j;
   DT     = DefElm( "DT", real, "Integration step");
 
   A  = DefvElm( "A", real, -NREACT, "Rate for each equation" );
-  /*RR = DefvElm( "RR", real, -NREACT, "Flux for each equation" );*/
 
   ARP  = DefvElm( "ARP", real, -NREACT, "Reactant product in each equation" );
   NJVRP    = DefConst( "NJVRP",   INT, "Length of sparse Jacobian JVRP" );
@@ -266,7 +262,6 @@ int i,j;
   }
 //============================================================================
   CL = DefvElm( "CL", real, -NSPEC, "Concentration of all species (local)" );
-  /*DC = DefvElm( "DC", real, -NSPEC, "Fluxes of all species" );*/
   ATOL = DefvElm( "ATOL", real, -NVAR, "Absolute tolerance" );
   RTOL = DefvElm( "RTOL", real, -NVAR, "Relative tolerance" );
 
@@ -286,8 +281,6 @@ int i,j;
   EQN_NAMES  = DefvElm( "EQN_NAMES", DOUBLESTRING, -NREACT, "Equation names" );
   SPC_NAMES  = DefvElm( "SPC_NAMES", STRING, -NSPEC, "Names of chemical species" );
   FAM_NAMES  = DefvElm( "FAM_NAMES", STRING, -NFAM, "Names of chemical familes" );
-
-  /*FLUX_MAP   = DefvElm( "FLUX_MAP", INT, -NREACT, "Map-to-SPEC indeces for FLUX species" );*/
 
   CFACTOR  = DefElm( "CFACTOR", real, "Conversion factor for concentration units");
 
@@ -426,7 +419,6 @@ char *seqn[MAX_EQN];
 char *sfam[MAX_FAMILIES];
 char *bufeqn, *p;
 int dim;
-//int flxind[MAX_EQN];
 
 
   /* Allocate local data structures */
@@ -442,26 +434,12 @@ int dim;
   F77_Inline("%6sINCLUDE '%s_Global.h'", " ",rootFileName);
   F77_Inline("%6sINTEGER i", " " );
 
-   /* InitDeclare( CFACTOR, 0, (void*)&cfactor ); */
-
   NewLines(1);
 
   for (i = 0; i < SpcNr; i++) {
       snames[i] = SpeciesTable[Code[i]].name;
   }
   InitDeclare( SPC_NAMES, SpcNr, (void*)snames );
-
-  /*if (doFlux == 1) {
-    NewLines(1);
-    j = 0;
-    for (i = 0; i < SpcNr; i++) {
-      if ( SpeciesTable[ Code[i] ].flux ) {
-	flxind[j] = Index(i);
-	j++;
-      }
-    }
-    InitDeclare( FLUX_MAP, EqnNr, (void*)flxind );
-  }*/
 
   nlookat = 0;
   for (i = 0; i < SpcNr; i++)
@@ -589,7 +567,6 @@ int dim;
   F77_Inline("%6sBLOCK DATA JACOBIAN_SPARSE_DATA\n", " " );
   F77_Inline("%6sINCLUDE '%s_Sparse.h'", " ",rootFileName);
   F77_Inline("%6sINTEGER i"," ");
-  /* F90_Inline("   USE %s_Sparse", rootFileName); */
 
 
   Jac_NZ = NonZero( PLAIN, 0, VarNr, irow, icol, crow, diag );
@@ -771,20 +748,9 @@ int F_VAR, FSPLIT_VAR;
       Assign( Elm( Vdot, i ), sum );
     }
 
-    /*  mz_rs_20220602+ ----------------------------------- */
-    /* this block can probably be deleted */
-    /* for (i = VarNr; i < VarNr; i++) { */
-    /*   sum = Const(0); */
-    /*   for (j = 0; j < EqnNr; j++) */
-    /*     sum = Add( sum, Mul( Const( Stoich[i][j] ), Elm( A, j ) ) ); */
-    /*   Assign( Elm( Vdot, i ), sum ); */
-    /* } */
-    /*  mz_rs_20220602- ----------------------------------- */
-
     // Add code to return time derivative of variable species (Vdotout)
     //   -- Bob Yantosca (03 May 2022)
     NewLines(1);
-    //if ( useLang!=MATLAB_LANG ) {
     if ( useLang == F90_LANG ) {
       fprintf(functionFile, "  !### Use Vdotout to return time deriv. of variable species\n");
       fprintf(functionFile, "  IF ( PRESENT( Vdotout ) ) Vdotout = Vdot\n");
@@ -828,10 +794,10 @@ int F_VAR, FSPLIT_VAR;
     // Add code to calculate Vdot also for split function:
     NewLines(1);
     if ( useLang == F90_LANG ) {
-      // For F90, we can do operations on arrays
+      // For F90, we can do operations on arrays:
       fprintf(functionFile, "  Vdot = P_VAR - D_VAR*V\n");
     } else if ( useLang == C_LANG ) {
-      // For C, we have to explicitly loop over elements
+      // For C, we have to explicitly loop over elements:
       fprintf(functionFile, "  for( int n=0; n<NVAR; n++ ) {\n");
       fprintf(functionFile, "    Vdot[n] = P_VAR[n] - D_VAR[n]*V[n];\n");
       fprintf(functionFile, "  }\n");
@@ -954,15 +920,10 @@ int i, j;
 int FLUX_VAR;
 
   if( VarNr == 0 ) return;
-  // if (useLang != MATLAB_LANG)  // Matlab generates an additional file per function
-  //     UseFile( functionFile );
 
   FLUX_VAR = DefFnc( "Flux", 3, "calculate production & loss terms from reaction flux");
 
   FunctionBegin( FLUX_VAR, RR, P_VAR, D_VAR );
-
-  //if ( (useLang==MATLAB_LANG)&&(!useAggregate) )
-  //  printf("\nWarning: in the flux definition move P_VAR to output vars\n");
 
   NewLines(1);
   WriteComment("Production function");
@@ -1231,7 +1192,6 @@ int irow_JVRP[MAX_EQN*MAX_SPECIES];
   F77_Inline("%6sBLOCK DATA JVRP_SPARSE_DATA\n", " " );
   F77_Inline("%6sINCLUDE '%s_Sparse.h'", " ", rootFileName);
   F77_Inline("%6sINTEGER i", " ");
-  /* F90_Inline("   USE %s_Sparse", rootFileName); */
   if( (useLang==F77_LANG)||(useLang==F90_LANG) ) {
         for (k=0; k<JVRP_NZ+1; k++) {
            irow_JVRP[k]++;
@@ -1302,7 +1262,6 @@ int Jac_SP, Jac;
   if ( (useLang==C_LANG)||(useLang==F77_LANG)||(useLang==F90_LANG) ) {
     NewLines(1);
     WriteComment("Local variables");
-    /* DeclareConstant( NTMPB,   ascii( nonzeros_B ) ); */
     varTable[ NTMPB ] -> value = nonzeros_B;
     Declare( BV );
   }
@@ -1488,7 +1447,6 @@ int Djv_isElm;
   if ( (useLang==C_LANG)||(useLang==F77_LANG)||(useLang==F90_LANG) ) {
     NewLines(1);
     WriteComment("Local variables");
-    /* DeclareConstant( NTMPD2A,   ascii( max( nElm, 1 ) ) ); */
     varTable[ NTMPD2A ] -> value = max( nElm, 1 );
     Declare( D2A );
   }
@@ -1684,7 +1642,6 @@ int k;
   F77_Inline("%6sBLOCK DATA HESSIAN_SPARSE_DATA\n", " " );
   F77_Inline("%6sINCLUDE '%s_Sparse.h'", " ", rootFileName);
   F77_Inline("%6sINTEGER i", " ");
-  /* F90_Inline("   USE %s_Sparse", rootFileName); */
 
   if( (useLang==F77_LANG)||(useLang==F90_LANG)||(useLang==MATLAB_LANG) ) {
         for (k=0; k<Hess_NZ; k++) {
@@ -1735,13 +1692,6 @@ void GenerateHessianSparseHeader()
 void GenerateStoicmSparseData()
 {
 int i,j,k, nnz_stoicm;
-/*
-int irow_stoicm[MAX_SPECIES*MAX_EQN];
-int ccol_stoicm[MAX_EQN+2];
-int icol_stoicm[MAX_SPECIES*MAX_EQN];
-double stoicm[MAX_SPECIES*MAX_EQN];
-*/
-
 int *irow_stoicm;
 int *ccol_stoicm;
 int *icol_stoicm;
@@ -1794,7 +1744,6 @@ double *stoicm;
   F77_Inline("%6sBLOCK DATA STOICM_MATRIX\n", " " );
   F77_Inline("%6sINCLUDE '%s_Sparse.h'", " ", rootFileName);
   F77_Inline("%6sINTEGER i", " ");
-  /* F90_Inline("   USE %s_Sparse", rootFileName);  */
   InitDeclare( CCOL_STOICM, EqnNr+1, (void*)ccol_stoicm );
   InitDeclare( IROW_STOICM, nnz_stoicm, (void*)irow_stoicm );
   InitDeclare( ICOL_STOICM, nnz_stoicm, (void*)icol_stoicm );
@@ -2302,8 +2251,6 @@ int UPDATE_RCONST;
     /* mz_rs_20050117+ */
     if ( kr[i].type == NUMBER ) {
       F90_Inline("! RCONST(%d) = constant rate coefficient", i+1);
-      /* WriteComment("Constant rate coefficient (value inlined in the code):"); */
-      /* Assign( Elm( RCONST, i ), Const( kr[i].val.f ) ); */
     }
     /* mz_rs_20050117- */
   }
@@ -2414,8 +2361,6 @@ void GenerateUtil()
 {
 int UTIL;
 
-/*  if (useLang == MATLAB_LANG) return;  */
-
   UseFile( utilFile );
   NewLines(1);
   WriteComment("User INLINED Utility Functions");
@@ -2489,8 +2434,6 @@ int j,dummy_species;
   DeclareConstant( NMONITOR,  ascii( nmoni ) );
   DeclareConstant( NMASS, ascii( nmass ) );
 
-  /* DeclareConstant( PI, "3.14159265358979" ); */
-
   NewLines(1);
   WriteComment("Index declaration for variable species in C and VAR");
   WriteComment("  VAR(ind_spc) = C(ind_spc)");
@@ -2503,19 +2446,6 @@ int j,dummy_species;
     DeclareConstant( spc, ascii( Index(i) ) );
     FreeVariable( spc );
   }
-
-  /*if (doFlux == 1) {
-    NewLines(1);
-  WriteComment("Index declaration for flux accumulation species in C");
-  WriteComment("  C(ind_spc)");
-  NewLines(1);
-  for( i = 0; i < plNr; i++) {
-    sprintf( name, "ind_%s", SpeciesTable[ Code[i + VarNr] ].name );
-    spc = DefConst( name, INT, 0 );
-    DeclareConstant( spc, ascii( Index(i+VarNr) ) );
-    FreeVariable( spc );
-    }
-   }*/
 
   NewLines(1);
   WriteComment("Index declaration for fixed species in C");
@@ -2791,19 +2721,6 @@ char tmpStr[MAX_EQNLEN];
 	strcat( s, " " );
       }
 
-// Remove self-referential sprintf statements
-//  -- Bob Yantosca (02 May 2022)
-//      if( first ) {
-//        if( mat[spc][eq] > 0 ) sprintf(buf, "%s%s", buf, s);
-//                          else sprintf(buf, "%s- %s", buf, s);
-//        first = 0;
-//      } else {
-//        if( mat[spc][eq] > 0 ) sprintf(buf, "%s + %s", buf, s);
-//                          else sprintf(buf, "%s - %s", buf, s);
-//      }
-//      sprintf(buf, "%s%s", buf, SpeciesTable[ Code[spc] ].name);
-//    }
-
       if( first ) {
         if( mat[spc][eq] > 0 ) {
 	  sprintf( tmpStr, "%s", s );
@@ -3049,23 +2966,12 @@ int INITVAL;
     }
   }
 
-/*  NewLines(1);
-  C_Inline("  for( i = 0; i < NSPEC; i++ )" );
-  F77_Inline("      do i = 1, NSPEC" );
-  ident++;
-    Assign( Elm( C_DEFAULT, -I ), Elm( C, -I ) );
-  ident--;
-  F77_Inline("      end do" );
-*/
-
-  /*  mz_rs_20050117+ */
   WriteComment("constant rate coefficients");
   for( i = 0; i < EqnNr; i++) {
     if ( kr[i].type == NUMBER )
        Assign( Elm( RCONST, i ), Const( kr[i].val.f ) );
   }
   WriteComment("END constant rate coefficients");
-  /*  mz_rs_20050117- */
 
   NewLines(1);
   WriteComment("INLINED initializations");
@@ -3449,7 +3355,6 @@ case 'h':
   if ( useHessian ) {
     UseFile(sparse_hessFile);
     F90_Inline("MODULE %s_HessianSP\n", rootFileName);
-    /* F90_Inline("  USE %s_Precision", rootFileName ); */ /* mz_rs_20050321 */
     F90_Inline("  PUBLIC\n  SAVE\n");
 
     UseFile( hessianFile );
@@ -3470,14 +3375,8 @@ case 'h':
     F90_Inline("MODULE %s_LinearAlgebra\n", rootFileName);
     if( doAutoReduce ) F90_Inline("  USE %s_Global, ONLY: DO_SLV", rootFileName);
     F90_Inline("  USE %s_Parameters", rootFileName );
-    /* mz_rs_20050511+ if( useJacSparse ) added */
     if ( useJacSparse )
       F90_Inline("  USE %s_JacobianSP\n", rootFileName);
-    /* mz_rs_20050511- */
-    /* mz_rs_20050321+ */
-    /* if (useHessian) */
-    /*   F90_Inline("  USE %s_HessianSP\n", rootFileName); */
-    /* mz_rs_20050321- */
     F90_Inline("  IMPLICIT NONE", rootFileName );
     F90_Inline("\nCONTAINS\n\n");
 
@@ -3521,19 +3420,12 @@ case 'h':
     F90_Inline("  USE %s_Util", rootFileName);
     F90_Inline("\nEND MODULE %s_Model\n", rootFileName);
 
-    /* mz_rs_20050518+ */
-    /* UseFile( driverFile ); */
-    /* WriteDelim(); */
-    /* mz_rs_20050518- */
-
   break;
 
 case 't':
 
-  /*  mz_rs_20050117+ */
   UseFile( initFile );
   F90_Inline("\nEND MODULE %s_Initialize\n", rootFileName );
-  /*  mz_rs_20050117- */
 
   UseFile( param_headerFile );
   F90_Inline("\nEND MODULE %s_Parameters\n", rootFileName );
@@ -3632,12 +3524,9 @@ int n;
 
   GenerateMap();
 
-/*  if( (useLang == F77_LANG)||(useLang == F90_LANG)||(useLang == C_LANG) )
-{*/
-    printf("\nKPP is generating the monitor data:");
-    printf("\n    - %s_Monitor",rootFileName);
-    GenerateMonitorData();
-/*  }*/
+  printf("\nKPP is generating the monitor data:");
+  printf("\n    - %s_Monitor",rootFileName);
+  GenerateMonitorData();
 
   printf("\nKPP is generating the utility data:");
   printf("\n    - %s_Util",rootFileName);
@@ -3647,13 +3536,7 @@ int n;
   printf("\n    - %s_Main",rootFileName);
   GenerateGData();
 
-
-  /*if ( doFlux == 1 ) {
-    printf("\nKPP is generating the ODE function with flux enabled:");
-  }
-  else {*/
-    printf("\nKPP is generating the ODE function:");
-  /*}*/
+  printf("\nKPP is generating the ODE function:");
   printf("\n    - %s_Function",rootFileName);
   GenerateFun(1); /* setting useAggregate=1, generate SUBROUTINE Fun*/
   GenerateFun(0); /* setting useAggregate=0, generate SUBROUTINE FUN_SPLIT */
@@ -3750,10 +3633,8 @@ int n;
   if ( (useLang == F77_LANG)||(useLang == F90_LANG)||(useLang == C_LANG) )
     GenerateIntegrator();
 
-  /* mz_rs_20050518+ no driver file if driver = none */
   if( strcmp( driver, "none" ) != 0 )
     GenerateDriver();
-  /* mz_rs_20050518- */
 
   if ( (useLang == F77_LANG)||(useLang == F90_LANG)||(useLang == C_LANG) )
       GenerateMakefile();
@@ -3767,9 +3648,7 @@ int n;
   if ( (useLang == F77_LANG)||(useLang == F90_LANG)||(useLang == C_LANG) )
       GenerateMex();
 
-  /*  mz_rs_20050117+ */
   if( initFile )          fclose( initFile );
-  /*  mz_rs_20050117- */
   if( driverFile )        fclose( driverFile );
   if( functionFile )      fclose( functionFile );
   if( global_dataFile )   fclose( global_dataFile );

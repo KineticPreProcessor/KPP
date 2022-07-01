@@ -119,8 +119,6 @@ char c;
 int first;
 int crtident;
 
-/* Max no of continuation lines in F90/F95 differs with compilers, but 39
-                               should work for every compiler*/
 /* if MAX_NO_OF_LINES is too small, KPP will split lines incorrectly */
 int number_of_lines = 1, MAX_NO_OF_LINES = 250;
 
@@ -295,10 +293,6 @@ char maxj[20];
 		    sprintf( maxi, "%d", (varTable[-var->maxi]->value)==0?
 		           1:varTable[-var->maxi]->value );
 	        }
-                /*  else sprintf( maxi, "%s", varTable[ -var->maxi ]->name);  */
-                /* if( (var->maxi == 0) ||
-                    ((var->maxi < 0) && (varTable[ -var->maxi ]->maxi == 0)) )
-                  strcat( maxi, "+1"); */
                 if( var->maxj > 0 ) sprintf( maxj, "%d", var->maxj );
                 else {
 		 if (varTable[ -var->maxj ]->value < 0)
@@ -307,12 +301,6 @@ char maxj[20];
 		    sprintf( maxj, "%d", (varTable[-var->maxj]->value)==0?
 		           1:varTable[-var->maxj]->value );
 	        }
-                /*  else sprintf( maxj, "%s", varTable[ -var->maxj ]->name);  */
-                /*if( (var->maxj == 0) ||
-                    ((var->maxj < 0 ) && (varTable[ -var->maxj ]->maxi == 0)) )
-                  strcat( maxj, "+1");*/
-                /*sprintf( buf, "%s, DIMENSION(%s,%s) :: %s",
-                         baseType, maxi, maxj,var->name ); */
                 sprintf( buf, "%s :: %s(%s,%s)",
                          baseType, var->name, maxi, maxj );
 		break;
@@ -455,8 +443,6 @@ int maxCols = MAX_COLS;
             /* A consistent change in "char *F90_types" (see above) is probably also necessary */
             bprintf( "'%-32s'", cval[i] ); break;
           case DOUBLESTRING:
-            /* strncpy( dsbuf, cval[i], 54 ); dsbuf[54]='\0'; */
-            /* bprintf( "'%48s'", dsbuf ); break; */
             bprintf( "'%-100.100s'", cval[i] ); break;
           }
           if( i < i_to-1 ) {
@@ -471,7 +457,6 @@ int maxCols = MAX_COLS;
           }
         }
         bprintf( " /) ! index up to %d\n", i_to );
-        /* mz_rs added FlushBuf, otherwise MAX_OUTBUF would have to be very large */
         FlushBuf();
       }
 
@@ -530,7 +515,6 @@ void F90_Declare( int v )
 void F90_ExternDeclare( int v )
 {
   F90_Declare( v );
-//  bprintf("      COMMON /%s/ %s\n", CommonName, varTable[ v ]->name );
 }
 
 /*************************************************************************************************/
@@ -649,7 +633,6 @@ char dsbuf[55];
                  case DOUBLESTRING:
 		        strncpy( dsbuf, *cval, 54 ); dsbuf[54]='\0';
 		        bprintf( "'%s'", dsbuf ); maxCols=1; break;
-                        /* bprintf( "'%50s'", *cval ); break; */
                }
                bprintf( " / \n" );
                FlushBuf();
@@ -727,9 +710,6 @@ int narg;
   CommentFncBegin( f, vars );
   F90_FunctionStart( f, vars );
   NewLines(1);
- /*  bprintf("  USE %s_Precision\n", rootFileName );
-  bprintf("  USE %s_Parameters\n\n", rootFileName ); */
- /*  bprintf("      IMPLICIT NONE\n" ); */
 
   FlushBuf();
 
@@ -850,9 +830,6 @@ void Use_F90()
   // _Util
   sprintf( buf, "_Util.%s", f90Suffix );
   OpenFile( &utilFile, rootFileName, buf, "Auxiliary Routines File" );
-
-  /* OpenFile( &sparse_dataFile, rootFileName, "_Sparse.f90",
-                       "Sparse Data Module File" );*/
 
   // _Global
   sprintf( buf, "_Global.%s", f90Suffix );

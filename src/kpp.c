@@ -139,7 +139,6 @@ int nu,nl;
     for (i = j+1; i < VarNr; i++) {
       if( LUstructJ[i][j] ) {
         for (k = j; k < VarNr; k++) 
-         /*   LUstructJ[i][k] += LUstructJ[j][k]; */
 	   if ( LUstructJ[j][k] != 0 )
               LUstructJ[i][k] = 1; 
       }   
@@ -276,7 +275,6 @@ void ReorderSpecies( int criteria )
 CODE *var;
 CODE *fix;
 CODE *dummy;
-//CODE *PrLo;
 EQ_VECT *tmpStoich_Left;
 EQ_VECT *tmpStoich_Right;
 EQ_VECT *tmpStoich;
@@ -313,7 +311,6 @@ int dummyNr;
   var = (CODE*)malloc( SpcNr * sizeof(CODE) );
   fix = (CODE*)malloc( SpcNr * sizeof(CODE) );
   dummy = (CODE*)malloc( 5 * sizeof(CODE) );
-//PrLo  = (CODE*)malloc( EqnNr * sizeof(CODE) );
   tmpStoich_Left = (EQ_VECT*)malloc( SpcNr * sizeof(EQ_VECT) );
   tmpStoich_Right = (EQ_VECT*)malloc( SpcNr * sizeof(EQ_VECT) );
   tmpStoich = (EQ_VECT*)malloc( SpcNr * sizeof(EQ_VECT) );
@@ -369,15 +366,6 @@ int dummyNr;
     if( Reactive[ k ] ) VarActiveNr++; 
     k++;
   }
-  /*  for( i = 0; i < plNr; i++ ) {
-    new = ReverseCode[ PrLo[i] ];
-    EqCopy( tmpStoich_Left[ new ], Stoich_Left[ k ] );
-    EqCopy( tmpStoich_Right[ new ], Stoich_Right[ k ] );
-    EqCopy( tmpStoich[ new ], Stoich[ k ] );
-    Code[ k ] = tmpCode[ new ];
-    Reactive[ k ] = tmpReact[ new ];
-    k++;
-    }*/
   for( i = 0; i < FixNr; i++ ) {
     new = ReverseCode[ fix[i] ];
     EqCopy( tmpStoich_Left[ new ], Stoich_Left[ k ] );
@@ -441,7 +429,7 @@ for (i=0; i<MAX_SPECIES; i++)
     if ( (Stoich[i] = (float*)calloc(MAX_EQN,sizeof(float)))==NULL ) {
         FatalError(-30,"Cannot allocate Stoich[%d].",i);
     }
-/**/
+
 if ( (Loss_Coeff =(float**)calloc(MAX_FAMILIES,sizeof(float*)))==NULL ) 
     FatalError(-30,"Cannot allocate Loss_Coeff.\n");
 
@@ -493,9 +481,6 @@ for (i=0; i<SpcNr; i++)
 void Postprocess( char * root )
 {
 char buf[ 200 ];
-//char cmd[500];
-//char cmdexe[500];
-//static char tmpfile[] = "kppfile.tmp";
 
   if ( useLang == MATLAB_LANG ) {
  /*  Add rate function definitions as internal functions to the Update_RCONST file*/
@@ -503,34 +488,6 @@ char buf[ 200 ];
         root, root, root ); 
     system( buf );	 
   }
-
-/*    Postprocessing to replace parameter names by values in the declarations
-  strcpy( cmd, "sed " );
-  sprintf( cmd, "%s -e 's/(NVAR)/(%d)/g'", cmd, VarNr );  
-  sprintf( cmd, "%s -e 's/(NFIX)/(%d)/g'", cmd, FixNr );  
-  sprintf( cmd, "%s -e 's/(NSPEC)/(%d)/g'", cmd,SpcNr );  
-  sprintf( cmd, "%s -e 's/(NREACT)/(%d)/g'", cmd, EqnNr );  
-  sprintf( cmd, "%s -e 's/(NONZERO)/(%d)/g'", cmd, Jac_NZ );  
-  sprintf( cmd, "%s -e 's/(LU_NONZERO)/(%d)/g'", cmd, LU_Jac_NZ );  
-  sprintf( cmd, "%s -e 's/(NHESS)/(%)/g'", cmd, Hess_NZ );  
-   
-  sprintf( buf, "%s_Function", rootFileName );  
-  switch( useLang ) { 
-    case F77_LANG: sprintf( buf, "%s.f", buf );
-                 break;
-    case F90_LANG: sprintf( buf, "%s.f90", buf );
-                 break;
-    case C_LANG: sprintf( buf, "%s.c", buf );
-                 break;
-    case MATLAB_LANG: sprintf( buf, "%s.m", buf );
-                 break;
-    default: printf("\n Language '%d' not implemented!\n",useLang); 
-                 exit(1);
-  }
-  sprintf( cmdexe, "%s %s > %s; mv %s %s;", cmd, buf, tmpfile, tmpfile, buf );  
-  printf("\n\nCMDEXE='%s'\n",cmdexe);
-  system( cmdexe );
-*/
 } 
 
 /*******************************************************************/
