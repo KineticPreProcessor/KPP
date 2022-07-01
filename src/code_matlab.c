@@ -125,11 +125,14 @@ int number_of_lines = 1, MAX_NO_OF_LINES = 36;
                       0xad = '-' | 0xae ='.' | 0xaf = '/' */		      
 /* char op_mult=0xaa, op_plus=0xab, op_minus=0xad, op_dot=0xae, op_div=0xaf; */		      
 char op_plus='+', op_minus='-'; /* op_mult='*', op_dot='.', op_div='/';	*/	      
-  
+
   crtident = 3 + ident * 2;
   bprintf("%*s%s = ", crtident, "", ls);
   start = strlen( ls ) + 2;
-  linelg = 70 - crtident - start - 1;
+  /* mz_rs_20220701+ increase max line length */
+  /* linelg = 70 - crtident - start - 1; */
+  linelg = 150 - crtident - start - 1;
+  /* mz_rs_20220701- */
 
   first = 1;
   while( strlen(rs) > linelg ) {
@@ -139,7 +142,7 @@ char op_plus='+', op_minus='-'; /* op_mult='*', op_dot='.', op_div='/';	*/
           Note: the approach below will create erroneous code if the +/- is within a subexpression, e.g. for
           A*(B+C) one cannot start a new continuation line by splitting at the + sign */
      for( j=linelg; j>5; j-- ) /* split row here if +, -, or comma */
-       if ( ( rs[j] == op_plus )||( rs[j] == op_minus )||( rs[j]==',' ) ) { 
+       if ( ( rs[j] == op_plus )||( rs[j] == op_minus )||( rs[j]==',' ) ) {
         jfound = 1; i=j; break;
 	}
     }
@@ -149,10 +152,10 @@ char op_plus='+', op_minus='-'; /* op_mult='*', op_dot='.', op_div='/';	*/
          break;
 	}
      if( i <= 10 ) {
-      printf("\n Warning: possible error in continuation lines for %s = ...",ls);
-      i = linelg;
+       printf("\n Warning: double-check continuation lines for:\n   %s = %s\n",ls,rs);
+       i = linelg;
      }
-    } 
+    }
     while ( rs[i-1] & 0x80 ) i--; /* put all operators on the next row */
     while ( rs[i] == ',' ) i++; /* put commas on the current row */
     
