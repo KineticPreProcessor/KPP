@@ -718,6 +718,10 @@ int F_VAR, FSPLIT_VAR;
     Declare( A );
     if ( useLang==F77_LANG ) WriteOMPThreadPrivate("A");
   }
+  if (useLang==MATLAB_LANG) {
+    MATLAB_Inline("A=zeros(1,length(RCT));");
+    MATLAB_Inline("Vdot=zeros(1,length(V));");
+  }
   NewLines(1);
   WriteComment("Computation of equation rates");
 
@@ -838,7 +842,7 @@ int F_VAR, FSPLIT_VAR;
   }
 
   if( z_useAggregate )
-    MATLAB_Inline("\n   Vdot = Vdot(:);\n");
+    MATLAB_Inline("\n   Vdotout = Vdot(:);\n");
   else
     MATLAB_Inline("\n   P_VAR = P_VAR(:);\n   D_VAR = D_VAR(:);\n");
 
@@ -1304,6 +1308,10 @@ int Jac_SP, Jac;
     /* DeclareConstant( NTMPB,   ascii( nonzeros_B ) ); */
     varTable[ NTMPB ] -> value = nonzeros_B;
     Declare( BV );
+  }
+  if (useLang == MATLAB_LANG) {
+    MATLAB_Inline("B=zeros(1,%d);",nonzeros_B);
+    MATLAB_Inline("JVS=zeros(1,length(LU_IROW));");
   }
 
   NewLines(1);
