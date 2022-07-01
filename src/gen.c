@@ -94,9 +94,6 @@ char * CommonName;
 int Hess_NZ, *iHess_i, *iHess_j, *iHess_k;
 int nnz_stoicm;
 
-// Prototypes
-void GenerateComputeFamilies(void);
-
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 char * ascii(int x)
 {
@@ -3691,8 +3688,6 @@ int n;
   GenerateUpdatePhoto();
   GenerateGetMass();
 
-  GenerateComputeFamilies();
-
   printf("\nKPP is generating the parameters:");
   printf("\n    - %s_Parameters",rootFileName);
 
@@ -3829,39 +3824,4 @@ int Index( int i )
 	   default: printf("\n Unknown language no %d\n",useLang);
 	     exit(1);
         }
-}
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-void GenerateComputeFamilies()
-{
-  int i,j;
-  int ComputeFamilies;
-
-  UseFile( utilFile );
-
-  ComputeFamilies    = DefFnc( "ComputeFamilies", 2, "function to calculate user-defined Prod/Loss families");
-  FunctionBegin( ComputeFamilies, V, FAM );
-
-  NewLines(1);
-  WriteComment("Computation of prod/loss families");
-
-  for (i = 0; i < FamilyNr; i++)  {
-    sum = Const( 0 );
-    for(j=0; j<EqnNr; j++) {
-      switch( FamilyTable[ i ].type ) {
-      case(PROD_FAM):
-	if ( ( Prod_Coeff[ i ][ j ] - Loss_Coeff[ i ][ j ] ) > 0 ) {
-	  sum = Add( sum, Mul(Const(Prod_Coeff[ i ][ j ]-Loss_Coeff[ i ][ j ]),Elm( V, Index( *Prod_Spc[ j ]-1 ) ) ) );
-	}
-	break;
-      case(LOSS_FAM):
-	if ( ( Loss_Coeff[ i ][ j ] - Prod_Coeff[ i ][ j ] ) > 0 )
-	  sum = Add( sum, Mul(Const(Loss_Coeff[ i ][ j ]-Prod_Coeff[ i ][ j ]),Elm( V, Index( *Loss_Spc[ j ]-1 ) ) ) );
-	break;
-      }
-    }
-    Assign( Elm( FAM, i ), sum );
-  }
-
-  FunctionEnd( ComputeFamilies );
-  FreeVariable( ComputeFamilies );
 }
