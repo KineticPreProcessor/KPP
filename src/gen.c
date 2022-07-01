@@ -2293,6 +2293,11 @@ int UPDATE_RCONST;
   NewLines(1);
 
   for( i = 0; i < EqnNr; i++) {
+    /*  mz_rs_20220701+ */
+    if (useEqntags==1) {
+      F90_Inline("! <%s>:", kr[i].label);
+    }
+    /*  mz_rs_20220701- */
     if( kr[i].type == EXPRESION )
       Assign( Elm( RCONST, i ), Elm( KR, kr[i].val.st ) );
     if( kr[i].type == PHOTO )
