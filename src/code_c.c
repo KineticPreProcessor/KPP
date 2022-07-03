@@ -311,7 +311,7 @@ int * ival;
 double * dval;
 char ** cval;
 int maxCols = MAX_COLS;
- char thisEqn[MAX_EQNLEN];
+char thisEqn[MAX_EQNLEN+1];
 
   var = varTable[ v ];
   ival = (int*) values;
