@@ -980,14 +980,6 @@ the sections entitled :ref:`Function` ,
 m-function-files are the same as the names of the functions (prefixed
 by the model name :code:`ROOT`.
 
-The Matlab syntax for calling each function is
-
-.. code-block:: matlab
-
-   [Vdot] = Fun    (V, F, RCT);
-   [JVS ] = Jac_SP (V, F, RCT);
-   [HESS] = Hessian(V, F, RCT);
-
 The variables of :ref:`table-par` are defined as Matlab :code:`global`
 variables and initialized in the file
 :file:`ROOT_parameter_defs.m`. The variables of :ref:`table-glob` are

@@ -380,7 +380,7 @@ Runge-Kutta (aka RK) methods
 ============================
 
 A general :math:`s`-stage Runge-Kutta method is defined as (see
-Section II.1 of :cite:t:`Hairer_Norsett_and_Wanner_1993`)
+Section II.1 of :cite:t:`Hairer_Norsett_and_Wanner_1987`)
 
 .. math::
 

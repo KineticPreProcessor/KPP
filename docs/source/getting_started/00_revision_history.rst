@@ -257,7 +257,7 @@ KPP 2.2.3
 
 - New Rosebrock method :code:`Rang3` was added.
 
-- The new KPP command :command:`#DECLARE` was added (see
+- The new KPP command :command:`#DECLARE` was added (see:
   :ref:`declare-cmd`).
 
 - Several vector and array functions from :program:`BLAS` (:code:`WCOPY`,
@@ -269,24 +269,29 @@ KPP 2.2.3
 KPP 2.1
 =======
 
-- Fortran90 output has been available since the preliminary version
-  “1.1-f90-alpha12” provided in :cite:t:`Sander_et_al._2005`.
+- Described by :cite:t:`Sandu_and_Sander_2006`.
 
-- Matlab is a new target language (see Sect. `4.4 <#sec:matlab>`__).
+- Matlab is a new target language (see: :ref:`matlab-code`).
 
 - The set of integrators has been extended with a general Rosenbrock
   integrator, and the corresponding tangent linear and adjoint methods.
 
 - The KPP-generated Fortran90 code has a different file structure than
-  the C or Fortran77 output (see :ref:`f90-code`).
+  the C or Fortran77 output (see: :ref:`f90-code`).
 
 - An automatically generated Makefile facilitates the compilation of
-  the KPP-generated code (see :ref:`Makefile`).
+  the KPP-generated code (see: :ref:`Makefile`).
 
 - Equation tags provide a convenient way to refer to specific chemical
-  reactions (see :ref:`lookat-and-monitor`.
+  reactions (see: :ref:`lookat-and-monitor`.
 
 - The dummy index allows to test if a certain species occurs in the
-  current chemistry mechanism. (see :ref:`dummyindex-cmd`)
+  current chemistry mechanism. (see: :ref:`dummyindex-cmd`)
 
 - Lines starting with :code:`//` are comment lines.
+
+===================
+KPP 1.1-f90-alpha12
+===================
+
+- First KPP version with Fortran90 :cite:p:`Sander_et_al._2005`.

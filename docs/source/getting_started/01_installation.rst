@@ -186,10 +186,14 @@ You should see output similar to:
    gcc -g -Wall -Wno-unused-function -I/usr/include -c debug.c
    gcc -g -Wall -Wno-unused-function -I/usr/include -c gen.c
    gcc -g -Wall -Wno-unused-function -I/usr/include -c kpp.c
+   flex -olex.yy.c scan.l 
+   bison -d -o y.tab.c scan.y
    gcc -g -Wall -Wno-unused-function -I/usr/include -c lex.yy.c
    gcc -g -Wall -Wno-unused-function -I/usr/include -c scanner.c
    gcc -g -Wall -Wno-unused-function -I/usr/include -c scanutil.c
    gcc -g -Wall -Wno-unused-function -I/usr/include -c y.tab.c
-   gcc -g -Wall -Wno-unused-function code.o code_c.o code_f77.o code_f90.o code_matlab.o debug.o gen.o kpp.o lex.yy.o scanner.o scanutil.o y.tab.o -L/usr/lib -lfl -o kpp
+   gcc -g -Wall -Wno-unused-function code.o code_c.o
+       code_f77.o code_f90.o code_matlab.o debug.o gen.o kpp.o
+       lex.yy.o scanner.o scanutil.o y.tab.o -L/usr/lib -lfl -o kpp
 
 This will create the executable file :file:`$KPP_HOME/bin/kpp`.

@@ -22,12 +22,15 @@ This work has been supported by:
   <https://esto.nasa.gov/aist>`_ program (grant #
   `AIST-18-0011 <https://esto.nasa.gov/project-selections-for-aist-18/#martin>`_)
 
+We thank Jason Lander for his suggestions how
+to migrate from to :program:`yacc` to :program:`bison`.
+
+Shaddy Ahmed and Jennie Thomas helped us with the Matlab
+output of KPP.
+
 We would also like to thank Lucas Estrada for his assistance in
 setting up the :ref:`ci-tests` on `Azure DevOps Pipelines
 <https://azure.microsoft.com/en-us/services/devops/pipelines/>`_. and
 for assistance with debugging.
 
 Parts of this user manual are based on :cite:t:`Damian-Iordache_1996`.
-
-We thank Jason Lander for his suggestions how
-to migrate from to :program:`yacc` to :program:`bison`.
