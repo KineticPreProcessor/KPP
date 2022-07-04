@@ -1,6 +1,25 @@
-! rosenbrock_posdef_h211b_qssa: D. Taraborrelli & G. Fanourgakis
+! rosenbrock_posdef_h211b_qssa: Domenico Taraborrelli
 ! positive definite following a suggestion from Adrian
 ! see "MAX(Ynew,ZERO)" for details
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+!  Addition of stiffness reduction and other time step controller         !
+!  to Rosenbrock solvers                                                  !
+!                                                                         !
+!  Stiffness reduction                                                    !
+!    It is based on Turanyi et al.,https://doi.org/10.1021/j100103a028    !
+!    - use of DAE QSSA                                                    !
+!    - increase of first time step depending on induction time            !
+!                                                                         !
+!    Note: other QSSA explicit integrators implemented but not suitable!  !
+!                                                                         !
+!  Time step controller                                                   !
+!    It is based of Söderlind(2003),https://doi.org/10.1145/641876.641877 !
+!    - implementation of the H211b family of controllers                  !
+!                                                                         !
+!  Please contact Domenico Taraborrelli (d.taraborrelli@fz-juelich.de)    ! 
+!  if interested in using this solver.                                    !
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 !  Rosenbrock - Implementation of several Rosenbrock methods:             !
@@ -126,7 +145,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
    VAR => NULL()
    FIX => NULL()
 
-   !~~~> Debug option: show number ofsteps
+   !~~~> Debug option: show number of steps
    ! Ntotal = Ntotal + ISTATUS(Nstp)
    ! PRINT*,'NSTEPS=',ISTATUS(Nstp),' (',Ntotal,')','  O3=', VAR(ind_O3)
 
@@ -825,10 +844,6 @@ ENDIF
 
    RejectLastH=.FALSE.
    RejectMoreH=.FALSE.
-
-!    print *, 'Before integration'
-!    print *, 'Iqssa(NO)=',Iqssa(324), 'tau(NO)=', 1./L(324), 's'
-!    print *, 'Iqssa(NO2)=',Iqssa(325), 'tau(NO2)=', 1./L(325), 's'
 
 !~~~> Time loop begins below
 

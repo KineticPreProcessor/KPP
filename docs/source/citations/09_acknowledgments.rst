@@ -25,12 +25,15 @@ This work has been supported by:
 We thank Jason Lander for his suggestions how
 to migrate from to :program:`yacc` to :program:`bison`.
 
-Shaddy Ahmed and Jennie Thomas helped us with the Matlab
-output of KPP.
-
 We would also like to thank Lucas Estrada for his assistance in
 setting up the :ref:`ci-tests` on `Azure DevOps Pipelines
 <https://azure.microsoft.com/en-us/services/devops/pipelines/>`_. and
 for assistance with debugging.
+
+Shaddy Ahmed and Jennie Thomas helped us with the Matlab
+output of KPP.
+
+We thank Domenico Taraborrelli for providing the
+rosenbrock_posdef_h211b_qssa solver.
 
 Parts of this user manual are based on :cite:t:`Damian-Iordache_1996`.
