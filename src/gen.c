@@ -156,14 +156,14 @@ int i,j;
 //
   if ( useLang == F90_LANG ) {
     VAR = DefvElmP( "VAR", real,
-		    "Concentrations of variable species (global)" );
+                    "Concentrations of variable species (global)" );
     FIX = DefvElmP( "FIX", real,
-		    "Concentrations of fixed species (global)" );
+                    "Concentrations of fixed species (global)" );
   } else {
     VAR = DefvElm( "VAR", real, -NVAR,
-		   "Concentrations of variable species (global)" );
+                   "Concentrations of variable species (global)" );
     FIX = DefvElm( "FIX", real, -NFIX,
-		   "Concentrations of fixed species (global)" );
+                   "Concentrations of fixed species (global)" );
 }
 //============================================================================
   V = DefvElm( "V", real, -NVAR, "Concentrations of variable species (local)" );
@@ -300,7 +300,7 @@ int i,j;
   keepActive    = DefElm("KEEPACTIVE", LOGICAL,"");
 
   Aout = DefvElmO( "Aout", real, -NREACT,
-		   "Optional argument to return equation rate constants" );
+                   "Optional argument to return equation rate constants" );
 
   Vdotout = DefvElmO( "Vdotout", real, -NVAR,
        "Optional argument to return time derivative of variable species" );
@@ -343,7 +343,7 @@ int i,j;
       if( (i == j) || ( (stru) ? LUstructJ[i+start][j+start]
                                : structJ[i+start][j+start] ) ) {
         row[nElm] = Index(i);
-	col[nElm] = Index(j);
+        col[nElm] = Index(j);
         nElm++;
       }
       if( i == j ) {
@@ -663,10 +663,10 @@ int F_VAR, FSPLIT_VAR;
        UseFile( functionFile );
 
   F_VAR = DefFnc( "Fun", 6,
-		  "time derivatives of variables - Aggregate form");
+                  "time derivatives of variables - Aggregate form");
 
   FSPLIT_VAR = DefFnc( "Fun_SPLIT", 7,
-		       "time derivatives of variables - Split form");
+                       "time derivatives of variables - Split form");
 
 
   // We have added the capability to return equation rates and the
@@ -708,7 +708,7 @@ int F_VAR, FSPLIT_VAR;
       for (i = 0; i < VarNr; i++)
         if ( Stoich_Right[i][j] != 0 ) {
           used = 1;
-	  break;
+          break;
         }
     }
 
@@ -944,17 +944,17 @@ int F_VAR;
       prod = Elm( SCT, j );
       for (i = 0; i < VarNr; i++)
         for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
-	  if (k==1)
+          if (k==1)
              prod = Mul( prod, Elm( NMLCV, i ) );
-	  else
-	     prod = Mul( prod, Add( Elm( NMLCV, i ), Const(-k+1) ) );
+          else
+             prod = Mul( prod, Add( Elm( NMLCV, i ), Const(-k+1) ) );
 
       for ( ; i < SpcNr; i++)
         for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
-	  if (k==1)
+          if (k==1)
              prod = Mul( prod, Elm( NMLCF, i - VarNr ) );
-	  else
-	     prod = Mul( prod, Add( Elm( NMLCF, i - VarNr ), Const(-k+1) ) );
+          else
+             prod = Mul( prod, Add( Elm( NMLCF, i - VarNr ), Const(-k+1) ) );
       Assign( Elm( PROPENSITY, j ), prod );
     } /* if used */
   } /* for j */
@@ -984,7 +984,7 @@ int F_VAR;
       n = 1;
       for (i = 0; i < SpcNr; i++)
         for (k = 2; k <= (int)Stoich_Left[i][j]; k++ )
-	  n *= k;
+          n *= k;
       prod = Div( prod, Const( n ) );
       Assign( Elm( SCT, j ), prod );
   } /* for j */
@@ -1019,7 +1019,7 @@ int F_VAR;
       for (i = 0; i < VarNr; i++) {
         if ( Stoich_Left[i][j] || Stoich_Right[i][j] )
           Assign( Elm( NMLCV, i ), Add(Elm( NMLCV, i ),
-	       Const(Stoich_Right[i][j]-Stoich_Left[i][j])) );
+               Const(Stoich_Right[i][j]-Stoich_Left[i][j])) );
       } /* for i */
       C_Inline("  break;",j);
   } /* for j */
@@ -1114,12 +1114,12 @@ int irow_JVRP[MAX_EQN*MAX_SPECIES];
     for ( j=0; j<VarNr; j++ ) {
       if ( Stoich_Left[j][i] != 0 ) {
         JVRP_NZ++;
-	icol_JVRP[JVRP_NZ] = j;
-	irow_JVRP[JVRP_NZ] = i;
-	if ( newrow == 0 ) { /* a new row begins here */
-	  crow_JVRP[i] = JVRP_NZ;
-	  newrow = 1;
-	}
+        icol_JVRP[JVRP_NZ] = j;
+        irow_JVRP[JVRP_NZ] = i;
+        if ( newrow == 0 ) { /* a new row begins here */
+          crow_JVRP[i] = JVRP_NZ;
+          newrow = 1;
+        }
         prod = Const( Stoich_Left[j][i] ) ;
         for (l = 0; l < VarNr; l++) {
           m = (int)Stoich_Left[l][i] - (l==j);
@@ -1129,8 +1129,8 @@ int irow_JVRP[MAX_EQN*MAX_SPECIES];
         for ( ; l < SpcNr; l++)
           for (k = 1; k <= (int)Stoich_Left[l][i]; k++ )
             prod = Mul( prod, Elm( F, l - VarNr ) );
-	/* Comment the B */
-	WriteComment("JVRP(%d) = dARP(%d)/dV(%d)",Index(JVRP_NZ),Index(i),Index(j));
+        /* Comment the B */
+        WriteComment("JVRP(%d) = dARP(%d)/dV(%d)",Index(JVRP_NZ),Index(i),Index(j));
         Assign( Elm( JVRP, JVRP_NZ ), prod );
       }
     }
@@ -1151,8 +1151,8 @@ int irow_JVRP[MAX_EQN*MAX_SPECIES];
         for (k=0; k<JVRP_NZ+1; k++) {
            irow_JVRP[k]++;
            icol_JVRP[k]++;
-	   }
-	for (k=0; k<EqnNr+1; k++)
+           }
+        for (k=0; k<EqnNr+1; k++)
            crow_JVRP[k]++;
   }
   InitDeclare( CROW_JVRP, EqnNr+1, (void*)crow_JVRP );
@@ -1210,9 +1210,9 @@ int Jac_SP, Jac;
   for ( i=0; i<EqnNr; i++ )
     for ( j=0; j<SpcNr; j++ )
        if ( structB[i][j] != 0 ) {
-	 nonzeros_B++;
+         nonzeros_B++;
          structB[i][j] = nonzeros_B;
-	 }
+         }
 
   if ( (useLang==C_LANG)||(useLang==F77_LANG)||(useLang==F90_LANG) ) {
     NewLines(1);
@@ -1239,8 +1239,8 @@ int Jac_SP, Jac;
         for ( ; l < SpcNr; l++)
           for (k = 1; k <= (int)Stoich_Left[l][i]; k++ )
             prod = Mul( prod, Elm( F, l - VarNr ) );
-	/* Comment the B */
-	WriteComment("B(%d) = dA(%d)/dV(%d)",Index(structB[i][j]-1),Index(i),Index(j));
+        /* Comment the B */
+        WriteComment("B(%d) = dA(%d)/dV(%d)",Index(structB[i][j]-1),Index(i),Index(j));
         Assign( Elm( BV, structB[i][j]-1 ), prod );
       }
     }
@@ -1259,10 +1259,10 @@ int Jac_SP, Jac;
           if( Stoich[i][k]*structB[k][j] != 0 )
             sum = Add( sum, Mul( Const( Stoich[i][k] ), Elm( BV, structB[k][j]-1 ) ) );
         }
-	/* Comment the B */
-	 if( doAutoReduce ) F90_Inline("IF (DO_JVS(%d)) &",nElm+1);
-	 WriteComment("JVS(%d) = Jac_FULL(%d,%d)",
-	          Index(nElm),Index(i),Index(j));
+        /* Comment the B */
+         if( doAutoReduce ) F90_Inline("IF (DO_JVS(%d)) &",nElm+1);
+         WriteComment("JVS(%d) = Jac_FULL(%d,%d)",
+                  Index(nElm),Index(i),Index(j));
          Assign( Elm( JVS, nElm ), sum );
          nElm++;
       } else {
@@ -1336,11 +1336,11 @@ int Djv_isElm;
       for (i2 = i1; i2 < VarNr; i2++)
         if (i1==i2) {
           if (Stoich_Left[i1][j]>=2)
-	    nElm++;
-	} else {  /* i1 != i2 */
+            nElm++;
+        } else {  /* i1 != i2 */
           if ( (Stoich_Left[i1][j]>=1)&&(Stoich_Left[i2][j]>=1) )
-	    nElm++;
-	}
+            nElm++;
+        }
 
 /* Allocate temporary index arrays */
   coeff_j  = AllocIntegerVector(nElm, "coeff_j  in GenerateHess");
@@ -1354,29 +1354,29 @@ int Djv_isElm;
       for (i2 = i1; i2 < VarNr; i2++)
         if (i1==i2) {
           if (Stoich_Left[i1][j]>=2) {
-	    coeff_j[nElm] = j; coeff_i1[nElm] = i1; coeff_i2[nElm] = i2;
-	    nElm++;
-	    }
-	} else {  /* i1 != i2 */
+            coeff_j[nElm] = j; coeff_i1[nElm] = i1; coeff_i2[nElm] = i2;
+            nElm++;
+            }
+        } else {  /* i1 != i2 */
           if ( (Stoich_Left[i1][j]>=1)&&(Stoich_Left[i2][j]>=1) ) {
-	    coeff_j[nElm] = j; coeff_i1[nElm] = i1; coeff_i2[nElm] = i2;
-	    nElm++;
-	    }
-	}
+            coeff_j[nElm] = j; coeff_i1[nElm] = i1; coeff_i2[nElm] = i2;
+            nElm++;
+            }
+        }
 /*  Number of nonzero terms of the form d^2 f(i)/ ( d v(i1) d v(i2) ) */
     Hess_NZ = 0;
     for (i = 0; i < VarNr; i++)
       for (i1 = 0; i1 < VarNr; i1++)
          for (i2 = i1; i2 < VarNr; i2++) {
-	    Djv_isElm = 0;
+            Djv_isElm = 0;
             for (j = 0; j < EqnNr; j++)
-	      if ( Stoich[i][j] != 0 )
+              if ( Stoich[i][j] != 0 )
                 for (k = 0; k < nElm; k++)
-	          if ( (coeff_j[k]==j) && (coeff_i1[k]==i1)
-		                      && (coeff_i2[k]==i2) ) {
-		    Djv_isElm = 1;
-		  }
-	    if (Djv_isElm == 1) Hess_NZ++ ;
+                  if ( (coeff_j[k]==j) && (coeff_i1[k]==i1)
+                                      && (coeff_i2[k]==i2) ) {
+                    Djv_isElm = 1;
+                  }
+            if (Djv_isElm == 1) Hess_NZ++ ;
     }  /* for i, i1, i2 */
   if (useDeclareValues)
        varTable[ NHESS ] -> value = max( Hess_NZ, 1 );
@@ -1432,13 +1432,13 @@ int Djv_isElm;
             for ( ; i < SpcNr; i++)
               for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
                 prod = Mul( prod, Elm( F, i - VarNr ) );
-	    /* Comment the D2A */
-	    WriteComment("D2A(%d) = d^2 A(%d)/{dV(%d)dV(%d)}",Index(nElm),Index(j),Index(i1),Index(i2));
+            /* Comment the D2A */
+            WriteComment("D2A(%d) = d^2 A(%d)/{dV(%d)dV(%d)}",Index(nElm),Index(j),Index(i1),Index(i2));
             Assign( Elm( D2A, nElm ), prod );
-	    nElm++;
-	  } /* if (Stoich_Left[i1][j]>=2) */
+            nElm++;
+          } /* if (Stoich_Left[i1][j]>=2) */
 
-	 } else {  /* i1 != i2 */
+         } else {  /* i1 != i2 */
             if ( (Stoich_Left[i1][j]>=1)&&(Stoich_Left[i2][j]>=1) ) {
                prod = RConst( j );
                for (i = 0; i < i1; i++)
@@ -1459,13 +1459,13 @@ int Djv_isElm;
                for ( ; i < SpcNr; i++)
                  for (k = 1; k <= (int)Stoich_Left[i][j]; k++ )
                    prod = Mul( prod, Elm( F, i - VarNr ) );
-	    /* Comment the D2A */
-	       WriteComment("D2A(%d) = d^2 A(%d) / dV(%d)dV(%d)",
-	                         Index(nElm),Index(j),Index(i1),Index(i2));
+            /* Comment the D2A */
+               WriteComment("D2A(%d) = d^2 A(%d) / dV(%d)dV(%d)",
+                                 Index(nElm),Index(j),Index(i1),Index(i2));
             Assign( Elm( D2A, nElm ), prod );
-	    nElm++;
+            nElm++;
             } /* if ( (Stoich_Left[i1][j]>=1)&&(Stoich_Left[i2][j]>=1) )  */
-	 }  /* if i1==i2 */
+         }  /* if i1==i2 */
 
   } /* for j, i1, i2 */
 
@@ -1478,25 +1478,25 @@ int Djv_isElm;
       for (i1 = 0; i1 < VarNr; i1++)
          for (i2 = i1; i2 < VarNr; i2++) {
             sum = Const(0);
-	    Djv_isElm = 0;
+            Djv_isElm = 0;
             for (j = 0; j < EqnNr; j++)
-	      if ( Stoich[i][j] != 0 )
+              if ( Stoich[i][j] != 0 )
                 for (k = 0; k < nElm; k++)
-	          if ( (coeff_j[k]==j) && (coeff_i1[k]==i1)
-		                      && (coeff_i2[k]==i2) ) {
+                  if ( (coeff_j[k]==j) && (coeff_i1[k]==i1)
+                                      && (coeff_i2[k]==i2) ) {
                     sum = Add( sum,
-		            Mul( Const( Stoich[i][j] ), Elm( D2A, k ) ) );
-		    Djv_isElm = 1;
-		  }
-	    if (Djv_isElm == 1) {
-	       WriteComment("HESS(%d) = d^2 Vdot(%d)/{dV(%d)dV(%d)} = d^2 Vdot(%d)/{dV(%d)dV(%d)}",
-		       Index(Hess_NZ),Index(i),Index(i1),Index(i2),Index(i),Index(i2),Index(i1));
-	       Assign( Elm( HESS, Hess_NZ ), sum );
+                            Mul( Const( Stoich[i][j] ), Elm( D2A, k ) ) );
+                    Djv_isElm = 1;
+                  }
+            if (Djv_isElm == 1) {
+               WriteComment("HESS(%d) = d^2 Vdot(%d)/{dV(%d)dV(%d)} = d^2 Vdot(%d)/{dV(%d)dV(%d)}",
+                       Index(Hess_NZ),Index(i),Index(i1),Index(i2),Index(i),Index(i2),Index(i1));
+               Assign( Elm( HESS, Hess_NZ ), sum );
                iHess_i[ Hess_NZ ] = i;
                iHess_j[ Hess_NZ ] = i1;
                iHess_k[ Hess_NZ ] = i2;
-	       Hess_NZ++;
-	       }
+               Hess_NZ++;
+               }
 
     }  /* for i, i1, i2 */
 
@@ -1520,12 +1520,12 @@ int Djv_isElm;
         for (k=0; k<Hess_NZ; k++) {
           if (iHess_j[k]==i)
              sum = Add( sum,
-		   Mul( Elm( HESS, k ),
-		   Mul( Elm( U1, iHess_i[k] ), Elm( U2, iHess_k[k] ) ) ) );
-	  else if (iHess_k[k]==i)
+                   Mul( Elm( HESS, k ),
+                   Mul( Elm( U1, iHess_i[k] ), Elm( U2, iHess_k[k] ) ) ) );
+          else if (iHess_k[k]==i)
              sum = Add( sum,
-		   Mul( Elm( HESS, k ),
-		   Mul( Elm( U1, iHess_i[k] ), Elm( U2, iHess_j[k] ) ) ) );
+                   Mul( Elm( HESS, k ),
+                   Mul( Elm( U1, iHess_i[k] ), Elm( U2, iHess_j[k] ) ) ) );
         }
       Assign( Elm( HTU, i ), sum );
   }
@@ -1544,29 +1544,29 @@ int Djv_isElm;
       sum = Const(0);
       for (m=0; m<Hess_NZ; m++) {
           if (iHess_i[m]==i) {
-	     j = iHess_j[m];
-	     k = iHess_k[m];
-	     if (j==k) {
+             j = iHess_j[m];
+             k = iHess_k[m];
+             if (j==k) {
                sum = Add( sum,
-		     Mul( Elm( HESS, m ),
-		     Mul( Elm( U1, k ), Elm( U2, k ) ) ) );
-	     }
-	     else {
+                     Mul( Elm( HESS, m ),
+                     Mul( Elm( U1, k ), Elm( U2, k ) ) ) );
+             }
+             else {
                /* This is the optimized code. It can lead to problems when
-	                  splitting for continuation lines. Therefore we
-			  use the non-optimized code below the comment.
-	       sum = Add( sum,
-		     Mul( Elm( HESS, m ),
-		     Add( Mul( Elm( U1, j ), Elm( U2, k ) ),
-		          Mul( Elm( U1, k ), Elm( U2, j ) ) ) ) ); */
+                          splitting for continuation lines. Therefore we
+                          use the non-optimized code below the comment.
                sum = Add( sum,
-		     Mul( Elm( HESS, m ),
-		     Mul( Elm( U1, j ), Elm( U2, k ) )  ) );
+                     Mul( Elm( HESS, m ),
+                     Add( Mul( Elm( U1, j ), Elm( U2, k ) ),
+                          Mul( Elm( U1, k ), Elm( U2, j ) ) ) ) ); */
                sum = Add( sum,
-		     Mul( Elm( HESS, m ),
-		          Mul( Elm( U1, k ), Elm( U2, j ) ) ) );
-	     }
-	  }
+                     Mul( Elm( HESS, m ),
+                     Mul( Elm( U1, j ), Elm( U2, k ) )  ) );
+               sum = Add( sum,
+                     Mul( Elm( HESS, m ),
+                          Mul( Elm( U1, k ), Elm( U2, j ) ) ) );
+             }
+          }
       }
       Assign( Elm( HU, i ), sum );
   }
@@ -1601,7 +1601,7 @@ int k;
   if( (useLang==F77_LANG)||(useLang==F90_LANG)||(useLang==MATLAB_LANG) ) {
         for (k=0; k<Hess_NZ; k++) {
            iHess_i[k]++; iHess_j[k]++; iHess_k[k]++;
-	}
+        }
   }
 
   InitDeclare( IHESS_I, Hess_NZ, (void*)iHess_i );
@@ -1611,7 +1611,7 @@ int k;
   if( (useLang==F77_LANG)||(useLang==F90_LANG) ) {
         for (k=0; k<Hess_NZ; k++) {
            iHess_i[k]--; iHess_j[k]--; iHess_k[k]--;
-	}
+        }
   }
 
   NewLines(1);
@@ -1674,9 +1674,9 @@ double *stoicm;
     ccol_stoicm[ j ] =  nnz_stoicm;
     for (i=0; i<VarNr; i++) {
       if ( Stoich[i][j] != 0 ) {
-	 irow_stoicm[ nnz_stoicm ] = i;
-	 icol_stoicm[ nnz_stoicm ] = j;
-	 stoicm[ nnz_stoicm ] = Stoich[i][j];
+         irow_stoicm[ nnz_stoicm ] = i;
+         icol_stoicm[ nnz_stoicm ] = j;
+         stoicm[ nnz_stoicm ] = Stoich[i][j];
          nnz_stoicm++;
       }
     }
@@ -1686,10 +1686,10 @@ double *stoicm;
   if( (useLang==F77_LANG)||(useLang==F90_LANG) ) {
         for (k=0; k<nnz_stoicm; k++) {
            irow_stoicm[k]++; icol_stoicm[k]++;
-	}
+        }
         for (k=0; k<=EqnNr; k++) {
            ccol_stoicm[k]++;
-	}
+        }
   }
 
 
@@ -1772,8 +1772,8 @@ int Jac_SP_VEC;
         if( LUstructJ[i][j] ) {
           if( structJ[i][j] != 0 )
             sum = Add( sum, Mul( Elm( JVS, nElm ), Elm( UV, j ) ) );
-	  nElm++;
-	  }
+          nElm++;
+          }
       Assign( Elm( JUV, i ), sum );
     }
     FunctionEnd( Jac_SP_VEC );
@@ -1825,9 +1825,9 @@ int **TmpStruct;
     for( i = 0; i < VarNr; i++)
       for( j = 0; j < VarNr; j++ )
         if( LUstructJ[i][j] ) {
-	  TmpStruct[i][j] = nElm;
-	  nElm++;
-	}
+          TmpStruct[i][j] = nElm;
+          nElm++;
+        }
 
     FunctionBegin( JacTR_SP_VEC, JVS, UV, JTUV );
     nElm = 0;
@@ -1981,7 +1981,7 @@ int dim;
     if( ibgn <= iend ) {
       sum = Elm( X, i );
       if ( ibgn < iend ) {
-	      if( doAutoReduce ) F90_Inline("IF (DO_SLV(%d)) &",i+1);
+              if( doAutoReduce ) F90_Inline("IF (DO_SLV(%d)) &",i+1);
         for( j = ibgn; j < iend; j++ ) {
           sum = Sub( sum, Mul( Elm( JVS, j ), Elm( X, icol[j] ) ) );
         }
@@ -2395,7 +2395,7 @@ int j,dummy_species;
   for( i = 0; i < VarNr; i++) {
     sprintf( name, "%s", "ind_" );
     strncat( name, SpeciesTable[ Code[i] ].name,
-	     strlen(SpeciesTable[ Code[i] ].name)+1 );
+             strlen(SpeciesTable[ Code[i] ].name)+1 );
     spc = DefConst( name, INT, 0 );
     DeclareConstant( spc, ascii( Index(i) ) );
     FreeVariable( spc );
@@ -2408,7 +2408,7 @@ int j,dummy_species;
   for( i = 0; i < FixNr; i++) {
     sprintf( name, "%s", "ind_" );
     strncat( name, SpeciesTable[ Code[i + VarNr] ].name,
-	     strlen(SpeciesTable[ Code[i + VarNr] ].name)+1 );
+             strlen(SpeciesTable[ Code[i + VarNr] ].name)+1 );
     spc = DefConst( name, INT, 0 );
     DeclareConstant( spc, ascii( Index(i+VarNr) ) );
     FreeVariable( spc );
@@ -2424,8 +2424,8 @@ int j,dummy_species;
       for( j = 0; j < MAX_SPECIES; j++)
         if (Code[j] == i) dummy_species = 0;
       if (dummy_species) {
-	sprintf( name, "%s", "ind_" );
-	strncat( name, SpeciesTable[i].name, strlen(SpeciesTable[i].name)+1 );
+        sprintf( name, "%s", "ind_" );
+        strncat( name, SpeciesTable[i].name, strlen(SpeciesTable[i].name)+1 );
         spc = DefConst( name, INT, 0 );
         DeclareConstant( spc, ascii( 0 ) );
         FreeVariable( spc );
@@ -2440,7 +2440,7 @@ int j,dummy_species;
   for( i = 0; i < FixNr; i++) {
     sprintf( name, "%s", "indf_" );
     strncat( name, SpeciesTable[ Code[i + VarNr] ].name,
-	     strlen( SpeciesTable[ Code[i + VarNr] ].name)+1 );
+             strlen( SpeciesTable[ Code[i + VarNr] ].name)+1 );
     spc = DefConst( name, INT, 0 );
     DeclareConstant( spc, ascii( Index(i) ) );
     FreeVariable( spc );
@@ -2518,13 +2518,13 @@ void GenerateGlobalHeader()
     WriteOMPThreadPrivate("VAR");
     WriteComment("VAR, FIX are chunks of array C");
     F77_Inline("!      EQUIVALENCE( %s(%d),%s(1) )",
-	       varTable[C]->name, 1, varTable[VAR]->name );
+               varTable[C]->name, 1, varTable[VAR]->name );
 
     Declare( FIX );
     WriteOMPThreadPrivate("FIX");
     if ( FixNr > 0 ) {
       F77_Inline("!      EQUIVALENCE( %s(%d),%s(1) )",
-		 varTable[C]->name, VarNr+1, varTable[FIX]->name );
+                 varTable[C]->name, VarNr+1, varTable[FIX]->name );
     }
   }
 
@@ -2659,7 +2659,7 @@ char tmpStr[MAX_EQNLEN];
   for( spc = 0; spc < SpcNr; spc++ )
     if( mat[spc][eq] != 0 ) {
       if( ((mat[spc][eq] == 1)||(mat[spc][eq] == -1)) ) {
-	s[0] = '\0'; // necessary to remove old contents
+        s[0] = '\0'; // necessary to remove old contents
       } else {
         /* real */
         /*  mz_rs_20050130+ */
@@ -2672,36 +2672,36 @@ char tmpStr[MAX_EQNLEN];
         /*for (n= strlen(s) - 1; n >= 0; n--)
           if (s[n] != '0') break; */
         s[strlen(s)]= '\0';
-	strcat( s, " " );
+        strcat( s, " " );
       }
 
       if( first ) {
         if( mat[spc][eq] > 0 ) {
-	  sprintf( tmpStr, "%s", s );
-	  strncat( buf, tmpStr, strlen(tmpStr)+1 );
-	} else {
-	  sprintf( tmpStr, "%s",   buf              );
-	  strncat( tmpStr, "- ",   3                );
-	  strncat( tmpStr, s,      strlen(s)+1      );
-	  strncpy( buf,    tmpStr, strlen(tmpStr)+1 );
-	}
+          sprintf( tmpStr, "%s", s );
+          strncat( buf, tmpStr, strlen(tmpStr)+1 );
+        } else {
+          sprintf( tmpStr, "%s",   buf              );
+          strncat( tmpStr, "- ",   3                );
+          strncat( tmpStr, s,      strlen(s)+1      );
+          strncpy( buf,    tmpStr, strlen(tmpStr)+1 );
+        }
         first = 0;
       } else {
         if( mat[spc][eq] > 0 ) {
-	  sprintf( tmpStr, "%s",   buf              );
-	  strncat( tmpStr, " + ",  4                );
-	  strncat( tmpStr, s,      strlen(s)+1      );
-	  strncpy( buf,    tmpStr, strlen(tmpStr)+1 );
+          sprintf( tmpStr, "%s",   buf              );
+          strncat( tmpStr, " + ",  4                );
+          strncat( tmpStr, s,      strlen(s)+1      );
+          strncpy( buf,    tmpStr, strlen(tmpStr)+1 );
         } else {
-	  sprintf( tmpStr, "%s",   buf              );
-	  strncat( tmpStr, " - ",  4                );
-	  strncat( tmpStr, s,      strlen(s)+1      );
-	  strncpy( buf,    tmpStr, strlen(tmpStr)+1 );
-	}
+          sprintf( tmpStr, "%s",   buf              );
+          strncat( tmpStr, " - ",  4                );
+          strncat( tmpStr, s,      strlen(s)+1      );
+          strncpy( buf,    tmpStr, strlen(tmpStr)+1 );
+        }
       }
       sprintf( tmpStr, "%s", buf );
       strncat( tmpStr, SpeciesTable[ Code[spc] ].name,
-	       strlen(  SpeciesTable[ Code[spc] ].name )+1 );
+               strlen(  SpeciesTable[ Code[spc] ].name )+1 );
       strncpy( buf, tmpStr, strlen(tmpStr)+1 );
     }
 
@@ -2758,20 +2758,44 @@ int dn;
 
   WriteAll("### Options -------------------------------------------\n");
   NewLines(1);
-  if( useAggregate )     WriteAll("FUNCTION - AGGREGATE\n");
-		    else WriteAll("FUNCTION - SPLIT\n");
+  if( useDeclareValues ) WriteAll("#DECLARE      - ON\n");
+     else                WriteAll("#DECLARE      - OFF\n");
+  if( useDouble )        WriteAll("#DOUBLE       - ON\n");
+     else                WriteAll("#DOUBLE       - OFF\n");
+                         WriteAll("#DRIVER       - %s\n", driver);
+  if( useDummyindex )    WriteAll("#DUMMYINDEX   - ON\n");
+     else                WriteAll("#DUMMYINDEX   - OFF\n");
+  if( useEqntags )       WriteAll("#EQNTAGS      - ON\n");
+     else                WriteAll("#EQNTAGS      - OFF\n");
+  if( useAggregate )     WriteAll("#FUNCTION     - AGGREGATE\n");
+     else                WriteAll("#FUNCTION     - SPLIT\n");
+  if( useHessian )       WriteAll("#HESSIAN      - ON\n");
+     else                WriteAll("#HESSIAN      - OFF\n");
+                         WriteAll("#INTEGRATOR   - %s\n", integrator);
   switch ( useJacobian ) {
-     case JAC_OFF: WriteAll("JACOBIAN - OFF\n"); break;
-     case JAC_FULL: WriteAll("JACOBIAN - FULL\n"); break;
-     case JAC_LU_ROW: WriteAll("JACOBIAN - SPARSE W/ ACCOUNT FOR LU DECOMPOSITION FILL-IN\n"); break;
-     case JAC_ROW: WriteAll("JACOBIAN - SPARSE\n"); break;
+     case JAC_OFF:       WriteAll("#JACOBIAN     - OFF\n"); break;
+     case JAC_FULL:      WriteAll("#JACOBIAN     - FULL\n"); break;
+     case JAC_LU_ROW:    WriteAll("#JACOBIAN     - SPARSE_LU_ROW\n"); break;
+     case JAC_ROW:       WriteAll("#JACOBIAN     - SPARSE_ROW\n"); break;
   }
-  if( useDouble )        WriteAll("DOUBLE   - ON\n");
-		    else WriteAll("DOUBLE   - OFF\n");
-  if( useReorder )        WriteAll("REORDER  - ON\n");
-		    else WriteAll("REORDER  - OFF\n");
-  NewLines(1);
+  switch ( useLang ) {
+     case C_LANG:        WriteAll("#LANGUAGE     - C\n"); break;
+     case F90_LANG:      WriteAll("#LANGUAGE     - Fortran90\n"); break;
+     case MATLAB_LANG:   WriteAll("#LANGUAGE     - matlab\n"); break;
+  }
+  if( useMex )           WriteAll("#MEX          - ON\n");
+     else                WriteAll("#MEX          - OFF\n");
+                         WriteAll("#MINVERSION   - %s\n", minKppVersion);
+  if( useReorder )       WriteAll("#REORDER      - ON\n");
+     else                WriteAll("#REORDER      - OFF\n");
+  if( useStochastic )    WriteAll("#STOCHASTIC   - ON\n");
+     else                WriteAll("#STOCHASTIC   - OFF\n");
+  if( useStoicmat )      WriteAll("#STOICMAT     - ON\n");
+     else                WriteAll("#STOICMAT     - OFF\n");
+  if( upperCaseF90 )     WriteAll("#UPPERCASEF90 - ON\n");
+     else                WriteAll("#UPPERCASEF90 - OFF\n");
 
+  NewLines(1);
   WriteAll("### Parameters ----------------------------------------\n");
   NewLines(1);
 
@@ -2871,8 +2895,8 @@ int INITVAL;
     for( i = 0; i < SpcNr; i++) {
       if( *SpeciesTable[ Code[i] ].ival == 0 ) continue;
       Assign( Elm( C, i ),
-	      Mul( Elm( IV, SpeciesTable[ Code[i] ].ival ),
-	      Elm( CFACTOR ) ) );
+              Mul( Elm( IV, SpeciesTable[ Code[i] ].ival ),
+              Elm( CFACTOR ) ) );
     }
 
     NewLines(1);
@@ -2908,14 +2932,14 @@ int INITVAL;
     for( i = 0; i < VarNr; i++) {
       if( *SpeciesTable[ Code[i] ].ival == 0 ) continue;
       Assign( Elm( VAR, i ),
-	      Mul( Elm( IV, SpeciesTable[ Code[i] ].ival ),
-	      Elm( CFACTOR ) ) );
+              Mul( Elm( IV, SpeciesTable[ Code[i] ].ival ),
+              Elm( CFACTOR ) ) );
     }
 
     for( i = 0; i < FixNr; i++) {
       if( *SpeciesTable[ Code[i + VarNr] ].ival == 0 ) continue;
       Assign( Elm( FIX, i ),
-	      Mul( Elm( IV, SpeciesTable[ Code[i + VarNr] ].ival ),
+              Mul( Elm( IV, SpeciesTable[ Code[i + VarNr] ].ival ),
               Elm( CFACTOR ) ) );
     }
   }
@@ -3222,10 +3246,10 @@ case 'h':
     }
     else {
       if ( useDouble ) {
-	      F90_Inline("  USE %s_Parameters, ONLY: dp, NSPEC, NVAR, NFIX, NREACT, LU_NONZERO", rootFileName);
+              F90_Inline("  USE %s_Parameters, ONLY: dp, NSPEC, NVAR, NFIX, NREACT, LU_NONZERO", rootFileName);
       }
       else {
-	      F90_Inline("  USE %s_Parameters, ONLY: sp, NSPEC, NVAR, NFIX, NREACT, LU_NONZERO", rootFileName);
+              F90_Inline("  USE %s_Parameters, ONLY: sp, NSPEC, NVAR, NFIX, NREACT, LU_NONZERO", rootFileName);
       }
     }
 
@@ -3561,11 +3585,11 @@ int n;
     if( useJacSparse ) {
         GenerateJacobianSparseHeader();
         printf("\n    - %s_JacobianSP",rootFileName);
-	}
+        }
     if( useHessian ) {
         GenerateHessianSparseHeader();
         printf("\n    - %s_HessianSP",rootFileName);
-	}
+        }
     }
 
   if ( useStoicmat ) {
@@ -3668,14 +3692,14 @@ int Index( int i )
 {
         switch( useLang ) {
            case C_LANG:
-	     return i;
+             return i;
            case F77_LANG:
-	     return i+1;
+             return i+1;
            case F90_LANG:
-	     return i+1;
+             return i+1;
            case MATLAB_LANG:
-	     return i+1;
-	   default: printf("\n Unknown language no %d\n",useLang);
-	     exit(1);
+             return i+1;
+           default: printf("\n Unknown language no %d\n",useLang);
+             exit(1);
         }
 }

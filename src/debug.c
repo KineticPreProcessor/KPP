@@ -39,7 +39,7 @@ int i;
 
   printf("\nATM -----------------------------------------------" );
 
-  for( i = 0; i < SpeciesNr; i++ ) {
+  for( i = 0; i < AtomNr; i++ ) {
     switch( AtomTable[i].check ) {
       case NO_CHECK:
         printf( "\n(%3d) %6s, NO -- ------ ", i, AtomTable[i].name );

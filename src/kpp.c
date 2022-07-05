@@ -599,7 +599,7 @@ char *p;
   printf("\nKPP is starting the code post-processing.");
   Postprocess( rootFileName );
   
-  printf("\n\nKPP has succesfully created the model \"%s\".\n\n",rootFileName);
+  printf("\n\nKPP has successfully created the model \"%s\".\n\n",rootFileName);
 
   if( nError ) exit(4);
   if( nWarning ) exit(5);
