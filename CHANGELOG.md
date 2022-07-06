@@ -38,6 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added extra `free()` statements in `src/gen.c` to avoid memory
     leaks
 
+### Removed
+- bibtex.json (no longer needed w/ Sphinx 3.5.4)
+
 ## [2.6.0]
 
 ### Added
