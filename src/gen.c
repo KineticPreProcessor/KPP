@@ -2751,49 +2751,48 @@ char lhsbuf[MAX_EQNLEN], rhsbuf[MAX_EQNLEN];
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateMap()
 {
-int i;
-int dn;
+int i, dn;
 
   UseFile( mapFile );
 
   WriteAll("### Options -------------------------------------------\n");
   NewLines(1);
-  if( useDeclareValues ) WriteAll("#DECLARE      - ON\n");
-     else                WriteAll("#DECLARE      - OFF\n");
-  if( useDouble )        WriteAll("#DOUBLE       - ON\n");
-     else                WriteAll("#DOUBLE       - OFF\n");
-                         WriteAll("#DRIVER       - %s\n", driver);
-  if( useDummyindex )    WriteAll("#DUMMYINDEX   - ON\n");
-     else                WriteAll("#DUMMYINDEX   - OFF\n");
-  if( useEqntags )       WriteAll("#EQNTAGS      - ON\n");
-     else                WriteAll("#EQNTAGS      - OFF\n");
-  if( useAggregate )     WriteAll("#FUNCTION     - AGGREGATE\n");
-     else                WriteAll("#FUNCTION     - SPLIT\n");
-  if( useHessian )       WriteAll("#HESSIAN      - ON\n");
-     else                WriteAll("#HESSIAN      - OFF\n");
-                         WriteAll("#INTEGRATOR   - %s\n", integrator);
+  if( useDeclareValues ) { WriteAll("#DECLARE      - ON\n");                 }
+     else                { WriteAll("#DECLARE      - OFF\n");                }
+  if( useDouble )        { WriteAll("#DOUBLE       - ON\n");                 }
+     else                { WriteAll("#DOUBLE       - OFF\n");                }
+                           WriteAll("#DRIVER       - %s\n", driver);
+  if( useDummyindex )    { WriteAll("#DUMMYINDEX   - ON\n");                 }
+     else                { WriteAll("#DUMMYINDEX   - OFF\n");                }
+  if( useEqntags )       { WriteAll("#EQNTAGS      - ON\n");                 }
+     else                { WriteAll("#EQNTAGS      - OFF\n");                }
+  if( useAggregate )     { WriteAll("#FUNCTION     - AGGREGATE\n");          }
+    else                 { WriteAll("#FUNCTION     - SPLIT\n");              }
+  if( useHessian )       { WriteAll("#HESSIAN      - ON\n");                 }
+     else                { WriteAll("#HESSIAN      - OFF\n");                }
+                           WriteAll("#INTEGRATOR   - %s\n", integrator);
   switch ( useJacobian ) {
-     case JAC_OFF:       WriteAll("#JACOBIAN     - OFF\n"); break;
-     case JAC_FULL:      WriteAll("#JACOBIAN     - FULL\n"); break;
-     case JAC_LU_ROW:    WriteAll("#JACOBIAN     - SPARSE_LU_ROW\n"); break;
-     case JAC_ROW:       WriteAll("#JACOBIAN     - SPARSE_ROW\n"); break;
+     case JAC_OFF:         WriteAll("#JACOBIAN     - OFF\n");           break;
+     case JAC_FULL:        WriteAll("#JACOBIAN     - FULL\n");          break;
+     case JAC_LU_ROW:      WriteAll("#JACOBIAN     - SPARSE_LU_ROW\n"); break;
+     case JAC_ROW:         WriteAll("#JACOBIAN     - SPARSE_ROW\n");    break;
   }
   switch ( useLang ) {
-     case C_LANG:        WriteAll("#LANGUAGE     - C\n"); break;
-     case F90_LANG:      WriteAll("#LANGUAGE     - Fortran90\n"); break;
-     case MATLAB_LANG:   WriteAll("#LANGUAGE     - matlab\n"); break;
+     case C_LANG:          WriteAll("#LANGUAGE     - C\n");             break;
+     case F90_LANG:        WriteAll("#LANGUAGE     - Fortran90\n");     break;
+     case MATLAB_LANG:     WriteAll("#LANGUAGE     - matlab\n");        break;
   }
-  if( useMex )           WriteAll("#MEX          - ON\n");
-     else                WriteAll("#MEX          - OFF\n");
-                         WriteAll("#MINVERSION   - %s\n", minKppVersion);
-  if( useReorder )       WriteAll("#REORDER      - ON\n");
-     else                WriteAll("#REORDER      - OFF\n");
-  if( useStochastic )    WriteAll("#STOCHASTIC   - ON\n");
-     else                WriteAll("#STOCHASTIC   - OFF\n");
-  if( useStoicmat )      WriteAll("#STOICMAT     - ON\n");
-     else                WriteAll("#STOICMAT     - OFF\n");
-  if( upperCaseF90 )     WriteAll("#UPPERCASEF90 - ON\n");
-     else                WriteAll("#UPPERCASEF90 - OFF\n");
+  if( useMex )           { WriteAll("#MEX          - ON\n");                 }
+     else                { WriteAll("#MEX          - OFF\n");                }
+                           WriteAll("#MINVERSION   - %s\n", minKppVersion);
+  if( useReorder )       { WriteAll("#REORDER      - ON\n");                 }
+    else                 { WriteAll("#REORDER      - OFF\n");                }
+  if( useStochastic )    { WriteAll("#STOCHASTIC   - ON\n");                 }
+     else                { WriteAll("#STOCHASTIC   - OFF\n");                }
+  if( useStoicmat )      { WriteAll("#STOICMAT     - ON\n");                 }
+     else                { WriteAll("#STOICMAT     - OFF\n");                }
+  if( upperCaseF90 )     { WriteAll("#UPPERCASEF90 - ON\n");                 }
+     else                { WriteAll("#UPPERCASEF90 - OFF\n");                }
 
   NewLines(1);
   WriteAll("### Parameters ----------------------------------------\n");
