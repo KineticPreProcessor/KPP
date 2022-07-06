@@ -21,6 +21,10 @@ ENV F90=$FC F9X=$FC F77=$FC
 RUN sed -i 's/#define MAX_EQN .*/#define MAX_EQN 1023/g' /kpp/src/gdata.h \
     && sed -i 's/#define MAX_SPECIES .*/#define MAX_SPECIES 1023/g' /kpp/src/gdata.h
 
+# Change FLEX_LIB_DIR to /lib/x86_64-linux-gnu in Makefile.defs
+# so that the error trap for missing flex library will work
+RUN sed -i 's/FLEX_LIB_DIR = \/usr\/lib/FLEX_LIB_DIR = \/lib\/x86_64-linux-gnu/' /kpp/src/Makefile.defs
+
 # Build kpp executable update ensure testing script is executable
 RUN cd /kpp/src/ && make && chmod +x /kpp/.ci-pipelines/ci-testing-script.sh 
 
