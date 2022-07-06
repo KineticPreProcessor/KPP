@@ -1,16 +1,16 @@
 # This dockerfile is used to run the CI unit tests on azure pipelines.
 # To test build locally run the following commands:
-# `docker build -f ./.ci-pipelines/Dockerfile -t kpp-build .` from top level of project
+# `docker build -f ./.ci-pipelines/Dockerfile --platform=amd64 -t kpp-build .` from top level of project
 # To exec into the container run: `docker run -it --entrypoint /bin/bash kpp-build`
 
 # Set platform/OS, a reference to maintainers, and the working directory.
 #
 # NOTE: The --platform=amd64 will make sure that the C-I tests will always
 # run with AMD64 hardware.  Otherwise, Docker will use the architecture
-# of your current harddware, which might cause differences in library paths
+# of your current hardware, which might cause differences in library paths
 # (e.g. /lib/aarch64-linux-gnu on Mac/M1 vs. /lib/x86_64-linux-gnu on Linux).
 #   -- Lucas Estrada & Bob Yantosca (06 Jul 2022)
-FROM --platform=amd64 ubuntu:20.04
+FROM ubuntu:20.04
 LABEL maintainer="GEOS-Chem Support Team <geos-chem-support@g.harvard.edu>"
 WORKDIR /kpp
 
