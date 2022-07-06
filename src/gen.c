@@ -1496,7 +1496,11 @@ int Djv_isElm;
                iHess_j[ Hess_NZ ] = i1;
                iHess_k[ Hess_NZ ] = i2;
                Hess_NZ++;
-               }
+            } else {
+	      // Avoid memory leaks (Killian Murphy, 06 Jul 2022)
+	      free(sum->elm);
+	      free(sum);
+            }
 
     }  /* for i, i1, i2 */
 
@@ -1986,6 +1990,10 @@ int dim;
           sum = Sub( sum, Mul( Elm( JVS, j ), Elm( X, icol[j] ) ) );
         }
         Assign( Elm( X, i ), sum );
+      } else {
+	// Avoid memory leaks (Killian Murphy, 07 Jul 2022)
+	free(sum->elm);
+	free(sum);
       }
     }
   }
