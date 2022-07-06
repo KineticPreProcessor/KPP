@@ -5,7 +5,7 @@
 ########################################################################
 
 # Get the list of CI test folders in ALL_TESTS
-source ./ci-testing-list.sh
+source /kpp/.ci-pipelines/ci-testing-list.sh
 
 # Run each test
 # Check status of each individual operation and exit if any do not complete
