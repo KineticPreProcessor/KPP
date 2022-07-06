@@ -2641,7 +2641,7 @@ char buf[100];
     sprintf( buf, "%s (r)", SpeciesTable[ Code[j] ].name );
   else
     sprintf( buf, "%s (n)", SpeciesTable[ Code[j] ].name );
-  WriteAll("%3d = %-10s", 1 + i, buf );
+  WriteAll("%4d = %-23s", 1 + i, buf );
   FlushBuf();
 }
 
