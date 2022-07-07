@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- C-lanugage updates
+- C-language updates
   - Restored driver programs `general.c` and `general_adj.c`
   - Updated rate-law functions in `util/UserRateLaws.c`
   - Added C-I tests for C-language integrators (using the
@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - bibtex.json (no longer needed w/ Sphinx 3.5.4)
+- Fun() no longer uses Vdotout since it can be retrieved from `Vdot`
 
 ## [2.6.0]
 
@@ -73,6 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bug fixes:
   - Make sure to inline parameter "sp" into the _Global.F90 file
     when the "#DOUBLE off" option is used.
+
 
 ### Changed
 - Code updates

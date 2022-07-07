@@ -52,7 +52,7 @@ int DC;
 int ARP, JVRP, NJVRP, CROW_JVRP, IROW_JVRP, ICOL_JVRP;
 int V, F, VAR, FIX;
 int RCONST, RCT;
-int Vdot, P_VAR, D_VAR, Aout, Vdotout;
+int Vdot, P_VAR, D_VAR, Aout;
 int StoichNum;
 int KR, A, BV, BR, IV, RR;
 int JV, UV, JUV, JTUV, JVS;
@@ -301,9 +301,6 @@ int i,j;
 
   Aout = DefvElmO( "Aout", real, -NREACT,
                    "Optional argument to return equation rate constants" );
-
-  Vdotout = DefvElmO( "Vdotout", real, -NVAR,
-       "Optional argument to return time derivative of variable species" );
 
   /* Elements of Stochastic simulation*/
   NMLCV = DefvElm( "NmlcV", INT, -NVAR, "No. molecules of variable species" );
@@ -662,7 +659,10 @@ int F_VAR, FSPLIT_VAR;
   if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
        UseFile( functionFile );
 
-  F_VAR = DefFnc( "Fun", 6,
+  // Note: When changing the FunctionBegin declarations below,
+  // the number of arguments minus one must be changed in DefFnc here
+  // as well. (hplin, 7/6/22)
+  F_VAR = DefFnc( "Fun", 5,
                   "time derivatives of variables - Aggregate form");
 
   FSPLIT_VAR = DefFnc( "Fun_SPLIT", 7,
@@ -673,8 +673,10 @@ int F_VAR, FSPLIT_VAR;
   // time derivative of variable species from Fun via optional arguments
   // Aout and VdotOut (when z_useAggregate=1)
   //   -- Bob Yantosca (03 May 2022)
+  //
+  // Vdotout functionality can be accomplished using Vdot (hplin, 7/6/22)
   if( z_useAggregate ) {
-    FunctionBegin( F_VAR, V, F, RCT, Vdot, Aout, Vdotout );
+    FunctionBegin( F_VAR, V, F, RCT, Vdot, Aout );
   }
   else {
     FunctionBegin( FSPLIT_VAR, V, F, RCT, Vdot, P_VAR, D_VAR, Aout );
@@ -745,14 +747,6 @@ int F_VAR, FSPLIT_VAR;
       Assign( Elm( Vdot, i ), sum );
     }
 
-    // Add code to return time derivative of variable species (Vdotout)
-    //   -- Bob Yantosca (03 May 2022)
-    NewLines(1);
-    if ( useLang == F90_LANG ) {
-      fprintf(functionFile, "  !### Use Vdotout to return time deriv. of variable species\n");
-      fprintf(functionFile, "  IF ( PRESENT( Vdotout ) ) Vdotout = Vdot\n");
-    }
-
   } else {
 
     NewLines(1);
@@ -801,9 +795,7 @@ int F_VAR, FSPLIT_VAR;
     }
   }
 
-  if( z_useAggregate )
-    MATLAB_Inline("\n   Vdotout = Vdot(:);\n");
-  else
+  if( !z_useAggregate )
     MATLAB_Inline("\n   P_VAR = P_VAR(:);\n   D_VAR = D_VAR(:);\n");
 
   if( z_useAggregate )
