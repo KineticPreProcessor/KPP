@@ -157,6 +157,16 @@ where KPP looks for module files, integrators, and drivers:
 
    Default setting: none.
 
+.. option:: KPP_FLEX_LIB_DIR
+
+   Optional. Use this to specify the path to the :ref:`flex library
+   file <flex-dep>` (:file:`libfl.so` or :file:`libfl.a`) that are
+   needed to :ref:`build the KPP executable <build-kpp-exec>`. The KPP
+   build sequence will use the path contained in
+   :envvar:`KPP_FLEX_LIB_DIR` if the flex library file cannot be found
+   in  :file:`/usr/lib`, :file:`/usr/lib64`, and similar standard
+   library paths.
+
 .. option:: KPP_MODEL
 
    Optional, specifies additional places where KPP will look for model
@@ -318,7 +328,7 @@ test calls KPP to generate source code for a given
 <integrator-cmd>`, and :ref:`target language <language-cmd>`, and
 then runs a short "box model" simulation with the generated code. C-I
 tests help to ensure that new features and updates added to KPP will
-not break any existing functionality. 
+not break any existing functionality.
 
 The continuous integration tests will run automatically on `Azure
 DevOps Pipelines
