@@ -371,8 +371,8 @@ defined (if necessary).
 
 .. _macosx-limited-stack:
 
-MacOS X has limited stack memory
---------------------------------
+Request maximum stack memory
+----------------------------
 
 Unlike GNU/Linux systems, MacOS X has a hard limit of 65332 bytes for
 stack memory (i.e. the memory space where temporary automatic variables
@@ -408,8 +408,8 @@ needed, and then :ref:`rebuild the KPP executable <build-kpp-exec>`.
 
 .. _macosx-case-insensitive:
 
-MacOS X is case-insenstive
---------------------------
+Know that MacOS X is case-insenstive
+-------------------------------------
 
 If you have two files with identical names except for case
 (e.g. :file:`integrator.F90` and :file:`integrator.f90`) then MacOS X
