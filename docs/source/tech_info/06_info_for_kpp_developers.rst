@@ -272,7 +272,7 @@ locations. A short summary is presented here, using :code:`NEWCMD` as an
 example:
 
 * Add the new command to several files in the :file:`src/` directory:
-  
+
   - :file:`scan.h`: add :code:`void CmdNEWCMD( char *cmd );`
 
   - :file:`scan.l`: add :code:`{ "NEWCMD", PRM_STATE, NEWCMD },`
@@ -312,19 +312,21 @@ example:
 Continuous integration tests
 ============================
 
-KPP contains several continuous integration (aka C-I) tests. They
-compile the KPP source code into an executable, build a sample chemistry
-mechanism, and run a short "box model" simulation. This helps to ensure
-that new features and updates added to KPP will not break any existing
-functionality.
+KPP contains several continuous integration (aka C-I) tests. Each C-I
+test calls KPP to generate source code for a given
+:ref:`chemical mechanism <model-cmd>`, :ref:`integrator
+<integrator-cmd>`, and :ref:`target language <language-cmd>`, and
+then runs a short "box model" simulation with the generated code. C-I
+tests help to ensure that new features and updates added to KPP will
+not break any existing functionality. 
 
 The continuous integration tests will run automatically on `Azure
 DevOps Pipelines
 <https://azure.microsoft.com/en-us/services/devops/pipelines/>`_ each time a
 commit is pushed to the `KPP Github repository
 <https://github.com/KineticPreProcessor/KPP>`_.  You can also run the
-integration tests locally on your own computer, as shown in the
-following sections.
+integration tests :ref:`locally on your own computer
+<running-ci-tests-locally>`.
 
 .. _list-of-ci-tests:
 
@@ -359,7 +361,7 @@ List of continuous integration tests
    +------------------------+-----------+-----------------+-----------------------+
    | ``F90_ros``            | Fortran90 | small_strato    | rosenbrock            |
    +------------------------+-----------+-----------------+-----------------------+
-   | ``F90_ros_autoreduce`` | Fortran90 | saprc99         | rosenbrock_autoreduce | 
+   | ``F90_ros_autoreduce`` | Fortran90 | saprc99         | rosenbrock_autoreduce |
    +------------------------+-----------+-----------------+-----------------------+
    | ``F90_ros_split``      | Fortran90 | small_strato    | rosenbrock            |
    +------------------------+-----------+-----------------+-----------------------+
@@ -391,7 +393,7 @@ Notes about C-I tests:
 #. :file:`F90_small_strato` is the example from
    :ref:`running-kpp-with-an-example-mechanism`.
 #. :file:`X_minver` tests if the :ref:`minversion-cmd` command works
-   properly. 
+   properly.
 
 Each continuous integration test is contained in a subdirectory of
 :file:`$KPP_HOME/ci-tests`.  In each subdirectory is a KPP definition
@@ -410,26 +412,31 @@ The files needed to run the C-I tests are located in the
 .. table:: Files needed to execute C-I tests
    :align: center
 
-   +-------------------------------------+------------------------------------+
-   | File                                | Description                        |
-   +=====================================+====================================+
-   | :file:`Dockerfile`                  | Docker container with software     |
-   |                                     | libraries for Azure DevOps         |
-   |                                     | Pipelines                          |
-   +-------------------------------------+------------------------------------+
-   | :file:`build_testing.yml`           | Options for triggering C-I tests   |
-   |                                     | on Azure DevOps Pipelines          |
-   +-------------------------------------+------------------------------------+
-   | :file:`ci-testing-script.sh`        | Driver script for running C-I      |
-   |                                     | tests on Azure DevOps Pipelines    |
-   +-------------------------------------+------------------------------------+
-   | :file:`ci-manual-testing-script.sh` | Driver script for running C-I      |
-   |                                     | tests on a local computer          |
-   +-------------------------------------+------------------------------------+
-   | :file:`ci-manual-cleanup-script.sh` | Script to remove files generated   |
-   |                                     | when running C-I tests on a local  |
-   |                                     | computer                           |
-   +-------------------------------------+------------------------------------+
+   +-------------------------------+------------------------------------------+
+   | File                          | Description                              |
+   +===============================+==========================================+
+   | :file:`Dockerfile`            | File containing specifications for the   |
+   |                               | Docker container that will be used to    |
+   |                               | run C-I tests on Azure DevOps Pipelines. |
+   |                               | Also contains commands needed to run     |
+   |                               | the C-I scripts in the Docker container. |
+   +-------------------------------+------------------------------------------+
+   | :file:`build_testing.yml`     | Contains options for triggering C-I      |
+   |                               | tests on Azure DevOps Pipelines.         |
+   +-------------------------------+------------------------------------------+
+   | :file:`ci-testing-script.sh`  | Driver script for running C-I tests.     |
+   |                               | Can be used on Azure DevOps Pipelines    |
+   |                               | or on a local computer.                  |
+   +-------------------------------+------------------------------------------+
+   | :file:`ci-cleanup-script.sh`  | Script to remove compiler-generated      |
+   |                               | files (e.g. ``*.o``, ``.mod``, and       |
+   |                               | ``.exe``) from C-I test folders.         |
+   +-------------------------------+------------------------------------------+
+   | :file:`ci-common-defs.sh`     | Script with common variable and function |
+   |                               | definitions needed by                    |
+   |                               | :file:`ci-testing-script.sh` and         |
+   |                               | :file:`ci-cleanup-script.sh`.            |
+   +-------------------------------+------------------------------------------+
 
 The :file:`Dockerfile` contains the software environment for `Azure
 DevOps Pipelines
@@ -468,12 +475,11 @@ the KPP Github repository.
 Running continuous integration tests locally
 --------------------------------------------
 
-To run the C-I tests on a local computer system, use these commands:
+To run the C-I tests on a local computer system, use this command:
 
 .. code-block:: console
 
-   $ cd $KPP_HOME/.ci-pipelines
-   ./ci-manual-testing-script.sh | tee ci-tests.log
+   $ $KPP_HOME/.ci-pipelines/ci-testing-script.sh | tee ci-tests.log
 
 This will run all C-I tests on your own computer system and pipe the
 results to a log file. This will easily allow you to check if the
@@ -485,7 +491,7 @@ this command:
 
 .. code-block :: console
 
-   $ ./ci-manual-cleanup-script.sh
+   $ $KPP_HOME/.ci-pipelines/ci-cleanup-script.sh
 
 If you add new C-I tests, be sure to add the name of the new tests to
-:code:`ALL_TESTS` in :file:`ci-testing-list.sh`.
+the variable :code:`GENERAL_TESTS` in :file:`ci-common-defs.sh`.

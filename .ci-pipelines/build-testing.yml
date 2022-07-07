@@ -24,4 +24,4 @@ steps:
       command: build
       buildContext: $(Build.Repository.LocalPath)   # The path to the source code repo
       Dockerfile: .ci-pipelines/Dockerfile
-      arguments: --progress=plain
+      arguments: --platform=amd64 --progress=plain

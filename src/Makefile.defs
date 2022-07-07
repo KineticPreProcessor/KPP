@@ -1,4 +1,3 @@
-# -*- makefile-gmake -*-
 ##############################################################################
 #
 #  KPP - The Kinetic PreProcessor
@@ -113,12 +112,11 @@ ifeq ($(findstring rc.fas.harvard.edu,$(HOSTNAME)),rc.fas.harvard.edu)
   endif
 endif
 
-# Note: Additional systems should be added as needed.
+# Note: ifeq blocks for additional systems should be added as needed.
 
-# Disable this till further notice (bmy, 11/1/21)
-## Exit if we can't find libfl.a (Flex library file)
-#ifeq ($(wildcard $(FLEX_LIB_DIR)/*.a),)
-# $(error "Could not find the Flex library at $(FLEX_LIB_DIR)!")
-#endif
+# Exit if we can't find libfl.a (Flex library file)
+ifeq ($(wildcard $(FLEX_LIB_DIR)/libfl.*),)
+ $(error "Could not find the Flex library at $(FLEX_LIB_DIR)!")
+endif
 
 ##############################################################################

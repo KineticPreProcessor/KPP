@@ -672,7 +672,7 @@ void RK_Integrator( int N,
        SkipLU;
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-   
+
   /*~~~>  INITIAL setting */
    /*printf("ONE=%f Tend-*T=%f\n", ONE, Tend-*T);*/
    Tdirection = SIGN(ONE, Tend-*T);
@@ -1175,7 +1175,7 @@ void RK_Interpolate(char action[], int N, KPP_REAL H, KPP_REAL Hold, KPP_REAL Z1
    KPP_REAL r,x1,x2,x3,den;
  
    /* Construct the solution quadratic interpolant Q(c_i) = Z_i, i=1:3 */
-   if (action == "make") {
+   if ( strncmp(action, "make", 4 ) ) {
 	den = (rkC[2]-rkC[1])*(rkC[1]-rkC[0])*(rkC[0]-rkC[2]);
 	for (i = 0; i < N; i++)
 	{
@@ -1194,8 +1194,8 @@ void RK_Interpolate(char action[], int N, KPP_REAL H, KPP_REAL Hold, KPP_REAL Z1
 	} /* end for loop */
    }
    /* Evaluate quadratic polynomial */
-   else if (action == "eval") {
-   	r  = H / Hold;
+   else if ( strncmp( action, "eval", 4 ) ) {
+        r  = H / Hold;
 	x1 = ONE + rkC[0]*r;
 	x2 = ONE + rkC[1]*r;
 	x3 = ONE + rkC[2]*r;

@@ -20,13 +20,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - In-text citations now use the :cite:t style (e.g. "Smith et al [2000]")
   - Corrected several omissions
   - Removed table numbers from tables (to reduce confusion)
-- Added a C-I test for `rosenbrock_autoreduce`
+- C-I test additions
+  - Added a C-I test for the `rosenbrock_autoreduce` integrator
   
 ### Changed
 
-- Renamed CI-test folders for clarity
-- DOUBLE_COMPLEX is now replaced by COMPLEX(kind=dp)
-- Fixed incorrect license string in .zenodo.json
+- C-I test updates
+  - Renamed CI-test folders for clarity (`C_*`, `F90_*`, 'X_*')
+  - Abstracted reusable code into the `ci-common-defs.sh` script
+  - Replaced `ci-manual-testing-script.sh` with `ci-testing-script.sh`
+    (which now works both locally and on Azure Dev Pipelines)
+  - Renamed `ci-manual-cleanup-script.sh` to `ci-cleanup-script.sh`
+  - Updated docs accordingly
+- Other changes
+  - DOUBLE_COMPLEX is now replaced by COMPLEX(kind=dp)
+  - Fixed incorrect license string in .zenodo.json
+  - Added extra `free()` statements in `src/gen.c` to avoid memory
+    leaks
+
+### Removed
+- bibtex.json (no longer needed w/ Sphinx 3.5.4)
 
 ## [2.6.0]
 
