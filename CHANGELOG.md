@@ -5,7 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # Changelog
 
-## Unreleased
+## [3.0.0-rc.0]
 
 ### Added
 
@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Corrected several omissions
   - Removed table numbers from tables (to reduce confusion)
   - Now document additional installation steps for MacOS X
+  - Added documentation about `KPP_FLEX_LIB_DIR`
 - C-I test additions
   - Added a C-I test for the `rosenbrock_autoreduce` integrator
 
@@ -33,6 +34,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     (which now works both locally and on Azure Dev Pipelines)
   - Renamed `ci-manual-cleanup-script.sh` to `ci-cleanup-script.sh`
   - Updated docs accordingly
+- Makefile changes
+  - `Makefile.defs` now uses environment variable `KPP_FLEX_LIB_DIR`
+    when it cannot find the flex library file in standard locations v
+  - Removed host-specific if blocks from `Makefile.defs`
 - Other changes
   - DOUBLE_COMPLEX is now replaced by COMPLEX(kind=dp)
   - Fixed incorrect license string in .zenodo.json
