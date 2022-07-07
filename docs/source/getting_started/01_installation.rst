@@ -153,6 +153,8 @@ Enter the path where the flex library (:file:`libfl.a` or
 
    FLEX_LIB_DIR=/usr/lib
 
+.. _build-kpp-exec:
+
 ========================
 Build the KPP executable
 ========================
@@ -212,13 +214,12 @@ This will create the executable file :file:`$KPP_HOME/bin/kpp`.
 
 .. _additional-steps-macosx:
 
-==========================================
-Additional steps for installing on MacOS X
-==========================================
+==============================
+Instructions for MacOS X users
+==============================
 
-When installing KPP on a MacOS X system, some additional steps may be
-necessary.  This is because MacOS X is based on BSD Unix, which has
-several differences from GNU/Linux.
+When installing KPP on a MacOS X system, some additional configuration
+and installation steps may be necessary.
 
 .. _force-macos-to-recognize-gcc-compiler:
 
@@ -268,13 +269,12 @@ these steps:
       # ... etc ...
 
    This output indicates :program:`gcc` major version 11 has been
-   installed.  (Your version may differ.)
+   installed, and that the gcc executable is called :code:`gcc-11`.
+   (Your version may differ.)
 
-#. Now that you know that the :program:`gcc` compiler's executable is
-   actually named :file:`gcc-11`, you can define some aliases that
-   will override :program:`clang` with :program:`gcc`.  Add
-   the following code-block to your :file:`.bashrc` file (or to your
-   :file:`.bash_aliases` file if you have one):
+#. Add  the following code block to your :file:`.bashrc` file (or to your
+   :file:`.bash_aliases` file if you have one).  This will define
+   aliases that will override :program:`clang` with :program:`gcc`.
 
    .. code-block:: bash
 
@@ -368,3 +368,50 @@ editing and look for this block of code:
 
 and edit the version number in the line where :code:`FLEX_LIB_DIR` is
 defined (if necessary).
+
+.. _macosx-limited-stack:
+
+MacOS X has limited stack memory
+--------------------------------
+
+Unlike GNU/Linux systems, MacOS X has a hard limit of 65332 bytes for
+stack memory (i.e. the memory space where temporary automatic variables
+are stored). This is a much lower amount of stack memory than would be
+available on GNU/Linux systems.
+
+To make sure you are using the maximum amount of stack memory on MacOS
+X add this command to your :file:`.bashrc` file:
+
+.. code-block:: bash
+
+   ulimit -s 65532
+
+This stack memory limit means that KPP will not be able to parse
+mechanisms with more than about 2000 equations and 1000 species.
+Because of this, we have added an :code:`#ifdef` block to KPP header
+file :file:`src/gdata.h` to define the :code:`MAX_EQN` and
+:code:`MAX_SPECIES` parameters accordingly:
+
+.. code-block:: C
+
+   #ifdef MACOS
+   #define MAX_EQN        2000     // Max number of equations (MacOS only)
+   #define MAX_SPECIES    1000     // Max number of species   (MacOS only)
+   #else
+   #define MAX_EQN       11000     // Max number of equations
+   #define MAX_SPECIES    6000     // Max number of species
+   #endif
+
+If you find that KPP will not parse your mechanism, you can increase
+:code:`MAX_EQN` and decrease :code:`MAX_SPECIES` (or vice-versa) as
+needed, and then :ref:`rebuild the KPP executable <build-kpp-exec>`.
+
+.. _macosx-case-insensitive:
+
+MacOS X is case-insenstive
+--------------------------
+
+If you have two files with identical names except for case
+(e.g. :file:`integrator.F90` and :file:`integrator.f90`) then MacOS X
+will not be able to tell them apart.  Because of this, you may
+encounter an error if you try to commit such files into Git, etc.
