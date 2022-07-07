@@ -63,68 +63,73 @@
 #    Typically: /usr/include on Linux
 #               /usr/include/sys on Mac OS X
 
-# The defaults are:
-CC           = gcc
-CC_FLAGS     = -g -Wall -Wno-unused-function
-FLEX         = flex
-FLEX_LIB_DIR = /usr/lib
-BISON        = bison
-INCLUDE_DIR  = /usr/include
+############################################################
+### Default settings                                     ###
+############################################################
 
-# If the default is not suitable, set the variables based on your system
-# and your machine:
+CC           := gcc
+CC_FLAGS     := -g -Wall -Wno-unused-function
+FLEX         := flex
+FLEX_LIB_DIR := /usr/lib
+BISON        := bison
+INCLUDE_DIR  := /usr/include
+SYSTEM       := $(shell uname)        # returns e.g. "Linux"
+SYSTEM_M     := $(shell uname -m)     # returns e.g. "x86_64"
+HOST         := $(shell hostname)     # returns name of machine
 
-SYSTEM   := $(shell uname)
-SYSTEM_A := $(shell uname -a)
-HOST     := $(shell hostname)
+############################################################
+### Keep looking for the flex library until found        ###
+### Otherwise use the path specified in KPP_FLEX_LIB_DIR ###
+###                                                      ###
+### NOTE for MacOS X: IF you have installed flex with    ###
+### HomeBrew, then flex will be installed to a path such ### 
+### as /usr/local/Cellar/flex/X.Y.Z/lib, where X.Y.Z is  ###
+### the version number.  --  Bob Yantosca (01 Nov 2021)  ###   
+############################################################
 
-# change settings for specific systems:
+# Try /usr/lib64
+ifeq ($(wildcard $(FLEX_LIB_DIR)/libfl.*),)
+  FLEX_LIB_DIR := /usr/lib64
+endif
 
-# Settings for Linux (uncomment if necessary)
-# ifeq ($(SYSTEM),Linux)
-#   CC_FLAGS     = -O
-#   FLEX_LIB_DIR = /usr/lib64
-# endif
+# Try /usr/local/lib
+ifeq ($(wildcard $(FLEX_LIB_DIR)/libfl.*),)
+  FLEX_LIB_DIR := /usr/local/lib
+endif
+
+# Try /usr/local/lib64
+ifeq ($(wildcard $(FLEX_LIB_DIR)/libfl.*),)
+  FLEX_LIB_DIR := /usr/local/lib64
+endif
+
+# If flex isn't found, look again e.g. /lib/x86_64
+ifeq ($(wildcard $(FLEX_LIB_DIR)/libfl.*),)
+  FLEX_LIB_DIR := /lib/$(SYSTEM_M)
+endif
+
+# If flex isn't found, look again e.g. /usr/lib/$(arch)-linux-gnu
+ifeq ($(wildcard $(FLEX_LIB_DIR)/libfl.*),)
+  FLEX_LIB_DIR := /usr/lib/$(firstword $(SYSTEM_M))-linux-gnu
+endif
+
+# If we can't find the flex library path, then specify it
+# from the user's environment variable KPP_FLEX_LIB_DIR.
+ifneq ($(KPP_FLEX_LIB_DIR),)
+  FLEX_LIB_DIR = ${KPP_FLEX_LIB_DIR}
+endif
+
+# ERROR CHECK: EXIT if we can't find libfl.* (Flex library file)
+ifeq ($(wildcard $(FLEX_LIB_DIR)/libfl.*),)
+ $(error "Could not find the Flex library at $(FLEX_LIB_DIR)! Specify the path to flex in env var KPP_FLEX_LIB_DIR.")
+endif
+
+############################################################
+### System-specific or host-specific default settings    ###
+############################################################
 
 # Settings for MacOS
-# NOTE: IF you have installed flex with HomeBrew, then the
-# libfl.a library file will not be installed to /usr/lib
-# but to /usr/local/Cellar/flex/X.Y.Z/lib.
-#  --  Bob Yantosca (01 Nov 2021)
 ifeq ($(SYSTEM),Darwin)
-  CC_FLAGS     += -DMACOS -O
-  FLEX_LIB_DIR := /usr/local/Cellar/flex/2.6.4_2/lib
+  CC_FLAGS += -DMACOS -O
 endif
 
-# settings for "fluorine" from Rolf Sander:
-ifeq ($(HOST),fluorine)
-  # CC_FLAGS = -O -Wall
-  # CC_FLAGS = -O
-  #CC_FLAGS   = -O -Wno-implicit-function-declaration
-endif
-
-# Settings for Cannon (Harvard cluster) from Bob Yantosca
-# Only reset FLEX_LIB_DIR if the user has not set it first
-ifeq ($(findstring rc.fas.harvard.edu,$(HOSTNAME)),rc.fas.harvard.edu)
-  ifeq ($(USER_FLEX_LIB_DIR),)
-    FLEX_LIB_DIR = ${FLEX_HOME}/lib64
-  else
-    FLEX_LIB_DIR = ${USER_FLEX_LIB_DIR}
-  endif
-endif
-
-# Setting for Ubuntu x86_64 generic
-ifeq ($(findstring Ubuntu,$(SYSTEM_A)),Ubuntu)
-   ifeq ($(findstring x86_64,$(SYSTEM_A)),x86_64)
-       FLEX_LIB_DIR = /usr/lib/x86_64-linux-gnu
-   endif
-endif
-
-# Note: ifeq blocks for additional systems should be added as needed.
-
-# Exit if we can't find libfl.a (Flex library file)
-ifeq ($(wildcard $(FLEX_LIB_DIR)/libfl.*),)
- $(error "Could not find the Flex library at $(FLEX_LIB_DIR)! Specify FLEX_LIB_DIR in Makefile.defs.")
-endif
-
-##############################################################################
+#############################################################

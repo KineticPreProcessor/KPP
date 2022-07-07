@@ -24,15 +24,12 @@ COPY . .
 ENV KPP_HOME=/kpp
 ENV CC=gcc CXX=g++ FC=gfortran
 ENV F90=$FC F9X=$FC F77=$FC
+ENV KPP_FLEX_LIB_DIR=/lib/x86_64-linux-gnu
 
 # For C-I tests MAX_EQN and MAX_SPECIES must be < 1024:
 # as this will fit within the memory limits on Azure.
 RUN sed -i 's/#define MAX_EQN .*/#define MAX_EQN 1023/g' /kpp/src/gdata.h \
     && sed -i 's/#define MAX_SPECIES .*/#define MAX_SPECIES 1023/g' /kpp/src/gdata.h
-
-# Change FLEX_LIB_DIR to /lib/x86_64-linux-gnu in Makefile.defs
-# so that we will pass the error check for the missing flex library file.
-RUN sed -i 's/FLEX_LIB_DIR = \/usr\/lib/FLEX_LIB_DIR = \/lib\/x86_64-linux-gnu/' /kpp/src/Makefile.defs
 
 # Build KPP executable and ensure testing scripts are executable
 RUN cd /kpp/src/ && make
