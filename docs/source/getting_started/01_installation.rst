@@ -374,10 +374,10 @@ defined (if necessary).
 Request maximum stack memory
 ----------------------------
 
-Unlike GNU/Linux systems, MacOS X has a hard limit of 65332 bytes for
-stack memory (i.e. the memory space where temporary automatic variables
-are stored). This is a much lower amount of stack memory than would be
-available on GNU/Linux systems.
+MacOS X has a hard limit of 65332 bytes for stack memory (i.e. the
+memory space where temporary automatic variables are stored). This is
+a much lower amount of stack memory than would be available on
+GNU/Linux systems.
 
 To make sure you are using the maximum amount of stack memory on MacOS
 X add this command to your :file:`.bashrc` file:
@@ -386,6 +386,12 @@ X add this command to your :file:`.bashrc` file:
 
    ulimit -s 65532
 
+and then apply the change with:
+
+.. code-block:: console
+
+   $ . ~/.bashrc
+   
 This stack memory limit means that KPP will not be able to parse
 mechanisms with more than about 2000 equations and 1000 species.
 Because of this, we have added an :code:`#ifdef` block to KPP header
