@@ -74,8 +74,9 @@ INCLUDE_DIR  = /usr/include
 # If the default is not suitable, set the variables based on your system
 # and your machine:
 
-SYSTEM := $(shell uname)
-HOST   := $(shell hostname)
+SYSTEM   := $(shell uname)
+SYSTEM_A := $(shell uname -a)
+HOST     := $(shell hostname)
 
 # change settings for specific systems:
 
@@ -112,11 +113,18 @@ ifeq ($(findstring rc.fas.harvard.edu,$(HOSTNAME)),rc.fas.harvard.edu)
   endif
 endif
 
+# Setting for Ubuntu x86_64 generic
+ifeq ($(findstring Ubuntu,$(SYSTEM_A)),Ubuntu)
+   ifeq ($(findstring x86_64,$(SYSTEM_A)),x86_64)
+       FLEX_LIB_DIR = /usr/lib/x86_64-linux-gnu
+   endif
+endif
+
 # Note: ifeq blocks for additional systems should be added as needed.
 
 # Exit if we can't find libfl.a (Flex library file)
 ifeq ($(wildcard $(FLEX_LIB_DIR)/libfl.*),)
- $(error "Could not find the Flex library at $(FLEX_LIB_DIR)!")
+ $(error "Could not find the Flex library at $(FLEX_LIB_DIR)! Specify FLEX_LIB_DIR in Makefile.defs.")
 endif
 
 ##############################################################################
