@@ -43,7 +43,9 @@ information that might be relevant, including the motivation for the
 feature. 
 
 #### How to report a bug
-Please see "Support Guidelines".
+Please see [Support
+Guidelines](https://github.com/KineticPreProcessor/KPP/blob/main/SUPPORT.md).
 
 #### Where can I ask for help?
-Please see "Support Guidelines".
+Please see [Support
+Guidelines](https://github.com/KineticPreProcessor/KPP/blob/main/SUPPORT.md).

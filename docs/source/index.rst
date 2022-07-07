@@ -62,6 +62,6 @@ understand---let us know!
    :maxdepth: 2
 
    reference/known-bugs.rst
-   reference/SUPPORT.rst
-   reference/CONTRIBUTING.rst
+   reference/support.rst
+   reference/contributing.rst
    reference/editing_these_docs.rst
