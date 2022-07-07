@@ -40,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - bibtex.json (no longer needed w/ Sphinx 3.5.4)
-- Fun() no longer uses Vdotout since it can be retrieved from Vloc
+- Fun() no longer uses Vdotout since it can be retrieved from `Vdot`
 
 ## [2.6.0]
 
