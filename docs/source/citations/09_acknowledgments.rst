@@ -23,7 +23,7 @@ This work has been supported by:
   `AIST-18-0011 <https://esto.nasa.gov/project-selections-for-aist-18/#martin>`_)
 
 We thank Jason Lander for his suggestions how
-to migrate from to :program:`yacc` to :program:`bison`.
+to migrate from :program:`yacc` to :program:`bison`.
 
 We would also like to thank Lucas Estrada for his assistance in
 setting up the :ref:`ci-tests` on `Azure DevOps Pipelines
