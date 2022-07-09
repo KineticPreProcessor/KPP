@@ -69,7 +69,7 @@ extern FILE * hessianFile;
 extern FILE * integratorFile;
 extern FILE * jacobianFile;
 extern FILE * linalgFile;
-extern FILE * mapFile;
+extern FILE * logFile;
 extern FILE * makeFile;
 extern FILE * monitorFile;
 extern FILE * mex_funFile;
@@ -121,7 +121,7 @@ void F90_Inline( char *fmt, ... );
 void MATLAB_Inline( char *fmt, ... );
 void IncludeFile( char * fname );
 void IncludeCode( char *fmt, ... );
-void MapFunctionComment( int f, int *vars );
+void LogFunctionComment( int f, int *vars );
       
 // Added attr argument to the function prototype for DefineVariable
 //   -- Bob Yantosca (25 Apr 2002)

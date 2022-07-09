@@ -1072,13 +1072,13 @@ However, if no driver was selected (i.e. :command:`#DRIVER none`), it is
 necessary to add the name of the main program file manually to the
 Makefile.
 
-.. _Map:
+.. _Log:
 
 ============
-The map file
+The log file
 ============
 
-The map file :file:`ROOT.map` contains a summary of all the functions,
+The log file :file:`ROOT.log` contains a summary of all the functions,
 subroutines and data structures defined in the code file, plus a
 summary of the numbering and category of the species involved.
 

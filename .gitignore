@@ -36,8 +36,8 @@
 *_Jacobian*
 *_JacobianSP*
 *_LinearAlgebra*
+*.log
 *_Main*
-*.map
 *_mex_Fun*
 *_mex_Hessian*
 *_mex_Jac_SP*

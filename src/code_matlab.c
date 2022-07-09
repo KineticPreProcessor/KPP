@@ -625,7 +625,7 @@ time_t t;
 
   FlushBuf();
 
-  MapFunctionComment( f, vars );
+  LogFunctionComment( f, vars );
 }
 
 /*************************************************************************************************/
@@ -700,8 +700,8 @@ void Use_MATLAB()
      OpenFile( &sparse_hessFile, rootFileName, "_HessianSP.m",
          "Sparse Hessian Data Structures File" );
   }     
-  OpenFile( &mapFile, rootFileName, ".map", 
-                   "Map File with Human-Readable Information" );
+  OpenFile( &logFile, rootFileName, ".log", 
+                   "Log File with Human-Readable Information" );
   OpenFile( &monitorFile, rootFileName, "_Monitor.m", 
                    "Utility Data Definition File" );
 } 

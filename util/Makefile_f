@@ -58,11 +58,11 @@ mex:    $(HEADERS) $(SPOBJ) $(OBJ)
 	$(MEX) FC#$(FC) -fortran -O KPP_ROOT_mex_Hessian.f $(SPOBJ) $(OBJ)
 	
 clean:
-	rm -f $(SPOBJ) $(OBJ) KPP_ROOT.exe KPP_ROOT.map  \
+	rm -f $(SPOBJ) $(OBJ) KPP_ROOT.exe KPP_ROOT.log  \
 	KPP_ROOT.dat 
 
 distclean:
-	rm -f $(SPOBJ) $(OBJ) KPP_ROOT.exe KPP_ROOT.map  \
+	rm -f $(SPOBJ) $(OBJ) KPP_ROOT.exe KPP_ROOT.log  \
 	KPP_ROOT.dat KPP_ROOT*.f  KPP_ROOT*.h 
 
 KPP_ROOT_Monitor.o: KPP_ROOT_Monitor.f $(HEADERS)

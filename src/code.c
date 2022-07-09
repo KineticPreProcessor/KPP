@@ -97,7 +97,7 @@ FILE * sparse_stoicmFile = 0;
 FILE * stochasticFile = 0;
 FILE * global_dataFile = 0;
 FILE * hessianFile = 0;
-FILE * mapFile = 0;
+FILE * logFile = 0;
 FILE * makeFile = 0;
 FILE * monitorFile = 0;
 FILE * mex_funFile = 0;
@@ -393,11 +393,11 @@ char *FUNCALL[] = { "FUN_SPLIT( Y, FIX, RCONST, Ydot, P, D )", /* index 0 = spli
   system( cmd );
 }
 
-void MapFunctionComment( int f, int *vars )
+void LogFunctionComment( int f, int *vars )
 {
 FILE *oldf;
 
-  oldf = UseFile( mapFile );
+  oldf = UseFile( logFile );
   FunctionStart( f, vars );
   FlushBuf();
   UseFile( oldf );

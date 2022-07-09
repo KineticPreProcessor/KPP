@@ -182,11 +182,11 @@ mex:    $(ALLOBJ)
 clean:
 	rm -f *.o *.mod \
 	KPP_ROOT*.dat KPP_ROOT.exe KPP_ROOT*.mexglx \
-	KPP_ROOT.map
+	KPP_ROOT.log
 
 distclean:
 	rm -f *.o *.mod \
-	KPP_ROOT*.dat KPP_ROOT.exe KPP_ROOT.map \
+	KPP_ROOT*.dat KPP_ROOT.exe KPP_ROOT.log \
 	KPP_ROOT_*.f90 KPP_ROOT_*.f90 KPP_ROOT_*.mexglx \
 	results*.m
 

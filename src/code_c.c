@@ -487,7 +487,7 @@ int narg;
 
   FlushBuf();
 
-  MapFunctionComment( f, vars );
+  LogFunctionComment( f, vars );
 }
 
 void C_FunctionEnd( int f )
@@ -566,8 +566,8 @@ void Use_C()
      OpenFile( &sparse_hessFile, rootFileName, "_HessianSP.c",
          "Sparse Hessian Data Structures File" );
   }
-  OpenFile( &mapFile, rootFileName, ".map",
-                   "Map File with Human-Readable Information" );
+  OpenFile( &logFile, rootFileName, ".log",
+                   "Log File with Human-Readable Information" );
   OpenFile( &monitorFile, rootFileName, "_Monitor.c",
                    "Utility Data Initialization" );
 }

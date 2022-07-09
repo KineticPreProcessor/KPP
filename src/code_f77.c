@@ -505,7 +505,7 @@ int narg;
   bprintf("\n");
   FlushBuf();
 
-  MapFunctionComment( f, vars );
+  LogFunctionComment( f, vars );
 }
 
 /*************************************************************************************************/
@@ -589,8 +589,8 @@ void Use_F()
      OpenFile( &sparse_hessFile, rootFileName, "_HessianSP.f",
          "Sparse Hessian Data Structures File" );
   }     
-  OpenFile( &mapFile, rootFileName, ".map", 
-                   "Map File with Human-Readable Information" );
+  OpenFile( &logFile, rootFileName, ".log", 
+                   "Log File with Human-Readable Information" );
   OpenFile( &monitorFile, rootFileName, "_Monitor.f", 
                    "Initialization of Utility Data Structures" );
 } 

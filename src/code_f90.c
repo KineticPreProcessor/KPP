@@ -719,7 +719,7 @@ int narg;
   bprintf("\n");
   FlushBuf();
 
-  MapFunctionComment( f, vars );
+  LogFunctionComment( f, vars );
 }
 
 /*************************************************************************************************/
@@ -852,9 +852,9 @@ void Use_F90()
 	      "Sparse Hessian Data Structures File" );
   }
 
-  // .map
-  OpenFile( &mapFile, rootFileName, ".map",
-	    "Map File with Human-Readable Information" );
+  // .log
+  OpenFile( &logFile, rootFileName, ".log",
+	    "Log File with Human-Readable Information" );
 
   // _Monitor
   sprintf( buf, "_Monitor.%s", f90Suffix );

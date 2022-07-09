@@ -2749,11 +2749,11 @@ char lhsbuf[MAX_EQNLEN], rhsbuf[MAX_EQNLEN];
 
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-void GenerateMap()
+void GenerateLog()
 {
 int i, dn;
 
-  UseFile( mapFile );
+  UseFile( logFile );
 
   WriteAll("### Options -------------------------------------------\n");
   NewLines(1);
@@ -3499,7 +3499,7 @@ int n;
   if ( useLang == F90_LANG )
       GenerateF90Modules('h');
 
-  GenerateMap();
+  GenerateLog();
 
   printf("\nKPP is generating the monitor data:");
   printf("\n    - %s_Monitor",rootFileName);
@@ -3632,7 +3632,7 @@ int n;
   if( integratorFile )    fclose( integratorFile );
   if( jacobianFile )      fclose( jacobianFile );
   if( linalgFile )        fclose( linalgFile );
-  if( mapFile )           fclose( mapFile );
+  if( logFile )           fclose( logFile );
   if( makeFile )          fclose( makeFile );
   if( monitorFile )       fclose( monitorFile );
   if( mex_funFile )       fclose( mex_funFile );
