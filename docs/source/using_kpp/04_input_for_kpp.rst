@@ -454,14 +454,14 @@ example (described in :ref:`running-kpp-with-an-example-mechanism`),
 :code:`C` has dimension :code:`NSPEC=7`. Using  :command:`#DECLARE
 SYMBOL` will generate the following code in :ref:`Global`:
 
-.. code-block:: F90
+.. code-block:: fortran
 
    ! C - Concentration of all species
      REAL(kind=dp), TARGET :: C(NSPEC)
 
 Whereas :command:`#DECLARE VALUE` will generate this code instead:
 
-.. code-block:: F90
+.. code-block:: fortran
 
    ! C - Concentration of all species
      REAL(kind=dp), TARGET :: C(7)
@@ -528,7 +528,7 @@ any reaction. With :command:`#DUMMYINDEX OFF` (the default), those are
 undefined variables. For example, if you frequently switch between
 mechanisms with and without sulfuric acid, you can use this code:
 
-.. code-block:: F90
+.. code-block:: fortran
 
    IF (ind_H2SO4=0) THEN
      PRINT *, 'no H2SO4 in current mechanism'
@@ -852,7 +852,7 @@ F90_GLOBAL
 This inline type can be used to declare global variables, e.g. for a
 special rate coefficient:
 
-.. code-block:: F90
+.. code-block:: fortran
 
    #INLINE F90_GLOBAL
      REAL(dp) :: k_DMS_OH
@@ -866,7 +866,7 @@ If a large number of state variables needs to be held in inline code, or
 require intermediate computation that may be repeated for many rate
 coefficients, a derived type object should be used for efficiency, e.g.:
 
-.. code-block:: F90
+.. code-block:: fortran
 
    #INLINE F90_GLOBAL
      TYPE, PUBLIC :: ObjGlobal_t
@@ -880,7 +880,7 @@ This global variable :code:`ObjGlobal` can then be used globally in KPP.
 Another way to avoid cluttering up the KPP input file is to
 :code:`#include` a header file with global variables:
 
-.. code-block:: F90
+.. code-block:: fortran
 
    #INLINE F90_GLOBAL
    ! Inline common variables into KPP_ROOT_Global.f90
@@ -898,7 +898,7 @@ F90_INIT
 This inline type can be used to define initial values before the start of the
 integration, e.g.:
 
-.. code-block:: F90
+.. code-block:: fortran
 
    #INLINE F90_INIT
      TSTART = (12.*3600.)
@@ -915,7 +915,7 @@ F90_RATES
 This inline type can be used to add new subroutines to calculate rate
 coefficients, e.g.:
 
-.. code-block:: F90
+.. code-block:: fortran
 
    #INLINE F90_RATES
      REAL FUNCTION k_SIV_H2O2(k_298,tdep,cHp,temp)
@@ -936,7 +936,7 @@ This inline type can be used to define time-dependent values of rate
 coefficients. You may inline :code:`USE` statements that reference
 modules where rate coefficients are computed, e.g.:
 
-.. code-block:: F90
+.. code-block:: fortran
 
    #INLINE F90_RCONST
      USE MyRateFunctionModule
@@ -944,7 +944,7 @@ modules where rate coefficients are computed, e.g.:
 
 or define variables directly, e.g.:
 
-.. code-block:: F90
+.. code-block:: fortran
 
    #INLINE F90_RCONST
      k_DMS_OH = 1.E-9*EXP(5820./temp)*C(ind_O2)/ &
@@ -986,21 +986,21 @@ select the correct declaration type. For example if one needs to
 declare an array BIG of size 1000, a declaration like the following
 must be used:
 
-.. code-block:: F90
+.. code-block:: fortran
 
    KPP_REAL :: BIG(1000)
 
 When used with the command :command:`#DOUBLE ON`, the above line will be
 automatically translated into:
 
-.. code-block:: F90
+.. code-block:: fortran
 
    REAL(kind=dp) :: BIG(1000)
 
 and when used with the command :command:`#DOUBLE OFF`, the same line will
 become:
 
-.. code-block:: F90
+.. code-block:: fortran
 
    REAL(kind=sp) :: BIG(1000)
 
@@ -1010,13 +1010,13 @@ in the resulting Fortran90 output file.
 description file.  In our example where we are processing
 :file:`small_strato.kpp`, a line in an auxiliary Fortran90 file like
 
-.. code-block:: F90
+.. code-block:: fortran
 
    USE KPP_ROOT_Monitor
 
 will be translated into
 
-.. code-block:: F90
+.. code-block:: fortran
 
    USE small_strato_Monitor
 
@@ -1101,6 +1101,8 @@ List of symbols replaced by the substitution preprocessor
    |                          | called                        |                            |
    +--------------------------+-------------------------------+----------------------------+
 
+.. _icntrl-rcntrl:
+   
 =================================================================
 Controlling the Integrator with :code:`ICNTRL` and :code:`RCNTRL`
 =================================================================
