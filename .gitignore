@@ -21,6 +21,7 @@
 /ci-tests/**/*results*
 /ci-tests/**/*.exe
 /ci-tests/**/*.h
+/ci-tests/**/*.log
 
 # keep empty directory for executables, but not its contents:
 /bin/*
