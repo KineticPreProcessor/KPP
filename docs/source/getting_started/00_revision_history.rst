@@ -10,12 +10,9 @@ of the changes, read `CHANGELOG.md
 
 .. _kpp300:
 
-=============================
-KPP 3.0.0 (currently in prep)
-=============================
-
-KPP 3.0.0 will be the next release after version 2.6.0. This version
-is currently still in preparation.
+=========
+KPP 3.0.0
+=========
 
 .. attention::
 
