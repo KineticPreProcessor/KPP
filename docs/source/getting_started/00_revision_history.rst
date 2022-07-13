@@ -39,6 +39,38 @@ KPP 3.0.0
      consistently for the maximum number of Newton iterations in all
      integrators.
 
+
+- Updated the search for the :program:`flex` library in
+  :file:`src/Makefile.defs`.  The build process will look for the
+  :program:`flex:` library file (either :file:`libfl.so` or
+  :file:`libfl.a`  file in several standard locations first.  If not
+  found, the build process will look in the path specfiied by
+  environment variable :envvar:`KPP_FLEX_LIB_DIR`.
+
+- Added content to ReadTheDocs pages and fixed several formatting issues.
+
+- Fixed various minor issues in generating C-language code.
+
+- Fixed various minor issues in generating Matlab-language code.
+
+- C-I tests folders have been renamed for clarity.  Also refactored
+  the scripts used to submit C-I tests.  Updated the Dockerfile to
+  always request Ubuntu 20.04 and an AMD64 platform, so that the same
+  libraries will always be used when running C-I tests on Azure
+  DevOps.
+
+- Fortran type :code:`DOUBLE_COMPLEX` is now replaced by
+  :code:`COMPLEX(kind=dp)`.
+
+- Fixed incorrect license metadata in :file:`.zenodo.json`, which is
+  used to auto-generate a DOI with each KPP release on Github.
+
+- Added extra :code:`free()` statements in :file:`src/gen.c` to avoid
+  memory leaks.
+
+- :code:`Fun()` no longer uses Vdotout since it can be retrieved from
+  :code:`Vdot`.
+
 .. _kpp260:
 
 =========

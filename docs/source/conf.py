@@ -23,7 +23,7 @@ copyright = "2022, The KPP Development Team"
 author = "A. Sandu, R. Sander, M. Long, H. Lin, and R. Yantosca"
 
 # The full version, including alpha/beta/rc tags
-release = "3.0.0-rc.0"
+release = "3.0.0-rc.1"
 
 
 # -- General configuration ---------------------------------------------------
