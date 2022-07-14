@@ -14,8 +14,9 @@ The Kinetic PreProcessor: KPP
    </p>
    </hr>
    <p>
-   <a href="https://github.com/KineticPreProcessor/KPP/releases/"><img src="https://img.shields.io/github/v/release/KineticPreProcessor/KPP?include_prereleases&label=Latest%20Release"></a>
-   <a href="https://github.com/KineticPreProcessor/KPP/releases/"><img src="https://img.shields.io/github/release-date-pre/KineticPreProcessor/KPP"></a>
+   <a href="https://github.com/KineticPreProcessor/KPP/releases/"><img src="https://img.shields.io/github/v/release/KineticPreProcessor/KPP?include_prereleases&label=Latest%20Pre-Release"></a>
+   <a href="https://github.com/KineticPreProcessor/KPP/releases/"><img src="https://img.shields.io/github/v/release/KineticPreProcessor/KPP?label=Latest%20Stable%20Release"></a>
+   <a href="https://github.com/KineticPreProcessor/KPP/releases/"><img src="https://img.shields.io/github/release-date/KineticPreProcessor/KPP"></a>
    <a href="https://github.com/KineticPreProcessor/KPP/blob/main/LICENSE.txt"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg"></a>
    <a href="https://doi.org/10.5281/zenodo.6828025"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.6828025.svg"></a>
    <a href="https://kpp.readthedocs.io/en/latest/"><img src="https://img.shields.io/readthedocs/kpp?label=ReadTheDocs"></a>
