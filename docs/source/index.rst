@@ -14,10 +14,12 @@ The Kinetic PreProcessor: KPP
    </p>
    </hr>
    <p>
-   <a href="https://github.com/KineticPreProcessor/KPP/blob/main/LICENSE.txt"><img
-   src="https://img.shields.io/badge/License-GPLv3-blue.svg"></a>
-   <a href="https://doi.org/10.5281/zenodo.6563908"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.6563908.svg"></a>
+   <a href="https://github.com/KineticPreProcessor/KPP/releases/"><img src="https://img.shields.io/github/v/release/KineticPreProcessor/KPP?include_prereleases"></a>
+   <a href="https://github.com/KineticPreProcessor/KPP/releases/"><img src="https://img.shields.io/github/release-date-pre/KineticPreProcessor/KPP"></a>
+   <a href="https://github.com/KineticPreProcessor/KPP/blob/main/LICENSE.txt"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg"></a>
+   <a href="https://doi.org/10.5281/zenodo.6828025"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.6828025.svg"></a>
    <a href="https://kpp.readthedocs.io/en/latest/"><img src="https://img.shields.io/readthedocs/kpp?label=ReadTheDocs"></a>
+   <a href="https://dev.azure.com/KineticPreProcessor/KPP/_build?definitionId=1"><img src="https://dev.azure.com/KineticPreProcessor/KPP/_apis/build/status/KineticPreProcessor.KPP?branchName=dev"></a>
    </p>
 
 This site provides instructions for :program:`KPP`, the Kinetic PreProcessor.

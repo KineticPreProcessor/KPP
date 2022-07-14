@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed table numbers from tables (to reduce confusion)
   - Now document additional installation steps for MacOS X
   - Added documentation about `KPP_FLEX_LIB_DIR`
+  - Added badges for release, release date, and Azure pipelines to index.rst
 - C-I test additions
   - Added a C-I test for the `rosenbrock_autoreduce` integrator
 
