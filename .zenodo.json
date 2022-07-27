@@ -1,43 +1,51 @@
 {
-    "access_right": "open",
-    "creators": [
-	{
-	    "name": "Adrian Sandu",
-	    "affiliation": "Virginia Tech"
-	},
-	{
-	    "name": "Rolf Sander",
-	    "affiliation": "Max Planck Institute for Chemistry, Mainz, Germany"
-	},
-	{
-	    "name": "Josue Bock"
-	},
-	{
-	    "name": "Michael Long",
-	    "affiliation": "Renaissance Fiber, LLC, North Carolina, USA"
-	},
-	{
-	    "name": "Robert Yantosca",
-	    "affiliation": "Harvard University, Cambridge, MA, USA"
-	},
-	{
-	    "name": "Haipeng Lin",
-	    "affiliation": "Harvard University, Cambridge, MA, USA"
-	}
-    ],
-    "description": "The Kinetic Pre-Processor (KPP)",
-    "keywords": [
-	"atmospheric-chemistry",
-	"atmospheric-composition",
-	"atmospheric-modeling",
-	"chemistry-solver",
-	"climate-modeling",
-	"fortran-90"
-    ],
-    "license": {
-        "id": "GPL-3.0",
-        "url": "https://github.com/KineticPreProcessor/KPP/blob/main/LICENSE.txt",
-        "title": "GNU General Public License v3.0"
+  "access_right": "open",
+  "creators": [
+    {
+      "name": "Adrian Sandu",
+      "affiliation": " Virginia Polytechnic Institute and State University, Blacksburg, Virginia , USA"
     },
-    "upload_type": "software"
+    {
+      "name": "Rolf Sander",
+      "affiliation": "Max Planck Institute for Chemistry, Mainz, Germany"
+    },
+    {
+      "name": "Michael S. Long",
+      "affiliation": "Renaissance Fiber, LLC, North Carolina, USA"
+    },
+    {
+      "name": "Robert M. Yantosca",
+      "affiliation": "Harvard John A. Paulson Schoool of Engineering and Applied Sciences, Cambridge, MA, USA"
+    },
+    {
+      "name": "Haipeng Lin",
+      "affiliation": "Harvard John A. Paulson Schoool of Engineering and Applied Sciences, Cambridge, MA, USA"
+    },
+    {
+      "name": "Lu Shen",
+      "affiliation": "School of Physics, Peking University, Beijing, China"
+    },
+    {
+      "name": "Daniel J. Jacob",
+      "affiliation": "Harvard John A. Paulson Schoool of Engineering and Applied Sciences, Cambridge, MA, USA"
+    }
+  ],
+  "description": "The Kinetic Pre-Processor (KPP)",
+  "keywords": [
+    "atmospheric-chemistry",
+    "atmospheric-modeling",
+    "scientific-computing",
+    "chemical-mechanisms",
+    "chemistry-solver",
+    "climate-modeling",
+    "fortran-90",
+    "c",
+    "matlab"
+  ],
+  "license": {
+    "id": "GPL-3.0",
+    "url": "https://github.com/KineticPreProcessor/KPP/blob/main/LICENSE.txt",
+    "title": "GNU General Public License v3.0"
+  },
+  "upload_type": "software"
 }
