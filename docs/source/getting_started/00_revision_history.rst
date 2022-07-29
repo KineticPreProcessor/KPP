@@ -117,7 +117,7 @@ KPP 2.4.0
 =========
 
 - Added new integrators: :file:`beuler.f90`, :file:`rosenbrock_mz.f90`,
-  :file:`rosenbrock_posdef.f90,  :file:`rosenbrock_posdef_h211b_qssa.f90`.
+  :file:`rosenbrock_posdef.f90`,  :file:`rosenbrock_posdef_h211b_qssa.f90`.
 
 - Several memory sizes (:code:`MAX_EQN`, ...) have been increased to
   allow large chemical mechanisms.
