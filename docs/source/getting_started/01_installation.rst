@@ -406,8 +406,9 @@ environment variable :ref:`as described above <flex-dep>`:
 Request maximum stack memory
 ----------------------------
 
-MacOS X has a hard limit of 65332 bytes for stack memory (i.e. the
-GNU/Linux systems.
+MacOS X has a hard limit of 65332 bytes for stack memory.  This is
+much less memory than what is available on GNU/Linux operating systems
+such as Ubuntu, Fedora, etc.
 
 To make sure you are using the maximum amount of stack memory on MacOS
 X add this command to your :file:`.bashrc` file:
