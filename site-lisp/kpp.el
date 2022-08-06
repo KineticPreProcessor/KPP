@@ -57,7 +57,7 @@
          "\\|#SPARSEDATA\\|#STOCHASTIC\\|#STOICMAT\\|#TRANSPORTALL"
          "\\|#TRANSPORT\\|#USE\\|#USES\\|#WRITE_ATM"
          "\\|#WRITE_MAT\\|#WRITE_OPT\\|#WRITE_SPC"
-         "\\|#UPPERCASEF90\\|#MINVERSION"
+         "\\|#UPPERCASEF90\\|#MINVERSION\\|#FAMILIES"
          "\\|#XGRID\\|#YGRID\\|#ZGRID\\)"
          ) 'font-lock-keyword-face)
   '("^//.*"         0 font-lock-comment-face t) ; comment
