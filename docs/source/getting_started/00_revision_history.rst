@@ -71,6 +71,9 @@ KPP 3.0.0
 - :code:`Fun()` no longer uses Vdotout since it can be retrieved from
   :code:`Vdot`.
 
+- Fixed a bug in :file:`int/feuler.f90`, where the wrong argument was
+  being passed to routine :code:`Fun`.
+
 .. _kpp260:
 
 =========

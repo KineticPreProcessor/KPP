@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [3.0.0-rc.2]
+## [3.0.0-rc.4]
 
 ### Added
 
@@ -46,6 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed incorrect license string in .zenodo.json
   - Added extra `free()` statements in `src/gen.c` to avoid memory
     leaks
+- Bug fix in int/feuler.f90: FIX must be the 2nd argument passed to
+  routine Fun (from routine FunTemplate)
 
 ### Removed
 - bibtex.json (no longer needed w/ Sphinx 3.5.4)
