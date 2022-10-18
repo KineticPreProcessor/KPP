@@ -197,7 +197,7 @@ CONTAINS
     KPP_REAL :: Ydot(NVAR)
 
     !~~~> Compute equation rates and time derivative of variable species
-    CALL Fun( Y, VAR, RCONST, Ydot )
+    CALL Fun( Y, FIX, RCONST, Ydot )
 
   END SUBROUTINE FunTemplate
 
