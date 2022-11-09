@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Version numbers must be synchronized in CHANGELOG.md, -->
 <!-- src/gdata.h, and docs/source/conf.py-->
-## [3.0.0-rc.4]
+## [3.0.0]
 
 ### Added
 
