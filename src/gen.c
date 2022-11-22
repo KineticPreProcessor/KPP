@@ -82,6 +82,8 @@ int Jac_NZ, LU_Jac_NZ, nzr;
 int DO_SLV, DO_JVS, DO_FUN, cLU_IROW, cLU_ICOL, cLU_DIAG, cLU_CROW;
 int SPC_MAP, iSPC_MAP, RMV, JVS_MAP, RNVAR, cNONZERO, keepActive, keepSpcActive;
 
+int ERR_IND; /* vector of species that are not Prod/Loss species. For computing error norm */
+
 NODE *sum, *prod;
 int real;
 int nlookat;
@@ -2361,6 +2363,9 @@ int i;
 char name[MAX_SPNAME];
 
 int j,dummy_species;
+int err[MAX_SPECIES];
+int cmp;
+int idx=0;
 
 /*  ---------->  First declaration of constants */
   UseFile( param_headerFile );
@@ -2368,7 +2373,7 @@ int j,dummy_species;
   NewLines(1);
   DeclareConstant( NSPEC,   ascii( max(SpcNr, 1) ) );
   DeclareConstant( NVAR,    ascii( max(VarNr, 1) ) );
-  DeclareConstant( NFAM,    ascii( max(FamilyNr,1)  ) );
+  DeclareConstant( NFAM,    ascii( max(FamilyNr,0)  ) );
   DeclareConstant( NVARACT, ascii( max(VarActiveNr, 1) ) );
   DeclareConstant( NFIX,    ascii( max(FixNr, 1) ) );
   DeclareConstant( NREACT,  ascii( max(EqnNr, 1) ) );
@@ -2445,6 +2450,25 @@ int j,dummy_species;
     DeclareConstant( spc, ascii( Index(i) ) );
     FreeVariable( spc );
   }
+  
+  /* Define the vector of non-passive/non-family species indices for proper */
+  /* computation of the error norm. M.Long - Nov 22, 2022                   */
+  NewLines(1);
+  WriteComment("Vector declaration for species used to compute Error Norm");
+  NewLines(1);
+  for (i = 0; i < VarNr; i++) {
+    cmp = 0;
+//    printf("\n<<> %s %d",SpeciesTable[ Code[i] ].name, Index(i));
+    for (j = 0; j < FamilyNr; j++) {
+      cmp = strcmp(SpeciesTable[ Code[i] ].name,FamilyTable[ j ].name);
+      if (cmp == 0) break; // break if the species is a family tracer
+    }
+    if (cmp != 0) { // if not a family tracer
+      err[idx] = Index(i);
+      idx++;
+    }
+  }
+  InitDeclare( ERR_IND, VarNr-FamilyNr, (void*)err ); // Write the vector ** MSL
 }
 
 
