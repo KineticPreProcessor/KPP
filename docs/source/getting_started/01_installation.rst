@@ -60,10 +60,10 @@ Now if you type:
 
 .. code-block:: console
 
-   $ echo $PATH
+   $ which kpp
 
-You should see the :envvar:`$KPP_HOME/bin` directory placed at the end of
-the :envvar:`PATH` variable.
+the path to the executable file (:file:`kpp`) will be displayed. This
+path should match the path specified by :file:`$KPP_HOME/bin/kpp`.
 
 .. _test-for-dependencies:
 
