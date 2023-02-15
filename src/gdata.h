@@ -29,7 +29,7 @@
 
 ******************************************************************************/
 
-#define KPP_VERSION "3.0.0-rc.3"
+#define KPP_VERSION "3.0.0-rc.3.flux"
 
 #ifndef _GDATA_H_
 #define _GDATA_H_
