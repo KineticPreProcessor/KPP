@@ -307,6 +307,7 @@ int dummyNr;
   FixNr       = 0;
   dummyNr     = 0;
   plNr        = 0;
+  flxNr       = 0;
 
   var = (CODE*)malloc( SpcNr * sizeof(CODE) );
   fix = (CODE*)malloc( SpcNr * sizeof(CODE) );
@@ -329,10 +330,17 @@ int dummyNr;
   }
 
   /*msl*/
-  if (doFlux == 1) { /* determine number of PL species and map their index to CODE */
+  if (doFlux == 1) { /* determine number of flux species and map their index to CODE */
     for( i = 0; i < VarNr; i++ ) {
       /* index mapping */
-      if ( SpeciesTable[ Code[i] ].flux ) SpeciesTable[ Code[i] ].flux = Index(plNr++);
+      if ( SpeciesTable[ Code[i] ].flux ) SpeciesTable[ Code[i] ].flux = Index(flxNr++);
+    }
+  }
+  /*msl: for families*/
+  if (FamilyNr > 0) { /* determine number of PL species and map their index to CODE */
+    for( i = 0; i < VarNr; i++ ) {
+      /* index mapping */
+      if ( SpeciesTable[ Code[i] ].fam ) SpeciesTable[ Code[i] ].fam = Index(plNr++);
     }
   }
 

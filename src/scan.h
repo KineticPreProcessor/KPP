@@ -40,7 +40,7 @@
 #define MAX_INLINE 200000
           
 enum eq_state { LHS, RHS, RAT };
-enum sptypes { DUMMY_SPC, VAR_SPC, RAD_SPC, FIX_SPC, PL_SPC };
+enum sptypes { DUMMY_SPC, VAR_SPC, RAD_SPC, FIX_SPC, FLUX_SPC, PL_SPC };
 enum famtypes { PROD_FAM, LOSS_FAM };
 enum atomcheck { NO_CHECK, DO_CHECK, CANCEL_CHECK };
 enum codetype { APPEND, REPLACE };

@@ -45,7 +45,7 @@ int **LUstructJ;
 
 ICODE InlineCode[ INLINE_OPT ];
 
-int NSPEC, NVAR, NVARP1, NVARACT, NFIX, NREACT, NFLUX;
+int NSPEC, NVAR, NVARP1, NVARACT, NFIX, NREACT, NPL;
 int NVARST, NFIXST;
 int C_DEFAULT, C;
 int DC;
@@ -66,7 +66,7 @@ int IROW, ICOL, CROW, DIAG;
 int LU_IROW, LU_ICOL, LU_CROW, LU_DIAG, CNVAR;
 int LOOKAT, NLOOKAT, MONITOR, NMONITOR;
 int NMASS, SMASS;
-int SPC_NAMES, EQN_NAMES, FAM_NAMES, FLUX_MAP;
+int SPC_NAMES, EQN_NAMES, FAM_NAMES, FLUX_MAP, FAM_MAP;
 int EQN_TAGS;
 int NONZERO, LU_NONZERO;
 int TIME, SUN, TEMP;
@@ -137,7 +137,7 @@ int i,j;
   NVAR    = DefConst( "NVAR",    INT, "Number of Variable species" );
   NVARACT = DefConst( "NVARACT", INT, "Number of Active species" );
   NFIX    = DefConst( "NFIX",    INT, "Number of Fixed species" );
-  NFLUX   = DefConst( "NFLUX",   INT, "Number of Reaction Flux species" );
+  NPL     = DefConst( "NPL",     INT, "Number of Prod/Loss species" );
   NREACT  = DefConst( "NREACT",  INT, "Number of reactions" );
   NVARST  = DefConst( "NVARST",  INT, "Starting of variables in conc. vect." );
   NFIXST  = DefConst( "NFIXST",  INT, "Starting of fixed in conc. vect." );
@@ -167,7 +167,7 @@ int i,j;
                    "Concentrations of variable species (global)" );
     FIX = DefvElm( "FIX", real, -NFIX,
                    "Concentrations of fixed species (global)" );
-    FLUX = DefvElm( "FLUX", real, -NFLUX, 
+    FLUX = DefvElm( "FLUX", real, -NREACT, 
 		    "Captured flux through reactions (global)" );
 }
 //============================================================================
@@ -288,6 +288,7 @@ int i,j;
   FAM_NAMES  = DefvElm( "FAM_NAMES", STRING, -NFAM, "Names of chemical familes" );
 
   FLUX_MAP   = DefvElm( "FLUX_MAP", INT, -NREACT, "Map-to-SPEC indeces for FLUX species" );
+  FAM_MAP    = DefvElm( "FAM_MAP",  INT, -NPL,  "Map-to-SPEC indeces for FAMILY species" );
 
   CFACTOR  = DefElm( "CFACTOR", real, "Conversion factor for concentration units");
 
@@ -424,6 +425,7 @@ char *sfam[MAX_FAMILIES];
 char *bufeqn, *p;
 int dim;
 int flxind[MAX_EQN];
+int plind[MAX_SPECIES];
 
 
   /* Allocate local data structures */
@@ -525,8 +527,20 @@ int flxind[MAX_EQN];
     InitDeclare( EQN_TAGS, EqnNr, (void*)seqn );
   }
 
-  for (i = 0; i < FamilyNr; i++) {
-    sfam[i] = FamilyTable[ i ].name;
+  if (FamilyNr > 0) {
+    NewLines(1);
+    j = 0;
+    for (i = 0; i < SpcNr; i++) {
+      if ( SpeciesTable[ Code[i] ].fam ) {
+	plind[j] = Index(i);
+	j++;
+      }
+    }
+    InitDeclare( FAM_MAP, plNr, (void*)plind );
+
+    for (i = 0; i < FamilyNr; i++) {
+      sfam[i] = FamilyTable[ i ].name;
+    }
   }
   InitDeclare( FAM_NAMES, FamilyNr, (void*)sfam );
 
@@ -2438,7 +2452,7 @@ int j,dummy_species;
   NewLines(1);
   DeclareConstant( NSPEC,   ascii( max(SpcNr, 1) ) );
   DeclareConstant( NVAR,    ascii( max(VarNr, 1) ) );
-  DeclareConstant( NFLUX,   ascii( max(plNr+1,  1)  ) );
+  DeclareConstant( NPL,   ascii( max(plNr+1,  1)  ) );
   DeclareConstant( NFAM,    ascii( max(FamilyNr,1)  ) );
   DeclareConstant( NVARACT, ascii( max(VarActiveNr, 1) ) );
   DeclareConstant( NFIX,    ascii( max(FixNr, 1) ) );

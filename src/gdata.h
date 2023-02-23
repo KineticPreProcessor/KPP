@@ -122,6 +122,7 @@ typedef struct {
                  char ival[ MAX_IVAL ];
                  ATOM atoms[ MAX_ATOMS ];
                  int flux; /* msl_290416 */
+                 int fam;  /* msl_230223 */
 	       } SPECIES_DEF;
 
 typedef struct {
@@ -165,6 +166,7 @@ extern int VarNr;
 extern int VarActiveNr;
 extern int FixNr;
 extern int plNr;
+extern int flxNr;
 extern int VarStartNr;
 extern int FixStartNr;
 extern int Hess_NZ;

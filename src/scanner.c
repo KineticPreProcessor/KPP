@@ -48,6 +48,7 @@ int FixNr        = 0;
 int VarStartNr   = 0;
 int FixStartNr   = 0;
 int plNr         = 0;
+int flxNr        = 0;
 int initNr       = -1;
 int xNr          = 0;
 int yNr          = 0;
@@ -526,15 +527,22 @@ void StoreSpecies( int index, int type, char *spname )
 {
 int i;
 
- /*msl*/
- if ( type == PL_SPC ) {
+ /*msl-->*/
+ if ( type == FLUX_SPC ) {
    type = VAR_SPC;
    SpeciesTable[ index ].flux = 1; /* holding value */
  }
  else {
    SpeciesTable[ index ].flux = 0; /* indicates NOT a flux species */
  }
- /*msl*/
+ if ( type == PL_SPC ) {
+   type = VAR_SPC;
+   SpeciesTable[ index ].fam = 1; /* holding value */
+ }
+ else {
+   SpeciesTable[ index ].fam = 0; /* indicates NOT a flux species */
+ }
+ /*<--msl*/
   strcpy( SpeciesTable[ index ].name, spname );
   SpeciesTable[ index ].type = type; 
   *SpeciesTable[ index ].ival = '\0'; 
@@ -759,7 +767,7 @@ char eqNr[40];
      sprintf(eqNr, "%d", EqnNr+1);
      strcpy( spstr, spname );
      strcat( spstr, eqNr );
-     DeclareSpecies( PL_SPC, spstr );
+     DeclareSpecies( FLUX_SPC, spstr );
    }
    else {
      return; /* Because FLUX is not ON. Thus, add no new species. */
@@ -1018,7 +1026,7 @@ char buf[40];
     ScanError("Undefined species %s.", spname );
     return;
   }
-  
+
   crtSpec = ReverseCode[ code ];
 
   if ( crtSpec == NO_CODE ) {
@@ -1116,7 +1124,7 @@ void FinalizeFamily()
 	  newSpcCode = FindSpecies( spstr );
 	  // -- -- If not, then declare it                   -- --
 	  if ( newSpcCode < 0 ){
-	    DeclareSpecies( VAR_SPC, spstr );
+	    DeclareSpecies( PL_SPC, spstr );
 	  } 
 	  /* -- -- Now, add this species to the appropriate Stoich* arrays -- */
 	  sprintf(Coef,"%f",Loss_Coeff[ FamilyNr ][ i ] - Prod_Coeff[ FamilyNr ][ i ]);
@@ -1132,7 +1140,7 @@ void FinalizeFamily()
 	  newSpcCode = FindSpecies( spstr );
 	  // -- -- If not, then declare it                   -- --
 	  if ( newSpcCode < 0 ){
-	    DeclareSpecies( VAR_SPC, spstr );
+	    DeclareSpecies( PL_SPC, spstr );
 	  } 
 	  // -- -- Now, add this species to the appropriate Stoich* arrays --
 	  sprintf(Coef,"%f",Prod_Coeff[ FamilyNr ][ i ] - Loss_Coeff[ FamilyNr ][ i ]);
