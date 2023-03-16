@@ -44,7 +44,7 @@ identifiers:
     value: 10.1029/2022MS003293
     description: Paper
   - type: doi
-    value: 10.5281/zenodo.6563908
+    value: 10.5281/zenodo.6828025
     description: Code archive (Zenodo)
 repository-code: 'https://github.com/KineticPreProcessor/KPP'
 url: 'https://kpp.readthedocs.io'
