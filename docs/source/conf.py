@@ -19,13 +19,13 @@ master_doc = "index"
 # -- Project information -----------------------------------------------------
 
 project = "KPP: The Kinetic PreProcessor"
-copyright = "2022, The KPP Development Team"
-author = "A. Sandu, R. Sander, M. Long, H. Lin, and R. Yantosca"
+copyright = "2023, The KPP Development Team"
+author = "A. Sandu, R. Sander, M. Long, H. Lin, R. Yantosca, L. Estrada, L. Shen, and D. J. Jacob"
 
 # The full version, including alpha/beta/rc tags
 # (version numbers must be synchronized in CHANGELOG.md, src/gdata.h,
 # and docs/source/conf.py)
-release = "3.0.0"
+release = "3.0.1"
 
 
 # -- General configuration ---------------------------------------------------

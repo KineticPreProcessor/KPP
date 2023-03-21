@@ -10,7 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Version numbers must be synchronized in CHANGELOG.md, -->
 <!-- src/gdata.h, and docs/source/conf.py-->
-## [3.0.0]
+## [3.0.1] - 2023-03-21
+### Added
+- `CITATION.cff` file which will activate the "Cite this repository" option.
+
+### Fixed
+- Fixed a segmentation fault when using #STOICHMAT by using dynamically-sized variables `EqnNr` and `VarNr` rather than static variables `MAX_EQN` and `MAX_SPECIES`. 
+
+## [3.0.0] - 2022-11-09
 
 ### Added
 
@@ -58,7 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - bibtex.json (no longer needed w/ Sphinx 3.5.4)
 - Fun() no longer uses Vdotout since it can be retrieved from `Vdot`
 
-## [2.6.0]
+## [2.6.0] - 2022-06-24
 
 ### Added
 
@@ -69,7 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The `ICNTRL(5)` option in the LSODE integrator is now `ICNTRL(10)`.
 
-## [2.5.0]
+## [2.5.0] - 2022-05-18
 
 ### Added
 - New integrators
@@ -103,7 +110,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Reduce size of MAX_EQN and MAX_SPECIES to get KPP to run within
     65532 kb of stack memory
 
-## [2.4.0]
+## [2.4.0] - 2022-04-25
 
 ### Added
 
