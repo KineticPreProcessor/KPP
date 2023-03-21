@@ -25,7 +25,7 @@ author = "A. Sandu, R. Sander, M. Long, H. Lin, and R. Yantosca"
 # The full version, including alpha/beta/rc tags
 # (version numbers must be synchronized in CHANGELOG.md, src/gdata.h,
 # and docs/source/conf.py)
-release = "3.0.0"
+release = "3.0.1"
 
 
 # -- General configuration ---------------------------------------------------

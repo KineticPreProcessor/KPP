@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Version numbers must be synchronized in CHANGELOG.md, -->
 <!-- src/gdata.h, and docs/source/conf.py-->
+## [3.0.1]
+
+### Fixed
+- Fixed a segmentation fault when using #STOICHMAT by using dynamically-sized variables `EqnNr` and `VarNr` rather than static variables `MAX_EQN` and `MAX_SPECIES`. 
+
 ## [3.0.0]
 
 ### Added
