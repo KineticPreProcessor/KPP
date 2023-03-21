@@ -1,0 +1,109 @@
+cff-version: 1.2.0
+title: 'The Kinetic PreProcessor: KPP'
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Adrian
+    family-names: Sandu
+    affiliation: >-
+      Virginia Polytechnic Institute and State University,
+      Blacksburg, VA, USA
+  - given-names: Rolf
+    family-names: Sander
+    affiliation: 'Max-Planck Institute for Chemistry, Mainz, Germany'
+  - given-names: Michael S.
+    family-names: Long
+    affiliation: 'Renaissance Fiber, LLC, NC, USA'
+  - given-names: Haipeng
+    family-names: Lin
+    affiliation: >-
+      Harvard John A. Paulson School of Engineering and
+      Applied Sciences, Cambridge, MA, USA
+  - given-names: Robert M.
+    family-names: Yantosca
+    affiliation: >-
+      Harvard John A. Paulson School of Engineering and
+      Applied Sciences, Cambridge, MA, USA
+  - given-names: Lucas
+    family-names: Estrada
+    affiliation: >-
+      Harvard John A. Paulson School of Engineering and
+      Applied Sciences, Cambridge, MA, USA
+  - given-names: Lu
+    family-names: Shen
+    affiliation: 'School of Physics, Peking University, Bejing, China'
+  - given-names: Daniel J.
+    family-names: Jacob
+    affiliation: >-
+      Harvard John A. Paulson School of Engineering and
+      Applied Sciences, Cambridge, MA, USA
+identifiers:
+  - type: doi
+    value: 10.1029/2022MS003293
+    description: Paper
+  - type: doi
+    value: 10.5281/zenodo.6828025
+    description: Code archive (Zenodo)
+repository-code: 'https://github.com/KineticPreProcessor/KPP'
+url: 'https://kpp.readthedocs.io'
+abstract: >-
+  The KPP kinetic preprocessor is a software tool that
+  assists the computer simulation of chemical kinetic
+  systems.
+keywords:
+  - chemistry
+  - chemical-solver
+  - numerical-methods
+  - atmospheric-chemistry
+  - scientific-computing
+license: GPL-3.0
+preferred-citation:
+  type: article
+  authors:
+    - given-names: Haipeng
+      family-names: Lin
+      affiliation: >-
+        Harvard John A. Paulson School of Engineering and
+        Applied Sciences, Cambridge, MA, USA
+    - given-names: Michael S.
+      family-names: Long
+      affiliation: 'Renaissance Fiber, LLC, NC, USA'
+    - given-names: Rolf
+      family-names: Sander
+      affiliation: 'Max-Planck Institute for Chemistry, Mainz, Germany'
+    - given-names: Adrian
+      family-names: Sandu
+      affiliation: >-
+        Virginia Polytechnic Institute and State University,
+        Blacksburg, VA, USA
+    - given-names: Robert M.
+      family-names: Yantosca
+      affiliation: >-
+        Harvard John A. Paulson School of Engineering and
+        Applied Sciences, Cambridge, MA, USA
+    - given-names: Lucas
+      family-names: Estrada
+      affiliation: >-
+        Harvard John A. Paulson School of Engineering and
+        Applied Sciences, Cambridge, MA, USA
+    - given-names: Lu
+      family-names: Shen
+      affiliation: 'School of Physics, Peking University, Bejing, China'
+    - given-names: Daniel J.
+      family-names: Jacob
+      affiliation: >-
+        Harvard John A. Paulson School of Engineering and
+        Applied Sciences, Cambridge, MA, USA
+  title: >-
+    An adaptive auto-reduction solver for speeding up
+    integration of chemical kinetics in atmospheric
+    chemistry models: implementation and evaluation within
+    the Kinetic Pre-Processor (KPP) version 3.0.0
+  journal: JAMES
+  year: 2023
+  month: 2
+  volume: 15
+  issue: 2
+  doi: 10.1029/2022MS003293
