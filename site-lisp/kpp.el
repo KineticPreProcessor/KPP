@@ -1,13 +1,13 @@
 ;; kpp.el --- kpp mode for GNU Emacs 21
 ;; (c) Rolf Sander <sander@mpch-mainz.mpg.de>
 ;; Time-stamp: <2005-02-15 15:18:42 sander>
- 
+
 ;; to activate it copy kpp.el to a place where emacs can find it and then
 ;; add "(require 'kpp)" to your .emacs startup file
 
 ;; known problem:
 ;; ":" inside comments between reaction products confuses font-lock
- 
+
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2 of the License, or
@@ -45,9 +45,9 @@
   '("{%[A-z0-9#]+}" 0 font-lock-type-face t)          ; marker
   ;; KPP sections (Tab. 3 in thesis), commands (Tab. 13 in thesis), and
   ;; fragments (Tab. 17 in thesis)
-  (cons (concat 
-         "\\(#ATOMS\\|#CHECKALL\\|#CHECK\\|#DEFFIX\\|#DEFRAD"
-         "\\|#DEFVAR\\|#DOUBLE\\|#DRIVER\\|#DUMMYINDEX"
+  (cons (concat
+         "\\(#ATOMS\\|#AUTOREDUCE\\|#CHECKALL\\|#CHECK\\|#DEFFIX"
+         "\\|#DEFRAD\\|#DEFVAR\\|#DOUBLE\\|#DRIVER\\|#DUMMYINDEX"
          "\\|#ENDINLINE\\|#EQNTAGS\\|#EQUATIONS\\|#FUNCTION"
          "\\|#HESSIAN\\|#INCLUDE\\|#INITIALIZE"
          "\\|#INITVALUES\\|#INLINE\\|#INTEGRATOR\\|#INTFILE"
@@ -71,8 +71,8 @@
 
 (defun kpp-comment-region (beg-region end-region arg)
   "Comments every line in the region.
-Puts kpp-comment-region at the beginning of every line in the region. 
-BEG-REGION and END-REGION are args which specify the region boundaries. 
+Puts kpp-comment-region at the beginning of every line in the region.
+BEG-REGION and END-REGION are args which specify the region boundaries.
 With non-nil ARG, uncomments the region."
   (interactive "*r\nP")
   (let ((end-region-mark (make-marker)) (save-point (point-marker)))
@@ -95,7 +95,7 @@ With non-nil ARG, uncomments the region."
     (set-marker end-region-mark nil)
     (set-marker save-point nil)))
 
-(defvar kpp-mode-map () 
+(defvar kpp-mode-map ()
   "Keymap used in kpp mode.")
 
 (if kpp-mode-map
@@ -104,7 +104,7 @@ With non-nil ARG, uncomments the region."
   (define-key kpp-mode-map "\C-c;"    'kpp-comment-region)
   ;; TAB inserts 8 spaces, not the TAB character
   (define-key kpp-mode-map (kbd "TAB")
-    '(lambda () (interactive) (insert "        ")))
+    (lambda () (interactive) (insert "        ")))
 )
 
 (defun kpp-mode ()
