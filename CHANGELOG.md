@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Version numbers must be synchronized in CHANGELOG.md, -->
 <!-- src/gdata.h, and docs/source/conf.py-->
+## [Unreleased]
+### Added
+- Added `.readthedocs.yaml` for configuring ReadTheDocs builds
+- Added a ReadTheDocs badge in `README.md`
+
+### Changed
+- Added pybtex and pybtex-docutils to the `docs/requirements.txt`
+
 ## [3.0.1] - 2023-03-21
 ### Added
 - `CITATION.cff` file which will activate the "Cite this repository" option.
