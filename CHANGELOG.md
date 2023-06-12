@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Added pybtex and pybtex-docutils to the `docs/requirements.txt`
 
+### Fixed
+- Minor issues in `site-lisp/kpp.el` file for Emacs
+
 ## [3.0.1] - 2023-03-21
 ### Added
 - `CITATION.cff` file which will activate the "Cite this repository" option.
