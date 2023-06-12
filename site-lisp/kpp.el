@@ -1,11 +1,10 @@
-;; kpp.el --- kpp mode for GNU Emacs 21
-;; (c) Rolf Sander <sander@mpch-mainz.mpg.de>
-;; Time-stamp: <2005-02-15 15:18:42 sander>
+;; kpp.el --- kpp mode for GNU Emacs
+;; (c) Rolf Sander <rolf.sander@mpic.de>
 
-;; to activate it copy kpp.el to a place where emacs can find it and then
-;; add "(require 'kpp)" to your .emacs startup file
+;; To activate it, copy kpp.el to a place where emacs can find it and
+;; then add "(require 'kpp)" to your .emacs startup file.
 
-;; known problem:
+;; Known problem:
 ;; ":" inside comments between reaction products confuses font-lock
 
 ;; This program is free software; you can redistribute it and/or modify
