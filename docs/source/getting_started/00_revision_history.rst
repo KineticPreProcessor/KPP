@@ -8,6 +8,29 @@ Only the major new features are listed here. For a detailed description
 of the changes, read `CHANGELOG.md
 <https://github.com/KineticPreProcessor/KPP/blob/main/CHANGELOG.md>`_.
 
+.. _kpp302:
+
+=========
+KPP 3.0.2
+=========
+
+- Added a :file:`.readthedocs.yaml` file to the root folder to
+  explicitly state the parameters controlling the documentation
+  build.  This will "future-proof" the KPP documentation against
+  issues caused by software updates on the ReadTheDocs platform.
+
+.. _kpp301:
+
+=========
+KPP 3.0.1
+=========
+
+- Fixed a segmentation fault that occurred when using the
+  :literal:`#STOICMAT` option by using dynamically-sized variables
+  :code:`EqnNr` and :code:`MaxNr` rather than static variables
+  :code:`MAX_EQN` and :code:`MAX_SPECIES`.
+
+
 .. _kpp300:
 
 =========
@@ -38,6 +61,9 @@ KPP 3.0.0
      instead. The index 5 in the :code:`ICNTRL` array is now used
      consistently for the maximum number of Newton iterations in all
      integrators.
+
+    - The dummy integrator :literal:`none` does not exist anymore.  Thus,
+      commands such as :literal:`#INTEGRATOR none` should be removed.
 
 
 - Updated the search for the :program:`flex` library in
