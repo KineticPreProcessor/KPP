@@ -1,13 +1,12 @@
-;; kpp.el --- kpp mode for GNU Emacs 21
-;; (c) Rolf Sander <sander@mpch-mainz.mpg.de>
-;; Time-stamp: <2014-11-28 18:56:55 sander>
- 
-;; to activate it copy kpp.el to a place where emacs can find it and then
-;; add "(require 'kpp)" to your .emacs startup file
+;; kpp.el --- kpp mode for GNU Emacs
+;; (c) Rolf Sander <rolf.sander@mpic.de>
 
-;; known problem:
+;; To activate it, copy kpp.el to a place where emacs can find it and
+;; then add "(require 'kpp)" to your .emacs startup file.
+
+;; Known problem:
 ;; ":" inside comments between reaction products confuses font-lock
- 
+
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2 of the License, or
@@ -17,13 +16,18 @@
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
-;; start kpp-mode automatically when loading a *.eqn, *.spc, or *.kpp file
+;; auto-start kpp-mode when loading a *.def, *.eqn, *.kpp, or *.spc file
+(setq auto-mode-alist
+  (cons '("\\.def\\'" . kpp-mode) auto-mode-alist))
 (setq auto-mode-alist
   (cons '("\\.eqn\\'" . kpp-mode) auto-mode-alist))
 (setq auto-mode-alist
-  (cons '("\\.spc\\'" . kpp-mode) auto-mode-alist))
-(setq auto-mode-alist
   (cons '("\\.kpp\\'" . kpp-mode) auto-mode-alist))
+(setq auto-mode-alist
+  (cons '("\\.spc\\'" . kpp-mode) auto-mode-alist))
+
+;; Turn on font-lock-mode for KPP
+(add-hook 'kpp-mode-hook 'font-lock-mode)
 
 (setq kpp-font-lock-keywords
  (list
@@ -31,19 +35,19 @@
   ;; alternatively, use another color for rate constant:
   ;; '("^\\([^=\n]*=[^:\n]*\\):\\([^;\n]*\\);"
   ;;     (1 font-lock-constant-face) (2 font-lock-keyword-face))
-  '("<[A-z0-9_#]*[*]?>" 0 font-lock-variable-name-face t) ; reaction number
-  '("{[^}\n]*}"         0 font-lock-comment-face t)       ; comment
-  '("!.*"               0 font-lock-comment-face t)       ; f90 comment
-  '("{@[^}]+}"          0 font-lock-doc-face t)           ; alternative LaTeX text
-  '("{§[^}]*}"          0 font-lock-builtin-face t)       ; uncertainty of rate coefficient
-  '("{$[^}]+}"          0 font-lock-doc-face t)           ; alternative LaTeX text
-  '("{&[^}]+}"          0 font-lock-function-name-face t) ; BibTeX reference
-  '("{%[A-z0-9#]+}"     0 font-lock-type-face t)          ; marker
+  '("<[A-z0-9_#]+>" 0 font-lock-variable-name-face t) ; equation tag
+  '("{[^}\n]*}"     0 font-lock-comment-face t)       ; comment
+  '("!.*"           0 font-lock-comment-face t)       ; f90 comment
+  '("{@[^}]+}"      0 font-lock-doc-face t)           ; alternative LaTeX text
+  '("{§[^}]*}"      0 font-lock-builtin-face t)       ; uncertainty of rate coefficient
+  '("{$[^}]+}"      0 font-lock-doc-face t)           ; alternative LaTeX text
+  '("{&[^}]+}"      0 font-lock-function-name-face t) ; BibTeX reference
+  '("{%[A-z0-9#]+}" 0 font-lock-type-face t)          ; marker
   ;; KPP sections (Tab. 3 in thesis), commands (Tab. 13 in thesis), and
   ;; fragments (Tab. 17 in thesis)
-  (cons (concat 
-         "\\(#ATOMS\\|#CHECKALL\\|#CHECK\\|#DEFFIX\\|#DEFRAD"
-         "\\|#DEFVAR\\|#DOUBLE\\|#DRIVER\\|#DUMMYINDEX\\|#ENDREPLACE"
+  (cons (concat
+         "\\(#ATOMS\\|#AUTOREDUCE\\|#CHECKALL\\|#CHECK\\|#DEFFIX"
+         "\\|#DEFRAD\\|#DEFVAR\\|#DOUBLE\\|#DRIVER\\|#DUMMYINDEX\\|#ENDREPLACE"
          "\\|#ENDINLINE\\|#EQNTAGS\\|#EQUATIONS\\|#FUNCTION"
          "\\|#HESSIAN\\|#INCLUDE\\|#INITIALIZE"
          "\\|#INITVALUES\\|#INLINE\\|#INTEGRATOR\\|#INTFILE"
@@ -53,6 +57,7 @@
          "\\|#SPARSEDATA\\|#STOCHASTIC\\|#STOICMAT\\|#TRANSPORTALL"
          "\\|#TRANSPORT\\|#USE\\|#USES\\|#WRITE_ATM"
          "\\|#WRITE_MAT\\|#WRITE_OPT\\|#WRITE_SPC"
+         "\\|#UPPERCASEF90\\|#MINVERSION\\|#FAMILIES"
          "\\|#XGRID\\|#YGRID\\|#ZGRID\\)"
          ) 'font-lock-keyword-face)
   '("//.*"          0 font-lock-string-face t) ; LaTeX note
@@ -68,8 +73,8 @@
 
 (defun kpp-comment-region (beg-region end-region arg)
   "Comments every line in the region.
-Puts kpp-comment-region at the beginning of every line in the region. 
-BEG-REGION and END-REGION are args which specify the region boundaries. 
+Puts kpp-comment-region at the beginning of every line in the region.
+BEG-REGION and END-REGION are args which specify the region boundaries.
 With non-nil ARG, uncomments the region."
   (interactive "*r\nP")
   (let ((end-region-mark (make-marker)) (save-point (point-marker)))
@@ -92,7 +97,7 @@ With non-nil ARG, uncomments the region."
     (set-marker end-region-mark nil)
     (set-marker save-point nil)))
 
-(defvar kpp-mode-map () 
+(defvar kpp-mode-map ()
   "Keymap used in kpp mode.")
 
 (if kpp-mode-map
@@ -101,7 +106,7 @@ With non-nil ARG, uncomments the region."
   (define-key kpp-mode-map "\C-c;"    'kpp-comment-region)
   ;; TAB inserts 8 spaces, not the TAB character
   (define-key kpp-mode-map (kbd "TAB")
-    '(lambda () (interactive) (insert "        ")))
+    (lambda () (interactive) (insert "        ")))
 )
 
 (defun kpp-mode ()
