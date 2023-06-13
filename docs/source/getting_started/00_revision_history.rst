@@ -62,8 +62,8 @@ KPP 3.0.0
      consistently for the maximum number of Newton iterations in all
      integrators.
 
-    - The dummy integrator :literal:`none` does not exist anymore.  Thus,
-      commands such as :literal:`#INTEGRATOR none` should be removed.
+   - The dummy integrator :literal:`none` does not exist anymore. Thus,
+     commands such as :literal:`#INTEGRATOR none` should be removed.
 
 
 - Updated the search for the :program:`flex` library in
