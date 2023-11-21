@@ -48,7 +48,7 @@
   (cons (concat
          "\\(#ATOMS\\|#AUTOREDUCE\\|#CHECKALL\\|#CHECK\\|#DEFFIX"
          "\\|#DEFRAD\\|#DEFVAR\\|#DOUBLE\\|#DRIVER\\|#DUMMYINDEX\\|#ENDREPLACE"
-         "\\|#ENDINLINE\\|#EQNTAGS\\|#EQUATIONS\\|#FUNCTION"
+         "\\|#ENDINLINE\\|#EQNTAGS\\|#EQUATIONS\\|#FAMILIES\\|#FUNCTION"
          "\\|#HESSIAN\\|#INCLUDE\\|#INITIALIZE"
          "\\|#INITVALUES\\|#INLINE\\|#INTEGRATOR\\|#INTFILE"
          "\\|#JACOBIAN\\|#LANGUAGE\\|#LOOKATALL"
