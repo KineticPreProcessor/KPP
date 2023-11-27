@@ -1,4 +1,4 @@
-! Time-stamp: <2023-11-27 15:16:06 sander>
+! Time-stamp: <2023-11-27 16:06:00 sander>
 
 ! Author:
 ! Rolf Sander, MPICH, Mainz, 2022
@@ -59,7 +59,7 @@ PROGRAM driver
   M   = 2.5E19        ! convert mixing ratio to mcl/cm3
   O2  = 0.21 * M
   N2  = 0.78 * M
-  H2O = 1E-4 * M
+  H2O = 1E-2 * M
   C(IND_O3)   = 3.0E-08 * M
   C(IND_NO2)  = 1.0E-10 * M
   C(IND_CH4)  = 1.8E-06 * M
