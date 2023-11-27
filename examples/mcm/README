@@ -1,0 +1,14 @@
+Use these commands to run the MCM example:
+
+- run KPP:
+  kpp mcm.kpp
+
+- compile:
+  gmake clean
+  gmake
+
+- run:
+  ./mcm.exe
+
+- plot results with matplotlib:
+  python3 plot_data.py
