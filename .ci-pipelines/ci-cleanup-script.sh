@@ -17,6 +17,7 @@ cwd=$(pwd -P)
 for this_test in ${GENERAL_TESTS}; do
     clean_ci_test_folder "${this_test}" "${cwd}"
 done
+clean_ci_test_folder "${MCM_TEST}" "${cwd}"
 
 # Remove any log files used to store C-I test results
 cd $cwd

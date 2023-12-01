@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Version numbers must be synchronized in CHANGELOG.md, -->
 <!-- src/gdata.h, and docs/source/conf.py-->
+## [Unreleased] - TBD
+- Added `examples/mcm` folder with minimal example for the Master Chemical Mechanism
+- Added C-I test for MCM, based on the minimal example
+
 ## [3.0.2] - 2023-06-02
 ### Added
 - Added `.readthedocs.yaml` for configuring ReadTheDocs builds
