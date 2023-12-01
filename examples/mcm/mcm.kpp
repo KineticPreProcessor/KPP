@@ -3,6 +3,7 @@
 
 // computer language for code produced by kpp:
 #LANGUAGE FORTRAN90
+#UPPERCASEF90 OFF
 
 // driver file that calls kpp subroutines:
 #DRIVER ./driver_mcm
