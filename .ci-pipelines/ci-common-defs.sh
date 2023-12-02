@@ -33,6 +33,7 @@ F90_small_strato
 MINVERSION_TEST="X_minver"
 
 # Testing if the Master Chemical Mechanism test works
+DO_MCM=1
 MCM_TEST="mcm"
 
 #=======================================================================
