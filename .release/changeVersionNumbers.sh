@@ -26,8 +26,8 @@ function replace() {
     # 1st argument = regular expression
     # 2nd argument = file to be edited
     #========================================================================
-    regex="${1}"
-    file="${2}"
+    regex="s/${1}/${2}/g"
+    file="${3}"
     if [[ "x$(uname -s)" == "xDarwin" ]]; then
         sed -i '' -e "${regex}" "${file}"          # MacOS/Darwin
     else
