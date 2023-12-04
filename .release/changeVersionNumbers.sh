@@ -14,22 +14,25 @@
 #\\
 #\\
 # !CALLING SEQUENCE:
-#  $ ./changeVersionNumbers.sh X.Y.Z        # X.Y.Z = GCClassic version number
+#  $ ./changeVersionNumbers.sh X.Y.Z        # X.Y.Z = KPP version number
 #EOP
 #------------------------------------------------------------------------------
 #BOC
 
 function replace() {
-
     #========================================================================
-    # Function to replace text in a file via sed.
+    # Replacement for `sed -i -e` that works on both MacOS and Linux
     #
-    # 1st argument: Search pattern
-    # 2nd argument: Replacement text
-    # 3rd argument: File in which to search and replace
+    # 1st argument = regular expression
+    # 2nd argument = file to be edited
     #========================================================================
-
-    sed -i -e "s/${1}/${2}/" "${3}"
+    regex="${1}"
+    file="${2}"
+    if [[ "x$(uname -s)" == "xDarwin" ]]; then
+        sed -i '' -e "${regex}" "${file}"          # MacOS/Darwin
+    else
+        sed -i -e "${regex}" "${file}"             # GNU/Linux
+    fi
 }
 
 
