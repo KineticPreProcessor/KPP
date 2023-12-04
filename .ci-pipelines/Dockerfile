@@ -31,6 +31,9 @@ ENV KPP_FLEX_LIB_DIR=/lib/x86_64-linux-gnu
 RUN sed -i 's/#define MAX_EQN .*/#define MAX_EQN 1023/g' /kpp/src/gdata.h \
     && sed -i 's/#define MAX_SPECIES .*/#define MAX_SPECIES 1023/g' /kpp/src/gdata.h
 
+# Disable MCM test
+RUN sed -i 's/DO_MCM=1/DO_MCM=0/g' /kpp/.ci-pipelines/ci-common-defs.sh
+
 # Build KPP executable and ensure testing scripts are executable
 RUN cd /kpp/src/ && make
 RUN chmod +x /kpp/.ci-pipelines/ci-common-defs.sh

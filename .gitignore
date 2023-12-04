@@ -64,3 +64,8 @@ docs/build/*
 
 # are there any *.dat files to exclude?
 *.dat
+
+# Other files/dirs to exclude
+*.pdf
+/examples/mcm/__pycache__
+

@@ -32,6 +32,10 @@ F90_small_strato
 # Testing if #MINVERSION works
 MINVERSION_TEST="X_minver"
 
+# Testing if the Master Chemical Mechanism test works
+DO_MCM=1
+MCM_TEST="mcm"
+
 #=======================================================================
 # Functions
 #=======================================================================
@@ -48,6 +52,7 @@ function run_ci_test() {
     # Arguments
     this_test=${1}     # Name of test
     return_dir=${2}    # Directory where we will return upon test completion
+    extra_cmds=${3}    # Extra commands to pass to compilation
 
     # Navigate to C-I test folder (or exit if error)
     test_path=$(get_ci_test_path "${this_test}")
@@ -63,7 +68,7 @@ function run_ci_test() {
     echo ""
     echo ">>>>>>>> Building the ${this_test} test executable <<<<<<<<<"
     echo ""
-    make -j -f Makefile_$this_test COMPILER=GFORTRAN
+    make -j -f Makefile_$this_test COMPILER=GFORTRAN ${extra_cmds}
     [[ $? -ne 0 ]] && exit 1
 
     echo ""
