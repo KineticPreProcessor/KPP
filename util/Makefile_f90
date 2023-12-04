@@ -89,7 +89,8 @@ endif
 # If an external rates module has been supplied,
 # also define the correspoinding object file
 ifdef EXTERNAL_RATES_F90
-  EXTERNAL_RATES_OBJ = $(EXTERNAL_RATES_F90:.f90=.o)
+  EXTERNAL_RATES_OBJ := $(EXTERNAL_RATES_F90:.f90=.o)
+  EXTERNAL_RATES_OBJ := $(EXTERNAL_RATES_OBJ:.F90=.o)
 endif
 
 #############################################################################
