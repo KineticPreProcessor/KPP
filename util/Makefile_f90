@@ -86,6 +86,15 @@ ifeq ($(shell test -f  KPP_ROOT_Stoichiom.f90 && echo y),y)
   HAS_STM=1
 endif
 
+# If an external rates module has been supplied,
+# also define the correspoinding object file
+ifdef EXTERNAL_RATES_F90
+  EXTERNAL_RATES_OBJ = $(EXTERNAL_RATES_F90:.f90=.o)
+endif
+
+#############################################################################
+# Construct lists of objects and sources
+#############################################################################
 
 # Command to create Matlab mex gateway routines
 # Note: use $(FC) as the mex Fortran compiler
@@ -254,8 +263,8 @@ KPP_ROOT_Integrator.o: KPP_ROOT_Integrator.f90 $(ALLOBJ)
 
 # Define rule for a user-defined module that gets USE-d by F90_Rates.
 # This rule is only applied if both variables are not blank.
-ifneq ($strip($(EXTERNAL_RATES_F90)),)
-ifneq ($strip($(EXTERNAL_RATES_OBJ)),)
+ifdef EXTERNAL_RATES_F90
+ifdef EXTERNAL_RATES_OBJ
 $(EXTERNAL_RATES_OBJ): $(EXTERNAL_RATES_F90) KPP_ROOT_Precision.o KPP_ROOT_Global.o KPP_ROOT_Parameters.o
 	$(FC) $(FOPT) -c $<
 endif
