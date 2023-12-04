@@ -18,6 +18,8 @@ Use these commands to run the MCM minimal example:
    ```
    NOTE: On some systems, `gmake` may be installed as `make`.
 
+   ALSO NOTE: At present, only a single external F90 module file (with rate constants and parameters for the MCM mechanism) can be specified with the `EXTERNAL_RATES_F90` environment variable.  To specify more than one external file you will have to modify the `util/Makfile_f90` and/or `util/Makfile_upper_F90` to add additional rules.
+
 
 3. Run the MCM minimal example executable:
 
