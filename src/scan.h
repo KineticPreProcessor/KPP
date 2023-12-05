@@ -91,7 +91,6 @@ void AddLumpSpecies( char *spname );
 void CheckLump( char *spname );
 void AddLookAt( char *spname );
 void AddMonitor( char *spname );
-void AddTransport( char *spname );
 
 void WriteAtoms();
 void WriteSpecies();
@@ -138,7 +137,6 @@ int EqnString( int eq, char * buf );
 void LookAtAll();
 int ParseEquationFile( char * filename );
 void SparseData( char *cmd );
-void TransportAll();
 int yylex();
 
 #endif

@@ -82,7 +82,7 @@
 %token INITVALUES EQUATIONS FAMILIES LUMP INIEQUAL EQNEQUAL EQNCOLON 
 %token LMPCOLON LMPPLUS SPCPLUS SPCEQUAL FAMCOLON ATOMDECL CHECK CHECKALL REORDER
 %token MEX DUMMYINDEX EQNTAGS
-%token LOOKAT LOOKATALL TRANSPORT TRANSPORTALL MONITOR USES SPARSEDATA
+%token LOOKAT LOOKATALL MONITOR USES SPARSEDATA
 %token WRITE_ATM WRITE_SPC WRITE_MAT WRITE_OPT INITIALIZE XGRID YGRID ZGRID
 %token USE LANGUAGE INTFILE DRIVER RUN INLINE ENDINLINE
 %token      PARAMETER SPCSPC INISPC INIVALUE EQNSPC EQNSIGN EQNCOEF
@@ -165,14 +165,10 @@ section	        : JACOBIAN PARAMETER
                   {}
                 | MONITOR monitorlist  
                   {}
-                | TRANSPORT translist  
-                  {}
                 | CHECKALL
                   { CheckAll(); }
                 | LOOKATALL
                   { LookAtAll(); }
-                | TRANSPORTALL
-                  { TransportAll(); }
                 | WRITE_ATM
                   { WriteAtoms(); }
                 | WRITE_SPC
@@ -252,15 +248,6 @@ monitorlist	: monitorlist monitorspc semicolon
                 ;
 monitorspc	: MNIID
                   { AddMonitor( $1 );
-                  }
-                ;     
-translist	: translist transspc semicolon
-                | transspc semicolon
-                | error semicolon
-                  { ParserErrorMessage(); }
-                ;
-transspc	: TPTID
-                  { AddTransport( $1 );
                   }
                 ;     
 uselist		: uselist usefile semicolon

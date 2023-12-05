@@ -354,25 +354,6 @@ also allowed. Examples for these sections are:
    #SETVAR ALL_SPEC;
    #SETFIX H2O; CO2;
 
-.. _transport:
-
-#TRANSPORT
-----------
-
-The :command:`#TRANSPORT` section is only used for transport chemistry
-models. It specifies the list of species that needs to be included in
-the transport model, e.g.:
-
-.. code-block:: console
-
-   #TRANSPORT NO2; CO2; O3; N;
-
-One may use a more complex chemical model from which only a couple of
-species are considered for the transport calculations. The
-:command:`#TRANSPORTALL` command is also available as a shorthand for
-specifying that all the species used in the chemical model have to be
-included in the transport calculations.
-
 .. _kpp-commands:
 
 ============
@@ -430,8 +411,6 @@ are given in the following subsections.
    | :command:`#STOCHASTIC`   | :code:`OFF`           |
    +--------------------------+-----------------------+
    | :command:`#STOICMAT`     | :code:`ON`            |
-   +--------------------------+-----------------------+
-   | :command:`#TRANSPORTALL` |                       |
    +--------------------------+-----------------------+
    | :command:`#UPPERCASEF90` | :code:`OFF`           |
    +--------------------------+-----------------------+
@@ -763,15 +742,14 @@ products in each reaction, and the partial derivative of the time
 derivative function with respect to rate coefficients
 (cf. :ref:`Stoichiom-and-StoichiomSP`).
 
-.. _checkall-lookatall-transportall-cmd:
+.. _checkall-lookatall-cmd:
 
-#CHECKALL, #LOOKATALL, #TRANSPORTALL
-------------------------------------
+#CHECKALL, #LOOKATALL
+---------------------
 
-KPP defines a couple of shorthand commands. The commands that fall into
-this category are :command:`#CHECKALL`, :command:`#LOOKATALL`, and
-:command:`#TRANSPORTALL`. All of them have been described in the
-previous sections.
+The shorthand commands :command:`#CHECKALL` and :command:`#LOOKATALL`
+apply :command:`#CHECK` and :command:`#LOOKAT`, respectively, to all
+species in the mechanism.
 
 .. _uppercasef90-cmd:
 
