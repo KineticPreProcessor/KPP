@@ -540,7 +540,6 @@ int i;
   *SpeciesTable[ index ].ival = '\0'; 
   SpeciesTable[ index ].lookat = 0;
   SpeciesTable[ index ].moni = 0;
-  SpeciesTable[ index ].trans = 0;
   if( (SpeciesTable[ index ].nratoms == 0) || ( crtAtomNr > 0 ) ) {
     SpeciesTable[ index ].nratoms = crtAtomNr;
     for( i = 0; i < crtAtomNr; i++ )
@@ -861,27 +860,6 @@ int code;
   }
     
   ScanError("Undefined species or atom %s.", spname );
-}
-
-void AddTransport( char *spname )
-{
-int code;  
-  
-  code = FindSpecies( spname );
-  if ( code < 0 ) {
-    ScanError("Undefined species %s.", spname );
-    return;
-  }
-
-  SpeciesTable[ code ].trans = 1;   
-}
-
-void TransportAll()
-{
-int i;
-
-  for( i=0; i<SpeciesNr; i++ )
-    SpeciesTable[ i ].trans = 1;  
 }
 
 void AddUseFile( char *fname )

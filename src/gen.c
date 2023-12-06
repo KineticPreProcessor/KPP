@@ -86,7 +86,6 @@ NODE *sum, *prod;
 int real;
 int nlookat;
 int nmoni;
-int ntrans;
 int nmass;
 char * CommonName;
 
@@ -407,7 +406,6 @@ int i;
 int  *lookat;
 int  *moni;
 char *snames[MAX_SPECIES];
-int  *trans;
 char *smass[MAX_ATOMS];
 char *seqn[MAX_EQN];
 char *sfam[MAX_FAMILIES];
@@ -419,7 +417,6 @@ int dim;
   dim    = SpcNr+2;
   lookat = AllocIntegerVector( dim, "lookat in GenerateMonitorData");
   moni   = AllocIntegerVector( dim, "moni in GenerateMonitorData");
-  trans  = AllocIntegerVector( dim, "trans in GenerateMonitorData");
 
   UseFile( monitorFile );
 
@@ -462,13 +459,6 @@ int dim;
   if (useDeclareValues)
         varTable[ NMONITOR ] -> value  = max(nmoni,1);
   InitDeclare( MONITOR, nmoni, (void*)moni );
-
-  ntrans = 0;
-  for (i = 0; i < SpcNr; i++)
-    if ( SpeciesTable[Code[i]].trans ) {
-      trans[ntrans] = Index(i);
-      ntrans++;
-    }
 
   nmass = 0;
   for (i = 0; i < AtomNr; i++)
@@ -529,7 +519,7 @@ int dim;
   F77_Inline( "%6sEND\n\n", " " );
 
   /* Free local data structures */
-  free(lookat); free(moni); free(trans);
+  free(lookat); free(moni);
 
 }
 

@@ -338,8 +338,6 @@ STOICH  {LIT}[a-zA-Z_0-9]*[*]
                          { "LUMP",          LMP_STATE, LUMP         },
                          { "LOOKAT",        LKT_STATE, LOOKAT       },
                          { "LOOKATALL",     INITIAL,   LOOKATALL    },
-                         { "TRANSPORT",     TPT_STATE, TRANSPORT    },
-                         { "TRANSPORTALL",  INITIAL,   TRANSPORTALL },
                          { "INITIALIZE",    PRM_STATE, INITIALIZE   },
                          { "XGRID",         PRM_STATE, XGRID        },
                          { "YGRID",         PRM_STATE, YGRID        },

@@ -23,8 +23,7 @@ Following is the BNF-like specification of the KPP language:
                             #LUMP lump_list                                       |
                             #MONITOR species_list atom_list                       |
                             #SETFIX species_list_plus                             |
-                            #SETVAR species_list_plus                             |
-                            #TRANSPORT species_list
+                            #SETVAR species_list_plus
 
  command ::=                #CHECKALL                                             |
                             #DECLARE [ SYMBOL | VALUE ]                           |
@@ -46,7 +45,6 @@ Following is the BNF-like specification of the KPP language:
                             #REORDER [ ON | OFF ]                                 |
                             #STOCHASTIC [ ON | OFF ]                              |
                             #STOICHMAT [ ON | OFF ]                               |
-                            #TRANSPORTALL [ ON | OFF ]                            |
                             #UPPERCASEF90 [ ON | OFF ]
 
  inline_code ::=            #INLINE inline_type
