@@ -800,28 +800,6 @@ char eqNr[40];
   }
 }
            
-void AddLumpSpecies( char *spname )
-{
-int code;  
-  
-  code = FindSpecies( spname );
-  if ( code < 0 ) {
-    ScanError("Undefined species %s.", spname );
-    return;
-  }
-}
-
-void CheckLump( char *spname )
-{
-int code;  
-  
-  code = FindSpecies( spname );
-  if ( code < 0 ) {
-    ScanError("Undefined species %s.", spname );
-    return;
-  }
-}
-
 void AddLookAt( char *spname )
 {
 int code;  

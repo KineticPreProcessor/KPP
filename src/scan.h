@@ -87,8 +87,6 @@ void AssignInitialValue( char *spname , char *spval );
 void StoreEquationRate( char *rate, char *label );
 void CheckEquation(); 
 void ProcessTerm( int side, char *sign, char *coef, char *spname  );
-void AddLumpSpecies( char *spname );
-void CheckLump( char *spname );
 void AddLookAt( char *spname );
 void AddMonitor( char *spname );
 

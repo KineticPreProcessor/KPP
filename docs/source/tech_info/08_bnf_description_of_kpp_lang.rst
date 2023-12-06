@@ -20,7 +20,6 @@ Following is the BNF-like specification of the KPP language:
                             #FAMILIES family_list                                 |
                             #INITVALUES initvalues_list                           |
                             #LOOKAT species_list atom_list                        |
-                            #LUMP lump_list                                       |
                             #MONITOR species_list atom_list                       |
                             #SETFIX species_list_plus                             |
                             #SETVAR species_list_plus
@@ -88,14 +87,6 @@ Following is the BNF-like specification of the KPP language:
                             C_INIT       | C_DATA        | C_UTIL                 |
                             MATLAB_RATES | MATLAB_RCONST | MATLAB_GLOBAL          |
                             MATLAB_INIT  | MATLAB_DATA   | MATLAB_UTIL
-
- lump ::=                   lump_sum : species_name;
-
- lump_list ::=              lump                                                  |
-                            lump lump_list
-
- lump_sum ::=               species_name                                          |
-                            species_name + lump_sum
 
  rate ::=                   number                                                |
                             program_expression

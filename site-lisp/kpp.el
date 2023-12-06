@@ -51,7 +51,7 @@
          "\\|#HESSIAN\\|#INCLUDE\\|#INITIALIZE"
          "\\|#INITVALUES\\|#INLINE\\|#INTEGRATOR\\|#INTFILE"
          "\\|#JACOBIAN\\|#LANGUAGE\\|#LOOKATALL"
-         "\\|#LOOKAT\\|#LUMP\\|#MEX\\|#MODEL\\|#MONITOR"
+         "\\|#LOOKAT\\|#MEX\\|#MODEL\\|#MONITOR"
          "\\|#REORDER\\|#RUN\\|#SETFIX\\|#SETRAD\\|#SETVAR"
          "\\|#SPARSEDATA\\|#STOCHASTIC\\|#STOICMAT"
          "\\|#USE\\|#USES\\|#WRITE_ATM"

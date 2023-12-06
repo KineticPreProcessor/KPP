@@ -116,11 +116,10 @@ defining the species in the appropriate sections. A fixed species does
 not vary through chemical reactions.
 
 For each species the user has to declare the atom composition. This
-information is used for mass balance checking. If the species is a
-lumped species without an exact composition, its composition can be
-ignored. To do this one can declare the predefined atom
-:command:`IGNORE` as being part of the species composition. Examples for
-these sections are:
+information is used for mass balance checking.  To ignore mass balance
+checking for a given species, one can declare the predefined atom
+:command:`IGNORE` as being part of the species composition. Examples
+for these sections are:
 
 .. code-block:: console
 
@@ -321,21 +320,6 @@ Examples for these sections are:
 
    #LOOKAT NO2; CO2; O3; N;
    #MONITOR O3; N;
-
-.. _lump:
-
-#LUMP
------
-
-To reduce the stiffness of some models, various lumping of species may
-be defined in the :command:`#LUMP` section. In the example below,
-species :code:`NO` and :code:`NO2` are summed and treated as a single
-lumped variable, :code:`NO2`. Following integration, the individual
-species concentrations are recomputed from the lumped variable.
-
-.. code-block:: console
-
-   #LUMP NO2 + NO : NO2
 
 .. _setvar-and-setfix:
 
