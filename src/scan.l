@@ -252,17 +252,6 @@ STOICH  {LIT}[a-zA-Z_0-9]*[*]
 <RATE_STATE>;           { BEGIN EQN_STATE;
                           RETURN( yytext[0] );
                         } 
-<LMP_STATE>{IDSPC}      { strcpy( yylval.str, yytext );
-                          RETURN( LMPSPC );
-                        }
-<LMP_STATE>[+]          { RETURN( LMPPLUS );
-                        } 
-<LMP_STATE>[:]          { RETURN( LMPCOLON );
-                        } 
-<LMP_STATE>;            { RETURN( yytext[0] );
-                        } 
-<LMP_STATE>[^;#]        { ScanError("Invalid character '%c' in species definition", yytext[0] );
-                        }
 <LKT_STATE>{IDSPC}      { strcpy( yylval.str, yytext );
                           RETURN( LKTID );
                         }
@@ -335,7 +324,6 @@ STOICH  {LIT}[a-zA-Z_0-9]*[*]
                          { "INITVALUES",    INI_STATE, INITVALUES   },
                          { "EQUATIONS",     EQN_STATE, EQUATIONS    },
                          { "FAMILIES",      FAM_STATE, FAMILIES     },
-                         { "LUMP",          LMP_STATE, LUMP         },
                          { "LOOKAT",        LKT_STATE, LOOKAT       },
                          { "LOOKATALL",     INITIAL,   LOOKATALL    },
                          { "INITIALIZE",    PRM_STATE, INITIALIZE   },

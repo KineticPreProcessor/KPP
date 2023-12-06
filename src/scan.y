@@ -79,16 +79,16 @@
 
 %token JACOBIAN DOUBLE FUNCTION DEFVAR DEFRAD DEFFIX SETVAR SETRAD SETFIX 
 %token HESSIAN STOICMAT STOCHASTIC DECLARE
-%token INITVALUES EQUATIONS FAMILIES LUMP INIEQUAL EQNEQUAL EQNCOLON 
-%token LMPCOLON LMPPLUS SPCPLUS SPCEQUAL FAMCOLON ATOMDECL CHECK CHECKALL REORDER
+%token INITVALUES EQUATIONS FAMILIES INIEQUAL EQNEQUAL EQNCOLON
+%token SPCPLUS SPCEQUAL FAMCOLON ATOMDECL CHECK CHECKALL REORDER
 %token MEX DUMMYINDEX EQNTAGS
 %token LOOKAT LOOKATALL MONITOR USES SPARSEDATA
 %token WRITE_ATM WRITE_SPC WRITE_MAT WRITE_OPT INITIALIZE XGRID YGRID ZGRID
 %token USE LANGUAGE INTFILE DRIVER RUN INLINE ENDINLINE
 %token      PARAMETER SPCSPC INISPC INIVALUE EQNSPC EQNSIGN EQNCOEF
 %type <str> PARAMETER SPCSPC INISPC INIVALUE EQNSPC EQNSIGN EQNCOEF
-%token      RATE LMPSPC SPCNR ATOMID LKTID MNIID INLCTX INCODE SSPID 
-%type <str> RATE LMPSPC SPCNR ATOMID LKTID MNIID INLCTX INCODE SSPID
+%token      RATE SPCNR ATOMID LKTID MNIID INLCTX INCODE SSPID
+%type <str> RATE SPCNR ATOMID LKTID MNIID INLCTX INCODE SSPID
 %token      EQNLESS EQNTAG EQNGREATER
 %type <str> EQNLESS EQNTAG EQNGREATER
 %token      TPTID USEID
@@ -158,8 +158,6 @@ section	        : JACOBIAN PARAMETER
                 | EQUATIONS equations
                   {}
                 | FAMILIES families
-                  {}
-                | LUMP lumps  
                   {}
                 | LOOKAT lookatlist  
                   {}
@@ -392,19 +390,6 @@ term            : EQNCOEF EQNSPC
                     strcpy( crt_coef, "1" ); 
                   }
                 ;
-lumps           : lumps lump semicolon
-                | lump semicolon 
-                | error semicolon
-                  { ParserErrorMessage(); }
-                ;
-lump            : LMPSPC LMPPLUS lump
-                  { AddLumpSpecies( $1 );
-                  }
-                | LMPSPC LMPCOLON LMPSPC
-                  {
-                    AddLumpSpecies( $1 );
-                    CheckLump( $3 );  
-                  }
 inlinecode      : inlinecode INCODE
 		  {
 		    InlineBuf = AppendString( InlineBuf, $2, &InlineLen, MAX_INLINE );
@@ -468,7 +453,7 @@ void ParserErrorMessage()
       break; 
     case EQNCOLON: 
       ParserError("Missing rate after '%s'", crtToken );
-      break; 
+      break;
     case EQNSIGN: 
       ParserError("Missing coeficient after '%s'", crtToken );
       break; 
@@ -477,16 +462,6 @@ void ParserErrorMessage()
       break; 
     case RATE: 
       ParserError("Missing ';' after '%s'", crtToken );
-      break; 
-
-    case LMPSPC: 
-      ParserError("Missing '+' or ':' or ';' after '%s'", crtToken );
-      break; 
-    case LMPPLUS: 
-      ParserError("Missing species after '%s'", crtToken );
-      break; 
-    case LMPCOLON: 
-      ParserError("Missing species after '%s'", crtToken );
       break; 
     case INLINE:
       ParserError("Missing inline option after '%s'", crtToken );
