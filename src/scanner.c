@@ -540,7 +540,6 @@ int i;
   *SpeciesTable[ index ].ival = '\0'; 
   SpeciesTable[ index ].lookat = 0;
   SpeciesTable[ index ].moni = 0;
-  SpeciesTable[ index ].trans = 0;
   if( (SpeciesTable[ index ].nratoms == 0) || ( crtAtomNr > 0 ) ) {
     SpeciesTable[ index ].nratoms = crtAtomNr;
     for( i = 0; i < crtAtomNr; i++ )
