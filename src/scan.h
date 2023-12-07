@@ -40,7 +40,7 @@
 #define MAX_INLINE 200000
           
 enum eq_state { LHS, RHS, RAT };
-enum sptypes { DUMMY_SPC, VAR_SPC, RAD_SPC, FIX_SPC, PL_SPC };
+enum sptypes { DUMMY_SPC, VAR_SPC, FIX_SPC, PL_SPC };
 enum famtypes { PROD_FAM, LOSS_FAM };
 enum atomcheck { NO_CHECK, DO_CHECK, CANCEL_CHECK };
 enum codetype { APPEND, REPLACE };
@@ -126,10 +126,6 @@ void CmdAutoReduce( char *cmd );
 void CmdUpperCaseF90( char *cmd );
 void CmdMinVersion( char *cmd );
 void CmdUse( char *cmd );
-void DefineInitializeNbr( char *cmd );
-void DefineXGrid( char *cmd );
-void DefineYGrid( char *cmd );
-void DefineZGrid( char *cmd );
 int EqNoCase( char *s1, char *s2 );
 int EqnString( int eq, char * buf );
 void LookAtAll();

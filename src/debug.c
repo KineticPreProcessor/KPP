@@ -71,9 +71,8 @@ char *lookat;
 
     switch( SpeciesTable[i].type ) {
       case VAR_SPC: type = "V - -"; break;
-      case RAD_SPC:  type = "- R -"; break;
-      case FIX_SPC:    type = "- - F"; break;
-      default:       type = "? ? ?"; break;
+      case FIX_SPC: type = "- - F"; break;
+      default:      type = "? ? ?"; break;
     }
 
     switch( SpeciesTable[i].lookat ) {
@@ -90,6 +89,7 @@ char *lookat;
     printf("}");
   }  
 }
+
 
 void WriteMatrices()
 {
@@ -121,46 +121,5 @@ int i, j;
       printf( "%5.1f  ", Stoich[i][j] );
     }
   }
-}
-
-void WriteOptions()
-{
-  printf("\n\n");
-  if( useDeclareValues ) { printf("#DECLARE      - ON\n");                 }
-     else                { printf("#DECLARE      - OFF\n");                }
-  if( useDouble )        { printf("#DOUBLE       - ON\n");                 }
-     else                { printf("#DOUBLE       - OFF\n");                }
-                           printf("#DRIVER       - %s\n", driver);
-  if( useDummyindex )    { printf("#DUMMYINDEX   - ON\n");                 }
-     else                { printf("#DUMMYINDEX   - OFF\n");                }
-  if( useEqntags )       { printf("#EQNTAGS      - ON\n");                 }
-     else                { printf("#EQNTAGS      - OFF\n");                }
-  if( useAggregate )     { printf("#FUNCTION     - AGGREGATE\n");          }
-    else                 { printf("#FUNCTION     - SPLIT\n");              }
-  if( useHessian )       { printf("#HESSIAN      - ON\n");                 }
-     else                { printf("#HESSIAN      - OFF\n");                }
-                           printf("#INTEGRATOR   - %s\n", integrator);
-  switch ( useJacobian ) {
-     case JAC_OFF:         printf("#JACOBIAN     - OFF\n");           break;
-     case JAC_FULL:        printf("#JACOBIAN     - FULL\n");          break;
-     case JAC_LU_ROW:      printf("#JACOBIAN     - SPARSE_LU_ROW\n"); break;
-     case JAC_ROW:         printf("#JACOBIAN     - SPARSE_ROW\n");    break;
-  }
-  switch ( useLang ) {
-     case C_LANG:          printf("#LANGUAGE     - C\n");             break;
-     case F90_LANG:        printf("#LANGUAGE     - Fortran90\n");     break;
-     case MATLAB_LANG:     printf("#LANGUAGE     - matlab\n");        break;
-  }
-  if( useMex )           { printf("#MEX          - ON\n");                 }
-     else                { printf("#MEX          - OFF\n");                }
-                           printf("#MINVERSION   - %s\n", minKppVersion);
-  if( useReorder )       { printf("#REORDER      - ON\n");                 }
-    else                 { printf("#REORDER      - OFF\n");                }
-  if( useStochastic )    { printf("#STOCHASTIC   - ON\n");                 }
-     else                { printf("#STOCHASTIC   - OFF\n");                }
-  if( useStoicmat )      { printf("#STOICMAT     - ON\n");                 }
-     else                { printf("#STOICMAT     - OFF\n");                }
-  if( upperCaseF90 )     { printf("#UPPERCASEF90 - ON\n");                 }
-     else                { printf("#UPPERCASEF90 - OFF\n");                }
 }
 

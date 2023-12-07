@@ -77,14 +77,14 @@
   char str[1000];
 };
 
-%token JACOBIAN DOUBLE FUNCTION DEFVAR DEFRAD DEFFIX SETVAR SETRAD SETFIX 
+%token JACOBIAN DOUBLE FUNCTION DEFVAR DEFFIX SETVAR SETFIX
 %token HESSIAN STOICMAT STOCHASTIC DECLARE
 %token INITVALUES EQUATIONS FAMILIES INIEQUAL EQNEQUAL EQNCOLON
 %token SPCPLUS SPCEQUAL FAMCOLON ATOMDECL CHECK CHECKALL REORDER
 %token MEX DUMMYINDEX EQNTAGS
-%token LOOKAT LOOKATALL MONITOR USES SPARSEDATA
-%token WRITE_ATM WRITE_SPC WRITE_MAT WRITE_OPT INITIALIZE XGRID YGRID ZGRID
-%token USE LANGUAGE INTFILE DRIVER RUN INLINE ENDINLINE
+%token LOOKAT LOOKATALL MONITOR
+%token WRITE_ATM WRITE_SPC WRITE_MAT
+%token LANGUAGE INTFILE DRIVER INLINE ENDINLINE
 %token      PARAMETER SPCSPC INISPC INIVALUE EQNSPC EQNSIGN EQNCOEF
 %type <str> PARAMETER SPCSPC INISPC INIVALUE EQNSPC EQNSIGN EQNCOEF
 %token      RATE SPCNR ATOMID LKTID MNIID INLCTX INCODE SSPID
@@ -143,13 +143,9 @@ section	        : JACOBIAN PARAMETER
                   {}
                 | DEFVAR species
                   {}  
-                | DEFRAD species
-                  {}  
                 | DEFFIX species
                   {}  
                 | SETVAR setspclist
-                  {}  
-                | SETRAD setspclist
                   {}  
                 | SETFIX setspclist
                   {}  
@@ -173,20 +169,8 @@ section	        : JACOBIAN PARAMETER
                   { WriteSpecies(); }
                 | WRITE_MAT
                   { WriteMatrices(); }
-                | WRITE_OPT
-                  { WriteOptions(); }
-                | USE PARAMETER
-		  { CmdUse( $2 ); }
                 | LANGUAGE PARAMETER
 		  { CmdLanguage( $2 ); }
-                | INITIALIZE PARAMETER
-                  { DefineInitializeNbr( $2 ); }
-                | XGRID PARAMETER
-                  { DefineXGrid( $2 ); }
-                | YGRID PARAMETER
-                  { DefineYGrid( $2 ); }
-                | ZGRID PARAMETER
-                  { DefineZGrid( $2 ); }
 		| INLINE INLCTX inlinecode ENDINLINE
 		  { 
 		    AddInlineCode( $2, InlineBuf );
@@ -198,12 +182,6 @@ section	        : JACOBIAN PARAMETER
 		  { CmdIntegrator( $2 ); }
                 | DRIVER PARAMETER
 		  { CmdDriver( $2 ); }
-                | RUN PARAMETER
-		  { CmdRun( $2 ); }
-                | USES uselist  
-                  {}
-                | SPARSEDATA PARAMETER
-		  { SparseData( $2 ); }
                 | FLUX PARAMETER
 		  { CmdFlux( $2 ); }
                 | AUTOREDUCE PARAMETER
@@ -248,15 +226,6 @@ monitorspc	: MNIID
                   { AddMonitor( $1 );
                   }
                 ;     
-uselist		: uselist usefile semicolon
-                | usefile semicolon
-                | error semicolon
-                  { ParserErrorMessage(); }
-                ;
-usefile		: USEID
-                  { AddUseFile( $1 );
-                  }
-                ;     
 setspclist	: setspclist setspcspc semicolon
                 | setspcspc semicolon
                 | error semicolon
@@ -265,7 +234,6 @@ setspclist	: setspclist setspcspc semicolon
 setspcspc	: SSPID
                   { switch( crt_section ) {
                       case SETVAR: SetSpcType( VAR_SPC, $1 ); break;
-                      case SETRAD: SetSpcType( RAD_SPC, $1 ); break;
                       case SETFIX: SetSpcType( FIX_SPC, $1 ); break;
                     }
                   }
@@ -304,7 +272,6 @@ spc             : spcname
 spcname         : SPCSPC SPCEQUAL atoms
                   { switch( crt_section ) {
                       case DEFVAR: DeclareSpecies( VAR_SPC, $1 ); break;
-                      case DEFRAD: DeclareSpecies( RAD_SPC, $1 ); break;
                       case DEFFIX: DeclareSpecies( FIX_SPC, $1 ); break;
                     } 
                   }
@@ -312,7 +279,6 @@ spcname         : SPCSPC SPCEQUAL atoms
 spcdef          : SPCSPC
                   { switch( crt_section ) {
                       case DEFVAR: DeclareSpecies( VAR_SPC, $1 ); break;
-                      case DEFRAD: DeclareSpecies( RAD_SPC, $1 ); break;
                       case DEFFIX: DeclareSpecies( FIX_SPC, $1 ); break;
                     } 
                   }
