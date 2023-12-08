@@ -7,40 +7,40 @@ MODULE constants_mcm
   USE mcm_Global, ONLY: C, TEMP
   IMPLICIT NONE
 
-  INTEGER, PARAMETER :: J_O3_O1D       =  1 ! O3       -> O(1D) +O2
-  INTEGER, PARAMETER :: J_O3_O3P       =  2 ! O3       -> O(3P) +O2
-  INTEGER, PARAMETER :: J_H2O2         =  3 ! H2O2     -> OH + OH
-  INTEGER, PARAMETER :: J_NO2          =  4 ! NO2      -> NO + O(3P)
-  INTEGER, PARAMETER :: J_NO3_NO       =  5 ! NO3      -> NO + O2
-  INTEGER, PARAMETER :: J_NO3_NO2      =  6 ! NO3      -> NO2 + O(3P)
-  INTEGER, PARAMETER :: J_HONO         =  7 ! HONO     -> NO + OH
-  INTEGER, PARAMETER :: J_HNO3         =  8 ! HNO3     -> NO2 + OH
-  INTEGER, PARAMETER :: J_HCHO_H       = 11 ! HCHO     -> H + HCO
-  INTEGER, PARAMETER :: J_HCHO_H2      = 12 ! HCHO     -> H2 + CO
-  INTEGER, PARAMETER :: J_CH3CHO       = 13 ! CH3CHO   -> CH3 + HCO
-  INTEGER, PARAMETER :: J_C2H5CHO      = 14 ! C2H5CHO  -> C2H5 + HCO
-  INTEGER, PARAMETER :: J_C3H7CHO_HCO  = 15 ! C3H7CHO  -> n-C3H7 + HCO
-  INTEGER, PARAMETER :: J_C3H7CHO_C2H4 = 16 ! C3H7CHO  -> C2H4 + CH3CHO
-  INTEGER, PARAMETER :: J_IPRCHO       = 17 ! IPRCHO   -> n-C4H9 + HCO
-  INTEGER, PARAMETER :: J_MACR_HCO     = 18 ! MACR     -> CH2=CCH3 + HCO
-  INTEGER, PARAMETER :: J_MACR_H       = 19 ! MACR     -> CH2=C(CH3)CO + H
-  INTEGER, PARAMETER :: J_C5HPALD1     = 20 ! C5HPALD1 -> CH3C(CHO)=CHCH2O + OH
-  INTEGER, PARAMETER :: J_CH3COCH3     = 21 ! CH3COCH3 -> CH3CO + CH3
-  INTEGER, PARAMETER :: J_MEK          = 22 ! MEK      -> CH3CO + C2H5
-  INTEGER, PARAMETER :: J_MVK_CO       = 23 ! MVK      -> CH3CH=CH2 + CO
-  INTEGER, PARAMETER :: J_MVK_C2H3     = 24 ! MVK      -> CH3CO + CH2=CH
-  INTEGER, PARAMETER :: J_GLYOX_H2     = 31 ! GLYOX    -> CO + CO + H2
-  INTEGER, PARAMETER :: J_GLYOX_HCHO   = 32 ! GLYOX    -> HCHO + CO
-  INTEGER, PARAMETER :: J_GLYOX_HCO    = 33 ! GLYOX    -> HCO + HCO
-  INTEGER, PARAMETER :: J_MGLYOX       = 34 ! MGLYOX   -> CH3CO + HCO
-  INTEGER, PARAMETER :: J_BIACET       = 35 ! BIACET   -> CH3CO + CH3CO
-  INTEGER, PARAMETER :: J_CH3OOH       = 41 ! CH3OOH   -> CH3O + OH
-  INTEGER, PARAMETER :: J_CH3NO3       = 51 ! CH3NO3   -> CH3O + NO2
-  INTEGER, PARAMETER :: J_C2H5NO3      = 52 ! C2H5NO3  -> C2H5O + NO2
-  INTEGER, PARAMETER :: J_NC3H7NO3     = 53 ! NC3H7NO3 -> n-C3H7O + NO2
-  INTEGER, PARAMETER :: J_IC3H7NO3     = 54 ! IC3H7NO3 -> CH3C(O.)CH3 + NO2
-  INTEGER, PARAMETER :: J_TC4H9NO3     = 55 ! TC4H9NO3 -> t-C4H9O + NO2
-  INTEGER, PARAMETER :: J_NOA          = 56 ! NOA      -> CH3C(O)CH2(O.) + NO2 or CH3CO + HCHO + NO2
+  INTEGER, PARAMETER :: J_O3_O1D       =  1 ! MCM J= 1 O3       -> O(1D) +O2
+  INTEGER, PARAMETER :: J_O3_O3P       =  2 ! MCM J= 2 O3       -> O(3P) +O2
+  INTEGER, PARAMETER :: J_H2O2         =  3 ! MCM J= 3 H2O2     -> OH + OH
+  INTEGER, PARAMETER :: J_NO2          =  4 ! MCM J= 4 NO2      -> NO + O(3P)
+  INTEGER, PARAMETER :: J_NO3_NO       =  5 ! MCM J= 5 NO3      -> NO + O2
+  INTEGER, PARAMETER :: J_NO3_NO2      =  6 ! MCM J= 6 NO3      -> NO2 + O(3P)
+  INTEGER, PARAMETER :: J_HONO         =  7 ! MCM J= 7 HONO     -> NO + OH
+  INTEGER, PARAMETER :: J_HNO3         =  8 ! MCM J= 8 HNO3     -> NO2 + OH
+  INTEGER, PARAMETER :: J_HCHO_H       =  9 ! MCM J=11 HCHO     -> H + HCO
+  INTEGER, PARAMETER :: J_HCHO_H2      = 10 ! MCM J=12 HCHO     -> H2 + CO
+  INTEGER, PARAMETER :: J_CH3CHO       = 11 ! MCM J=13 CH3CHO   -> CH3 + HCO
+  INTEGER, PARAMETER :: J_C2H5CHO      = 12 ! MCM J=14 C2H5CHO  -> C2H5 + HCO
+  INTEGER, PARAMETER :: J_C3H7CHO_HCO  = 13 ! MCM J=15 C3H7CHO  -> n-C3H7 + HCO
+  INTEGER, PARAMETER :: J_C3H7CHO_C2H4 = 14 ! MCM J=16 C3H7CHO  -> C2H4 + CH3CHO
+  INTEGER, PARAMETER :: J_IPRCHO       = 15 ! MCM J=17 IPRCHO   -> n-C4H9 + HCO
+  INTEGER, PARAMETER :: J_MACR_HCO     = 16 ! MCM J=18 MACR     -> CH2=CCH3 + HCO
+  INTEGER, PARAMETER :: J_MACR_H       = 17 ! MCM J=19 MACR     -> CH2=C(CH3)CO + H
+  INTEGER, PARAMETER :: J_C5HPALD1     = 18 ! MCM J=20 C5HPALD1 -> CH3C(CHO)=CHCH2O + OH
+  INTEGER, PARAMETER :: J_CH3COCH3     = 19 ! MCM J=21 CH3COCH3 -> CH3CO + CH3
+  INTEGER, PARAMETER :: J_MEK          = 20 ! MCM J=22 MEK      -> CH3CO + C2H5
+  INTEGER, PARAMETER :: J_MVK_CO       = 21 ! MCM J=23 MVK      -> CH3CH=CH2 + CO
+  INTEGER, PARAMETER :: J_MVK_C2H3     = 22 ! MCM J=24 MVK      -> CH3CO + CH2=CH
+  INTEGER, PARAMETER :: J_GLYOX_H2     = 23 ! MCM J=31 GLYOX    -> CO + CO + H2
+  INTEGER, PARAMETER :: J_GLYOX_HCHO   = 24 ! MCM J=32 GLYOX    -> HCHO + CO
+  INTEGER, PARAMETER :: J_GLYOX_HCO    = 25 ! MCM J=33 GLYOX    -> HCO + HCO
+  INTEGER, PARAMETER :: J_MGLYOX       = 26 ! MCM J=34 MGLYOX   -> CH3CO + HCO
+  INTEGER, PARAMETER :: J_BIACET       = 27 ! MCM J=35 BIACET   -> CH3CO + CH3CO
+  INTEGER, PARAMETER :: J_CH3OOH       = 28 ! MCM J=41 CH3OOH   -> CH3O + OH
+  INTEGER, PARAMETER :: J_CH3NO3       = 29 ! MCM J=51 CH3NO3   -> CH3O + NO2
+  INTEGER, PARAMETER :: J_C2H5NO3      = 30 ! MCM J=52 C2H5NO3  -> C2H5O + NO2
+  INTEGER, PARAMETER :: J_NC3H7NO3     = 31 ! MCM J=53 NC3H7NO3 -> n-C3H7O + NO2
+  INTEGER, PARAMETER :: J_IC3H7NO3     = 32 ! MCM J=54 IC3H7NO3 -> CH3C(O.)CH3 + NO2
+  INTEGER, PARAMETER :: J_TC4H9NO3     = 33 ! MCM J=55 TC4H9NO3 -> t-C4H9O + NO2
+  INTEGER, PARAMETER :: J_NOA          = 34 ! MCM J=56 NOA      -> CH3C(O)CH2(O.) + NO2 or CH3CO + HCHO + NO2
 
   REAL(dp) :: K14ISOM1, K298CH3O2, KAPHO2, KAPNO, KCH3O2, KDEC, KMT05, KMT06, KNO3AL, &
     KRO2HO2, KRO2NO, KRO2NO3, KROPRIM, KROSEC, FCD, KD0, KDI, KRD, NCD, FD, &
@@ -52,7 +52,7 @@ MODULE constants_mcm
     FC12, K120, K12I, KR12, NC12, F12, KMT12, FC13, K130, K13I, KR13, NC13, &
     F13, KMT13, FC14, K140, K14I, KR14, NC14, F14, KMT14, FC15, K150, K15I, &
     KR15, NC15, F15, KMT15, FC16, K160, K16I, KR16, NC16, F16, KMT16
-  REAL(dp), DIMENSION(56) :: J
+  REAL(dp), DIMENSION(34) :: J
   REAL(dp) :: M, N2, O2, RO2, H2O, zenith
 
   PUBLIC
@@ -93,7 +93,7 @@ CONTAINS
       C(ind_HC4CO3) + C(ind_C531O2) + C(ind_C31CO3) + C(ind_C533O2) + &
       C(ind_C58AO2) + C(ind_C47CO3) + C(ind_C57AO2) + C(ind_C536O2) + &
       C(ind_C537O2)
-    
+
     K14ISOM1 = 3.00E7*EXP(-5300./TEMP)
     K298CH3O2 = 3.5E-13
     KAPHO2 = 5.2E-13*EXP(980./TEMP)
@@ -218,38 +218,41 @@ CONTAINS
     NC16 = 0.75-1.27*(LOG10(FC16))
     F16 = 10.**(LOG10(FC16)/(1.+(LOG10(KR16)/NC16)**(2.)))
     KMT16 = (K160*K16I)*F16/(K160+K16I)
-    
-    J(1) = 6.073E-05*(cos(zenith)**1.743)*exp(-0.474*(1./cos(zenith)))
-    J(2) = 4.775E-04*(cos(zenith)**0.298)*exp(-0.08*(1./cos(zenith)))
-    J(3) = 1.041E-05*(cos(zenith)**0.723)*exp(-0.279*(1./cos(zenith)))
-    J(4) = 1.165E-02*(cos(zenith)**0.244)*exp(-0.267*(1./cos(zenith)))
-    J(5) = 2.485E-02*(cos(zenith)**0.168)*exp(-0.108*(1./cos(zenith)))
-    J(6) = 1.747E-01*(cos(zenith)**0.155)*exp(-0.125*(1./cos(zenith)))
-    J(7) = 2.644E-03*(cos(zenith)**0.261)*exp(-0.288*(1./cos(zenith)))
-    J(8) = 9.312E-07*(cos(zenith)**1.23)*exp(-0.307*(1./cos(zenith)))
-    J(11) = 4.642E-05*(cos(zenith)**0.762)*exp(-0.353*(1./cos(zenith)))
-    J(12) = 6.853E-05*(cos(zenith)**0.477)*exp(-0.323*(1./cos(zenith)))
-    J(13) = 7.344E-06*(cos(zenith)**1.202)*exp(-0.417*(1./cos(zenith)))
-    J(15) = 2.792E-05*(cos(zenith)**0.805)*exp(-0.338*(1./cos(zenith)))
-    J(17) = 7.914E-05*(cos(zenith)**0.764)*exp(-0.364*(1./cos(zenith)))
-    J(18) = 1.482E-06*(cos(zenith)**0.396)*exp(-0.298*(1./cos(zenith)))
-    J(19) = 1.482E-06*(cos(zenith)**0.396)*exp(-0.298*(1./cos(zenith)))
-    J(20) = 7.600E-04*(cos(zenith)**0.396)*exp(-0.298*(1./cos(zenith)))
-    J(21) = 7.992E-07*(cos(zenith)**1.578)*exp(-0.271*(1./cos(zenith)))
-    J(22) = 5.804E-06*(cos(zenith)**1.092)*exp(-0.377*(1./cos(zenith)))
-    J(23) = 2.4246E-06*(cos(zenith)**0.395)*exp(-0.296*(1./cos(zenith)))
-    J(24) = 2.424E-06*(cos(zenith)**0.395)*exp(-0.296*(1./cos(zenith)))
-    J(31) = 6.845E-05*(cos(zenith)**0.13)*exp(-0.201*(1./cos(zenith)))
-    J(32) = 1.032E-05*(cos(zenith)**0.13)*exp(-0.201*(1./cos(zenith)))
-    J(33) = 3.802E-05*(cos(zenith)**0.644)*exp(-0.312*(1./cos(zenith)))
-    J(34) = 1.537E-04*(cos(zenith)**0.17)*exp(-0.208*(1./cos(zenith)))
-    J(35) = 3.326E-04*(cos(zenith)**0.148)*exp(-0.215*(1./cos(zenith)))
-    J(41) = 7.649E-06*(cos(zenith)**0.682)*exp(-0.279*(1./cos(zenith)))
-    J(51) = 1.588E-06*(cos(zenith)**1.154)*exp(-0.318*(1./cos(zenith)))
-    J(53) = 2.485E-06*(cos(zenith)**1.196)*exp(-0.328*(1./cos(zenith)))
-    J(54) = 4.095E-06*(cos(zenith)**1.111)*exp(-0.316*(1./cos(zenith)))
-    J(55) = 1.135E-05*(cos(zenith)**0.974)*exp(-0.309*(1./cos(zenith)))
-    J(56) = 4.365E-05*(cos(zenith)**1.089)*exp(-0.323*(1./cos(zenith)))
+
+    J(J_O3_O1D)       = 6.073E-05*(cos(zenith)**1.743)*exp(-0.474*(1./cos(zenith)))  ! MCM J= 1
+    J(J_O3_O3P)       = 4.775E-04*(cos(zenith)**0.298)*exp(-0.08*(1./cos(zenith)))   ! MCM J= 2
+    J(J_H2O2)         = 1.041E-05*(cos(zenith)**0.723)*exp(-0.279*(1./cos(zenith)))  ! MCM J= 3
+    J(J_NO2)          = 1.165E-02*(cos(zenith)**0.244)*exp(-0.267*(1./cos(zenith)))  ! MCM J= 4
+    J(J_NO3_NO)       = 2.485E-02*(cos(zenith)**0.168)*exp(-0.108*(1./cos(zenith)))  ! MCM J= 5
+    J(J_NO3_NO2)      = 1.747E-01*(cos(zenith)**0.155)*exp(-0.125*(1./cos(zenith)))  ! MCM J= 6
+    J(J_HONO)         = 2.644E-03*(cos(zenith)**0.261)*exp(-0.288*(1./cos(zenith)))  ! MCM J= 7
+    J(J_HNO3)         = 9.312E-07*(cos(zenith)**1.23)*exp(-0.307*(1./cos(zenith)))   ! MCM J= 8
+    J(J_HCHO_H)       = 4.642E-05*(cos(zenith)**0.762)*exp(-0.353*(1./cos(zenith)))  ! MCM J=11
+    J(J_HCHO_H2)      = 6.853E-05*(cos(zenith)**0.477)*exp(-0.323*(1./cos(zenith)))  ! MCM J=12
+    J(J_CH3CHO)       = 7.344E-06*(cos(zenith)**1.202)*exp(-0.417*(1./cos(zenith)))  ! MCM J=13
+    J(J_C2H5CHO)      = 2.879E-05*(cos(zenith)**1.067)*exp(-0.358*(1./cos(zenith)))  ! MCM J=14
+    J(J_C3H7CHO_HCO)  = 2.792E-05*(cos(zenith)**0.805)*exp(-0.338*(1./cos(zenith)))  ! MCM J=15
+    J(J_C3H7CHO_C2H4) = 1.675E-05*(cos(zenith)**0.805)*exp(-0.338*(1./cos(zenith)))  ! MCM J=16
+    J(J_IPRCHO)       = 7.914E-05*(cos(zenith)**0.764)*exp(-0.364*(1./cos(zenith)))  ! MCM J=17
+    J(J_MACR_HCO)     = 1.482E-06*(cos(zenith)**0.396)*exp(-0.298*(1./cos(zenith)))  ! MCM J=18
+    J(J_MACR_H)       = 1.482E-06*(cos(zenith)**0.396)*exp(-0.298*(1./cos(zenith)))  ! MCM J=19
+    J(J_C5HPALD1)     = 7.600E-04*(cos(zenith)**0.396)*exp(-0.298*(1./cos(zenith)))  ! MCM J=20
+    J(J_CH3COCH3)     = 7.992E-07*(cos(zenith)**1.578)*exp(-0.271*(1./cos(zenith)))  ! MCM J=21
+    J(J_MEK)          = 5.804E-06*(cos(zenith)**1.092)*exp(-0.377*(1./cos(zenith)))  ! MCM J=22
+    J(J_MVK_CO)       = 2.4246E-06*(cos(zenith)**0.395)*exp(-0.296*(1./cos(zenith))) ! MCM J=23
+    J(J_MVK_C2H3)     = 2.424E-06*(cos(zenith)**0.395)*exp(-0.296*(1./cos(zenith)))  ! MCM J=24
+    J(J_GLYOX_H2)     = 6.845E-05*(cos(zenith)**0.13)*exp(-0.201*(1./cos(zenith)))   ! MCM J=31
+    J(J_GLYOX_HCHO)   = 1.032E-05*(cos(zenith)**0.13)*exp(-0.201*(1./cos(zenith)))   ! MCM J=32
+    J(J_GLYOX_HCO)    = 3.802E-05*(cos(zenith)**0.644)*exp(-0.312*(1./cos(zenith)))  ! MCM J=33
+    J(J_MGLYOX)       = 1.537E-04*(cos(zenith)**0.17)*exp(-0.208*(1./cos(zenith)))   ! MCM J=34
+    J(J_BIACET)       = 3.326E-04*(cos(zenith)**0.148)*exp(-0.215*(1./cos(zenith)))  ! MCM J=35
+    J(J_CH3OOH)       = 7.649E-06*(cos(zenith)**0.682)*exp(-0.279*(1./cos(zenith)))  ! MCM J=41
+    J(J_CH3NO3)       = 1.588E-06*(cos(zenith)**1.154)*exp(-0.318*(1./cos(zenith)))  ! MCM J=51
+    J(J_C2H5NO3)      = 1.907E-06*(cos(zenith)**1.244)*exp(-0.335*(1./cos(zenith)))  ! MCM J=52
+    J(J_NC3H7NO3)     = 2.485E-06*(cos(zenith)**1.196)*exp(-0.328*(1./cos(zenith)))  ! MCM J=53
+    J(J_IC3H7NO3)     = 4.095E-06*(cos(zenith)**1.111)*exp(-0.316*(1./cos(zenith)))  ! MCM J=54
+    J(J_TC4H9NO3)     = 1.135E-05*(cos(zenith)**0.974)*exp(-0.309*(1./cos(zenith)))  ! MCM J=55
+    J(J_NOA)          = 4.365E-05*(cos(zenith)**1.089)*exp(-0.323*(1./cos(zenith)))  ! MCM J=56
 
   END SUBROUTINE define_constants_mcm
 
