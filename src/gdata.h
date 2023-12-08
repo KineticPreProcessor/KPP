@@ -176,9 +176,6 @@ extern int Jac_NZ;
 extern int generateSD;
 
 extern int initNr;
-extern int xNr;
-extern int yNr;
-extern int zNr;
 
 extern int falseSpcNr;
 
@@ -252,11 +249,9 @@ void CmdReorder( char *cmd );
 void CmdMex( char *cmd );
 void CmdDummyindex( char *cmd );
 void CmdEqntags( char *cmd );
-void CmdUse( char *cmd );
 void CmdLanguage( char *cmd );
 void CmdIntegrator( char *cmd );
 void CmdDriver( char *cmd );
-void CmdRun( char *cmd );
 void CmdStochastic( char *cmd );
 void CmdFlux( char *cmd );
 void Generate();

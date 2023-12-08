@@ -783,13 +783,6 @@ int code;
   ScanError("Undefined species or atom %s.", spname );
 }
 
-void AddUseFile( char *fname )
-{
-  fileList[fileNr] = (char*)malloc(strlen(fname)+1);
-  strcpy(fileList[fileNr], fname);
-  fileNr++;
-}
-
 char * AppendString( char * s1, char * s2, int * maxlen, int addlen ) 
 {
 

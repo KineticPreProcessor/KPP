@@ -406,7 +406,7 @@ are given in the following subsections.
 #AUTOREDUCE
 -----------
 
-The :command:`#AUTOREDUCE on` command can be used with
+The :command:`#AUTOREDUCE ON` command can be used with
 :command:`#INTEGRATOR rosenbrock` to enable
 :ref:`automatic  mechanism reduction <rosenbrock-autoreduce>` as
 described in :cite:t:`Lin_et_al._2022`.  Automatic mechanism reduction

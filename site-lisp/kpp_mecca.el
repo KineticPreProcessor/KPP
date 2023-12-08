@@ -54,6 +54,7 @@
          "\\|#MEX\\|#MINVERSION\\|#MODEL\\|#MONITOR\\|#REORDER"
          "\\|#SETFIX\\|#SETVAR\\|#STOCHASTIC\\|#STOICMAT\\|#UPPERCASEF90"
          "\\|#WRITE_ATM\\|#WRITE_MAT\\|#WRITE_SPC"
+         "\\|#REPLACE\\|#ENDREPLACE"
          ) 'font-lock-keyword-face)
   '("//.*"          0 font-lock-string-face t) ; LaTeX note
   '("^//.*"         0 font-lock-comment-face t) ; comment
