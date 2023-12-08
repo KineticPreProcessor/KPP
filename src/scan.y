@@ -77,18 +77,18 @@
   char str[1000];
 };
 
-%token JACOBIAN DOUBLE FUNCTION DEFVAR DEFRAD DEFFIX SETVAR SETRAD SETFIX 
+%token JACOBIAN DOUBLE FUNCTION DEFVAR DEFFIX SETVAR SETFIX
 %token HESSIAN STOICMAT STOCHASTIC DECLARE
-%token INITVALUES EQUATIONS FAMILIES LUMP INIEQUAL EQNEQUAL EQNCOLON 
-%token LMPCOLON LMPPLUS SPCPLUS SPCEQUAL FAMCOLON ATOMDECL CHECK CHECKALL REORDER
+%token INITVALUES EQUATIONS FAMILIES INIEQUAL EQNEQUAL EQNCOLON
+%token SPCPLUS SPCEQUAL FAMCOLON ATOMDECL CHECK CHECKALL REORDER
 %token MEX DUMMYINDEX EQNTAGS
-%token LOOKAT LOOKATALL TRANSPORT TRANSPORTALL MONITOR USES SPARSEDATA
-%token WRITE_ATM WRITE_SPC WRITE_MAT WRITE_OPT INITIALIZE XGRID YGRID ZGRID
-%token USE LANGUAGE INTFILE DRIVER RUN INLINE ENDINLINE
+%token LOOKAT LOOKATALL MONITOR
+%token WRITE_ATM WRITE_SPC WRITE_MAT
+%token LANGUAGE INTFILE DRIVER INLINE ENDINLINE
 %token      PARAMETER SPCSPC INISPC INIVALUE EQNSPC EQNSIGN EQNCOEF
 %type <str> PARAMETER SPCSPC INISPC INIVALUE EQNSPC EQNSIGN EQNCOEF
-%token      RATE LMPSPC SPCNR ATOMID LKTID MNIID INLCTX INCODE SSPID 
-%type <str> RATE LMPSPC SPCNR ATOMID LKTID MNIID INLCTX INCODE SSPID
+%token      RATE SPCNR ATOMID LKTID MNIID INLCTX INCODE SSPID
+%type <str> RATE SPCNR ATOMID LKTID MNIID INLCTX INCODE SSPID
 %token      EQNLESS EQNTAG EQNGREATER
 %type <str> EQNLESS EQNTAG EQNGREATER
 %token      TPTID USEID
@@ -143,13 +143,9 @@ section	        : JACOBIAN PARAMETER
                   {}
                 | DEFVAR species
                   {}  
-                | DEFRAD species
-                  {}  
                 | DEFFIX species
                   {}  
                 | SETVAR setspclist
-                  {}  
-                | SETRAD setspclist
                   {}  
                 | SETFIX setspclist
                   {}  
@@ -159,40 +155,22 @@ section	        : JACOBIAN PARAMETER
                   {}
                 | FAMILIES families
                   {}
-                | LUMP lumps  
-                  {}
                 | LOOKAT lookatlist  
                   {}
                 | MONITOR monitorlist  
-                  {}
-                | TRANSPORT translist  
                   {}
                 | CHECKALL
                   { CheckAll(); }
                 | LOOKATALL
                   { LookAtAll(); }
-                | TRANSPORTALL
-                  { TransportAll(); }
                 | WRITE_ATM
                   { WriteAtoms(); }
                 | WRITE_SPC
                   { WriteSpecies(); }
                 | WRITE_MAT
                   { WriteMatrices(); }
-                | WRITE_OPT
-                  { WriteOptions(); }
-                | USE PARAMETER
-		  { CmdUse( $2 ); }
                 | LANGUAGE PARAMETER
 		  { CmdLanguage( $2 ); }
-                | INITIALIZE PARAMETER
-                  { DefineInitializeNbr( $2 ); }
-                | XGRID PARAMETER
-                  { DefineXGrid( $2 ); }
-                | YGRID PARAMETER
-                  { DefineYGrid( $2 ); }
-                | ZGRID PARAMETER
-                  { DefineZGrid( $2 ); }
 		| INLINE INLCTX inlinecode ENDINLINE
 		  { 
 		    AddInlineCode( $2, InlineBuf );
@@ -204,12 +182,6 @@ section	        : JACOBIAN PARAMETER
 		  { CmdIntegrator( $2 ); }
                 | DRIVER PARAMETER
 		  { CmdDriver( $2 ); }
-                | RUN PARAMETER
-		  { CmdRun( $2 ); }
-                | USES uselist  
-                  {}
-                | SPARSEDATA PARAMETER
-		  { SparseData( $2 ); }
                 | FLUX PARAMETER
 		  { CmdFlux( $2 ); }
                 | AUTOREDUCE PARAMETER
@@ -254,24 +226,6 @@ monitorspc	: MNIID
                   { AddMonitor( $1 );
                   }
                 ;     
-translist	: translist transspc semicolon
-                | transspc semicolon
-                | error semicolon
-                  { ParserErrorMessage(); }
-                ;
-transspc	: TPTID
-                  { AddTransport( $1 );
-                  }
-                ;     
-uselist		: uselist usefile semicolon
-                | usefile semicolon
-                | error semicolon
-                  { ParserErrorMessage(); }
-                ;
-usefile		: USEID
-                  { AddUseFile( $1 );
-                  }
-                ;     
 setspclist	: setspclist setspcspc semicolon
                 | setspcspc semicolon
                 | error semicolon
@@ -280,7 +234,6 @@ setspclist	: setspclist setspcspc semicolon
 setspcspc	: SSPID
                   { switch( crt_section ) {
                       case SETVAR: SetSpcType( VAR_SPC, $1 ); break;
-                      case SETRAD: SetSpcType( RAD_SPC, $1 ); break;
                       case SETFIX: SetSpcType( FIX_SPC, $1 ); break;
                     }
                   }
@@ -319,7 +272,6 @@ spc             : spcname
 spcname         : SPCSPC SPCEQUAL atoms
                   { switch( crt_section ) {
                       case DEFVAR: DeclareSpecies( VAR_SPC, $1 ); break;
-                      case DEFRAD: DeclareSpecies( RAD_SPC, $1 ); break;
                       case DEFFIX: DeclareSpecies( FIX_SPC, $1 ); break;
                     } 
                   }
@@ -327,7 +279,6 @@ spcname         : SPCSPC SPCEQUAL atoms
 spcdef          : SPCSPC
                   { switch( crt_section ) {
                       case DEFVAR: DeclareSpecies( VAR_SPC, $1 ); break;
-                      case DEFRAD: DeclareSpecies( RAD_SPC, $1 ); break;
                       case DEFFIX: DeclareSpecies( FIX_SPC, $1 ); break;
                     } 
                   }
@@ -405,19 +356,6 @@ term            : EQNCOEF EQNSPC
                     strcpy( crt_coef, "1" ); 
                   }
                 ;
-lumps           : lumps lump semicolon
-                | lump semicolon 
-                | error semicolon
-                  { ParserErrorMessage(); }
-                ;
-lump            : LMPSPC LMPPLUS lump
-                  { AddLumpSpecies( $1 );
-                  }
-                | LMPSPC LMPCOLON LMPSPC
-                  {
-                    AddLumpSpecies( $1 );
-                    CheckLump( $3 );  
-                  }
 inlinecode      : inlinecode INCODE
 		  {
 		    InlineBuf = AppendString( InlineBuf, $2, &InlineLen, MAX_INLINE );
@@ -481,7 +419,7 @@ void ParserErrorMessage()
       break; 
     case EQNCOLON: 
       ParserError("Missing rate after '%s'", crtToken );
-      break; 
+      break;
     case EQNSIGN: 
       ParserError("Missing coeficient after '%s'", crtToken );
       break; 
@@ -490,16 +428,6 @@ void ParserErrorMessage()
       break; 
     case RATE: 
       ParserError("Missing ';' after '%s'", crtToken );
-      break; 
-
-    case LMPSPC: 
-      ParserError("Missing '+' or ':' or ';' after '%s'", crtToken );
-      break; 
-    case LMPPLUS: 
-      ParserError("Missing species after '%s'", crtToken );
-      break; 
-    case LMPCOLON: 
-      ParserError("Missing species after '%s'", crtToken );
       break; 
     case INLINE:
       ParserError("Missing inline option after '%s'", crtToken );

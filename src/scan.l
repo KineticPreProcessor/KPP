@@ -36,7 +36,7 @@
 
 %s CMD_STATE INC_STATE MOD_STATE INT_STATE 
 %s PRM_STATE DSP_STATE SSP_STATE INI_STATE EQN_STATE EQNTAG_STATE 
-%s RATE_STATE FAM_STATE LMP_STATE CR_IGNORE SC_IGNORE ATM_STATE LKT_STATE INL_STATE 
+%s RATE_STATE FAM_STATE CR_IGNORE SC_IGNORE ATM_STATE LKT_STATE INL_STATE 
 %s MNI_STATE TPT_STATE USE_STATE
 %s COMMENT COMMENT2 EQN_ID
 %x INL_CODE
@@ -252,17 +252,6 @@ STOICH  {LIT}[a-zA-Z_0-9]*[*]
 <RATE_STATE>;           { BEGIN EQN_STATE;
                           RETURN( yytext[0] );
                         } 
-<LMP_STATE>{IDSPC}      { strcpy( yylval.str, yytext );
-                          RETURN( LMPSPC );
-                        }
-<LMP_STATE>[+]          { RETURN( LMPPLUS );
-                        } 
-<LMP_STATE>[:]          { RETURN( LMPCOLON );
-                        } 
-<LMP_STATE>;            { RETURN( yytext[0] );
-                        } 
-<LMP_STATE>[^;#]        { ScanError("Invalid character '%c' in species definition", yytext[0] );
-                        }
 <LKT_STATE>{IDSPC}      { strcpy( yylval.str, yytext );
                           RETURN( LKTID );
                         }
@@ -327,37 +316,23 @@ STOICH  {LIT}[a-zA-Z_0-9]*[*]
                          { "CHECK",         ATM_STATE, CHECK        },
                          { "CHECKALL",      INITIAL,   CHECKALL     },
                          { "DEFVAR",        DSP_STATE, DEFVAR       },
-                         { "DEFRAD",        DSP_STATE, DEFVAR       },
                          { "DEFFIX",        DSP_STATE, DEFFIX       },
                          { "SETVAR",        SSP_STATE, SETVAR       },
-                         { "SETRAD",        SSP_STATE, SETVAR       },
                          { "SETFIX",        SSP_STATE, SETFIX       },
                          { "INITVALUES",    INI_STATE, INITVALUES   },
                          { "EQUATIONS",     EQN_STATE, EQUATIONS    },
                          { "FAMILIES",      FAM_STATE, FAMILIES     },
-                         { "LUMP",          LMP_STATE, LUMP         },
                          { "LOOKAT",        LKT_STATE, LOOKAT       },
                          { "LOOKATALL",     INITIAL,   LOOKATALL    },
-                         { "TRANSPORT",     TPT_STATE, TRANSPORT    },
-                         { "TRANSPORTALL",  INITIAL,   TRANSPORTALL },
-                         { "INITIALIZE",    PRM_STATE, INITIALIZE   },
-                         { "XGRID",         PRM_STATE, XGRID        },
-                         { "YGRID",         PRM_STATE, YGRID        },
-                         { "ZGRID",         PRM_STATE, ZGRID        },
                          { "MONITOR",       MNI_STATE, MONITOR      },
                          { "WRITE_ATM",     INITIAL,   WRITE_ATM    },
                          { "WRITE_SPC",     INITIAL,   WRITE_SPC    },
                          { "WRITE_MAT",     INITIAL,   WRITE_MAT    },
-                         { "WRITE_OPT",     INITIAL,   WRITE_OPT    },
-                         { "USE",           PRM_STATE, USE          },
                          { "LANGUAGE",      PRM_STATE, LANGUAGE     },
                          { "INLINE",        INL_STATE, INLINE       },
                          { "ENDINLINE",     INITIAL,   ENDINLINE    },
                          { "INTFILE",       PRM_STATE, INTFILE      },
                          { "DRIVER",        PRM_STATE, DRIVER       },
-                         { "RUN",           PRM_STATE, RUN          },
-                         { "USES",          USE_STATE, USES         },
-                         { "SPARSEDATA",    PRM_STATE, SPARSEDATA   },
                          { "FLUX",          PRM_STATE, FLUX         },
                          { "UPPERCASEF90",  PRM_STATE, UPPERCASEF90 },
                          { "MINVERSION",    PRM_STATE, MINVERSION   },

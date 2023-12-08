@@ -40,7 +40,7 @@
 #define MAX_INLINE 200000
           
 enum eq_state { LHS, RHS, RAT };
-enum sptypes { DUMMY_SPC, VAR_SPC, RAD_SPC, FIX_SPC, PL_SPC };
+enum sptypes { DUMMY_SPC, VAR_SPC, FIX_SPC, PL_SPC };
 enum famtypes { PROD_FAM, LOSS_FAM };
 enum atomcheck { NO_CHECK, DO_CHECK, CANCEL_CHECK };
 enum codetype { APPEND, REPLACE };
@@ -87,16 +87,12 @@ void AssignInitialValue( char *spname , char *spval );
 void StoreEquationRate( char *rate, char *label );
 void CheckEquation(); 
 void ProcessTerm( int side, char *sign, char *coef, char *spname  );
-void AddLumpSpecies( char *spname );
-void CheckLump( char *spname );
 void AddLookAt( char *spname );
 void AddMonitor( char *spname );
-void AddTransport( char *spname );
 
 void WriteAtoms();
 void WriteSpecies();
 void WriteMatrices();
-void WriteOptions();
 
 char * AppendString( char * s1, char * s2, int * len, int addlen );
 void AddInlineCode( char * context, char * code );
@@ -106,7 +102,6 @@ void AddInlineCode( char * context, char * code );
 // Some of these are already defined in gdata.h but are also needed here
 // since gdata.h is not accessed in the scanning/lexing.
 //   -- Bob Yantosca (27 Apr 2022)
-void AddUseFile( char *fname );
 void CheckAll();
 void CmdFunction( char *cmd );
 void CmdJacobian( char *cmd );
@@ -117,28 +112,20 @@ void CmdReorder( char *cmd );
 void CmdMex( char *cmd );
 void CmdDummyindex( char *cmd );
 void CmdEqntags( char *cmd );
-void CmdUse( char *cmd );
 void CmdLanguage( char *cmd );
 void CmdIntegrator( char *cmd );
 void CmdDriver( char *cmd );
-void CmdRun( char *cmd );
 void CmdStochastic( char *cmd );
 void CmdStoicmat( char *cmd );
 void CmdFlux( char *cmd );
 void CmdAutoReduce( char *cmd );
 void CmdUpperCaseF90( char *cmd );
 void CmdMinVersion( char *cmd );
-void CmdUse( char *cmd );
-void DefineInitializeNbr( char *cmd );
-void DefineXGrid( char *cmd );
-void DefineYGrid( char *cmd );
-void DefineZGrid( char *cmd );
 int EqNoCase( char *s1, char *s2 );
 int EqnString( int eq, char * buf );
 void LookAtAll();
 int ParseEquationFile( char * filename );
 void SparseData( char *cmd );
-void TransportAll();
 int yylex();
 
 #endif
