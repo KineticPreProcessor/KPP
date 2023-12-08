@@ -49,9 +49,6 @@ int VarStartNr   = 0;
 int FixStartNr   = 0;
 int plNr         = 0;
 int initNr       = -1;
-int xNr          = 0;
-int yNr          = 0;
-int zNr          = 0;
 int falseSpcNr   = 0;
 
 ATOM_DEF AtomTable[ MAX_ATNR ];
@@ -140,45 +137,6 @@ double Abs( double x )
   return x > 0 ? x : -x;
 }
 
-void DefineInitializeNbr( char *cmd )
-{
-int n;
-
-  n = sscanf( cmd, "%d", &initNr);
-  if( n != 1 )
-    ScanError("Bad number of species to initialize <%s>", cmd);
-}
-
-void DefineXGrid( char *cmd )
-{
-int n;
-
-  xNr = 1;
-  n = sscanf( cmd, "%d", &xNr);
-  if( n != 1 )
-    ScanError("Bad X grid number <%s>", cmd);
-}
-
-void DefineYGrid( char *cmd )
-{
-int n;
-
-  yNr = 1;
-  n = sscanf( cmd, "%d", &yNr);
-  if( n != 1 )
-    ScanError("Bad Y grid number <%s>", cmd);
-}
-
-void DefineZGrid( char *cmd )
-{
-int n;
-
-  zNr = 1;
-  n = sscanf( cmd, "%d", &zNr);
-  if( n != 1 )
-    ScanError("Bad Z grid number <%s>", cmd);
-}
-
 void CmdFunction( char *cmd )
 {
   if( EqNoCase( cmd, "AGGREGATE" ) ) {
@@ -228,10 +186,6 @@ void CmdJacobian( char *cmd )
     return;
   }
   ScanError("'%s': Unknown parameter for #JACOBIAN [OFF|FULL|SPARSE_LU_ROW|SPARSE_ROW]", cmd );
-}
-
-void SparseData( char *cmd ) {
-  ScanError("Deprecated use of #SPARSEDATA %s: see #JACOBIAN for equivalent functionality", cmd );
 }
 
 void CmdHessian( char *cmd )
@@ -325,12 +279,6 @@ void CmdEqntags( char *cmd )
   ScanError("'%s': Unknown parameter for #EQNTAGS [ON|OFF]", cmd );
 }
 
-void CmdUse( char *cmd )
-{
-  ScanError("Deprecated command '#USE %s';\nReplace with '#LANGUAGE %s'.",cmd,cmd );
-}
-
-
 void CmdLanguage( char *cmd )
 {
   if( EqNoCase( cmd, "FORTRAN77" ) ) {
@@ -378,11 +326,6 @@ void CmdIntegrator( char *cmd )
 void CmdDriver( char *cmd )
 {
   strcpy( driver, cmd );
-}
-
-void CmdRun( char *cmd )
-{
-  strcpy( runArgs, cmd );
 }
 
 void CmdFlux( char *cmd )
@@ -838,13 +781,6 @@ int code;
   }
     
   ScanError("Undefined species or atom %s.", spname );
-}
-
-void AddUseFile( char *fname )
-{
-  fileList[fileNr] = (char*)malloc(strlen(fname)+1);
-  strcpy(fileList[fileNr], fname);
-  fileNr++;
 }
 
 char * AppendString( char * s1, char * s2, int * maxlen, int addlen ) 

@@ -45,19 +45,14 @@
   ;; KPP sections (Tab. 3 in thesis), commands (Tab. 13 in thesis), and
   ;; fragments (Tab. 17 in thesis)
   (cons (concat
-         "\\(#ATOMS\\|#AUTOREDUCE\\|#CHECKALL\\|#CHECK\\|#DEFFIX"
-         "\\|#DEFRAD\\|#DEFVAR\\|#DOUBLE\\|#DRIVER\\|#DUMMYINDEX"
+         "\\(#ATOMS\\|#AUTOREDUCE\\|#CHECKALL\\|#CHECK\\|#DECLARE"
+         "\\|#DEFFIX\\|#DEFVAR\\|#DOUBLE\\|#DRIVER\\|#DUMMYINDEX"
          "\\|#ENDINLINE\\|#EQNTAGS\\|#EQUATIONS\\|#FAMILIES\\|#FUNCTION"
-         "\\|#HESSIAN\\|#INCLUDE\\|#INITIALIZE"
-         "\\|#INITVALUES\\|#INLINE\\|#INTEGRATOR\\|#INTFILE"
-         "\\|#JACOBIAN\\|#LANGUAGE\\|#LOOKATALL"
-         "\\|#LOOKAT\\|#MEX\\|#MODEL\\|#MONITOR"
-         "\\|#REORDER\\|#RUN\\|#SETFIX\\|#SETRAD\\|#SETVAR"
-         "\\|#SPARSEDATA\\|#STOCHASTIC\\|#STOICMAT"
-         "\\|#USE\\|#USES\\|#WRITE_ATM"
-         "\\|#WRITE_MAT\\|#WRITE_OPT\\|#WRITE_SPC"
-         "\\|#UPPERCASEF90\\|#MINVERSION\\|#FAMILIES"
-         "\\|#XGRID\\|#YGRID\\|#ZGRID\\)"
+         "\\|#HESSIAN\\|#INCLUDE\\|#INITVALUES\\|#INLINE\\|#INTEGRATOR"
+         "\\|#INTFILE\\|#JACOBIAN\\|#LANGUAGE\\|#LOOKATALL\\|#LOOKAT"
+         "\\|#MEX\\|#MINVERSION\\|#MODEL\\|#MONITOR\\|#REORDER"
+         "\\|#SETFIX\\|#SETVAR\\|#STOCHASTIC\\|#STOICMAT\\|#UPPERCASEF90"
+         "\\|#WRITE_ATM\\|#WRITE_MAT\\|#WRITE_SPC"
          ) 'font-lock-keyword-face)
   '("^//.*"         0 font-lock-comment-face t) ; comment
   )

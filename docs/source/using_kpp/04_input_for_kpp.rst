@@ -356,6 +356,8 @@ are given in the following subsections.
    +--------------------------+-----------------------+
    | KPP command              | default value         |
    +==========================+=======================+
+   | :command:`#AUTOREDUCE`   | :code:`OFF`           |
+   +--------------------------+-----------------------+
    | :command:`#CHECKALL`     |                       |
    +--------------------------+-----------------------+
    | :command:`#DECLARE`      | :code:`SYMBOL`        |
@@ -398,6 +400,17 @@ are given in the following subsections.
    +--------------------------+-----------------------+
    | :command:`#UPPERCASEF90` | :code:`OFF`           |
    +--------------------------+-----------------------+
+
+.. _autoreduce-cmd:
+
+#AUTOREDUCE
+-----------
+
+The :command:`#AUTOREDUCE ON` command can be used with
+:command:`#INTEGRATOR rosenbrock` to enable
+:ref:`automatic  mechanism reduction <rosenbrock-autoreduce>` as
+described in :cite:t:`Lin_et_al._2022`.  Automatic mechanism reduction
+is disabled by default.
 
 .. _declare-cmd:
 

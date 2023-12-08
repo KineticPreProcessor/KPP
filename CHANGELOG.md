@@ -11,9 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- Version numbers must be synchronized in CHANGELOG.md, -->
 <!-- src/gdata.h, and docs/source/conf.py-->
 ## [Unreleased] - TBD
+### Added
+- `#AUTOREDUCE` has been added to the list of KPP commands in the ReadTheDocs documentaton
+
 ### Removed
 - `TRANSPORT` and `TRANSPORTALL` input options; these were obsolete
 - `LUMP` input option; this was obsolete
+- `DEFRAD`, `SETRAD`, `INITIALIZE`, `XGRID`, `YGRID`, `ZGRID`, `WRITE_OPT`, `RUN`, `USE`, `USES`; these were obsolete
 
 ## [3.0.2] - 2023-06-02
 ### Added
