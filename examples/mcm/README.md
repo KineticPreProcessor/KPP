@@ -13,7 +13,7 @@ Use these commands to run the MCM minimal example:
 2. Compile the KPP-generated source code to an executable:
 
    ```console
-   $ gmake clean
+   $ gmake -f Makefile_mcm clean
    $ gmake -f Makefile_mcm EXTERNAL_RATES_F90=constants_mcm.f90
    ```
    NOTE: On some systems, `gmake` may be installed as `make`.

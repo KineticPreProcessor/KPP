@@ -1,54 +1,51 @@
-{********************************************************** ;
-*       Citation
-*       
-*       A citation to
-*  the MCM website and the relevant mechanism construction
-*  protocols should be given in any publication using
-*  information obtained from this source, using the following
-*  or comparable wording:
-*       
-* The chemical mechanistic
-*  information was taken from the Master Chemical Mechanism,
-*  MCM v3.3.1 (reference), via  website:
-*  http://mcm.york.ac.uk/
-* 
-* The reference should be: 
-* 
-* 
-*  For non-aromatic schemes:
-*    
-*       Jenkin et al.,
-*  Atmos. Environ., 31, 81, 1997
-*  [doi:10.1016/S1352-2310(96)00105-7]
-*       Saunders et
-*  al., Atmos. Chem. Phys., 3, 161, 2003
-*  [doi:10.5194/acp-3-161-2003]
-*    
-*    For aromatic
-*  schemes:
-*    
-*       Jenkin et al., Atmos. Chem. Phys.,
-*  3, 181, 2003 [doi:10.5194/acp-3-181-2003]
-*       Bloss et
-*  al., Atmos. Chem. Phys., 5, 641, 2005
-*  [doi:10.5194/acp-5-641-2005]
-*    
-*    For the
-*  β-caryophyllene scheme:
-*    
-*       Jenkin et al.,
-*  Atmos. Chem. Phys.,  12, 5275, 2012
-*  [doi:10.5194/acp-12-5275-2012]
-*    
-*    For the isoprene
-*  scheme:
-*    
-*       Jenkin et al., Atmos. Chem. Phys.,
-*  15, 11433-11459, 2015 [doi:10.5194/acp-15-11433-2015]
-********************************************************** ;}
-
-// #INLINE F90_GLOBAL
-// #ENDINLINE {above lines go into MODULE KPP_ROOT_Global}
+// ********************************************************* ;
+//       Citation
+//       
+//       A citation to
+//  the MCM website and the relevant mechanism construction
+//  protocols should be given in any publication using
+//  information obtained from this source, using the following
+//  or comparable wording:
+//       
+// The chemical mechanistic
+//  information was taken from the Master Chemical Mechanism,
+//  MCM v3.3.1 (reference), via  website:
+//  http://mcm.york.ac.uk/
+// 
+// The reference should be: 
+// 
+// 
+//  For non-aromatic schemes:
+//    
+//       Jenkin et al.,
+//  Atmos. Environ., 31, 81, 1997
+//  [doi:10.1016/S1352-2310(96)00105-7]
+//       Saunders et
+//  al., Atmos. Chem. Phys., 3, 161, 2003
+//  [doi:10.5194/acp-3-161-2003]
+//    
+//    For aromatic
+//  schemes:
+//    
+//       Jenkin et al., Atmos. Chem. Phys.,
+//  3, 181, 2003 [doi:10.5194/acp-3-181-2003]
+//       Bloss et
+//  al., Atmos. Chem. Phys., 5, 641, 2005
+//  [doi:10.5194/acp-5-641-2005]
+//    
+//    For the
+//  β-caryophyllene scheme:
+//    
+//       Jenkin et al.,
+//  Atmos. Chem. Phys.,  12, 5275, 2012
+//  [doi:10.5194/acp-12-5275-2012]
+//    
+//    For the isoprene
+//  scheme:
+//    
+//       Jenkin et al., Atmos. Chem. Phys.,
+//  15, 11433-11459, 2015 [doi:10.5194/acp-15-11433-2015]
+// ********************************************************* ;
 
 #INCLUDE atoms 
 
@@ -664,15 +661,46 @@ C536O = IGNORE ;
 C536OOH = IGNORE ;
 C537O = IGNORE ;
 C537OOH = IGNORE ;
-{ Peroxy radicals. }
-{ WARNING: The following species do not have SMILES strings in the database. 
-           If any of these are peroxy radicals the RO2 sum will be wrong! 
-    O O3 NO NO2 NO3 O1D N2O5 OH HO2 H2 CO H2O2 HONO HNO3 HO2NO2 SO2 SO3 HSO3 NA
-    SA CL
-}
 
-#INLINE F90_RCONST
+#INLINE F90_RCONST 
   USE constants_mcm
+  ! Peroxy radicals
+  ! WARNING: The following species do not have SMILES strings in the database. 
+  !          If any of these are peroxy radicals the RO2 sum will be wrong! 
+  ! O O3 NO NO2 NO3 O1D N2O5 OH HO2 H2 CO H2O2 HONO HNO3 HO2NO2 SO2 SO3 HSO3 NA
+  ! SA CL
+  RO2 = C(ind_CH3O2) + C(ind_C51O2) + C(ind_CH3COCH2O2) + C(ind_HOCH2CO3) + &
+      C(ind_CO2C3CO3) + C(ind_IPRHOCO3) + C(ind_BIACETO2) + C(ind_CH3CO3) + &
+      C(ind_HOCH2CH2O2) + C(ind_ETHENO3O2) + C(ind_NO3CH2CO3) + &
+      C(ind_HYPROPO2) + C(ind_IPROPOLO2) + C(ind_PRONO3AO2) + &
+      C(ind_PRONO3BO2) + C(ind_PRNO3CO3) + C(ind_H13CO2CO3) + &
+      C(ind_HCOCH2O2) + C(ind_ACO3) + C(ind_ISOPAO2) + C(ind_HC4CCO3) + &
+      C(ind_C57O2) + C(ind_HCOCO3) + C(ind_ISOPBO2) + C(ind_HMVKAO2) + &
+      C(ind_HMVKBO2) + C(ind_CO2H3CO3) + C(ind_ISOPCO2) + C(ind_HC4ACO3) + &
+      C(ind_C58O2) + C(ind_ISOPDO2) + C(ind_C59O2) + C(ind_MACO3) + &
+      C(ind_CH3C2H2O2) + C(ind_MACRO2) + C(ind_NISOPO2) + C(ind_NC4CO3) + &
+      C(ind_C510O2) + C(ind_MVKO2) + C(ind_CH3CHOHCO3) + C(ind_C3DIOLO2) + &
+      C(ind_MCOCOMOXO2) + C(ind_MVKOHAO2) + C(ind_MVKOHBO2) + &
+      C(ind_HCOCOHCO3) + C(ind_MMALANHYO2) + C(ind_C3MCODBCO3) + &
+      C(ind_MC3CODBCO3) + C(ind_C4M2ALOHO2) + C(ind_CH3COCO3) + &
+      C(ind_CHOMOHCO3) + C(ind_C3MDIALO2) + C(ind_C4CO2O2) + C(ind_PXYFUO2) + &
+      C(ind_C23O3CCO3) + C(ind_NPXYFUO2) + C(ind_A2PANOO) + C(ind_OCCOHCO2) + &
+      C(ind_ACRO2) + C(ind_MACROHO2) + C(ind_IEACO3) + C(ind_IECCO3) + &
+      C(ind_INAO2) + C(ind_INB1O2) + C(ind_INB2O2) + C(ind_INCO2) + &
+      C(ind_INDO2) + C(ind_C58NO3CO3) + C(ind_INANCO3) + C(ind_INAHPCO3) + &
+      C(ind_INAHCO3) + C(ind_INANCOCO3) + C(ind_MACRNCO3) + C(ind_CONM2CO3) + &
+      C(ind_C57NO3CO3) + C(ind_MMALNACO3) + C(ind_MMALNBCO3) + &
+      C(ind_INCNCO3) + C(ind_MACRNBCO3) + C(ind_COHM2CO3) + C(ind_INDHPCO3) + &
+      C(ind_INDHCO3) + C(ind_CO2N3CO3) + C(ind_INB1NACO3) + &
+      C(ind_INB1NBCO3) + C(ind_INB1HPCO3) + C(ind_C524O2) + C(ind_C525O2) + &
+      C(ind_NC524O2) + C(ind_HIEB1O2) + C(ind_HIEB2O2) + C(ind_HMACO3) + &
+      C(ind_HMACRO2) + C(ind_ISOP34O2) + C(ind_CISOPAO2) + C(ind_CISOPCO2) + &
+      C(ind_C526O2) + C(ind_C527O2) + C(ind_C534O2) + C(ind_HPC52O2) + &
+      C(ind_C535O2) + C(ind_HPC52CO3) + C(ind_CH2CHCH2O2) + C(ind_NC51O2) + &
+      C(ind_C45O2) + C(ind_M3BU3ECO3) + C(ind_C530O2) + C(ind_NC526O2) + &
+      C(ind_HC4CO3) + C(ind_C531O2) + C(ind_C31CO3) + C(ind_C533O2) + &
+      C(ind_C58AO2) + C(ind_C47CO3) + C(ind_C57AO2) + C(ind_C536O2) + &
+      C(ind_C537O2)
   CALL define_constants_mcm
 #ENDINLINE {above lines go into the SUBROUTINES UPDATE_RCONST and UPDATE_PHOTO}
 
@@ -2621,4 +2649,4 @@ C537OOH = IGNORE ;
 <1942> INCCO + hv = C59O + NO2 : J(J_NOA)*0.91 ;
 <1943> HMML + OH = MGLYOX + OH : 4.33E-12*0.7 ;
 <1944> NC4CHO + hv = CO + HMAC + NO2 + OH : J(J_NOA)*8. ;
-{ End of Subset. No. of Species = 610, No. of Reactions = 1944 }
+// End of Subset. No. of Species = 610, No. of Reactions = 1944
