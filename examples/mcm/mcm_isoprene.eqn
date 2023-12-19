@@ -1,4 +1,4 @@
-// ********************************************************* ;
+// ******************************************************** ;
 //       Citation
 //       
 //       A citation to
@@ -45,9 +45,9 @@
 //    
 //       Jenkin et al., Atmos. Chem. Phys.,
 //  15, 11433-11459, 2015 [doi:10.5194/acp-15-11433-2015]
-// ********************************************************* ;
+// ******************************************************** ;
 
-#INCLUDE atoms 
+#INCLUDE atoms
 
 #DEFVAR
 H2O = IGNORE ;
@@ -666,7 +666,7 @@ C537OOH = IGNORE ;
   USE constants_mcm
   ! Peroxy radicals
   ! WARNING: The following species do not have SMILES strings in the database. 
-  !          If any of these are peroxy radicals the RO2 sum will be wrong! 
+  !           If any of these are peroxy radicals the RO2 sum will be wrong! 
   ! O O3 NO NO2 NO3 O1D N2O5 OH HO2 H2 CO H2O2 HONO HNO3 HO2NO2 SO2 SO3 HSO3 NA
   ! SA CL
   RO2 = C(ind_CH3O2) + C(ind_C51O2) + C(ind_CH3COCH2O2) + C(ind_HOCH2CO3) + &
