@@ -23,13 +23,19 @@ degradation mechanism is shown as an example.
 
 ## Executing the MCM minimal example
 
-1. Run KPP to generate Fortran90 solver files for the MCM minimal example:
+1. Ensure that KPP is
+   [installed](https://kpp.readthedocs.io/en/stable/getting_started/01_installation.html)
+   properly. The environment variable `$KPP_HOME` must be defined, and
+   the KPP executable `$KPP_HOME/bin/kpp` should be included in the
+   `$PATH`.
+
+2. Run KPP to generate Fortran90 solver files for the MCM minimal example:
 
    ```console
    $ kpp mcm.kpp
    ```
   
-2. Compile the KPP-generated source code to an executable:
+3. Compile the KPP-generated source code to an executable:
 
    ```console
    $ gmake -f Makefile_mcm clean
@@ -39,19 +45,19 @@ degradation mechanism is shown as an example.
 
    ALSO NOTE: At present, only a single external F90 module file (with rate constants and parameters for the MCM mechanism) can be specified with the `EXTERNAL_RATES_F90` environment variable.  To specify more than one external file you will have to modify the `util/Makfile_f90` and/or `util/Makfile_upper_F90` to add additional rules.
 
-3. Run the MCM minimal example executable:
+4. Run the MCM minimal example executable:
 
    ```console
    $ ./mcm.exe
    ```
 
-4. If Python 3 and matplotlib are available (e.g., installed in a conda/mamba or a pip environment), plot the results with:
+5. If Python 3 and matplotlib are available (e.g., installed in a conda/mamba or a pip environment), plot the results with:
    
    ```console
    $ python3 plot_data.py
    ```
    
-5. Remove all KPP-generated source code files and output files from the MCM minimal example once you no longer need them:
+6. Remove all KPP-generated source code files and output files from the MCM minimal example once you no longer need them:
 
    ```console
    $ gmake distclean
