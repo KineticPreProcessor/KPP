@@ -27,7 +27,7 @@ to migrate from :program:`yacc` to :program:`bison`.
 
 We would also like to thank Lucas Estrada for his assistance in
 setting up the :ref:`ci-tests` on `Azure DevOps Pipelines
-<https://azure.microsoft.com/en-us/services/devops/pipelines/>`_. and
+<https://azure.microsoft.com/en-us/services/devops/pipelines/>`_ and
 for assistance with debugging.
 
 Shaddy Ahmed and Jennie Thomas helped us with the Matlab
@@ -35,5 +35,10 @@ output of KPP.
 
 We thank Domenico Taraborrelli for providing the
 rosenbrock_posdef_h211b_qssa solver.
+
+Stuart Lacy wrote an export function for the `Master Chemical Mechanism
+<https://mcm.york.ac.uk/MCM/export>`_. It creates KPP files that can be
+used out-of-the-box for the small model in the :file:`examples/mcm`
+directory.
 
 Parts of this user manual are based on :cite:t:`Damian-Iordache_1996`.
