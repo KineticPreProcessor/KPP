@@ -86,13 +86,27 @@ ifeq ($(shell test -f  KPP_ROOT_Stoichiom.f90 && echo y),y)
   HAS_STM=1
 endif
 
+# If an external rates module has been supplied,
+# also define the correspoinding object file
+ifdef EXTERNAL_RATES_F90
+  EXTERNAL_RATES_OBJ := $(EXTERNAL_RATES_F90:.f90=.o)
+  EXTERNAL_RATES_OBJ := $(EXTERNAL_RATES_OBJ:.F90=.o)
+endif
+
+#############################################################################
+# Construct lists of objects and sources
+#############################################################################
 
 # Command to create Matlab mex gateway routines
 # Note: use $(FC) as the mex Fortran compiler
 MEX  = mex
 
-GENSRC = KPP_ROOT_Precision.f90  KPP_ROOT_Parameters.f90  KPP_ROOT_Global.f90
-GENOBJ = KPP_ROOT_Precision.o    KPP_ROOT_Parameters.o    KPP_ROOT_Global.o
+# NOTE: Allow for an external module to be USE-d by F90_Rates
+# by specifying the relevant environment variables.
+GENSRC = KPP_ROOT_Precision.f90  KPP_ROOT_Parameters.f90  \
+         KPP_ROOT_Global.f90     $(EXTERNAL_RATES_F90)
+GENOBJ = KPP_ROOT_Precision.o    KPP_ROOT_Parameters.o    \
+         KPP_ROOT_Global.o       $(EXTERNAL_RATES_OBJ)
 
 FUNSRC = KPP_ROOT_Function.f90
 FUNOBJ = KPP_ROOT_Function.o
@@ -188,7 +202,7 @@ distclean:
 	rm -f *.o *.mod \
 	KPP_ROOT*.dat KPP_ROOT.exe KPP_ROOT.log \
 	KPP_ROOT_*.f90 KPP_ROOT_*.f90 KPP_ROOT_*.mexglx \
-	results*.m
+	results*.m *.dat
 
 KPP_ROOT_Precision.o: KPP_ROOT_Precision.f90
 	$(FC) $(FOPT) -c $<
@@ -247,3 +261,12 @@ KPP_ROOT_Model.o: KPP_ROOT_Model.f90 $(ALLOBJ) KPP_ROOT_Integrator.o
 
 KPP_ROOT_Integrator.o: KPP_ROOT_Integrator.f90 $(ALLOBJ)
 	$(FC) $(FOPT) -c $<
+
+# Define rule for a user-defined module that gets USE-d by F90_Rates.
+# This rule is only applied if both variables are not blank.
+ifdef EXTERNAL_RATES_F90
+ifdef EXTERNAL_RATES_OBJ
+$(EXTERNAL_RATES_OBJ): $(EXTERNAL_RATES_F90) KPP_ROOT_Precision.o KPP_ROOT_Global.o KPP_ROOT_Parameters.o
+	$(FC) $(FOPT) -c $<
+endif
+endif

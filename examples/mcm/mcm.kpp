@@ -1,0 +1,24 @@
+// mcm file with both spc and eqn:
+#INCLUDE mcm_isoprene.eqn
+
+// computer language for code produced by kpp:
+#LANGUAGE FORTRAN90
+#UPPERCASEF90 OFF
+
+// driver file that calls kpp subroutines:
+#DRIVER ./driver_mcm
+
+// equation IDs:
+#EQNTAGS ON
+
+// do not create Stoichiom files
+#STOICMAT OFF
+
+// do not create Hessian files
+#HESSIAN OFF
+
+// do not create Mex files
+#MEX OFF
+
+// integrator:
+#INTEGRATOR rosenbrock
