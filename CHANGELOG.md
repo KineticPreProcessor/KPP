@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 <!-- Version numbers must be synchronized in CHANGELOG.md, -->
 <!-- src/gdata.h, and docs/source/conf.py-->
-## [Unreleased] - TBD
+## [3.1.0] - 2023-12-20
 ### Added
 - `#AUTOREDUCE` has been added to the list of KPP commands in the ReadTheDocs documentaton
 - Added `examples/mcm` folder with minimal example for the Master Chemical Mechanism
