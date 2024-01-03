@@ -120,7 +120,7 @@ int first;
 int crtident;
 
 /* if MAX_NO_OF_LINES is too small, KPP will split lines incorrectly */
-int number_of_lines = 1, MAX_NO_OF_LINES = 250;
+int number_of_lines = 1, MAX_NO_OF_LINES = 2000;
 
 /*  Operator Mapping: 0xaa = '*' | 0xab = '+' | 0xac = ','
                       0xad = '-' | 0xae ='.' | 0xaf = '/' */
