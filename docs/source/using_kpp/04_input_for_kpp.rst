@@ -929,8 +929,8 @@ or define variables directly, e.g.:
 Note that the :code:`USE` statements must precede any variable
 definitions.
     
-The inlined code will be placed directly into the :code:`UPDATE_RCONST`
-routine in the :ref:`Rates` function.
+The inlined code will be placed directly into the subroutines
+:code:`UPDATE_RCONST` and :code:`UPDATE_PHOTO` in the :ref:`Rates` file.
 
 .. _f90-util:
 
