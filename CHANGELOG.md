@@ -8,6 +8,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - TBD
+### Changed
+- Updated Python package versions for ReadTheDocs in `docs/requirements.txt`
+- Now request Python 3.12 for ReadTheDocs builds in `.readthedocs.yaml`
+
 <!-- Version numbers must be synchronized in CHANGELOG.md, -->
 <!-- src/gdata.h, and docs/source/conf.py-->
 ## [3.1.0] - 2023-12-20
