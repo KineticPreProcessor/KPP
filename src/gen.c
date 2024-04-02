@@ -2144,6 +2144,58 @@ void GenerateRateLaws()
 
 }
 
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+void GenerateGraphStoic()
+{
+  int i, j, k, nnz_stoicm;
+  int *irow_stoicm;
+  int *icol_stoicm;
+  double *stoicm;
+
+  /* Compute the sparsity structure and allocate data structure vectors */
+  nnz_stoicm = 0;
+  for (j=0; j<EqnNr; j++)
+    for (i=0; i<VarNr; i++)
+      if ( Stoich[i][j] != 0.0 )
+         nnz_stoicm++;
+  if ( (irow_stoicm=(int*)calloc(nnz_stoicm+2,sizeof(int)) ) == NULL )
+      FatalError(-30,"GenerateStoicmSparseData: Cannot allocate irow_stoicm");
+  if ( (icol_stoicm=(int*)calloc(nnz_stoicm+2,sizeof(int)) ) == NULL )
+      FatalError(-30,"GenerateStoicmSparseData: Cannot allocate icol_stoicm");
+  if ( (stoicm=(double*)calloc(nnz_stoicm+2,sizeof(double)) ) == NULL )
+      FatalError(-30,"GenerateStoicmSparseData: Cannot allocate stoicm");
+
+  // UseFile( graphFile );
+  nnz_stoicm = 0;
+  for (j=0; j<EqnNr; j++) {
+    for (i=0; i<VarNr; i++) {
+      if ( Stoich[i][j] != 0 ) {
+        irow_stoicm[ nnz_stoicm ] = i;
+        icol_stoicm[ nnz_stoicm ] = j;
+        stoicm[ nnz_stoicm ] = Stoich[i][j];
+        nnz_stoicm++;
+      }
+    }
+  }
+
+  /* Write the biadjacency matrix of the species reaction graph */
+  printf("Biadjacency matrix of the species reaction graph\n");
+  // fprintf( biadjacencyFile,"spc_name, species index (row), reaction index (col), stoichiometric coefficient\n");
+  printf("spc_name, species index (row), reaction index (col), stoichiometric coefficient\n");
+  for (k=0; k<nnz_stoicm; k++) {
+          // fprintf(biadjacencyFile,"%s, %d, %d, %f\n",SpeciesTable[Code[irow_stoicm[k]-firstindex]].name, irow_stoicm[k], icol_stoicm[k], stoicm[k]);
+          printf("%s, %d, %d, %f\n",SpeciesTable[Code[irow_stoicm[k]]].name, irow_stoicm[k]+1, icol_stoicm[k]+1, stoicm[k]);
+  }
+
+  /* Free allocated memory */
+  free(irow_stoicm);
+  free(icol_stoicm);
+  free(stoicm);
+
+
+
+}
 
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -2877,6 +2929,8 @@ int i, dn;
      else                { WriteAll("#STOCHASTIC   - OFF\n");                }
   if( useStoicmat )      { WriteAll("#STOICMAT     - ON\n");                 }
      else                { WriteAll("#STOICMAT     - OFF\n");                }
+  if( useGraph )         { WriteAll("#GRAPH        - %s\n", graphType );  }
+     else                { WriteAll("#GRAPH        - OFF\n");                }
   if( upperCaseF90 )     { WriteAll("#UPPERCASEF90 - ON\n");                 }
      else                { WriteAll("#UPPERCASEF90 - OFF\n");                }
 
@@ -3687,6 +3741,12 @@ int n;
         GenerateStoicmSparseHeader();
     GenerateDFunDRcoeff();
     GenerateDJacDRcoeff();
+  }
+
+  if (useGraph ) {
+    printf("\nKPP is generating the graph data:");
+    printf("\n    - %s_Graph",rootFileName);
+    GenerateGraphStoic();
   }
 
   printf("\nKPP is generating the driver from %s.%s:", driver, f90Suffix);

@@ -111,11 +111,12 @@ int doAutoReduce   = 0;
 int useDeclareValues = 0;         // if useValues=1 KPP replaces parameters
                                   // like NVAR etc. by their values in vector
                                   // or matrix declarations
+int useGraph       = 0;
 int upperCaseF90       = 0;
 char f90Suffix[4]      = "f90";
 char minKppVersion[30] = "none";  // size [30] must be the same as in gdata.h
 
-
+char graphType[ MAX_PATH ] = "none";
 char integrator[ MAX_PATH ] = "none";
 char driver[ MAX_PATH ] = "none";
 char runArgs[  MAX_PATH ] = "";
@@ -380,6 +381,26 @@ void CmdUpperCaseF90( char *cmd )
 void CmdMinVersion( char *cmd )
 {
   strcpy( minKppVersion, cmd );
+  return;
+}
+
+void CmdGraph( char *cmd )
+{
+  strcpy( graphType, cmd );
+  printf("\n Graph type: %s\n", graphType);
+  if( EqNoCase( cmd, "OFF" ) ) {
+    useGraph = 0;
+    return;
+  }
+  if( EqNoCase( cmd, "STOIC" ) ) {
+    useGraph = 1;
+    return;
+  }
+  if( EqNoCase( cmd, "EDGELIST" ) ) {
+    useGraph = 2;
+    return;
+  }
+  ScanError("'%s': Unknown parameter for #GRAPH [OFF|STOIC|EDGELIST]", cmd );
   return;
 }
 

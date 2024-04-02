@@ -337,6 +337,7 @@ STOICH  {LIT}[a-zA-Z_0-9]*[*]
                          { "UPPERCASEF90",  PRM_STATE, UPPERCASEF90 },
                          { "MINVERSION",    PRM_STATE, MINVERSION   },
                          { "AUTOREDUCE",    PRM_STATE, AUTOREDUCE   },
+                         { "GRAPH",         PRM_STATE, GRAPH        },
                          { 0,               0,         0            }
                        };
 
