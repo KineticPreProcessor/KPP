@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Python package versions for ReadTheDocs in `docs/requirements.txt`
 - Now request Python 3.12 for ReadTheDocs builds in `.readthedocs.yaml`
 
+### Fixed
+- Now only add tha extra `Aout` argument to `Fun` and `Fun_Split` for F90 (see issues #56, #96)
+
 <!-- Version numbers must be synchronized in CHANGELOG.md, -->
 <!-- src/gdata.h, and docs/source/conf.py-->
 ## [3.1.0] - 2023-12-20
