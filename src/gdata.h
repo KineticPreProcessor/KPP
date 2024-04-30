@@ -31,7 +31,7 @@
 
 // Version numbers must be synchronized in CHANGELOG.md, src/gdata.h,
 // and docs/source/conf.py
-#define KPP_VERSION "3.1.0"
+#define KPP_VERSION "3.1.1"
 
 #ifndef _GDATA_H_
 #define _GDATA_H_
@@ -57,11 +57,14 @@
 //       problems on MacOS then consider reducing MAX_EQN and MAX_SPECIES
 //       to smaller values than are listed below.
 //         -- Bob Yantosca (03 May 2022)
+//   (3) The large value of MAX_EQN = 18000 is necessary to run the
+//       complete MCM mechanism in KPP.
+//         -- Rolf Sander (2024-01-03)
 #ifdef MACOS
 #define MAX_EQN        2000     // Max number of equations (MacOS only)
 #define MAX_SPECIES    1000     // Max number of species   (MacOS only)
 #else
-#define MAX_EQN       11000     // Max number of equations
+#define MAX_EQN       18000     // Max number of equations
 #define MAX_SPECIES    6000     // Max number of species
 #endif
 #define MAX_SPNAME       30     // Max char length of species name

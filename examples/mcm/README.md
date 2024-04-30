@@ -12,8 +12,8 @@ degradation mechanism is used as an example.
 1. Browse through the [MCM](https://mcm.york.ac.uk/MCM/browse) and
    select a Subset of the mechanism.
 
-2. Go  to the [export page](https://mcm.york.ac.uk/MCM/export) and
-   choose KPP as the output format.
+2. Go to the [export page](https://mcm.york.ac.uk/MCM/export) and choose
+   KPP as the output format.
 
 3. Click on the `Download` button and rename the downloaded file to
    `mcm_isoprene.eqn`.
