@@ -652,12 +652,20 @@ int F_VAR, FSPLIT_VAR;
   // Note: When changing the FunctionBegin declarations below,
   // the number of arguments minus one must be changed in DefFnc here
   // as well. (hplin, 7/6/22)
-  F_VAR = DefFnc( "Fun", 5,
-                  "time derivatives of variables - Aggregate form");
-
-  FSPLIT_VAR = DefFnc( "Fun_SPLIT", 7,
-                       "time derivatives of variables - Split form");
-
+  // 
+  // For F90, add an extra argument to Fun and Fun_Split to return
+  // the Aout array. (hplin, bmy, 30 Apr 2024)
+  if (useLang == F90_LANG) {
+    F_VAR = DefFnc("Fun", 5,
+		   "time derivatives of variables - Aggregate form");
+    FSPLIT_VAR = DefFnc("Fun_SPLIT", 7,
+			"time derivatives of variables - Split form");
+  } else {
+    F_VAR = DefFnc("Fun", 4,
+                   "time derivatives of variables - Aggregate form");
+    FSPLIT_VAR = DefFnc("Fun_SPLIT", 6,
+                        "time derivatives of variables - Split form");
+  }
 
   // We have added the capability to return equation rates and the
   // time derivative of variable species from Fun via optional arguments
@@ -665,11 +673,21 @@ int F_VAR, FSPLIT_VAR;
   //   -- Bob Yantosca (03 May 2022)
   //
   // Vdotout functionality can be accomplished using Vdot (hplin, 7/6/22)
+  //
+  // F90 needs Fun to have an extra argument for Aout (hplin, bmy, 30 Apr 2024)
   if( z_useAggregate ) {
-    FunctionBegin( F_VAR, V, F, RCT, Vdot, Aout );
+    if (useLang == F90_LANG) {
+      FunctionBegin( F_VAR, V, F, RCT, Vdot, Aout );\
+    } else {
+      FunctionBegin( F_VAR, V, F, RCT, Vdot );
+    }
   }
   else {
-    FunctionBegin( FSPLIT_VAR, V, F, RCT, Vdot, P_VAR, D_VAR, Aout );
+    if (useLang == F90_LANG) {
+      FunctionBegin( FSPLIT_VAR, V, F, RCT, Vdot, P_VAR, D_VAR, Aout );
+    } else {
+      FunctionBegin( FSPLIT_VAR, V, F, RCT, Vdot, P_VAR, D_VAR );
+    }
   }
 
   if ( (useLang==MATLAB_LANG)&&(!z_useAggregate) )
