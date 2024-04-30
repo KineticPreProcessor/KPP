@@ -8,6 +8,31 @@ Only the major new features are listed here. For a detailed description
 of the changes, read `CHANGELOG.md
 <https://github.com/KineticPreProcessor/KPP/blob/main/CHANGELOG.md>`_.
 
+.. _kpp311:
+
+=========
+KPP 3.1.1
+=========
+
+.. _kpp310:
+- Use newer Python packages to build ReadTheDocs documentation (see
+  :file:`docs/requirements.txt`)
+- Increased :code:`MAX_NO_OF_LINES` and :code:`MAX_EQN` in order to
+  parse the entire MCM mechanism
+- Now only add the extra `Aout` argument to `Fun` and `Fun_Split` for
+  target language :literal:`Fortran90`.  This fixes a Matlab build error.
+
+=========
+KPP 3.1.0
+=========
+
+- Added :literal:`#AUTOREDUCE` to the list of KPP commands in the
+  ReadTheDocs documentaton
+- Added :file:`examples/mcm` folder with minimal example for the
+  Master Chemical Mechanism
+- Added C-I test for MCM, based on the minimal example
+- Removed obsolete input options from the code and documentation
+
 .. _kpp302:
 
 =========
