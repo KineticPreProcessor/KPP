@@ -257,7 +257,7 @@ void CmdIntegrator( char *cmd );
 void CmdDriver( char *cmd );
 void CmdStochastic( char *cmd );
 void CmdFlux( char *cmd );
-void Generate();
+void Generate( char* rootFileName );
 
 char * FileName( char *name, char* env, char *dir, char *ext );
 
