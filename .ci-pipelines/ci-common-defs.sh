@@ -12,6 +12,7 @@ C_rosadj
 C_sd
 C_sdadj
 C_small_strato
+F90_implicit12
 F90_lsode
 F90_radau
 F90_rk

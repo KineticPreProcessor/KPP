@@ -1,0 +1,4 @@
+#MODEL      small_strato
+#INTEGRATOR implicit12
+#LANGUAGE   Fortran90
+#DRIVER     general
