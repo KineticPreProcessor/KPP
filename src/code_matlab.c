@@ -660,7 +660,7 @@ char buf[ MAX_K ];
 }
 
 /*************************************************************************************************/
-void Use_MATLAB()
+void Use_MATLAB( char *rootFileName )
 { 
   WriteElm 	    = MATLAB_WriteElm;
   WriteSymbol 	    = MATLAB_WriteSymbol;  

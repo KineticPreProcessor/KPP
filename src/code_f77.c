@@ -536,7 +536,7 @@ char buf[ MAX_K ];
 }
 
 /*************************************************************************************************/
-void Use_F()
+void Use_F( char* rootFileName )
 { 
   WriteElm 	    = F77_WriteElm;
   WriteSymbol 	    = F77_WriteSymbol;  
