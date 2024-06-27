@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - TBD
 ### Fixed
 - Add `char* rootFileName` to functions and function prototypes for `Use_C`, `Use_F`, `Use_F90`, `Use_MATLAB`, and `Generate`
+### Added
+- New integrator: rosenbrock_h211b_qssa.f90
 
 ## [3.1.1] - 2024-04-30
 ### Changed

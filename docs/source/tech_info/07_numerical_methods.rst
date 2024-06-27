@@ -373,6 +373,15 @@ if the species is partitioned as "slow", it is solved explicitly
 approximation. Otherwise, "fast" species are retained in the implicit
 Rosenbrock solver.
 
+.. _rosenbrock-h211b-qssa:
+
+Rosenbrock with H211b time stepping
+-----------------------------------
+
+**Integrator file:** :file:`int/rosenbrock_h211b_qssa.f90`
+
+H211b time stepping according to :cite:t:`Soederlind_2022` added.
+
 .. _rk-methods:
 
 ============================

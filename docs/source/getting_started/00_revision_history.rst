@@ -8,19 +8,28 @@ Only the major new features are listed here. For a detailed description
 of the changes, read `CHANGELOG.md
 <https://github.com/KineticPreProcessor/KPP/blob/main/CHANGELOG.md>`_.
 
+.. _unreleased:
+
+==========
+Unreleased
+==========
+
+- Added the **rosenbrock_h211b_qssa** integrator.
+
 .. _kpp311:
 
 =========
 KPP 3.1.1
 =========
 
-.. _kpp310:
 - Use newer Python packages to build ReadTheDocs documentation (see
   :file:`docs/requirements.txt`)
 - Increased :code:`MAX_NO_OF_LINES` and :code:`MAX_EQN` in order to
   parse the entire MCM mechanism
 - Now only add the extra `Aout` argument to `Fun` and `Fun_Split` for
   target language :literal:`Fortran90`.  This fixes a Matlab build error.
+
+.. _kpp310:
 
 =========
 KPP 3.1.0
