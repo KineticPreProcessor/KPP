@@ -290,7 +290,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
    ISTATUS(1:8) = 0
    RSTATUS(1:3) = ZERO
 
-!~~~>  Autonomous or time dependent ODE. Default is time dependent.
+!~~~>  Autonomous (1) or time dependent ODE (0). Default is time dependent.
    Autonomous = .NOT.(ICNTRL(1) == 0)
 
 !~~~>  For Scalar tolerances (ICNTRL(2).NE.0)  the code uses AbsTol(1) and RelTol(1)

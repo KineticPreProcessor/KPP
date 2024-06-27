@@ -1,26 +1,3 @@
-! rosenbrock_posdef_h211b_qssa: Domenico Taraborrelli
-! positive definite following a suggestion from Adrian
-! see "MAX(Ynew,ZERO)" for details
-
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
-!  Addition of stiffness reduction and other time step controller         !
-!  to Rosenbrock solvers                                                  !
-!                                                                         !
-!  Stiffness reduction                                                    !
-!    It is based on Turanyi et al.,https://doi.org/10.1021/j100103a028    !
-!    - use of DAE QSSA                                                    !
-!    - increase of first time step depending on induction time            !
-!                                                                         !
-!    Note: other QSSA explicit integrators implemented but not suitable!  !
-!                                                                         !
-!  Time step controller                                                   !
-!    It is based of Söderlind(2003),https://doi.org/10.1145/641876.641877 !
-!    - implementation of the H211b family of controllers                  !
-!                                                                         !
-!  Please contact Domenico Taraborrelli (d.taraborrelli@fz-juelich.de)    ! 
-!  if interested in using this solver.                                    !
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
-
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 !  Rosenbrock - Implementation of several Rosenbrock methods:             !
 !               * Ros2                                                    !
@@ -38,12 +15,24 @@
 !                                                                         !
 !    This implementation is part of KPP - the Kinetic PreProcessor        !
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
+!  Stiffness reduction and Söderlind time step controller added by        !
+!  Domenico Taraborrelli (d.taraborrelli@fz-juelich.de)                   !
+!                                                                         !
+!  Stiffness reduction                                                    !
+!    - based on Turanyi et al., https://doi.org/10.1021/j100103a028       !
+!    - use of DAE QSSA                                                    !
+!    - increase of first time step depending on induction time            !
+!    - note: other QSSA explicit integrators implemented but not suitable !
+!                                                                         !
+!  Time step controller                                                   !
+!    - based on Söderlind(2003), https://doi.org/10.1145/641876.641877    !
+!    - implementation of the H211b family of controllers                  !
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 
 MODULE KPP_ROOT_Integrator
 
   USE KPP_ROOT_Parameters
   USE KPP_ROOT_Global
-  USE KPP_ROOT_Function, ONLY: Fun_Split
   IMPLICIT NONE
   PUBLIC
   SAVE
@@ -60,19 +49,6 @@ MODULE KPP_ROOT_Integrator
                         Nrej=5, Ndec=6, Nsol=7, Nsng=8, &
                         Ntexit=1, Nhexit=2, Nhnew = 3
 
-  ! description of the error numbers IERR
-  CHARACTER(LEN=50), PARAMETER, DIMENSION(-8:1) :: IERR_NAMES = (/ &
-    'Matrix is repeatedly singular                     ', & ! -8
-    'Step size too small                               ', & ! -7
-    'No of steps exceeds maximum bound                 ', & ! -6
-    'Improper tolerance values                         ', & ! -5
-    'FacMin/FacMax/FacRej must be positive             ', & ! -4
-    'Hmin/Hmax/Hstart must be positive                 ', & ! -3
-    'Selected Rosenbrock method not implemented        ', & ! -2
-    'Improper value for maximal no of steps            ', & ! -1
-    '                                                  ', & !  0 (not used)
-    'Success                                           ' /) !  1
-
 CONTAINS
 
 SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
@@ -84,7 +60,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 
    KPP_REAL, INTENT(IN) :: TIN  ! Start Time
    KPP_REAL, INTENT(IN) :: TOUT ! End Time
-   ! Optional input parameters and statistics
+   !~~~> Optional input parameters and statistics
    INTEGER,  INTENT(IN),  OPTIONAL :: ICNTRL_U(20)
    KPP_REAL, INTENT(IN),  OPTIONAL :: RCNTRL_U(20)
    INTEGER,  INTENT(OUT), OPTIONAL :: ISTATUS_U(20)
@@ -103,8 +79,8 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
    RSTATUS    = 0.0_dp
 
    !~~~> fine-tune the integrator:
-   ICNTRL(15) = 5       ! Call Update_SUN and Update_RCONST from w/in the int. 
-    
+   ICNTRL(15) = 5       ! Call Update_SUN and Update_RCONST from w/in the int.
+
    !~~~> if optional parameters are given, and if they are /= 0,
    !     then use them to overwrite default settings
    IF ( PRESENT( ICNTRL_U ) ) THEN
@@ -123,7 +99,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
    !            =  2 ! Call Update_PHOTO from within the integrator
    !            =  3 ! Call Update_RCONST and Update_PHOTO from w/in the int.
    !            =  4 ! Call Update_SUN from within the integrator
-   !            =  5 ! Call Update_SUN and Update_RCONST from within the int.   
+   !            =  5 ! Call Update_SUN and Update_RCONST from within the int.
    !            =  6 ! Call Update_SUN and Update_PHOTO from within the int.
    !            =  7 ! Call Update_SUN, Update_PHOTO, Update_RCONST w/in int.
    CALL Integrator_Update_Options( ICNTRL(15),          &
@@ -146,8 +122,8 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
    FIX => NULL()
 
    !~~~> Debug option: show number of steps
-   ! Ntotal = Ntotal + ISTATUS(Nstp)
-   ! PRINT*,'NSTEPS=',ISTATUS(Nstp),' (',Ntotal,')','  O3=', VAR(ind_O3)
+   !Ntotal = Ntotal + ISTATUS(Nstp)
+   !PRINT*,'NSTEPS=',ISTATUS(Nstp),' (',Ntotal,')','  O3=', VAR(ind_O3)
 
    STEPMIN = RSTATUS(Nhexit)
 
@@ -183,7 +159,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !    (C)  Adrian Sandu, August 2004
 !    Virginia Polytechnic Institute and State University
 !    Contact: sandu@cs.vt.edu
-!    Revised by Philipp Miehe and Adrian Sandu, May 2006                  
+!    Revised by Philipp Miehe and Adrian Sandu, May 2006
 !    This implementation is part of KPP - the Kinetic PreProcessor
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
@@ -233,16 +209,6 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !    ICNTRL(4)  -> maximum number of integration steps
 !        For ICNTRL(4)=0) the default value of 200000 is used
 !
-!    ICNTRL(5)  -> 0 no posdef, 1 posdef out of time loop, 
-!                  2 posdef every substeps
-!    ICNTRL(6)  -> choice of QSSA
-!        = 0 : no QSSA
-!        = 1 : DAE QSSA
-!        = 2 : Plain QSSA (not recommended)
-!        = 3 : Iterated QSSA (not recommended)
-!        = 4 : Extrapolated QSSA (not recommended)
-!        = 5 : Symmetric QSSA (not recommended)
-!
 !    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
 !        = -1 :  Do not call Update_* functions within the integrator
 !        =  0 :  Status quo
@@ -252,7 +218,19 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !        =  4 :  Call Update_SUN from within the integrator
 !        =  5 :  Call Update_SUN and Update_RCONST from within the int.
 !        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
-!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST w/in the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO, Update_RCONST w/in the int.
+!
+!    ICNTRL(16) -> 
+!        = 0 : allow negative concentrations (default)
+!        = 1 : set negative concentrations to zero
+!
+!    ICNTRL(18) -> choice of QSSA
+!        = 0 : no QSSA
+!        = 1 : DAE QSSA
+!        = 2 : Plain QSSA (not recommended)
+!        = 3 : Iterated QSSA (not recommended)
+!        = 4 : Extrapolated QSSA (not recommended)
+!        = 5 : Symmetric QSSA (not recommended)
 !
 !    RCNTRL(1)  -> Hmin, lower bound for the integration step size
 !          It is strongly recommended to keep Hmin = ZERO
@@ -265,14 +243,12 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !                          (default=0.1)
 !    RCNTRL(7)  -> FacSafe, by which the new step is slightly smaller
 !         than the predicted value  (default=0.9)
-!    RCNTRL(8)  -> bb value for time stepping increase 
-!                     calculation (Soederling-2003,ACM)
-!    RCNTRL(9)  -> kk value for time stepping increase
-!                  calculation (Soederling-2003,ACM)
-!    RCNTRL(10) -> thres_tau, threshold value for QSSA species lifetime (default=1.E-3)
-!    RCNTRL(11) -> Iqssamax (default=1.0E-2)
-!    RCNTRL(12) -> RelTol (user-defined relative tolerance)
-!    RCNTRL(13) -> AbsTol (user-defined absolute tolerance)
+!    RCNTRL(15) -> bb value for time stepping increase 
+!                     calculation (Söderlind-2003,ACM)
+!    RCNTRL(16) -> kk value for time stepping increase
+!                  calculation (Söderlind-2003,ACM)
+!    RCNTRL(17) -> thres_tau, threshold value for QSSA species lifetime (default=1.E-3)
+!    RCNTRL(18) -> Iqssamax (default=1.0E-2)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
 !
@@ -301,7 +277,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !                     computed Y upon return
 !    RSTATUS(2)  -> Hexit, last accepted step before exit
 !    RSTATUS(3)  -> Hnew, last predicted step (not yet taken)
-!                   For multiple restarts, use Hnew as Hstart 
+!                   For multiple restarts, use Hnew as Hstart
 !                     in the subsequent run
 !
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -314,7 +290,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
    INTEGER,       INTENT(IN)    :: N
    KPP_REAL, INTENT(INOUT) :: Y(N)
    KPP_REAL, INTENT(IN)    :: Tstart,Tend
-   KPP_REAL, INTENT(INOUT)    :: AbsTol(N),RelTol(N) ! 20120302_mz_dt 
+   KPP_REAL, INTENT(IN)    :: AbsTol(N),RelTol(N)
    INTEGER,       INTENT(IN)    :: ICNTRL(20)
    KPP_REAL, INTENT(IN)    :: RCNTRL(20)
    INTEGER,       INTENT(INOUT) :: ISTATUS(20)
@@ -322,17 +298,16 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
    INTEGER, INTENT(OUT)   :: IERR
 !~~~>  Parameters of the Rosenbrock method, up to 6 stages
    INTEGER ::  ros_S, rosMethod
-   INTEGER, PARAMETER :: RS2=1, RS3=2, RS4=3, RD3=4, RD4=5
+   INTEGER, PARAMETER :: RS2=1, RS3=2, RS4=3, RD3=4, RD4=5, RG3=6
    KPP_REAL :: ros_A(15), ros_C(15), ros_M(6), ros_E(6), &
                     ros_Alpha(6), ros_Gamma(6), ros_ELO
    LOGICAL :: ros_NewF(6)
    CHARACTER(LEN=12) :: ros_Name
 !~~~>  Local variables
    KPP_REAL :: Roundoff, FacMin, FacMax, FacRej, FacSafe
-   KPP_REAL :: kk, bb, thres_tau, Iqssamax ! 20120302_mz_dt 
-   LOGICAL  :: l_H211b
-   LOGICAL  :: l_doqssa, l_daeqssa, l_plainqssa, l_exqssa, l_symqssa
-   INTEGER  :: posdef, istep 
+   KPP_REAL :: kk, bb, thres_tau, Iqssamax
+   LOGICAL  :: l_H211b, l_doqssa, l_daeqssa, l_plainqssa, l_exqssa, l_symqssa
+   INTEGER  :: istep 
    KPP_REAL :: Hmin, Hmax, Hstart
    KPP_REAL :: Texit
    INTEGER       :: i, UplimTol, Max_no_steps
@@ -370,8 +345,10 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
        CALL Rodas3
      CASE (5)
        CALL Rodas4
+     CASE (6)
+       CALL Rang3
      CASE DEFAULT
-       PRINT * , 'Unknown Rosenbrock method: ICNTRL(3)=',ICNTRL(3) 
+       PRINT * , 'Unknown Rosenbrock method: ICNTRL(3)=',ICNTRL(3)
        CALL ros_ErrorMsg(-2,Tstart,ZERO,IERR)
        RETURN
    END SELECT
@@ -387,59 +364,49 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
       RETURN
    END IF
 
-! mz_dt_20120827+
-   IF ((ICNTRL(5)>=0).AND.(ICNTRL(5)<=2)) THEN
-     posdef = ICNTRL(5)  ! positive definite
-   ELSE
-     PRINT * , 'Wrong value: ICNTRL(5)=', ICNTRL(5)
-     STOP
-   END IF
-
 !~~~> Choice of QSSA 
-   IF (ICNTRL(6) == 0) THEN
+   IF (ICNTRL(18) == 0) THEN
       l_doqssa    = .FALSE.
       l_daeqssa   = .FALSE.
       l_plainqssa = .FALSE.
       l_exqssa    = .FALSE.
-   ELSEIF (ICNTRL(6) == 1) THEN ! DAE QSSA
+   ELSEIF (ICNTRL(18) == 1) THEN ! DAE QSSA
       l_doqssa    = .TRUE.
       l_daeqssa   = .TRUE.
       l_plainqssa = .FALSE.
       l_exqssa    = .FALSE.
       l_symqssa   = .FALSE.
-   ELSEIF (ICNTRL(6) == 2) THEN ! Plain QSSA
+   ELSEIF (ICNTRL(18) == 2) THEN ! Plain QSSA
       l_doqssa    = .TRUE.
       l_daeqssa   = .FALSE.
       l_plainqssa = .TRUE.      
       istep       = 1
       l_exqssa    = .FALSE.
       l_symqssa   = .FALSE.
-  ELSEIF (ICNTRL(6) == 3) THEN ! Iterated QSSA
+   ELSEIF (ICNTRL(18) == 3) THEN ! Iterated QSSA
       l_doqssa    = .TRUE.
       l_daeqssa   = .FALSE.
       l_plainqssa = .TRUE.
       istep       = 2
       l_exqssa    = .FALSE.
       l_symqssa   = .FALSE.
-  ELSEIF (ICNTRL(6) == 4) THEN ! Extrapolated QSSA
+   ELSEIF (ICNTRL(18) == 4) THEN ! Extrapolated QSSA
       l_doqssa    = .TRUE.
       l_daeqssa   = .FALSE.
       l_plainqssa = .FALSE.
       l_exqssa    = .TRUE.
       l_symqssa   = .FALSE. 
-  ELSEIF (ICNTRL(6) == 5) THEN ! Symmetric QSSA
+   ELSEIF (ICNTRL(18) == 5) THEN ! Symmetric QSSA
       l_doqssa    = .TRUE.
       l_daeqssa   = .FALSE.
       l_plainqssa = .FALSE.
       l_exqssa    = .FALSE.
       l_symqssa   = .TRUE.   
    ELSE
-      PRINT * , 'Wrong user-selected index for QSSA: ICNTRL(6)=', ICNTRL(6)
-      CALL ros_ErrorMsg(-4,Tstart,ZERO,IERR)
+      CALL ros_ErrorMsg(0, Tstart, ZERO, IERR, &
+        'Wrong user-selected index ICNTRL(18) for QSSA')
       RETURN
-   END IF
-
-! mz_dt_20120827-
+   ENDIF
 
 !~~~>  Unit roundoff (1+Roundoff>1)
    Roundoff = WLAMCH('E')
@@ -515,63 +482,52 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
    END IF
 !~~~> Usage of H110 or H211b time stepping filter
    l_H211b = .TRUE.
-   IF (RCNTRL(8) == ZERO.AND.RCNTRL(9) == ZERO) THEN
+   IF (RCNTRL(15) == ZERO.AND.RCNTRL(16) == ZERO) THEN
       l_H211b = .FALSE.
    ENDIF
-!~~~> bb value for time stepping increase calculation (Soederling-2003,ACM)
-   IF (RCNTRL(8) == ZERO) THEN
+!~~~> bb value for time stepping increase calculation (Söderlind-2003,ACM)
+   IF (RCNTRL(15) == ZERO) THEN
       l_H211b = .FALSE.
-   ELSEIF (RCNTRL(8) > ZERO) THEN
-      bb = RCNTRL(8)
+   ELSEIF (RCNTRL(15) > ZERO) THEN
+      bb = RCNTRL(15)
    ELSE
-      PRINT * , 'User-selected bb: RCNTRL(8)=', RCNTRL(8)
-      CALL ros_ErrorMsg(-4,Tstart,ZERO,IERR)
+      PRINT * , 'User-selected bb: RCNTRL(15)=', RCNTRL(8)
+      CALL ros_ErrorMsg(0,Tstart,ZERO,IERR, &
+        'bb must be >= 0')
       RETURN
-   END IF
-!~~~> kk value for time stepping increase calculation (Soederling-2003,ACM)
-   IF (RCNTRL(9) == ZERO) THEN
+   ENDIF
+!~~~> kk value for time stepping increase calculation (Söderlind-2003,ACM)
+   IF (RCNTRL(16) == ZERO) THEN
       l_H211b = .FALSE.
-   ELSEIF (RCNTRL(9) > ZERO) THEN
-      kk = RCNTRL(9)
+   ELSEIF (RCNTRL(16) > ZERO) THEN
+      kk = RCNTRL(16)
    ELSE
-      PRINT * , 'User-selected kk: RCNTRL(9)=', RCNTRL(9)
-      CALL ros_ErrorMsg(-4,Tstart,ZERO,IERR)
+      PRINT * , 'User-selected kk: RCNTRL(16)=', RCNTRL(9)
+      CALL ros_ErrorMsg(0,Tstart,ZERO,IERR, &
+        'kk must be >= 0')
       RETURN
-   END IF
+   ENDIF
 !~~~>  Threshold for the QSSA species lifetimes 
-   IF (RCNTRL(10) == ZERO) THEN
+   IF (RCNTRL(17) == ZERO) THEN
       thres_tau = 1.0E-3_dp
-   ELSEIF (RCNTRL(10) > ZERO) THEN
-      thres_tau = RCNTRL(10)
+   ELSEIF (RCNTRL(17) > ZERO) THEN
+      thres_tau = RCNTRL(17)
    ELSE
-      PRINT * , 'User-selected thres_tau: RCNTRL(10)=', RCNTRL(10)
-      CALL ros_ErrorMsg(-4,Tstart,ZERO,IERR)
+      PRINT * , 'User-selected thres_tau: RCNTRL(17)=', RCNTRL(10)
+      CALL ros_ErrorMsg(0,Tstart,ZERO,IERR, &
+        'thres_tau must be >= 0')
       RETURN
-   END IF
-  IF (RCNTRL(11) == ZERO) THEN
+   ENDIF
+  IF (RCNTRL(18) == ZERO) THEN
       Iqssamax = 1.0E-2_dp
-   ELSEIF (RCNTRL(11) > ZERO) THEN
-      Iqssamax = RCNTRL(11)
+   ELSEIF (RCNTRL(18) > ZERO) THEN
+      Iqssamax = RCNTRL(18)
    ELSE
-      PRINT * , 'User-selected thres_tau: RCNTRL(11)=', RCNTRL(11)
-      CALL ros_ErrorMsg(-4,Tstart,ZERO,IERR)
+      PRINT * , 'User-selected thres_tau: RCNTRL(18)=', RCNTRL(11)
+      CALL ros_ErrorMsg(0,Tstart,ZERO,IERR, &
+        'Iqssamax must be >= 0')
       RETURN
-   END IF
-!~~~>  Changing the default tolerances 
-   IF (RCNTRL(12) > ZERO) THEN
-      DO i=1,UplimTol
-         RelTol(1:N) = RCNTRL(12) 
-      ENDDO
-   END IF
-   IF (RCNTRL(13) > ZERO) THEN
-      DO i=1,UplimTol
-         AbsTol(1:N) = RCNTRL(13)
-      ENDDO
-   ELSEIF (RCNTRL(12) > ZERO) THEN
-      DO i=1,UplimTol
-         AbsTol(1:N) = 1.0E3_dp* RelTol(1:N) ! similar to Eller et al. (2009) that used 1E4 instead
-      ENDDO      
-   END IF
+   ENDIF
 !~~~>  Check if tolerances are reasonable
     DO i=1,UplimTol
       IF ( (AbsTol(i) <= ZERO) .OR. (RelTol(i) <= 10.0_dp*Roundoff) &
@@ -591,37 +547,59 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
         Autonomous, VectorTol, Max_no_steps,     &
         Roundoff, Hmin, Hmax, Hstart,            &
         FacMin, FacMax, FacRej, FacSafe,         &
-        l_H211b, kk, bb, istep, thres_tau, Iqssamax,           & ! 20120302_mz_dt
-        l_doqssa, l_daeqssa, l_plainqssa, l_exqssa, l_symqssa, & ! 20120302_mz_dt 
-        posdef,                       & ! mz_dt_20120827 
+        l_H211b, kk, bb, istep, thres_tau,       &
+        Iqssamax, l_doqssa, l_daeqssa,           &
+        l_plainqssa, l_exqssa, l_symqssa,        &
 !  Error indicator
         IERR)
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CONTAINS !  SUBROUTINES internal to Rosenbrock
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   
+
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- SUBROUTINE ros_ErrorMsg(Code,T,H,IERR)
+ SUBROUTINE ros_ErrorMsg(Code,T,H,IERR, errstr)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !    Handles all error messages
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  
+
    KPP_REAL, INTENT(IN) :: T, H
    INTEGER, INTENT(IN)  :: Code
    INTEGER, INTENT(OUT) :: IERR
-   
+   CHARACTER(LEN=*), INTENT(IN), OPTIONAL :: errstr ! error string
+
    IERR = Code
    PRINT * , &
      'Forced exit from Rosenbrock due to the following error:'
-   IF ((Code>=-8).AND.(Code<=-1)) THEN
-     PRINT *, IERR_NAMES(Code)
+   
+   IF ( PRESENT( errstr ) ) THEN
+     PRINT * , '--> ' // errstr
    ELSE
-     PRINT *, 'Unknown Error code: ', Code
+     SELECT CASE (Code)
+     CASE (-1)
+       PRINT * , '--> Improper value for maximal no of steps'
+     CASE (-2)
+       PRINT * , '--> Selected Rosenbrock method not implemented'
+     CASE (-3)
+       PRINT * , '--> Hmin/Hmax/Hstart must be positive'
+     CASE (-4)
+       PRINT * , '--> FacMin/FacMax/FacRej must be positive'
+     CASE (-5)
+       PRINT * , '--> Improper tolerance values'
+     CASE (-6)
+       PRINT * , '--> No of steps exceeds maximum bound'
+     CASE (-7)
+       PRINT * , '--> Step size too small: T + 10*H = T', &
+         ' or H < Roundoff'
+     CASE (-8)
+       PRINT * , '--> Matrix is repeatedly singular'
+     CASE DEFAULT
+       PRINT *, 'Unknown Error code: ', Code
+     END SELECT
    ENDIF
 
    PRINT *, "T=", T, "and H=", H
-     
+
  END SUBROUTINE ros_ErrorMsg
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -631,9 +609,9 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
         Autonomous, VectorTol, Max_no_steps,     &
         Roundoff, Hmin, Hmax, Hstart,            &
         FacMin, FacMax, FacRej, FacSafe,         &
-        l_H211b, kk, bb, istep, thres_tau, Iqssamax,          & ! 20120302_mz_dt
-        l_doqssa,l_daeqssa, l_plainqssa, l_exqssa, l_symqssa, & ! 20120302_mz_dt 
-        posdef,                       & ! mz_dt_20120827 
+        l_H211b, kk, bb, istep, thres_tau,       &
+        Iqssamax, l_doqssa, l_daeqssa,           &
+        l_plainqssa, l_exqssa, l_symqssa,        &
 !~~~> Error indicator
         IERR )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -642,6 +620,7 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
 !      and its coefficients ros_{A,C,M,E,Alpha,Gamma}
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+  USE mcm_Function, ONLY : Fun_SPLIT
   IMPLICIT NONE
 
 !~~~> Input: the initial condition at Tstart; Output: the solution at T
@@ -654,31 +633,30 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
    KPP_REAL, INTENT(IN) ::  AbsTol(N), RelTol(N)
 !~~~> Input: integration parameters
    LOGICAL, INTENT(IN) :: Autonomous, VectorTol
-   KPP_REAL, INTENT(INOUT) :: Hstart, Hmin, Hmax
+   KPP_REAL, INTENT(INOUT) :: Hstart
+   KPP_REAL, INTENT(IN) :: Hmin, Hmax
    INTEGER, INTENT(IN) :: Max_no_steps
    KPP_REAL, INTENT(IN) :: Roundoff, FacMin, FacMax, FacRej, FacSafe
-   KPP_REAL, INTENT(IN) :: kk, bb, thres_tau, Iqssamax ! 20120302_mz_dt 
+   KPP_REAL, INTENT(IN) :: kk, bb, thres_tau, Iqssamax
    LOGICAL, INTENT(IN)  :: l_H211b
    LOGICAL, INTENT(IN)  :: l_doqssa, l_daeqssa, l_plainqssa, l_exqssa, l_symqssa
-   INTEGER, INTENT(IN)  :: posdef ! mz_dt_20120827
 !~~~> Output: Error indicator
    INTEGER, INTENT(OUT) :: IERR
 ! ~~~~ Local variables
    KPP_REAL :: Ynew(N), Fcn0(N), Fcn(N)
    KPP_REAL :: K(N*ros_S), dFdT(N)
-!20121205_mz_dt+
-   KPP_REAL :: P(N), L(N), LC(N), Iqssa(N), Css(N), Y0(N), Y1(N), Y2(N), Y3(N), DrY(N) ! Production rate, Destruction frequency and Concentration at steady state 
-   KPP_REAL :: tlife(N), tau_qssa(N), tau_qssa_max, t_ind(N), t_ind_max
-   integer :: i, iter, istep
-!20121205_mz_dt-
-#ifdef FULL_ALGEBRA    
+   ! Production rate, destruction frequency and concentration at steady state:
+   KPP_REAL :: P(N), L(N), VDOT(N), LC(N), Iqssa(N), Css(N), Y0(N), Y1(N), Y2(N), Y3(N)
+   KPP_REAL :: DrY(N), tlife(N), tau_qssa(N), tau_qssa_max, t_ind(N), t_ind_max
+   INTEGER :: i, iter, istep
+#ifdef FULL_ALGEBRA
    KPP_REAL :: Jac0(N,N), Ghimj(N,N)
 #else
    KPP_REAL :: Jac0(LU_NONZERO), Ghimj(LU_NONZERO)
 #endif
    KPP_REAL :: H, Hnew, HC, HG, Fac, Tau
    KPP_REAL :: Err, Yerr(N)
-   KPP_REAL :: ErrOld, FacOld, Ymax ! 20120302_mz_dt
+   KPP_REAL :: ErrOld, FacOld, Ymax
    INTEGER :: Pivot(N), Direction, ioffset, j, istage
    LOGICAL :: RejectLastH, RejectMoreH, Singular
 !~~~>  Local parameters
@@ -692,29 +670,23 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
 
 !~~~>  Initial preparations
 
-!20120302_mz_dt+
-!to initiate the H211b filter
-  FacOld = 1. 
-  ErrOld = 1. 
-!20120302_mz_dt-
+   ! initiate the H211b filter:
+   FacOld = 1. 
+   ErrOld = 1. 
 
-IF (l_doqssa) THEN
-
-   Y0 = Y ! storing the initial values of concentrations for iterated QSSA
-
-!----------------------------------------
-! Getting the production rates and loss frequencies d[C]/dt = P - L*C
-   CALL Fun_Split( Y, FIX, RCONST, P, L )
-
-!------------------------------------
-!computation QSSA "index" according to Sportisse and Djouad(2000) 
+   IF (l_doqssa) THEN
+      Y0 = Y ! storing the initial values of concentrations for iterated QSSA
+      !----------------------------------------
+      ! Getting the production rates and loss frequencies d[C]/dt = P - L*C
+      CALL Fun_Split( Y, FIX, RCONST, VDOT, P, L )
+      !------------------------------------
+      !computation QSSA "index" according to Sportisse and Djouad(2000) 
       LC    = L * Y
       Iqssa = ABS(P-LC)/(P+LC)
       tlife = 1. / L
-      
-!------------------------------------
-! estimate of the induction period according to Turanyi et al.(1993)
-      do i=1,N
+      !------------------------------------
+      ! estimate of the induction period according to Turanyi et al.(1993)
+      DO i=1,N
          IF (Iqssa(i) < Iqssamax .AND. L(i) /= 0. .AND. tlife(i) < thres_tau) THEN
             tau_qssa(i) = tlife(i)
             t_ind(i)    = -1. * LOG(RelTol(i)) * tlife(i)
@@ -722,118 +694,90 @@ IF (l_doqssa) THEN
             tau_qssa(i) = 0.
             t_ind(i)    = 0.
          ENDIF
-      enddo
-
+      ENDDO
       tau_qssa_max = MAXVAL(tau_qssa) ! longest lifetime for the QSSA species
-!      print *, 'tau_qssa_max =', tau_qssa_max, 's'
-
       t_ind_max = MAXVAL(t_ind) ! induction time for the QSSA species to relax
-!      print *, 't_ind_max    =', t_ind_max, 's'
-
-!-------------------------------------
-! DAE QSSA 
+      !-------------------------------------
+      ! DAE QSSA 
       IF (l_daeqssa) THEN 
-         do i=1,N
+         DO i=1,N
             IF (Iqssa(i) <= Iqssamax .AND. L(i) > 0. .AND. tlife(i) < thres_tau) THEN
                Css(i) = P(i) / L(i)
                DrY(i) = (Css(i)-Y(i))/Y(i)*100. 
                Y(i)   = Css(i)
-!               write(*,*) 'QSSA correction for Y(',i,') = ', DrY(i),'%'
             ENDIF
-         enddo
+         ENDDO
+      ENDIF
+      !------------------------------------
+      ! Plain and Iterated QSSA
+      DO iter=1,istep
+         IF (l_plainqssa) THEN  
+            DO i=1,N
+               IF (L(i) > 0.) THEN
+                  Css(i) = P(i) / L(i)
+                  Y(i) = Css(i) - (Css(i) - Y0(i))*EXP(-t_ind_max*L(i))
+               ENDIF
+            ENDDO
+         ENDIF
+      ENDDO
+      !------------------------------------
+      ! Extrapolated QSSA
+      IF (l_exqssa) THEN
+         DO i=1,N
+            IF (L(i) > 0.) THEN
+               Css(i) = P(i) / L(i)
+               Y1(i) = Css(i) - (Css(i) - Y0(i))*EXP(-t_ind_max*L(i))
+               Y2(i) = Css(i) - (Css(i) - Y0(i))*EXP(-t_ind_max*0.5*L(i))
+            ENDIF
+         ENDDO
+         CALL Fun_Split( Y2, FIX, RCONST, VDOT, P, L )
+         DO i=1,N
+            IF (L(i) > 0.) THEN
+               Css(i) = P(i) / L(i)
+               Y3(i) = Css(i) - (Css(i) - Y2(i))*EXP(-t_ind_max*0.5*L(i))
+               Y(i) = 2.*Y3(i) - Y1(i)
+            ENDIF
+         ENDDO
+      ENDIF
+      !------------------------------------
+      ! Symmetric QSSA
+      IF (l_symqssa) THEN
+         DO i=1,N
+            IF (L(i) > 0.) THEN
+               Css(i) = P(i) / L(i)
+               Y1(i) = Css(i) - (Css(i) - Y0(i))*EXP(-t_ind_max*0.5*L(i))
+            ENDIF
+         ENDDO
+         CALL Fun_Split( Y2, FIX, RCONST, VDOT, P, L )
+         DO i=1,N
+            IF (L(i) > 0.) THEN
+               Css(i) = P(i) / L(i)
+               Y2(i) = Css(i) - (Css(i) - Y0(i))*EXP(-t_ind_max*L(i))
+            ENDIF
+         ENDDO
+         CALL Fun_Split( Y2, FIX, RCONST, VDOT, P, L )
+         DO i=1,N
+            IF (L(i) > 0.) THEN
+               Css(i) = P(i) / L(i)
+               Y3(i) = Css(i) - (Css(i) - Y1(i))*EXP(-t_ind_max*0.5*L(i))
+               Y(i) = Y3(i)
+            ENDIF
+         ENDDO
       ENDIF
 
-!------------------------------------
-! Plain and Iterated QSSA
+      Hstart = MAX(Hstart,t_ind_max) ! initial time step after QSSA 
 
-   do iter=1,istep
+   ENDIF
 
-       IF (l_plainqssa) THEN  
-          do i=1,N
-             IF (L(i) > 0.) THEN
-                Css(i) = P(i) / L(i)
-                Y(i) = Css(i) - (Css(i) - Y0(i))*exp(-t_ind_max*L(i))
-             ENDIF
-          enddo
-       ENDIF
-
-   enddo
-
-!------------------------------------
-! Extrapolated QSSA
-
-       IF (l_exqssa) THEN
-          do i=1,N
-             IF (L(i) > 0.) THEN
-                Css(i) = P(i) / L(i)
-                Y1(i) = Css(i) - (Css(i) - Y0(i))*exp(-t_ind_max*L(i))
-                Y2(i) = Css(i) - (Css(i) - Y0(i))*exp(-t_ind_max*0.5*L(i))
-             ENDIF
-          enddo
-
-          CALL Fun_Split( Y2, FIX, RCONST, P, L )
-
-          do i=1,N
-             IF (L(i) > 0.) THEN
-                Css(i) = P(i) / L(i)
-                Y3(i) = Css(i) - (Css(i) - Y2(i))*exp(-t_ind_max*0.5*L(i))
-                Y(i) = 2.*Y3(i) - Y1(i)
-             ENDIF
-          enddo
-       ENDIF
-
-!------------------------------------
-! Symmetric QSSA
-
-       IF (l_symqssa) THEN
-          do i=1,N
-             IF (L(i) > 0.) THEN
-                Css(i) = P(i) / L(i)
-                Y1(i) = Css(i) - (Css(i) - Y0(i))*exp(-t_ind_max*0.5*L(i))
-             ENDIF
-          enddo
-
-          CALL Fun_Split( Y2, FIX, RCONST, P, L )
-
-          do i=1,N
-             IF (L(i) > 0.) THEN
-                Css(i) = P(i) / L(i)
-                Y2(i) = Css(i) - (Css(i) - Y0(i))*exp(-t_ind_max*L(i))
-             ENDIF
-          enddo
-
-          CALL Fun_Split( Y2, FIX, RCONST, P, L )
-
-          do i=1,N
-             IF (L(i) > 0.) THEN
-                Css(i) = P(i) / L(i)
-                Y3(i) = Css(i) - (Css(i) - Y1(i))*exp(-t_ind_max*0.5*L(i))
-                Y(i) = Y3(i)
-             ENDIF
-          enddo
-       ENDIF
-
-  IF (posdef==2) THEN 
-     Y = MAX(Ynew,ZERO) ! new value is positive definite:
-  ENDIF
-
-   Hstart = MAX(Hstart,t_ind_max) ! initial time step after QSSA 
-
-ENDIF
-
-!   T = Tstart
-  IF (l_doqssa .AND. (.NOT. l_daeqssa)) THEN
-     T = Tstart + Hstart
-  ELSE
-     T = Tstart
-  ENDIF
-
-!   PRINT * , 'Tstart=', T
+   IF (l_doqssa .AND. (.NOT. l_daeqssa)) THEN
+      T = Tstart + Hstart
+   ELSE
+      T = Tstart
+   ENDIF
 
    RSTATUS(Nhexit) = ZERO
    H = MIN( MAX(ABS(Hmin),ABS(Hstart)) , ABS(Hmax) )
    IF (ABS(H) <= 10.0_dp*Roundoff) H = DeltaMin
-!   PRINT * , 'H=', H
 
    IF (Tend  >=  Tstart) THEN
      Direction = +1
@@ -863,18 +807,16 @@ TimeLoop: DO WHILE ( (Direction > 0).AND.((T-Tend)+Roundoff <= ZERO) &
    H = MIN(H,ABS(Tend-T))
 
 !~~~>   Compute the function at current time
-      CALL FunTemplate(T,Y,Fcn0, Autonomous ) ! 20121011_mz_dt 
-
-      ISTATUS(Nfun) = ISTATUS(Nfun) + 1
+   CALL FunTemplate( T, Y, Fcn0 )
+   ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 
 !~~~>  Compute the function derivative with respect to T
    IF (.NOT.Autonomous) THEN
-      CALL ros_FunTimeDerivative ( T, Roundoff, Y, &
-                Fcn0, dFdT , Autonomous )  ! 20121011_mz_dt
+      CALL ros_FunTimeDerivative ( T, Roundoff, Y, Fcn0, dFdT )
    END IF
 
 !~~~>   Compute the Jacobian at current time
-   CALL JacTemplate(T,Y,Jac0, Autonomous )  ! 20121011_mz_dt
+   CALL JacTemplate( T, Y, Jac0 )
    ISTATUS(Njac) = ISTATUS(Njac) + 1
 
 !~~~>  Repeat step calculation until current step accepted
@@ -895,35 +837,32 @@ Stage: DO istage = 1, ros_S
 
       ! For the 1st istage the function has been computed previously
        IF ( istage == 1 ) THEN
-!         CALL WCOPY(N,Fcn0,1,Fcn,1)
+         !slim: CALL WCOPY(N,Fcn0,1,Fcn,1)
          Fcn(1:N) = Fcn0(1:N)
       ! istage>1 and a new function evaluation is needed at the current istage
        ELSEIF ( ros_NewF(istage) ) THEN
-!         CALL WCOPY(N,Y,1,Ynew,1)
+         !slim: CALL WCOPY(N,Y,1,Ynew,1)
          Ynew(1:N) = Y(1:N)
          DO j = 1, istage-1
-!           CALL WAXPY(N,ros_A((istage-1)*(istage-2)/2+j), &
-!            K(N*(j-1)+1),1,Ynew,1)
-           Ynew(1:N) = Ynew(1:N) + K(N*(j-1)+1:N*j) &
-                        * ros_A((istage-1)*(istage-2)/2+j)
+           ! CALL WAXPY(N,ros_A((istage-1)*(istage-2)/2+j), &
+           ! K(N*(j-1)+1),1,Ynew,1)
+           Ynew(1:N) = Ynew(1:N) + K(N*(j-1)+1:N*j) * ros_A((istage-1)*(istage-2)/2+j)
          END DO
          Tau = T + ros_Alpha(istage)*Direction*H
-         CALL FunTemplate(Tau,Ynew,Fcn, Autonomous )  ! 20121011_mz_dt
+         CALL FunTemplate( Tau, Ynew, Fcn )
          ISTATUS(Nfun) = ISTATUS(Nfun) + 1
        END IF ! if istage == 1 elseif ros_NewF(istage)
-!       CALL WCOPY(N,Fcn,1,K(ioffset+1),1)
+       !slim: CALL WCOPY(N,Fcn,1,K(ioffset+1),1)
        K(ioffset+1:ioffset+N) = Fcn(1:N)
        DO j = 1, istage-1
          HC = ros_C((istage-1)*(istage-2)/2+j)/(Direction*H)
-!         CALL WAXPY(N,HC,K(N*(j-1)+1),1,K(ioffset+1),1)
-         K(ioffset+1:ioffset+N) = K(ioffset+1:ioffset+N) + &
-           K(N*(j-1)+1:N*j) * HC
+         ! CALL WAXPY(N,HC,K(N*(j-1)+1),1,K(ioffset+1),1)
+         K(ioffset+1:ioffset+N) = K(ioffset+1:ioffset+N) + K(N*(j-1)+1:N*j) * HC
        END DO
        IF ((.NOT. Autonomous).AND.(ros_Gamma(istage).NE.ZERO)) THEN
          HG = Direction*H*ros_Gamma(istage)
 !         CALL WAXPY(N,HG,dFdT,1,K(ioffset+1),1)
-         K(ioffset+1:ioffset+N) = K(ioffset+1:ioffset+N) + &
-           dFdT(1:N) * HG
+         K(ioffset+1:ioffset+N) = K(ioffset+1:ioffset+N) + dFdT(1:N) * HG
        END IF
        CALL ros_Solve(Ghimj, Pivot, K(ioffset+1))
 
@@ -931,65 +870,47 @@ Stage: DO istage = 1, ros_S
 
 
 !~~~>  Compute the new solution
-!   CALL WCOPY(N,Y,1,Ynew,1)
-   YNEW(1:N) = Y(1:N)
+   !slim: CALL WCOPY(N,Y,1,Ynew,1)
+   Ynew(1:N) = Y(1:N)
    DO j=1,ros_S
-!         CALL WAXPY(N,ros_M(j),K(N*(j-1)+1),1,Ynew,1)
-         Ynew(1:N) = Ynew(1:N) + &
-                        K(N*(j-1)+1:N*j) * ros_m(j)
+     ! CALL WAXPY(N,ros_M(j),K(N*(j-1)+1),1,Ynew,1)
+     Ynew(1:N) = Ynew(1:N) + K(N*(j-1)+1:N*j) * ros_m(j)
    END DO
 
 !~~~>  Compute the error estimation
-!   CALL WSCAL(N,ZERO,Yerr,1)
+   !slim: CALL WSCAL(N,ZERO,Yerr,1)
    Yerr(1:N) = ZERO
    DO j=1,ros_S
-!        CALL WAXPY(N,ros_E(j),K(N*(j-1)+1),1,Yerr,1)
-     Yerr(1:N) = Yerr(1:N) + &
-                    K(N*(j-1)+1:N*j) * ros_E(j)
+     ! CALL WAXPY(N,ros_E(j),K(N*(j-1)+1),1,Yerr,1)
+     Yerr(1:N) = Yerr(1:N) + K(N*(j-1)+1:N*j) * ros_E(j)
    END DO
-
    Err = ros_ErrorNorm ( Y, Ynew, Yerr, AbsTol, RelTol, VectorTol )
 
-!20120302_mz_dt+
-  IF (l_H211b) THEN
+   IF (l_H211b) THEN
 !~~~> New step size is bounded by FacMin <= Hnew/H <= FacMax
 !~~~> H211b step size controller (b=2.) advised by Söderlind
-    Fac  = (ONE/(Err))**(1./(bb*kk))* &
-           (ONE/(ErrOld))**(1./(bb*kk))* &
-           (FacOld)**(-1./bb)
-    FacOld = Fac
-    ErrOld = Err
-  ELSE
-! ~~~> H0110 (Söderlind 2002)
-! kk is the local order estimator. For Ros3 and Rodas3 it is 3 but ...
-!    Fac  = ONE/Err**(ONE/(kk))
+     Fac  = (ONE/Err)**(1./(bb*kk))* &
+            (ONE/ErrOld)**(1./(bb*kk))* &
+            (FacOld)**(-1./bb)
+     FacOld = Fac
+     ErrOld = Err
+   ELSE
 !~~~> New step size is bounded by FacMin <= Hnew/H <= FacMax
-    Fac  = MIN(FacMax,MAX(FacMin,FacSafe/Err**(ONE/ros_ELO)))
-  ENDIF
-!20120302_mz_dt-
-
+     Fac  = MIN(FacMax,MAX(FacMin,FacSafe/Err**(ONE/ros_ELO)))
+   ENDIF
    Hnew = H*Fac
-
-!   PRINT * , 'H=', Hnew
 
 !~~~>  Check the error magnitude and adjust step size
    ISTATUS(Nstp) = ISTATUS(Nstp) + 1
    IF ( (Err <= ONE).OR.(H <= Hmin) ) THEN  !~~~> Accept step
       ISTATUS(Nacc) = ISTATUS(Nacc) + 1
-
-! mz_dt_20120827+
-  IF (posdef==2) THEN
-      ! new value is positive definite:
-       Y = MAX(Ynew,ZERO)
-  ELSE    
-! mz_rs_20061212+
-      ! old version did allow negative values here:
-!       CALL WCOPY(N,Ynew,1,Y,1)
-!      Y(1:N) = MAX(Ynew(1:N),ZERO)
-      Y(1:N) = Ynew(1:N)
-  ENDIF
-! mz_dt_20120827-
-
+      IF (ICNTRL(16) == 1) THEN
+        ! new value is non-negative:
+        Y = MAX(Ynew,ZERO)
+      ELSE
+        !slim: CALL WCOPY(N,Ynew,1,Y,1)
+        Y(1:N) = Ynew(1:N)
+      ENDIF      
       T = T + Direction*H
       Hnew = MAX(Hmin,MIN(Hnew,Hmax))
       IF (RejectLastH) THEN  ! No step size increase after a rejected step
@@ -1016,23 +937,6 @@ Stage: DO istage = 1, ros_S
 
    END DO TimeLoop
 
-!   do i=1,N
-!     print *, 'Iqssa(',i,')=',Iqssa(i), 'tau(',i,')=', 1./L(i), 's'
-!   enddo
-
-!        CALL Fun_Split( Y, FIX, RCONST, P, L )
-!!------------------------------------
-!!computation QSSA "index" according to Sportisse and Djouad(2000) 
-!        LC    = L * Y
-!        Iqssa = ABS(P-LC)/(P+LC)
-!    print *, 'After integration'
-!    print *, 'Iqssa(NO)=',Iqssa(324), 'tau(NO)=', 1./L(324), 's'
-!    print *, 'Iqssa(NO2)=',Iqssa(325), 'tau(NO2)=', 1./L(325), 's'
-
-! positive definite
-   IF (posdef==1) THEN
-      Y = MAX(Y,ZERO)
-   ENDIF
 !~~~> Succesful exit
    IERR = 1  !~~~> The integration was successful
 
@@ -1074,10 +978,7 @@ Stage: DO istage = 1, ros_S
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SUBROUTINE ros_FunTimeDerivative ( T, Roundoff, Y, &
-                Fcn0, dFdT, Autonomous )  ! 20121011_mz_dt 
-!  SUBROUTINE ros_FunTimeDerivative ( T, Roundoff, Y, &
-!                Fcn0, dFdT )   
+  SUBROUTINE ros_FunTimeDerivative ( T, Roundoff, Y, Fcn0, dFdT )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~> The time partial derivative of the function by finite differences
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1085,7 +986,6 @@ Stage: DO istage = 1, ros_S
 
 !~~~> Input arguments
    KPP_REAL, INTENT(IN) :: T, Roundoff, Y(N), Fcn0(N)
-   LOGICAL, INTENT(IN) :: Autonomous ! 20121011_mz_dt
 !~~~> Output arguments
    KPP_REAL, INTENT(OUT) :: dFdT(N)
 !~~~> Local variables
@@ -1093,16 +993,16 @@ Stage: DO istage = 1, ros_S
    KPP_REAL, PARAMETER :: ONE = 1.0_dp, DeltaMin = 1.0E-6_dp
 
    Delta = SQRT(Roundoff)*MAX(DeltaMin,ABS(T))
-   CALL FunTemplate(T+Delta,Y,dFdT, Autonomous )  ! 20121011_mz_dt
+   CALL FunTemplate( T+Delta, Y, dFdT )
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
-!   CALL WAXPY(N,(-ONE),Fcn0,1,dFdT,1)
+   ! CALL WAXPY(N,(-ONE),Fcn0,1,dFdT,1)
    dFdt(1:N) = dFdt(1:N) - ONE * FcN0(1:N)
-!   CALL WSCAL(N,(ONE/Delta),dFdT,1)
+   ! CALL WSCAL(N,(ONE/Delta),dFdT,1)
    dFDT(1:N) = dFDT(1:N) * (ONE/Delta)
   END SUBROUTINE ros_FunTimeDerivative
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE ros_PrepareMatrix ( H, Direction, gam, &
              Jac0, Ghimj, Pivot, Singular )
 ! --- --- --- --- --- --- --- --- --- --- --- --- ---
@@ -1116,19 +1016,19 @@ Stage: DO istage = 1, ros_S
    IMPLICIT NONE
 
 !~~~> Input arguments
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
    KPP_REAL, INTENT(IN) ::  Jac0(N,N)
 #else
    KPP_REAL, INTENT(IN) ::  Jac0(LU_NONZERO)
-#endif   
+#endif
    KPP_REAL, INTENT(IN) ::  gam
    INTEGER, INTENT(IN) ::  Direction
 !~~~> Output arguments
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
    KPP_REAL, INTENT(OUT) :: Ghimj(N,N)
 #else
    KPP_REAL, INTENT(OUT) :: Ghimj(LU_NONZERO)
-#endif   
+#endif
    LOGICAL, INTENT(OUT) ::  Singular
    INTEGER, INTENT(OUT) ::  Pivot(N)
 !~~~> Inout arguments
@@ -1144,25 +1044,23 @@ Stage: DO istage = 1, ros_S
    DO WHILE (Singular)
 
 !~~~>    Construct Ghimj = 1/(H*gam) - Jac0
-#ifdef FULL_ALGEBRA    
-!     CALL WCOPY(N*N,Jac0,1,Ghimj,1)
-     Ghimj(1:N,1:N) = JAC0(1:N,1:N)
-!     CALL WSCAL(N*N,(-ONE),Ghimj,1)
-     Ghimj(1:N,1:N) = (-ONE) * Ghimj(1:N,1:N)
+#ifdef FULL_ALGEBRA
+     !slim: CALL WCOPY(N*N,Jac0,1,Ghimj,1)
+     !slim: CALL WSCAL(N*N,(-ONE),Ghimj,1)
+     Ghimj = -Jac0
      ghinv = ONE/(Direction*H*gam)
      DO i=1,N
        Ghimj(i,i) = Ghimj(i,i)+ghinv
      END DO
 #else
-!     CALL WCOPY(LU_NONZERO,Jac0,1,Ghimj,1)
-     Ghimj(1:LU_NONZERO) = JAC0(1:LU_NONZERO)
-!     CALL WSCAL(LU_NONZERO,(-ONE),Ghimj,1)
-     Ghimj(1:LU_NONZERO) = (-ONE) * Ghimj(1:LU_NONZERO)
+     !slim: CALL WCOPY(LU_NONZERO,Jac0,1,Ghimj,1)
+     !slim: CALL WSCAL(LU_NONZERO,(-ONE),Ghimj,1)
+     Ghimj(1:LU_NONZERO) = -Jac0(1:LU_NONZERO)
      ghinv = ONE/(Direction*H*gam)
      DO i=1,N
        Ghimj(LU_DIAG(i)) = Ghimj(LU_DIAG(i))+ghinv
      END DO
-#endif   
+#endif
 !~~~>    Compute LU decomposition
      CALL ros_Decomp( Ghimj, Pivot, ising )
      IF (ising == 0) THEN
@@ -1186,20 +1084,24 @@ Stage: DO istage = 1, ros_S
   END SUBROUTINE ros_PrepareMatrix
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE ros_Decomp( A, Pivot, ising )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the LU decomposition
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    IMPLICIT NONE
 !~~~> Inout variables
+#ifdef FULL_ALGEBRA
+   KPP_REAL, INTENT(INOUT) :: A(N,N)
+#else
    KPP_REAL, INTENT(INOUT) :: A(LU_NONZERO)
+#endif
 !~~~> Output variables
    INTEGER, INTENT(OUT) :: Pivot(N), ising
 
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
    CALL  DGETRF( N, N, A, N, Pivot, ising )
-#else   
+#else
    CALL KppDecomp ( A, ising )
    Pivot(1) = 1
 #endif
@@ -1208,21 +1110,30 @@ Stage: DO istage = 1, ros_S
   END SUBROUTINE ros_Decomp
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE ros_Solve( A, Pivot, b )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-!  Template for the forward/backward substitution (using pre-computed LU decomposition)
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!  Template for the forward/backward substitution
+!  (using pre-computed LU decomposition)
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    IMPLICIT NONE
 !~~~> Input variables
+#ifdef FULL_ALGEBRA
+   KPP_REAL, INTENT(IN) :: A(N,N)
+   INTEGER :: ising
+#else
    KPP_REAL, INTENT(IN) :: A(LU_NONZERO)
+#endif
    INTEGER, INTENT(IN) :: Pivot(N)
 !~~~> InOut variables
    KPP_REAL, INTENT(INOUT) :: b(N)
 
-#ifdef FULL_ALGEBRA    
-   CALL  DGETRS( 'N', N , 1, A, N, Pivot, b, N, 0 )
-#else   
+#ifdef FULL_ALGEBRA
+   CALL  DGETRS( 'N', N , 1, A, N, Pivot, b, N, ising )
+   IF ( Info < 0 ) THEN
+      PRINT*,"Error in DGETRS. ising=",ising
+   END IF
+#else
    CALL KppSolve( A, b )
 #endif
 
@@ -1232,11 +1143,11 @@ Stage: DO istage = 1, ros_S
 
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Ros2
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ! --- AN L-STABLE METHOD, 2 stages, order 2
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
    DOUBLE PRECISION g
@@ -1280,11 +1191,11 @@ Stage: DO istage = 1, ros_S
  END SUBROUTINE Ros2
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Ros3
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ! --- AN L-STABLE METHOD, 3 stages, order 3, 2 function evaluations
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
    rosMethod = RS3
@@ -1334,12 +1245,12 @@ Stage: DO istage = 1, ros_S
 
   END SUBROUTINE Ros3
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Ros4
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !     L-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 4 STAGES
 !     L-STABLE EMBEDDED ROSENBROCK METHOD OF ORDER 3
 !
@@ -1347,7 +1258,7 @@ Stage: DO istage = 1, ros_S
 !      EQUATIONS II. STIFF AND DIFFERENTIAL-ALGEBRAIC PROBLEMS.
 !      SPRINGER SERIES IN COMPUTATIONAL MATHEMATICS,
 !      SPRINGER-VERLAG (1990)
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
 
@@ -1409,11 +1320,11 @@ Stage: DO istage = 1, ros_S
 
   END SUBROUTINE Ros4
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Rodas3
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ! --- A STIFFLY-STABLE METHOD, 4 stages, order 3
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
 
@@ -1476,16 +1387,16 @@ Stage: DO istage = 1, ros_S
 
   END SUBROUTINE Rodas3
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Rodas4
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !     STIFFLY-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 6 STAGES
 !
 !      E. HAIRER AND G. WANNER, SOLVING ORDINARY DIFFERENTIAL
 !      EQUATIONS II. STIFF AND DIFFERENTIAL-ALGEBRAIC PROBLEMS.
 !      SPRINGER SERIES IN COMPUTATIONAL MATHEMATICS,
 !      SPRINGER-VERLAG (1996)
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
 
@@ -1579,85 +1490,146 @@ Stage: DO istage = 1, ros_S
     ros_ELO = 4.0_dp
 
   END SUBROUTINE Rodas4
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  SUBROUTINE Rang3
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! STIFFLY-STABLE W METHOD OF ORDER 3, WITH 4 STAGES
+!
+! J. RANG and L. ANGERMANN
+! NEW ROSENBROCK W-METHODS OF ORDER 3
+! FOR PARTIAL DIFFERENTIAL ALGEBRAIC
+!        EQUATIONS OF INDEX 1
+! BIT Numerical Mathematics (2005) 45: 761-787
+!  DOI: 10.1007/s10543-005-0035-y
+! Table 4.1-4.2
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   IMPLICIT NONE
+
+    rosMethod = RG3
+!~~~> Name of the method
+    ros_Name = 'RANG-3'
+!~~~> Number of stages
+    ros_S = 4
+
+    ros_A(1) = 5.09052051067020d+00;
+    ros_A(2) = 5.09052051067020d+00;
+    ros_A(3) = 0.0d0;
+    ros_A(4) = 4.97628111010787d+00;
+    ros_A(5) = 2.77268164715849d-02;
+    ros_A(6) = 2.29428036027904d-01;
+
+    ros_C(1) = -1.16790812312283d+01;
+    ros_C(2) = -1.64057326467367d+01;
+    ros_C(3) = -2.77268164715850d-01;
+    ros_C(4) = -8.38103960500476d+00;
+    ros_C(5) = -8.48328409199343d-01;
+    ros_C(6) =  2.87009860433106d-01;
+
+    ros_M(1) =  5.22582761233094d+00;
+    ros_M(2) = -5.56971148154165d-01;
+    ros_M(3) =  3.57979469353645d-01;
+    ros_M(4) =  1.72337398521064d+00;
+
+    ros_E(1) = -5.16845212784040d+00;
+    ros_E(2) = -1.26351942603842d+00;
+    ros_E(3) = -1.11022302462516d-16;
+    ros_E(4) =  2.22044604925031d-16;
+
+    ros_Alpha(1) = 0.0d00;
+    ros_Alpha(2) = 2.21878746765329d+00;
+    ros_Alpha(3) = 2.21878746765329d+00;
+    ros_Alpha(4) = 1.55392337535788d+00;
+
+    ros_Gamma(1) =  4.35866521508459d-01;
+    ros_Gamma(2) = -1.78292094614483d+00;
+    ros_Gamma(3) = -2.46541900496934d+00;
+    ros_Gamma(4) = -8.05529997906370d-01;
+
+
+!~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
+!   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
+    ros_NewF(1) = .TRUE.
+    ros_NewF(2) = .TRUE.
+    ros_NewF(3) = .TRUE.
+    ros_NewF(4) = .TRUE.
+
+!~~~> ros_ELO  = estimator of local order - the minimum between the
+!        main and the embedded scheme orders plus 1
+    ros_ELO = 3.0_dp
+
+  END SUBROUTINE Rang3
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !   End of the set of internal Rosenbrock subroutines
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 END SUBROUTINE Rosenbrock
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBROUTINE FunTemplate( T, Y, Ydot, Autonomous )  
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SUBROUTINE FunTemplate( T, Y, Ydot, P_VAR, D_VAR )
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the ODE function call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
- USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
- USE KPP_ROOT_Function, ONLY: Fun
- USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ USE KPP_ROOT_Parameters, ONLY : NVAR, LU_NONZERO
+ USE KPP_ROOT_Global,     ONLY : FIX, RCONST, TIME
+ USE KPP_ROOT_Function,   ONLY : Fun, Fun_SPLIT
+ USE KPP_ROOT_Rates,      ONLY : Update_SUN, Update_RCONST
+
 !~~~> Input variables
    KPP_REAL :: T, Y(NVAR)
-   LOGICAL, INTENT(IN) :: Autonomous 
 !~~~> Output variables
    KPP_REAL :: Ydot(NVAR)
+   KPP_REAL, OPTIONAL :: P_VAR(NVAR), D_VAR(NVAR)
 !~~~> Local variables
-   KPP_REAL :: Told
+   KPP_REAL :: Told, P(NVAR), D(NVAR)
 
    Told = TIME
    TIME = T
-
-! 20121011_mz_dt+
-   IF (.NOT.Autonomous) THEN
-      IF ( Do_Update_SUN    ) CALL Update_SUN() 
-      IF ( Do_Update_RCONST ) CALL Update_RCONST() 
-   END IF
-! 20121011_mz_dt-
-
-   CALL Fun( Y, FIX, RCONST, Ydot )
+   IF ( Do_Update_SUN    ) CALL Update_SUN()
+   IF ( Do_Update_RCONST ) CALL Update_RCONST()
+   CALL KPP_FUN_OR_FUN_SPLIT
    TIME = Told
+
+   IF (Present(P_VAR)) P_VAR=P
+   IF (Present(D_VAR)) D_VAR=D
 
 END SUBROUTINE FunTemplate
 
 
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBROUTINE JacTemplate( T, Y, Jcb, Autonomous )
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SUBROUTINE JacTemplate( T, Y, Jcb )
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !  Template for the ODE Jacobian call.
 !  Updates the rate coefficients (and possibly the fixed species) at each call
-!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
- USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
- USE KPP_ROOT_Jacobian, ONLY: Jac_SP, LU_IROW, LU_ICOL
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ USE KPP_ROOT_Parameters,    ONLY : NVAR, LU_NONZERO
+ USE KPP_ROOT_Global,        ONLY : FIX, RCONST, TIME
+ USE KPP_ROOT_Jacobian,      ONLY : Jac_SP, LU_IROW, LU_ICOL
  USE KPP_ROOT_LinearAlgebra
- USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST
+ USE KPP_ROOT_Rates,         ONLY : Update_SUN, Update_RCONST
 !~~~> Input variables
     KPP_REAL :: T, Y(NVAR)
-   LOGICAL, INTENT(IN) :: Autonomous ! 20121011_mz_dt
 !~~~> Output variables
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
     KPP_REAL :: JV(LU_NONZERO), Jcb(NVAR,NVAR)
 #else
     KPP_REAL :: Jcb(LU_NONZERO)
-#endif   
+#endif
 !~~~> Local variables
     KPP_REAL :: Told
-#ifdef FULL_ALGEBRA    
+#ifdef FULL_ALGEBRA
     INTEGER :: i, j
-#endif   
+#endif
 
     Told = TIME
     TIME = T
-
-! 20121011_mz_dt+
-   IF (.NOT.Autonomous) THEN
-      IF ( Do_Update_SUN    ) CALL Update_SUN() 
-      IF ( Do_Update_RCONST ) CALL Update_RCONST()
-   END IF
-! 20121011_mz_dt-
-
-#ifdef FULL_ALGEBRA    
+    IF ( Do_Update_SUN    ) CALL Update_SUN()
+    IF ( Do_Update_RCONST ) CALL Update_RCONST()
+#ifdef FULL_ALGEBRA
     CALL Jac_SP(Y, FIX, RCONST, JV)
     DO j=1,NVAR
       DO i=1,NVAR
@@ -1669,7 +1641,7 @@ SUBROUTINE JacTemplate( T, Y, Jcb, Autonomous )
     END DO
 #else
     CALL Jac_SP( Y, FIX, RCONST, Jcb )
-#endif   
+#endif
     TIME = Told
 
 END SUBROUTINE JacTemplate

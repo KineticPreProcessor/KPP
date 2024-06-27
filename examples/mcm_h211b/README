@@ -1,0 +1,3 @@
+This directory contains a setup to test the rosenbrock_h211b_qssa
+integrator. The script xrun contains all commands to run KPP and execute
+the resulting Fortran 90 code.
