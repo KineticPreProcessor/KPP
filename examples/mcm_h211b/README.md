@@ -1,4 +1,4 @@
-# MCM minimal example (rosenbrock)
+# MCM minimal example (rosenbrock_h211b_qssa)
 
 By Rolf Sander
 
@@ -45,7 +45,7 @@ If you wish to execute the steps manually, follow these instructions:
 2. Compile the KPP-generated source code to an executable:
 
    ```console
-   $ gmake -j -f Makefile_mcm clean
+   $ gmake -f Makefile_mcm distclean
    $ gmake -j -f Makefile_mcm EXTERNAL_RATES_F90=constants_mcm.f90
    ```
    NOTE: On some systems, `gmake` may be installed as `make`.

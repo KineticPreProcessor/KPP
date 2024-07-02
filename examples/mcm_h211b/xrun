@@ -1,7 +1,0 @@
-#! /usr/bin/tcsh -f
-
-setenv KPP_HOME ../../
-$KPP_HOME/bin/kpp mcm.kpp
-gmake -f Makefile_mcm clean
-gmake -f Makefile_mcm EXTERNAL_RATES_F90=constants_mcm.f90
-./mcm.exe

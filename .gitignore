@@ -15,6 +15,7 @@
 # from compiler:
 *.mod
 *.o
+*.exe
 
 # results from ci-tests:
 /ci-tests/**/*.m
@@ -22,6 +23,7 @@
 /ci-tests/**/*.exe
 /ci-tests/**/*.h
 /ci-tests/**/*.log
+/ci-tests/**/*.dat
 
 # keep empty directory for executables, but not its contents:
 /bin/*

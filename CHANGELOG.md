@@ -11,7 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - TBD
 ### Added
 - New integrator: `rosenbrock_h211b_qssa.f90`
-- C-I test: `F90_ros_h211b`
+- New C-I tests: `F90_ros_h211b`, `F90_mcm_h211b`
+- `run_example.csh` and `run_example.sh` scripts for the `mcm` and `mcm_h211b` examples
+
+
+### Changed
+- Updated C-I test scripts to specify the name of the folder and name of the mechanism to build separately
+- Renamed `mcm` C-I test to `F90_mcm`
 
 ### Fixed
 - Add `char* rootFileName` to functions and function prototypes for `Use_C`, `Use_F`, `Use_F90`, `Use_MATLAB`, and `Generate`
