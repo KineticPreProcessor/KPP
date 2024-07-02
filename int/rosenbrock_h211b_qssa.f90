@@ -620,7 +620,7 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
 !      and its coefficients ros_{A,C,M,E,Alpha,Gamma}
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  USE mcm_Function, ONLY : Fun_SPLIT
+  USE KPP_ROOT_Function, ONLY : Fun_SPLIT
   IMPLICIT NONE
 
 !~~~> Input: the initial condition at Tstart; Output: the solution at T
