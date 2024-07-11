@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased] - TBD
+### Changed
+- Use `Y` instead of `C` in `Update_RCONST` to account for updated variable species concentrations
+
 ### Fixed
 - Add `char* rootFileName` to functions and function prototypes for `Use_C`, `Use_F`, `Use_F90`, `Use_MATLAB`, and `Generate`
 

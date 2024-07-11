@@ -2167,14 +2167,31 @@ void GenerateUpdateRconst()
 {
 int i;
 int UPDATE_RCONST;
+int YIN,Y;
 
   UseFile( rateFile );
 
-  UPDATE_RCONST = DefFnc( "Update_RCONST", 0, "function to update rate constants");
+  YIN = DefvElmO( "YIN", real, -NVAR, "Optional input concentrations of variable species" );
+  UPDATE_RCONST = DefFnc( "Update_RCONST", 1, "function to update rate constants");
 
-  FunctionBegin( UPDATE_RCONST );
+  FunctionBegin( UPDATE_RCONST, YIN );
+
+  Y = DefvElm( "Y", real, -NSPEC, "Concentrations of species (local)" );
+  Declare(Y);
+  NewLines(1);
+
   F77_Inline("      INCLUDE '%s_Global.h'", rootFileName);
   MATLAB_Inline("global SUN TEMP RCONST");
+
+  switch( useLang ){
+        case F90_LANG:
+                WriteComment("Ensure local Y array is filled with variable and constant concentrations");
+                bprintf("  Y(1:NSPEC) = C(1:NSPEC)\n");
+                NewLines(1);
+                WriteComment("Update local Y array if variable concentrations are provided");
+                bprintf("  if (present(YIN)) Y(1:NVAR) = YIN(1:NVAR)\n");
+                break;
+  }
 
   if ( useLang==F77_LANG )
       IncludeCode( "%s/util/UserRateLaws_FcnHeader", Home );
