@@ -10,6 +10,9 @@
 # Current directory
 cwd=$(pwd -P)
 
+# Print a header with the compiler versions
+print_compiler_versions
+
 # Run C-I tests with various mechanism + integrator combinations
 for this_test in ${GENERAL_TESTS}; do
     run_ci_test "${this_test}" "${cwd}" ""
