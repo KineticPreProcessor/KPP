@@ -2171,14 +2171,20 @@ int YIN,Y;
 
   UseFile( rateFile );
 
-  YIN = DefvElmO( "YIN", real, -NVAR, "Optional input concentrations of variable species" );
-  UPDATE_RCONST = DefFnc( "Update_RCONST", 1, "function to update rate constants");
+  if (useLang==F90_LANG) {
+    // F90: Declare function with optional YIN argument and local Y variable.
+    YIN = DefvElmO( "YIN", real, -NVAR, "Optional input concentrations of variable species" );
+    UPDATE_RCONST = DefFnc( "Update_RCONST", 1, "function to update rate constants");
 
-  FunctionBegin( UPDATE_RCONST, YIN );
-
-  Y = DefvElm( "Y", real, -NSPEC, "Concentrations of species (local)" );
-  Declare(Y);
-  NewLines(1);
+    FunctionBegin( UPDATE_RCONST, YIN );
+    Y = DefvElm( "Y", real, -NSPEC, "Concentrations of species (local)" );
+    Declare(Y);
+    NewLines(1);
+  } else {
+    // For other languages, declare function w/o any arguments
+    UPDATE_RCONST = DefFnc( "Update_RCONST", 0, "function to update rate constants");
+    FunctionBegin( UPDATE_RCONST );
+ }
 
   F77_Inline("      INCLUDE '%s_Global.h'", rootFileName);
   MATLAB_Inline("global SUN TEMP RCONST");
