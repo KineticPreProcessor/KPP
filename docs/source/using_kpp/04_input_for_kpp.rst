@@ -224,6 +224,18 @@ These reactions must be merged by adding the rate coefficients:
 
    N2O5 + H2O = 2 HNO3 : k_gas + k_aerosol;
 
+If the reaction rate coefficient depends on the concentration of a specific
+species, :code:`Y` should be referenced instead of :code:`C` in the reaction
+rate coefficient declaration. This ensures that the species concentration at
+the specific integration time is used when the reaction rate coefficient is
+updated within the integrator. In the following example, the reaction rate
+coefficient depends on the concentration of the hydrogen ion, whose
+concentration at that specific integration time is given by :code:`Y(ind_Hp)`:
+
+.. code-block:: console
+
+   HSO3m + HSO5m + Hp = 2 HSO4m + Hp : k_aqueous( Y(ind_Hp) );
+
 .. _families:
 
 #FAMILIES
