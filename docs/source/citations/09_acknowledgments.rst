@@ -41,4 +41,7 @@ Stuart Lacy wrote an export function for the `Master Chemical Mechanism
 used out-of-the-box for the small model in the :file:`examples/mcm`
 directory.
 
+Simon Rosanka improved the :code:`Update_RCONST` subroutine by providing
+time-dependent concentration values via an optional parameter.
+
 Parts of this user manual are based on :cite:t:`Damian-Iordache_1996`.
