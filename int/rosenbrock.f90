@@ -460,7 +460,7 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
     CASE (-6)
       PRINT * , '--> No of steps exceeds maximum bound'
     CASE (-7)
-      PRINT * , '--> Step size too small: T + 10*H = T', &
+      PRINT * , '--> Step size too small: T + 0.1*H = T', &
             ' or H < Roundoff'
     CASE (-8)
       PRINT * , '--> Matrix is repeatedly singular'
