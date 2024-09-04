@@ -10,11 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - TBD
 ### Changed
-- Use `Y` instead of `C` in `Update_RCONST` to account for updated variable species concentrations
-- C-I tests now print the compiler version that are used
+- Updated `Update_RCONST` to use `Y` instead of `C` to account for updated variable species concentrations
+- Updated C-I tests to print the compiler versions that are used
 
 ### Fixed
-- Add `char* rootFileName` to functions and function prototypes for `Use_C`, `Use_F`, `Use_F90`, `Use_MATLAB`, and `Generate`
+- Added `char* rootFileName` to functions and function prototypes for `Use_C`, `Use_F`, `Use_F90`, `Use_MATLAB`, and `Generate`
+- Updated `docs/requirements.txt` to use `jinja2==3.1.4` (fixes a security issue)
 
 ## [3.1.1] - 2024-04-30
 ### Changed
