@@ -1220,6 +1220,18 @@ ICNTRL
    :code:`Update_SUN` and :code:`Update_PHOTO`, but not to
    :code:`Update_RCONST`.
 
+   Calling :code:`Update_RCONST` may be necessary when reaction rate
+   coefficients depend on the concentration of a specific species, e.
+   g.:
+
+   .. code-block:: console
+                   
+      HSO3m + HSO5m + Hp = 2 HSO4m + Hp : k_aqueous( C(ind_Hp) );
+   
+   This ensures that the concentration :code:`C(ind_Hp)` at the specific
+   integration time is used when the reaction rate coefficient is
+   updated within the integrator.
+   
 .. option:: ICNTRL(16)
 
    Treatment of negative concentrations:

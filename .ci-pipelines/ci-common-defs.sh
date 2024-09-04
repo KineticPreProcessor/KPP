@@ -46,6 +46,18 @@ function get_ci_test_path() {
     return
 }
 
+# Prints a headeer with the compiler versions
+function print_compiler_versions() {
+    echo \
+"###########################################################################"
+    echo "         KPP CONTINUOUS INTEGRATION TESTS, USING THESE COMPILERS:"
+    echo ""
+    gcc --version
+    gfortran --version
+    echo \
+"###########################################################################"
+}
+
 # Run a C-I test
 function run_ci_test() {
 
