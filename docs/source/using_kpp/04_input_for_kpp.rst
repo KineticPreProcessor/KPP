@@ -24,8 +24,9 @@ description file:
    :ref:`kpp-commands`, and :ref:`inlined-code`. Their syntax is
    presented in :ref:`bnf-description`.
 
--  Comments are either enclosed between the curly braces :code:`{` and
-   :code:`}`, or written in a line starting with two slashes :code:`//`.
+-  Comments are either enclosed between the curly braces ":code:`{`" and
+   ":code:`}`", or written in a line starting with two slashes and a
+   space ":code:`// `".
 
 -  Any name given by the user to denote an atom or a species is
    restricted to be less than 32 character in length and can only
