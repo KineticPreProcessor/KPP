@@ -2187,10 +2187,6 @@ int YIN, Y;
     // the UPDATE_RCONST subroutine.  Instead, we will manually write
     // "SUBROUTINE UPDATE_RCONST ( YIN )" here.
     //
-    // Also note, because we are not using FunctionBegin, we do not
-    // need to declare the "int UPDATE_RCONST;" variable if we are
-    // generating F90 output.  Move that to the else block.
-    //
     //    -- Bob Yantosca (19 Dec 2024)
     //
     bprintf("SUBROUTINE Update_RCONST ( YIN )");
@@ -2283,7 +2279,7 @@ int YIN, Y;
   // -------------------------
   // Manually write the "END SUBROUTINE UPDATE_RCONST" line when
   // generating F90 output.  But if generating C, F77, MatLab output,
-  // then close the UPDATE_CONST routine as we normally would.
+  // then close the UPDATE_RCONST routine as we normally would.
   //   -- Bob Yantosca (19 Dec 2024)
   //
   if (useLang == F90_LANG) {
