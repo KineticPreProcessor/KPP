@@ -2167,37 +2167,44 @@ void GenerateUpdateRconst()
 {
 int i;
 int UPDATE_RCONST;
-int YIN,Y;
+int YIN, Y;
 
   UseFile( rateFile );
 
   if (useLang==F90_LANG) {
-    // F90: Declare function with optional YIN argument and local Y variable.
-    YIN = DefvElmO( "YIN", real, -NVAR, "Optional input concentrations of variable species" );
-    UPDATE_RCONST = DefFnc( "Update_RCONST", 1, "function to update rate constants");
-
-    FunctionBegin( UPDATE_RCONST, YIN );
-    Y = DefvElm( "Y", real, -NSPEC, "Concentrations of species (local)" );
-    Declare(Y);
+    //
+    // SPECIAL HANDLING FOR F90:
+    // -------------------------
+    // Write the INLINED RCONST section immediately after the start of the
+    // subroutine UPDATE_RCONST.  This will avoid compile-time errors if a
+    // "USE" statement is included via INLINED RCONST.  Recall that F90
+    // "USE" statements must precede variable declarations or any other
+    // executable statements.
+    //
+    // The FunctionBegin() routine writes the variable declaration
+    // statements immediately after the subroutine declaration line.
+    // Therefore, we will not be able to use FunctionBegin() to declare
+    // the UPDATE_RCONST subroutine.  Instead, we will manually write
+    // "SUBROUTINE UPDATE_RCONST ( YIN )" here.
+    //
+    // Also note, because we are not using FunctionBegin, we do not
+    // need to declare the "int UPDATE_RCONST;" variable if we are
+    // generating F90 output.  Move that to the else block.
+    //
+    //    -- Bob Yantosca (19 Dec 2024)
+    //
+    bprintf("SUBROUTINE Update_RCONST ( YIN )");
     NewLines(1);
   } else {
+    //
     // For other languages, declare function w/o any arguments
+    //
     UPDATE_RCONST = DefFnc( "Update_RCONST", 0, "function to update rate constants");
     FunctionBegin( UPDATE_RCONST );
  }
 
   F77_Inline("      INCLUDE '%s_Global.h'", rootFileName);
   MATLAB_Inline("global SUN TEMP RCONST");
-
-  switch( useLang ){
-        case F90_LANG:
-                WriteComment("Ensure local Y array is filled with variable and constant concentrations");
-                bprintf("  Y(1:NSPEC) = C(1:NSPEC)\n");
-                NewLines(1);
-                WriteComment("Update local Y array if variable concentrations are provided");
-                bprintf("  if (present(YIN)) Y(1:NVAR) = YIN(1:NVAR)\n");
-                break;
-  }
 
   if ( useLang==F77_LANG )
       IncludeCode( "%s/util/UserRateLaws_FcnHeader", Home );
@@ -2223,6 +2230,35 @@ int YIN,Y;
   NewLines(1);
   WriteComment("End INLINED RCONST");
   NewLines(1);
+  //
+  // SPECIAL HANDLING FOR F90:
+  // -------------------------
+  // Write F90 variable declarations after the INLINED RCONST section.
+  // This will avoid compile-time errors if a USE statement is placed
+  // into the INLINED RCONST section, as described above.
+  //
+  //   -- Bob Yantosca (19 Dec 2024)
+  //
+  if (useLang == F90_LANG) {
+
+    // Declare optional YIN argument
+    YIN = DefvElmO( "YIN", real, -NVAR, "Optional input concentrations of variable species" );
+    Declare(YIN);
+    NewLines(1);
+
+    // Declare local Y variable
+    Y = DefvElm( "Y", real, -NSPEC, "Concentrations of species (local)" );
+    Declare(Y);
+    NewLines(1);
+
+    // Copy values of YIN to Y if YIN is present
+    WriteComment("Ensure local Y array is filled with variable and constant concentrations");
+    bprintf("  Y(1:NSPEC) = C(1:NSPEC)\n");
+    NewLines(1);
+    WriteComment("Update local Y array if variable concentrations are provided");
+    bprintf("  if (present(YIN)) Y(1:NVAR) = YIN(1:NVAR)\n");
+    NewLines(2);
+  }
 
   for( i = 0; i < EqnNr; i++) {
     /*  mz_rs_20220701+ */
@@ -2242,9 +2278,22 @@ int YIN,Y;
   }
 
   MATLAB_Inline("   RCONST = RCONST(:);");
-
-  FunctionEnd( UPDATE_RCONST );
-  FreeVariable( UPDATE_RCONST );
+  //
+  // SPECIAL HANDLING FOR F90:
+  // -------------------------
+  // Manually write the "END SUBROUTINE UPDATE_RCONST" line when
+  // generating F90 output.  But if generating C, F77, MatLab output,
+  // then close the UPDATE_CONST routine as we normally would.
+  //   -- Bob Yantosca (19 Dec 2024)
+  //
+  if (useLang == F90_LANG) {
+    NewLines(1);
+    bprintf("END SUBROUTINE UPDATE_RCONST");
+    NewLines(1);
+  } else {
+    FunctionEnd( UPDATE_RCONST );
+    FreeVariable( UPDATE_RCONST );
+  }
 }
 
 

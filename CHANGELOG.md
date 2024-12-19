@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Added `char* rootFileName` to functions and function prototypes for `Use_C`, `Use_F`, `Use_F90`, `Use_MATLAB`, and `Generate`
 - Updated `docs/requirements.txt` to use `jinja2==3.1.4` (fixes a security issue)
+- Updated `gen.c` to write the `INLINED RCONST` section at the top of routine `UPDATE_RCONST`.  This will prevent compilation errors when `INLINED_RCONST` contains F90 `USE` statements (as these must precede other F90 statements).
 
 ## [3.1.1] - 2024-04-30
 ### Changed
