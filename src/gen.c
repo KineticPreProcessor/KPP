@@ -2188,12 +2188,12 @@ int YIN, Y;
     NewLines(2);
 
     // Inline USE statements right after the subroutine declaration
-    WriteComment("Begin INLINED RCONST - F90 USE STATEMENTS");
+    WriteComment("Begin inlined code from F90_RCONST_USE");
     NewLines(1);
     bprintf( InlineCode[ F90_RCONST_USE ].code );
     FlushBuf();
     NewLines(1);
-    WriteComment("End INLINED RCONST - F90 USE STATEMENTS");
+    WriteComment("End inlined code from F90_RCONST_USE");
     NewLines(1);
 
     // Declare optional YIN argument
@@ -2212,7 +2212,7 @@ int YIN, Y;
     NewLines(1);
     WriteComment("Update local Y array if variable concentrations are provided");
     bprintf("  if (present(YIN)) Y(1:NVAR) = YIN(1:NVAR)\n");
-    NewLines(2);
+    NewLines(1);
 
   } else {
     //
@@ -2232,7 +2232,7 @@ int YIN, Y;
 
   // Inline code from {C,F77,F90_MATLAB}_RCONST inline keys
   NewLines(1);
-  WriteComment("Begin INLINED RCONST");
+  WriteComment("Begin inlined code from F90_RCONST");
   NewLines(1);
 
   switch( useLang ) {
@@ -2248,7 +2248,7 @@ int YIN, Y;
   FlushBuf();
 
   NewLines(1);
-  WriteComment("End INLINED RCONST");
+  WriteComment("End inlined code from F90_RCONST");
   NewLines(1);
 
   for( i = 0; i < EqnNr; i++) {
