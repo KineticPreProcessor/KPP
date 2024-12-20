@@ -2175,22 +2175,45 @@ int YIN, Y;
     //
     // SPECIAL HANDLING FOR F90:
     // -------------------------
-    // Write the INLINED RCONST section immediately after the start of the
-    // subroutine UPDATE_RCONST.  This will avoid compile-time errors if a
-    // "USE" statement is included via INLINED RCONST.  Recall that F90
-    // "USE" statements must precede variable declarations or any other
-    // executable statements.
-    //
-    // The FunctionBegin() routine writes the variable declaration
-    // statements immediately after the subroutine declaration line.
-    // Therefore, we will not be able to use FunctionBegin() to declare
-    // the UPDATE_RCONST subroutine.  Instead, we will manually write
-    // "SUBROUTINE UPDATE_RCONST ( YIN )" here.
+    // Manually write the "SUBROUTINE RCONST ( YIN )" line instead of
+    // using the FunctionBegin( UPDATE_RCONST ).  This will allow us
+    // to add any inlined F90 use statements immediately afterwards.
+    // Recall that F90 "USE" statements must precede variable
+    // declarations or any other executable statements, or else a
+    // compilation error will be generated.
     //
     //    -- Bob Yantosca (19 Dec 2024)
     //
     bprintf("SUBROUTINE Update_RCONST ( YIN )");
+    NewLines(2);
+
+    // Inline USE statements right after the subroutine declaration
+    WriteComment("Begin INLINED RCONST - F90 USE STATEMENTS");
     NewLines(1);
+    bprintf( InlineCode[ F90_RCONST_USE ].code );
+    FlushBuf();
+    NewLines(1);
+    WriteComment("End INLINED RCONST - F90 USE STATEMENTS");
+    NewLines(1);
+
+    // Declare optional YIN argument
+    YIN = DefvElmO( "YIN", real, -NVAR, "Optional input concentrations of variable species" );
+    Declare(YIN);
+    NewLines(1);
+
+    // Declare local Y variable
+    Y = DefvElm( "Y", real, -NSPEC, "Concentrations of species (local)" );
+    Declare(Y);
+    NewLines(1);
+
+    // Copy values of YIN to Y if YIN is present
+    WriteComment("Ensure local Y array is filled with variable and constant concentrations");
+    bprintf("  Y(1:NSPEC) = C(1:NSPEC)\n");
+    NewLines(1);
+    WriteComment("Update local Y array if variable concentrations are provided");
+    bprintf("  if (present(YIN)) Y(1:NVAR) = YIN(1:NVAR)\n");
+    NewLines(2);
+
   } else {
     //
     // For other languages, declare function w/o any arguments
@@ -2207,6 +2230,7 @@ int YIN, Y;
 
   NewLines(1);
 
+  // Inline code from {C,F77,F90_MATLAB}_RCONST inline keys
   NewLines(1);
   WriteComment("Begin INLINED RCONST");
   NewLines(1);
@@ -2226,35 +2250,6 @@ int YIN, Y;
   NewLines(1);
   WriteComment("End INLINED RCONST");
   NewLines(1);
-  //
-  // SPECIAL HANDLING FOR F90:
-  // -------------------------
-  // Write F90 variable declarations after the INLINED RCONST section.
-  // This will avoid compile-time errors if a USE statement is placed
-  // into the INLINED RCONST section, as described above.
-  //
-  //   -- Bob Yantosca (19 Dec 2024)
-  //
-  if (useLang == F90_LANG) {
-
-    // Declare optional YIN argument
-    YIN = DefvElmO( "YIN", real, -NVAR, "Optional input concentrations of variable species" );
-    Declare(YIN);
-    NewLines(1);
-
-    // Declare local Y variable
-    Y = DefvElm( "Y", real, -NSPEC, "Concentrations of species (local)" );
-    Declare(Y);
-    NewLines(1);
-
-    // Copy values of YIN to Y if YIN is present
-    WriteComment("Ensure local Y array is filled with variable and constant concentrations");
-    bprintf("  Y(1:NSPEC) = C(1:NSPEC)\n");
-    NewLines(1);
-    WriteComment("Update local Y array if variable concentrations are provided");
-    bprintf("  if (present(YIN)) Y(1:NVAR) = YIN(1:NVAR)\n");
-    NewLines(2);
-  }
 
   for( i = 0; i < EqnNr; i++) {
     /*  mz_rs_20220701+ */
