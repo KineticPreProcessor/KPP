@@ -498,7 +498,7 @@ int dim;
   InitDeclare( FAM_NAMES, FamilyNr, (void*)sfam );
 
   NewLines(1);
-  WriteComment("INLINED global variables");
+  WriteComment("Begin inlined code from F90_DATA");
 
   switch( useLang ) {
     case C_LANG:   bprintf( InlineCode[ C_DATA ].code );
@@ -513,7 +513,7 @@ int dim;
   FlushBuf();
 
   NewLines(1);
-  WriteComment("End INLINED global variables");
+  WriteComment("End inlined code from F90_DATA");
   NewLines(1);
 
   F77_Inline( "%6sEND\n\n", " " );
@@ -2122,7 +2122,7 @@ void GenerateRateLaws()
   NewLines(1);
 
   NewLines(1);
-  WriteComment("Begin INLINED Rate Law Functions");
+  WriteComment("Begin inlined code from F90_RATES");
   NewLines(1);
 
   switch( useLang ) {
@@ -2138,7 +2138,7 @@ void GenerateRateLaws()
   FlushBuf();
 
   NewLines(1);
-  WriteComment("End INLINED Rate Law Functions");
+  WriteComment("End inlined code from F90_RATES");
   NewLines(1);
 
 
@@ -2308,7 +2308,7 @@ int UPDATE_PHOTO;
   MATLAB_Inline("global SUN TEMP RCONST");
 
   NewLines(1);
-  WriteComment("Begin INLINED RCONST");
+  WriteComment("Begin inlined code from F90_RCONST");
   NewLines(1);
 
   switch( useLang ) {
@@ -2324,7 +2324,7 @@ int UPDATE_PHOTO;
   FlushBuf();
 
   NewLines(1);
-  WriteComment("End INLINED RCONST");
+  WriteComment("End inlined code from F90_RCONST");
   NewLines(1);
 
   for( i = 0; i < EqnNr; i++) {
@@ -2389,7 +2389,7 @@ int UTIL;
 
   UseFile( utilFile );
   NewLines(1);
-  WriteComment("User INLINED Utility Functions");
+  WriteComment("Begin inlined code from F90_UTIL");
 
   switch( useLang ) {
     case C_LANG:  bprintf( InlineCode[ C_UTIL ].code );
@@ -2404,10 +2404,10 @@ int UTIL;
   FlushBuf();
 
   NewLines(1);
-  WriteComment("End INLINED Utility Functions");
+  WriteComment("End inlined code from F90_UTIL");
   NewLines(1);
 
-  WriteComment("Utility Functions from KPP_HOME/util/util");
+  WriteComment("Begin Utility Functions from KPP_HOME/util/util");
   UTIL = DefFnc( "UTIL", 0, "Utility functions");
   CommentFunctionBegin( UTIL);
 
@@ -2684,7 +2684,7 @@ void GenerateGlobalHeader()
   }
 
   NewLines(1);
-  WriteComment("INLINED global variable declarations");
+  WriteComment("Begin inlined code from F90_GLOBAL");
 
   switch( useLang ) {
     case C_LANG:  bprintf( InlineCode[ C_GLOBAL ].code );
@@ -2699,7 +2699,7 @@ void GenerateGlobalHeader()
   FlushBuf();
 
   NewLines(1);
-  WriteComment("INLINED global variable declarations");
+  WriteComment("End inlined code from F90_GLOBAL");
   NewLines(1);
 }
 
@@ -3014,15 +3014,15 @@ int INITVAL;
     }
   }
 
-  WriteComment("constant rate coefficients");
+  WriteComment("Begin constant rate coefficients");
   for( i = 0; i < EqnNr; i++) {
     if ( kr[i].type == NUMBER )
        Assign( Elm( RCONST, i ), Const( kr[i].val.f ) );
   }
-  WriteComment("END constant rate coefficients");
+  WriteComment("End constant rate coefficients");
 
   NewLines(1);
-  WriteComment("INLINED initializations");
+  WriteComment("Begin inlined code from F90_INIT");
 
   switch( useLang ) {
     case C_LANG: bprintf( InlineCode[ C_INIT ].code );
@@ -3037,7 +3037,7 @@ int INITVAL;
   FlushBuf();
 
   NewLines(1);
-  WriteComment("End INLINED initializations");
+  WriteComment("End inlined code from F90_INIT");
   NewLines(1);
 
   MATLAB_Inline("   VAR = VAR(:);\n   FIX = FIX(:);\n" );

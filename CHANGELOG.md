@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated routine `GenerateUpdateRconst` to inline code from `#INLINE F90_RCONST_USE` before any other F90 variable declarations or statements
 - Updated `.gitignore` to ignore all executable files
 - Changed `Begin INLINED RCONST - F90 USE STATEMENTS` to `Begin inlined code from F90_RCONST_USE` in `src/gen.c`
-- Changed `Begin INLINED RCONST` to `Begin inlined code from F90_RCONST` in `src/gen.c`
+- Changed inlined code comments to be more precise (e.g. `Begin inlined code from F90_RCONST`) in `src/gen.c`
 
 ### Fixed
 - Added `char* rootFileName` to functions and function prototypes for `Use_C`, `Use_F`, `Use_F90`, `Use_MATLAB`, and `Generate`
