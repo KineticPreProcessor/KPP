@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Now request Python 3.12 for ReadTheDocs builds in `.readthedocs.yaml`
 - Updated `MAX_NO_OF_LINES` to 2000 to parse the MCM mechanism
 - Updaeed `MAX_EQN` to 18000 to parse the MCM mechanism
+- Refactored `int/lsode.f90` to be thread-safe in OpenMP parallel loops
 
 ### Fixed
 - Now only add tha extra `Aout` argument to `Fun` and `Fun_Split` for F90 (see issues #56, #96)
