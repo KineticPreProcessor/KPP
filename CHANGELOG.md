@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added new inline key `F90_RCONST_USE` in `src/gdata.h` and `src/scanner.c`
 - Added documentation about `F90_RCONST_USE` for ReadTheDocs
+- Added warning that LSODE is not thread-safe to ReadTheDocs documentation
 
 ### Changed
 - Updated `Update_RCONST` to use `Y` instead of `C` to account for updated variable species concentrations
@@ -22,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed `Begin INLINED RCONST - F90 USE STATEMENTS` to `Begin inlined code from F90_RCONST_USE` in `src/gen.c`
 - Changed inlined code comments to be more precise (e.g. `Begin inlined code from F90_RCONST`) in `src/gen.c`
 - Updated Flex library installation example on ReadTheDocs
+- Updated ReadTheDocs dependency`jinja2` to version 3.1.5 (fixes a security issue)
 
 ### Fixed
 - Added `char* rootFileName` to functions and function prototypes for `Use_C`, `Use_F`, `Use_F90`, `Use_MATLAB`, and `Generate`
