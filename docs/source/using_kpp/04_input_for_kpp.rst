@@ -934,7 +934,7 @@ computed, such as:
 
 .. code-block:: fortran
 
-   #INLINE F90_RCONST
+   #INLINE F90_RCONST_USE
      USE MyRateFunctionModule
    #ENDINLINE
 
