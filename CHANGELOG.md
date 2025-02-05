@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added new inline key `F90_RCONST_USE` in `src/gdata.h` and `src/scanner.c`
 - Added documentation about `F90_RCONST_USE` for ReadTheDocs
+- Added `F90_RCONST_USE` inlined code to `Update_RConst`and `Update_Photo` routines
 
 ### Changed
 - Updated `Update_RCONST` to use `Y` instead of `C` to account for updated variable species concentrations
@@ -26,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Added `char* rootFileName` to functions and function prototypes for `Use_C`, `Use_F`, `Use_F90`, `Use_MATLAB`, and `Generate`
 - Updated `docs/requirements.txt` to use `jinja2==3.1.4` (fixes a security issue)
+- Moved `USE constants_mcm` from `F90_RCONST` to `F90_RCONST_USE` in `examples/mcm/mcm_isoprene.eqn`
 
 ## [3.1.1] - 2024-04-30
 ### Changed

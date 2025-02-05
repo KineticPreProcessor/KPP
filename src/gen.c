@@ -2300,6 +2300,21 @@ int UPDATE_PHOTO;
   UPDATE_PHOTO = DefFnc( "Update_PHOTO", 0, "function to update photolytical rate constants");
 
   FunctionBegin( UPDATE_PHOTO );
+
+  if (useLang==F90_LANG) {
+    //
+    // SPECIAL HANDLING FOR F90:
+    // -------------------------
+    // Inline USE statements right after the subroutine declaration
+    WriteComment("Begin inlined code from F90_RCONST_USE");
+    NewLines(1);
+    bprintf( InlineCode[ F90_RCONST_USE ].code );
+    FlushBuf();
+    NewLines(1);
+    WriteComment("End inlined code from F90_RCONST_USE");
+    NewLines(1);
+  }
+
   F77_Inline("      INCLUDE '%s_Global.h'", rootFileName);
   /*  mz_rs_20220212+ */
   /* global is already used in the rates module, don't use it twice */

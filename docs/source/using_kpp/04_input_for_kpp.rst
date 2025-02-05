@@ -934,15 +934,15 @@ computed, such as:
 
 .. code-block:: fortran
 
-   #INLINE F90_RCONST
+   #INLINE F90_RCONST_USE
      USE MyRateFunctionModule
    #ENDINLINE
 
 The inlined code will be placed directly into the subroutines
-:code:`UPDATE_RCONST` in the :ref:`Rates` file.  :code:`USE`
-statements will be placed before Fortran variable definitions and
-executable statements, as is required by the Fortran-90 language
-standard. 
+:code:`UPDATE_RCONST` and :code:`UPDATE_PHOTO` in the :ref:`Rates`
+file.  :code:`USE` statements will be placed before Fortran variable
+definitions and executable statements, as is required by the
+Fortran-90 language standard.  
 
 .. _f90-util:
 
