@@ -5,7 +5,7 @@
 #
 #  Copyright (C) 1995-1996 Valeriu Damian and Adrian Sandu
 #  Copyright (C) 1997-2005 Adrian Sandu
-#      with contributions from: Mirela Damian, Rolf Sander 
+#      with contributions from: Mirela Damian, Rolf Sander
 #
 #  KPP is free software; you can redistribute it and/or modify it under the
 #  terms of the GNU General Public License as published by the Free Software
@@ -56,8 +56,8 @@ all: $(OBJS)
 	@mv kpp $(PROG)
 
 .PHONY: clean
-clean:  
-	@rm -f *~ *.o 
+clean:
+	@rm -f *~ *.o
 
 .PHONY: distclean
 distclean: clean
@@ -71,6 +71,7 @@ maintainer-clean: distclean
 .PHONY: list
 list:
 	@echo "SYSTEM       = $(SYSTEM)"
+	@echo "SYSTEM_M     = $(SYSTEM_M)"
 	@echo "HOST         = $(HOST)"
 	@echo "CC           = $(CC)"
 	@echo "CC_FLAGS     = $(CC_FLAGS)"
@@ -83,7 +84,7 @@ list:
 	$(CC) $(CC_FLAGS) -I$(INCLUDE_DIR) -c $*.c
 
 lex.yy.c: scan.l scan.h gdata.h
-	$(FLEX) -olex.yy.c scan.l 
+	$(FLEX) -olex.yy.c scan.l
 
 y.tab.c: scan.y scan.h
 	$(BISON) -d -o y.tab.c scan.y
@@ -101,6 +102,6 @@ debug.o:              gdata.h scan.h
 gen.o:         code.h gdata.h scan.h
 kpp.o:                gdata.h scan.h
 lex.yy.o:             gdata.h scan.h y.tab.h
-scanner.o:            gdata.h scan.h 
+scanner.o:            gdata.h scan.h
 scanutil.o:           gdata.h scan.h
 y.tab.o:                      scan.h y.tab.h
