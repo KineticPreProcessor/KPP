@@ -3490,15 +3490,14 @@ int n;
   outBuf = (char*)malloc( n );
   outBuffer = outBuf;
 
+  // rootFileName is now in gdata.h, so we don't
+  // have to pass it to the USE_* functions.
+  //  -- Bob Yantosca (13 Feb 2025)
   switch( useLang ) {
-    case F77_LANG: Use_F( rootFileName );
-                 break;
-    case F90_LANG: Use_F90( rootFileName );
-                 break;
-    case C_LANG: Use_C( rootFileName );
-                 break;
-    case MATLAB_LANG: Use_MATLAB( rootFileName );
-                 break;
+    case F77_LANG:    Use_F();      break;
+    case F90_LANG:    Use_F90();    break;
+    case C_LANG:      Use_C();      break;
+    case MATLAB_LANG: Use_MATLAB(); break;
     default: printf("\n Language no '%d' unknown\n",useLang );
   }
   printf("\nKPP is initializing the code generation.");
