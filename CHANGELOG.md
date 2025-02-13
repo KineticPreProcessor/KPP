@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - TBD
 ### Changed
-- Removed `rootFileName` from calls to `USE_F`, `USE_F90`, `USE_C`, `USE_MATLAB` to match the function prototypes in `code.h`
+- Removed `rootFileName` from calls to `USE_F`, `USE_F90`, `USE_C`, `USE_MATLAB`, and `Generate` to match corresponding function prototypes
 
 ## [3.1.1] - 2024-04-30
 ### Changed

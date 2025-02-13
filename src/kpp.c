@@ -594,7 +594,8 @@ char *p;
   if( initNr == -1 ) initNr = VarNr;
 
   printf("\nKPP is starting the code generation.");
-  Generate( rootFileName );
+  //Generate( rootFileName );
+  Generate();
   
   printf("\nKPP is starting the code post-processing.");
   Postprocess( rootFileName );
