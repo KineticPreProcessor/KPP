@@ -3,6 +3,8 @@
 !            * Sdirk 2a, 2b: L-stable, 2 stages, order 2                  !
 !            * Sdirk 3a:     L-stable, 3 stages, order 2, adj-invariant   !
 !            * Sdirk 4a, 4b: L-stable, 5 stages, order 4                  !
+!            * Backward Euler: L-stable, 1 stage, order 1                 !
+!                              Fixed step size = RCNTRL(3) = Hstart       !
 !  By default the code employs the KPP sparse linear algebra routines     !
 !  Compile with -DFULL_ALGEBRA to use full linear algebra (LAPACK)        !
 !                                                                         !
@@ -10,6 +12,7 @@
 !    Virginia Polytechnic Institute and State University                  !
 !    Contact: sandu@cs.vt.edu                                             !
 !    Revised by Philipp Miehe and Adrian Sandu, May 2006                  !
+!    Backward Euler added by Adrian Sandu, December 2012                  !
 !    This implementation is part of KPP - the Kinetic PreProcessor        !
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 
@@ -18,9 +21,10 @@ MODULE KPP_ROOT_Integrator
   USE KPP_ROOT_Precision
   USE KPP_ROOT_Global
   USE KPP_ROOT_Parameters
-  USE KPP_ROOT_JacobianSP   , ONLY: LU_DIAG
-  USE KPP_ROOT_LinearAlgebra, ONLY: KppDecomp,    &
-               KppSolve, Set2zero, WLAMCH, WCOPY, WAXPY, WSCAL, WADD
+  USE KPP_ROOT_JacobianSP,    ONLY : LU_DIAG
+  USE KPP_ROOT_LinearAlgebra, ONLY : KppDecomp, KppSolve, Set2zero, &
+                                     WLAMCH,    WCOPY,    WAXPY,    &
+                                     WSCAL,     WADD
   
   IMPLICIT NONE
   PUBLIC
@@ -38,6 +42,14 @@ MODULE KPP_ROOT_Integrator
            Nrej=5, Ndec=6, Nsol=7, Nsng=8,               &
            Ntexit=1, Nhexit=2, Nhnew=3
                  
+  ! mz_rs_20171120+
+  ! description of the error numbers IERR
+  CHARACTER(LEN=50), PARAMETER, DIMENSION(-1:1) :: IERR_NAMES = (/ &
+    'DUMMY ERROR MESSAGE                               ', & ! -1
+    '                                                  ', & !  0 (not used)
+    'Success                                           ' /) !  1
+  ! mz_rs_20171120-
+
 CONTAINS
 
 SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
@@ -49,7 +61,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 
    KPP_REAL, INTENT(IN) :: TIN  ! Start Time
    KPP_REAL, INTENT(IN) :: TOUT ! End Time
-   !~~~> Optional input parameters and statistics
+   ! Optional input parameters and statistics
    INTEGER,       INTENT(IN),  OPTIONAL :: ICNTRL_U(20)
    KPP_REAL, INTENT(IN),  OPTIONAL :: RCNTRL_U(20)
    INTEGER,       INTENT(OUT), OPTIONAL :: ISTATUS_U(20)
@@ -73,14 +85,14 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
    ICNTRL(15) = 5       ! Call Update_SUN and Update_RCONST from w/in the int. 
 
    !~~~> if optional parameters are given, and if they are /= 0,
-   !~~~> then use them to overwrite default settings
+   !     then use them to overwrite default settings
    IF ( PRESENT( ICNTRL_U ) ) THEN
       WHERE( ICNTRL_U /= 0 ) ICNTRL = ICNTRL_U
    ENDIF
    IF ( PRESENT( RCNTRL_U ) ) THEN
       WHERE( RCNTRL_U > 0 ) RCNTRL = RCNTRL_U
    ENDIF
-      
+
    !~~~> Determine the settings of the Do_Update_* flags, which determine
    !~~~> whether or not we need to call Update_* routines in the integrator
    !~~~> (or not, if we are calling them from a higher-level)
@@ -97,7 +109,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
                                    Do_Update_RCONST,    &
                                    Do_Update_PHOTO,     &
                                    Do_Update_Sun       )
-
+   
    !~~~> In order to remove the prior EQUIVALENCE statements (which
    !~~~> are not thread-safe), we now have declared VAR and FIX as
    !~~~> threadprivate pointer variables that can point to C.
@@ -106,8 +118,8 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 
    !~~~> Call the integrator
    T1 = TIN; T2 = TOUT
-   CALL SDIRK( NVAR,   T1,     T2,     VAR,     RTOL, ATOL,  &
-               RCNTRL, ICNTRL, RSTATUS,ISTATUS, Ierr        )
+   CALL SDIRK( NVAR,T1,T2,VAR,RTOL,ATOL,          &
+               RCNTRL,ICNTRL,RSTATUS,ISTATUS,Ierr )
 
    !~~~> Free pointers
    VAR => NULL()
@@ -128,7 +140,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
    IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS
    IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR
 
-END SUBROUTINE INTEGRATE
+   END SUBROUTINE INTEGRATE
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -150,11 +162,14 @@ END SUBROUTINE INTEGRATE
 !            * Sdirk 2a, 2b: L-stable, 2 stages, order 2                  
 !            * Sdirk 3a:     L-stable, 3 stages, order 2, adjoint-invariant   
 !            * Sdirk 4a, 4b: L-stable, 5 stages, order 4                  
+!            * Backward Euler: L-stable, 1 stage, order 1                  
+!                              Fixed step size = RCNTRL(3) = Hstart       
 !
 !    (C)  Adrian Sandu, July 2005
 !    Virginia Polytechnic Institute and State University
 !    Contact: sandu@cs.vt.edu
-!    Revised by Philipp Miehe and Adrian Sandu, May 2006                 
+!    Revised by Philipp Miehe and Adrian Sandu, May 2006  
+!    Backward Euler added by Adrian Sandu, Dec. 2012               
 !    This implementation is part of KPP - the Kinetic PreProcessor
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
@@ -216,7 +231,7 @@ END SUBROUTINE INTEGRATE
 !        =  4 :  Call Update_SUN from within the integrator
 !        =  5 :  Call Update_SUN and Update_RCONST from within the int.
 !        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
-!        =  7 :  Call Update_SUN, Update_PHOTO and Update_RCONST w/in the int.
+!        =  7 :  Call Update_SUN, Update_PHOTO, Update_RCONST from w/in the int.
 !
 !~~~>  Real parameters
 !
@@ -278,7 +293,7 @@ END SUBROUTINE INTEGRATE
        
 !~~~>  SDIRK method coefficients, up to 5 stages
       INTEGER, PARAMETER :: Smax = 5
-      INTEGER, PARAMETER :: S2A=1, S2B=2, S3A=3, S4A=4, S4B=5
+      INTEGER, PARAMETER :: S2A=1, S2B=2, S3A=3, S4A=4, S4B=5, BEL=6
       KPP_REAL :: rkGamma, rkA(Smax,Smax), rkB(Smax), rkC(Smax), &
                        rkD(Smax),  rkE(Smax), rkBhat(Smax), rkELO,    &
                        rkAlpha(Smax,Smax), rkTheta(Smax,Smax)
@@ -307,17 +322,19 @@ END SUBROUTINE INTEGRATE
 !~~~> ICNTRL(3) - method selection       
       SELECT CASE (ICNTRL(3))
       CASE (0,1)
-         CALL Sdirk2a
+         CALL Sdirk2a()
       CASE (2)
-         CALL Sdirk2b
+         CALL Sdirk2b()
       CASE (3)
-         CALL Sdirk3a
+         CALL Sdirk3a()
       CASE (4)
-         CALL Sdirk4a
+         CALL Sdirk4a()
       CASE (5)
-         CALL Sdirk4b
+         CALL Sdirk4b()
+      CASE (6)
+         CALL BEuler()
       CASE DEFAULT
-         CALL Sdirk2a
+         CALL Sdirk2a()
       END SELECT
       
 !~~~>   The maximum number of time steps admitted
@@ -373,7 +390,7 @@ END SUBROUTINE INTEGRATE
    
 !~~~>  Starting step size: (positive value)
       IF (RCNTRL(3) == ZERO) THEN
-         Hstart = MAX(Hmin,Roundoff)
+         Hstart = MAX(Hmin,101.*Roundoff) ! factor 101 added mz_rs_20171120
       ELSEIF (RCNTRL(3) > ZERO) THEN
          Hstart = MIN(ABS(RCNTRL(3)),ABS(Tfinal-Tinitial))
       ELSE
@@ -460,6 +477,24 @@ END SUBROUTINE INTEGRATE
          END DO
       END IF
     
+!~~~>  Special treatment of backward Euler
+    IF (sdMethod == BEL) THEN
+           StartNewton = .FALSE.
+           FacMin = 1.0_dp
+           FacMax = 1.0_dp
+           FacSafe= 1.0_dp
+           FacRej = 1.0_dp
+           Qmin   = 1.0_dp
+           Qmax   = 1.0_dp
+           Hmax   = Hstart
+           IF ( Hstart <= 100_dp*Roundoff ) THEN
+                   PRINT * , ' Backward Euler calling error:'
+                   PRINT * , '   it requires Hstart > 100*Roundoff'
+                   STOP
+           END IF
+    END IF
+
+
     IF (Ierr < 0) RETURN
 
     CALL SDIRK_Integrator( N,Tinitial,Tfinal,Y,Ierr )
@@ -620,7 +655,7 @@ NewtonLoop:DO NewtonIter = 1, NewtonMaxit
                  CYCLE Tloop
             END IF
 
-!~~~>  End of implified Newton iterations
+!~~~>  End of simplified Newton iterations
 
  
    END DO stages
@@ -630,18 +665,24 @@ NewtonLoop:DO NewtonIter = 1, NewtonMaxit
 !~~~>  Error estimation
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       ISTATUS(Nstp) = ISTATUS(Nstp) + 1
-      CALL Set2zero(N,TMP)
-      DO i = 1,rkS
-         IF (rkE(i)/=ZERO) CALL WAXPY(N,rkE(i),Z(1,i),1,TMP,1)
-      END DO  
 
-      CALL SDIRK_Solve( H, N, E, IP, IER, TMP )
-      CALL SDIRK_ErrorNorm(N, TMP, SCAL, Err)
+      IF (sdMethod /= BEL) THEN ! All methods but Backward Euler
+        CALL Set2zero(N,TMP)
+        DO i = 1,rkS
+          IF (rkE(i)/=ZERO) CALL WAXPY(N,rkE(i),Z(1,i),1,TMP,1)
+        END DO
+
+        CALL SDIRK_Solve( H, N, E, IP, IER, TMP )
+        CALL SDIRK_ErrorNorm(N, TMP, SCAL, Err)
 
 !~~~> Computation of new step size Hnew
-      Fac  = FacSafe*(Err)**(-ONE/rkELO)
-      Fac  = MAX(FacMin,MIN(FacMax,Fac))
-      Hnew = H*Fac
+        Fac  = FacSafe*(Err)**(-ONE/rkELO)
+        Fac  = MAX(FacMin,MIN(FacMax,Fac))
+        Hnew = H*Fac
+      ELSE ! Backward Euler Method
+        Err = ZERO
+        Hnew = MIN( Hstart, 1.2_dp*H )
+      END IF
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~>  Accept/Reject step
@@ -883,8 +924,41 @@ Hloop: DO WHILE (ISING /= 0)
       END SUBROUTINE SDIRK_Solve
 
 
+
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      SUBROUTINE Sdirk4a
+      SUBROUTINE BEuler()
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      sdMethod = BEL
+      ! Number of stages
+      rkS = 1
+
+      ! Method coefficients
+      rkGamma = 1.0_dp
+      rkA(1,1) = 1.0_dp
+      rkB(1)   = 1.0_dp
+      rkBhat(1)= 1.0_dp
+      rkC(1)   = 1.0_dp
+
+      ! Ynew = Yold + h*Sum_i {rkB_i*k_i} = Yold + Sum_i {rkD_i*Z_i}
+      rkD(1)   = 1.0_dp
+
+      ! Err = h * Sum_i {(rkB_i-rkBhat_i)*k_i} = Sum_i {rkE_i*Z_i}
+      rkE(1)   =  1.0_dp
+
+      ! Local order of Err estimate
+      rkElo    = -1.0_dp
+
+      ! h*Sum_j {rkA_ij*k_j} = Sum_j {rkTheta_ij*Z_j}
+      rkTheta(1,1) =  0.0_dp
+
+      ! Starting value for Newton iterations: Z_i^0 = Sum_j {rkAlpha_ij*Z_j}
+      rkAlpha(1,1) =   0.0_dp
+
+      END SUBROUTINE BEuler
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      SUBROUTINE Sdirk4a()
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       sdMethod = S4A
 ! Number of stages
@@ -1002,7 +1076,7 @@ Hloop: DO WHILE (ISING /= 0)
       END SUBROUTINE Sdirk4a
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      SUBROUTINE Sdirk4b
+      SUBROUTINE Sdirk4b()
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       sdMethod = S4B
@@ -1090,7 +1164,7 @@ Hloop: DO WHILE (ISING /= 0)
       END SUBROUTINE Sdirk4b
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      SUBROUTINE Sdirk2a
+      SUBROUTINE Sdirk2a()
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       sdMethod = S2A
@@ -1133,7 +1207,7 @@ Hloop: DO WHILE (ISING /= 0)
       END SUBROUTINE Sdirk2a
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      SUBROUTINE Sdirk2b
+      SUBROUTINE Sdirk2b()
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       sdMethod = S2B
@@ -1177,7 +1251,7 @@ Hloop: DO WHILE (ISING /= 0)
 
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-      SUBROUTINE Sdirk3a
+      SUBROUTINE Sdirk3a()
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       sdMethod = S3A
@@ -1240,11 +1314,10 @@ Hloop: DO WHILE (ISING /= 0)
       SUBROUTINE FUN_CHEM( T, Y, P )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      USE KPP_ROOT_Parameters, ONLY : NVAR, LU_NONZERO
-      USE KPP_ROOT_Global,     ONLY : FIX, RCONST, TIME
-      USE KPP_ROOT_Function,   ONLY : Fun
-      USE KPP_ROOT_Rates,      ONLY : Update_SUN, Update_RCONST
-
+      USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
+      USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
+      USE KPP_ROOT_Function, ONLY: Fun
+      USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
       IMPLICIT NONE
 
       KPP_REAL :: T, Told
@@ -1266,12 +1339,11 @@ Hloop: DO WHILE (ISING /= 0)
       SUBROUTINE JAC_CHEM( T, Y, JV )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      USE KPP_ROOT_Parameters, ONLY : NVAR, LU_NONZERO
-      USE KPP_ROOT_Global,     ONLY : FIX, RCONST, TIME
+      USE KPP_ROOT_Parameters, ONLY: NVAR, LU_NONZERO
+      USE KPP_ROOT_Global, ONLY: FIX, RCONST, TIME
       USE KPP_ROOT_Jacobian
-      USE KPP_ROOT_Jacobian,   ONLY : Jac_SP
-      USE KPP_ROOT_Rates,      ONLY : Update_SUN, Update_RCONST
-
+      USE KPP_ROOT_Jacobian, ONLY: Jac_SP
+      USE KPP_ROOT_Rates, ONLY: Update_SUN, Update_RCONST, Update_PHOTO
       IMPLICIT NONE
   
       KPP_REAL ::  T, Told

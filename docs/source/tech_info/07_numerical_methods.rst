@@ -546,9 +546,16 @@ the KPP library uses directly the KPP sparse linear algebra routines.
 BEULER
 ------
 
-**Integrator file:** :file:`int/beuler.f90`
+**Integrator file:** :file:`int/sdirk.f90`
 
-Backward Euler integration method.
+Backward Euler integration method.  To request this method, make sure
+you select
+
+.. code-block:: console
+
+   #INTEGRATOR sdirk
+
+in your definition file, and then set :code:`ICNTRL(3) = 6`.
 
 .. _other-methods:
 

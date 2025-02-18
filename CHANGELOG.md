@@ -23,11 +23,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed `Begin INLINED RCONST - F90 USE STATEMENTS` to `Begin inlined code from F90_RCONST_USE` in `src/gen.c`
 - Changed inlined code comments to be more precise (e.g. `Begin inlined code from F90_RCONST`) in `src/gen.c`
 - Updated Flex library installation example on ReadTheDocs
+- Renamed `int/beuler.f90` to the `int/sdirk.f90`, as this is a newer version of the SDIRK integrator
+- Updated documentation for Backwards Euler to instruct user to select `#INTEGRATOR sdirk` with `ICNTRL(3) = 6`
 
 ### Fixed
 - Added `char* rootFileName` to functions and function prototypes for `Use_C`, `Use_F`, `Use_F90`, `Use_MATLAB`, and `Generate`
 - Updated `docs/requirements.txt` to use `jinja2==3.1.4` (fixes a security issue)
 - Moved `USE constants_mcm` from `F90_RCONST` to `F90_RCONST_USE` in `examples/mcm/mcm_isoprene.eqn`
+
+### Removed
+- Removed `int/beuler.f90`
+- Removed `int/beuler.def`
 
 ## [3.1.1] - 2024-04-30
 ### Changed
