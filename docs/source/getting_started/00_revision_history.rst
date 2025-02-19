@@ -23,6 +23,7 @@ KPP 3.2.0
 - Updated :literal:`int/sdirk.f90` to a newer version
 - Removed :literal:`int/beuler.f90`; Users can select Backward Euler
   with :literal:`sdirk` integrator and :literal:`ICNTRL(3)=6`
+- Added MacOS architecture-specific compilation flags to the build sequence
 
 .. _kpp311:
 
