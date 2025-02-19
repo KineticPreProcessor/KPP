@@ -20,6 +20,9 @@ KPP 3.2.0
 - Updated code in :code:`src/gen.c` to generate the
   :code:`UPDATE_RCONST` routine with an optional argument :code:`Y`
 - Updated C-I tests to print the compiler versions that are used
+- Updated :literal:`int/sdirk.f90` to a newer version
+- Removed :literal:`int/beuler.f90`; Users can select Backward Euler
+  with :literal:`sdirk` integrator and :literal:`ICNTRL(3)=6`
 
 .. _kpp311:
 
