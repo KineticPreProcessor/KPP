@@ -391,7 +391,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !~~~>  Starting step size: (positive value)
       IF (RCNTRL(3) == ZERO) THEN
          ! If the starting timestep is not supplied, then take the
-         ! smaller of Hmin and the machine roundoff.  Backward Euler
+         ! larger of Hmin and the machine roundoff.  Backward Euler
          ! needs a starting timestep of at least 100*Roundoff.
          !  -- Bob Yantosca (18 Feb 2025)
          IF (sdMethod == BEL) THEN
