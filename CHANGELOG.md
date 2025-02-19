@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `char* rootFileName` to functions and function prototypes for `Use_C`, `Use_F`, `Use_F90`, `Use_MATLAB`, and `Generate`
 - Updated `docs/requirements.txt` to use `jinja2==3.1.4` (fixes a security issue)
 - Moved `USE constants_mcm` from `F90_RCONST` to `F90_RCONST_USE` in `examples/mcm/mcm_isoprene.eqn`
+- Fixed MacOS-specific handling for x86_64 or arm64 in `src/Makefile.defs`
 
 ### Removed
 - Removed `int/beuler.f90`
