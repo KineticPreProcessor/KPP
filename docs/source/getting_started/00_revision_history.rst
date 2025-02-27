@@ -8,19 +8,37 @@ Only the major new features are listed here. For a detailed description
 of the changes, read `CHANGELOG.md
 <https://github.com/KineticPreProcessor/KPP/blob/main/CHANGELOG.md>`_.
 
+.. _kpp320:
+
+=========
+KPP 3.2.0
+=========
+
+- Added new inline key :literal:`F90_RCONST_USE` so that F90
+  :literal:`USE` statements can be inlined into the
+  :code:`Update_RCONST` and :literal:`UPDATE_PHOTO` routines
+- Updated code in :code:`src/gen.c` to generate the
+  :code:`UPDATE_RCONST` routine with an optional argument :code:`Y`
+- Updated C-I tests to print the compiler versions that are used
+- Updated :literal:`int/sdirk.f90` to a newer version
+- Removed :literal:`int/beuler.f90`; Users can select Backward Euler
+  with :literal:`sdirk` integrator and :literal:`ICNTRL(3)=6`
+- Added MacOS architecture-specific compilation flags to the build sequence
+
 .. _kpp311:
 
 =========
 KPP 3.1.1
 =========
 
-.. _kpp310:
 - Use newer Python packages to build ReadTheDocs documentation (see
   :file:`docs/requirements.txt`)
 - Increased :code:`MAX_NO_OF_LINES` and :code:`MAX_EQN` in order to
   parse the entire MCM mechanism
 - Now only add the extra `Aout` argument to `Fun` and `Fun_Split` for
   target language :literal:`Fortran90`.  This fixes a Matlab build error.
+
+.. _kpp310:
 
 =========
 KPP 3.1.0

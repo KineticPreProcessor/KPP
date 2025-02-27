@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added new inline key `F90_RCONST_USE` in `src/gdata.h` and `src/scanner.c`
 - Added documentation about `F90_RCONST_USE` for ReadTheDocs
 - Added `F90_RCONST_USE` inlined code to `Update_RConst`and `Update_Photo` routines
+- Added warning that LSODE is not thread-safe to ReadTheDocs documentation
 
 ### Changed
 - Updated `Update_RCONST` to use `Y` instead of `C` to account for updated variable species concentrations
@@ -25,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated Flex library installation example on ReadTheDocs
 - Renamed `int/beuler.f90` to the `int/sdirk.f90`, as this is a newer version of the SDIRK integrator
 - Updated documentation for Backwards Euler to instruct user to select `#INTEGRATOR sdirk` with `ICNTRL(3) = 6`
+- Updated ReadTheDocs dependency`jinja2` to version 3.1.5 (fixes a security issue)
 
 ### Fixed
 - Added `char* rootFileName` to functions and function prototypes for `Use_C`, `Use_F`, `Use_F90`, `Use_MATLAB`, and `Generate`
