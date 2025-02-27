@@ -514,7 +514,7 @@ char buf[ MAX_K ];
   FlushBuf();
 }
 
-void Use_C()
+void Use_C( char* rootFileName )
 {
   WriteElm 	    = C_WriteElm;
   WriteSymbol 	    = C_WriteSymbol;

@@ -662,8 +662,12 @@ C536OOH = IGNORE ;
 C537O = IGNORE ;
 C537OOH = IGNORE ;
 
-#INLINE F90_RCONST 
+#INLINE F90_RCONST_USE
+  ! Use statment to be inlined into Update_RCONST
   USE constants_mcm
+#ENDINLINE
+
+#INLINE F90_RCONST
   ! Peroxy radicals
   ! WARNING: The following species do not have SMILES strings in the database. 
   !           If any of these are peroxy radicals the RO2 sum will be wrong! 

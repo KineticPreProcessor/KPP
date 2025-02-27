@@ -187,10 +187,10 @@ void CommentFncBegin( int f, int *vars );
 void CommentFunctionBegin( int f, ... );
 void CommentFunctionEnd( int f );
 
-void Use_C();
-void Use_F();
-void Use_F90();
-void Use_MATLAB();
+void Use_C( char* rootFileName );
+void Use_F( char* rootFileName);
+void Use_F90( char* rootFileName );
+void Use_MATLAB( char* rootFileName );
 
 extern void (*WriteElm)( NODE *n );
 extern void (*WriteSymbol)( int op );

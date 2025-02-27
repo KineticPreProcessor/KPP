@@ -460,7 +460,7 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
     CASE (-6)
       PRINT * , '--> No of steps exceeds maximum bound'
     CASE (-7)
-      PRINT * , '--> Step size too small: T + 10*H = T', &
+      PRINT * , '--> Step size too small: T + 0.1*H = T', &
             ' or H < Roundoff'
     CASE (-8)
       PRINT * , '--> Matrix is repeatedly singular'
@@ -1326,7 +1326,7 @@ SUBROUTINE FunTemplate( T, Y, Ydot, P_VAR, D_VAR )
    Told = TIME
    TIME = T
    IF ( Do_Update_SUN    ) CALL Update_SUN()
-   IF ( Do_Update_RCONST ) CALL Update_RCONST()
+   IF ( Do_Update_RCONST ) CALL Update_RCONST(Y)
    CALL KPP_FUN_OR_FUN_SPLIT
    TIME = Told
 
@@ -1364,7 +1364,7 @@ SUBROUTINE JacTemplate( T, Y, Jcb )
     Told = TIME
     TIME = T
     IF ( Do_Update_SUN    ) CALL Update_SUN()
-    IF ( Do_Update_RCONST ) CALL Update_RCONST()
+    IF ( Do_Update_RCONST ) CALL Update_RCONST(Y)
 #ifdef FULL_ALGEBRA
     CALL Jac_SP(Y, FIX, RCONST, JV)
     DO j=1,NVAR

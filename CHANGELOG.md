@@ -8,6 +8,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2025-02-27
+### Added
+- Added new inline key `F90_RCONST_USE` in `src/gdata.h` and `src/scanner.c`
+- Added documentation about `F90_RCONST_USE` for ReadTheDocs
+- Added `F90_RCONST_USE` inlined code to `Update_RConst`and `Update_Photo` routines
+- Added warning that LSODE is not thread-safe to ReadTheDocs documentation
+
+### Changed
+- Updated `Update_RCONST` to use `Y` instead of `C` to account for updated variable species concentrations
+- Updated C-I tests to print the compiler versions that are used
+- Updated routine `GenerateUpdateRconst` to manually write the `SUBROUTINE` and `END SUBROUTINE` lines (F90 only)
+- Updated routine `GenerateUpdateRconst` to inline code from `#INLINE F90_RCONST_USE` before any other F90 variable declarations or statements
+- Updated `.gitignore` to ignore all executable files
+- Changed `Begin INLINED RCONST - F90 USE STATEMENTS` to `Begin inlined code from F90_RCONST_USE` in `src/gen.c`
+- Changed inlined code comments to be more precise (e.g. `Begin inlined code from F90_RCONST`) in `src/gen.c`
+- Updated Flex library installation example on ReadTheDocs
+- Renamed `int/beuler.f90` to the `int/sdirk.f90`, as this is a newer version of the SDIRK integrator
+- Updated documentation for Backwards Euler to instruct user to select `#INTEGRATOR sdirk` with `ICNTRL(3) = 6`
+- Updated ReadTheDocs dependency`jinja2` to version 3.1.5 (fixes a security issue)
+
+### Fixed
+- Added `char* rootFileName` to functions and function prototypes for `Use_C`, `Use_F`, `Use_F90`, `Use_MATLAB`, and `Generate`
+- Updated `docs/requirements.txt` to use `jinja2==3.1.4` (fixes a security issue)
+- Moved `USE constants_mcm` from `F90_RCONST` to `F90_RCONST_USE` in `examples/mcm/mcm_isoprene.eqn`
+- Fixed MacOS-specific handling for x86_64 or arm64 in `src/Makefile.defs`
+
+### Removed
+- Removed `int/beuler.f90`
+- Removed `int/beuler.def`
+
 ## [3.1.1] - 2024-04-30
 ### Changed
 - Updated Python package versions for ReadTheDocs in `docs/requirements.txt`

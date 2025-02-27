@@ -15,6 +15,7 @@
 # from compiler:
 *.mod
 *.o
+*.exe
 
 # results from ci-tests:
 /ci-tests/**/*.m
@@ -67,5 +68,5 @@ docs/build/*
 
 # Other files/dirs to exclude
 *.pdf
-/examples/mcm/__pycache__
+/examples/mcm*/__pycache__
 

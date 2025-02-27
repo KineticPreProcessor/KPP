@@ -534,6 +534,15 @@ LSODE, the Livermore ODE solver
 differentiation formula (BDF) methods for stiff problems.  LSODE has
 been translated to Fortran90 for the incorporation into the KPP library.
 
+.. attention::
+
+   We have discovered that the current implementation of the LSODE
+   integrator is not thread-safe for `OpenMP parallelization
+   <https://www.openmp.org/>`_.  When LSODE is called from within
+   an OpenMP parallel loop, the integration will fail because key
+   internal variables in LSODE will be overwritten by concurrent
+   threads.
+
 VODE
 ----
 
@@ -546,9 +555,16 @@ the KPP library uses directly the KPP sparse linear algebra routines.
 BEULER
 ------
 
-**Integrator file:** :file:`int/beuler.f90`
+**Integrator file:** :file:`int/sdirk.f90`
 
-Backward Euler integration method.
+Backward Euler integration method.  To request this method, make sure
+you select
+
+.. code-block:: console
+
+   #INTEGRATOR sdirk
+
+in your definition file, and then set :code:`ICNTRL(3) = 6`.
 
 .. _other-methods:
 

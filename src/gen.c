@@ -498,7 +498,7 @@ int dim;
   InitDeclare( FAM_NAMES, FamilyNr, (void*)sfam );
 
   NewLines(1);
-  WriteComment("INLINED global variables");
+  WriteComment("Begin inlined code from F90_DATA");
 
   switch( useLang ) {
     case C_LANG:   bprintf( InlineCode[ C_DATA ].code );
@@ -513,7 +513,7 @@ int dim;
   FlushBuf();
 
   NewLines(1);
-  WriteComment("End INLINED global variables");
+  WriteComment("End inlined code from F90_DATA");
   NewLines(1);
 
   F77_Inline( "%6sEND\n\n", " " );
@@ -2122,7 +2122,7 @@ void GenerateRateLaws()
   NewLines(1);
 
   NewLines(1);
-  WriteComment("Begin INLINED Rate Law Functions");
+  WriteComment("Begin inlined code from F90_RATES");
   NewLines(1);
 
   switch( useLang ) {
@@ -2138,7 +2138,7 @@ void GenerateRateLaws()
   FlushBuf();
 
   NewLines(1);
-  WriteComment("End INLINED Rate Law Functions");
+  WriteComment("End inlined code from F90_RATES");
   NewLines(1);
 
 
@@ -2167,12 +2167,61 @@ void GenerateUpdateRconst()
 {
 int i;
 int UPDATE_RCONST;
+int YIN, Y;
 
   UseFile( rateFile );
 
-  UPDATE_RCONST = DefFnc( "Update_RCONST", 0, "function to update rate constants");
+  if (useLang==F90_LANG) {
+    //
+    // SPECIAL HANDLING FOR F90:
+    // -------------------------
+    // Manually write the "SUBROUTINE RCONST ( YIN )" line instead of
+    // using the FunctionBegin( UPDATE_RCONST ).  This will allow us
+    // to add any inlined F90 use statements immediately afterwards.
+    // Recall that F90 "USE" statements must precede variable
+    // declarations or any other executable statements, or else a
+    // compilation error will be generated.
+    //
+    //    -- Bob Yantosca (19 Dec 2024)
+    //
+    bprintf("SUBROUTINE Update_RCONST ( YIN )");
+    NewLines(2);
 
-  FunctionBegin( UPDATE_RCONST );
+    // Inline USE statements right after the subroutine declaration
+    WriteComment("Begin inlined code from F90_RCONST_USE");
+    NewLines(1);
+    bprintf( InlineCode[ F90_RCONST_USE ].code );
+    FlushBuf();
+    NewLines(1);
+    WriteComment("End inlined code from F90_RCONST_USE");
+    NewLines(1);
+
+    // Declare optional YIN argument
+    YIN = DefvElmO( "YIN", real, -NVAR, "Optional input concentrations of variable species" );
+    Declare(YIN);
+    NewLines(1);
+
+    // Declare local Y variable
+    Y = DefvElm( "Y", real, -NSPEC, "Concentrations of species (local)" );
+    Declare(Y);
+    NewLines(1);
+
+    // Copy values of YIN to Y if YIN is present
+    WriteComment("Ensure local Y array is filled with variable and constant concentrations");
+    bprintf("  Y(1:NSPEC) = C(1:NSPEC)\n");
+    NewLines(1);
+    WriteComment("Update local Y array if variable concentrations are provided");
+    bprintf("  if (present(YIN)) Y(1:NVAR) = YIN(1:NVAR)\n");
+    NewLines(1);
+
+  } else {
+    //
+    // For other languages, declare function w/o any arguments
+    //
+    UPDATE_RCONST = DefFnc( "Update_RCONST", 0, "function to update rate constants");
+    FunctionBegin( UPDATE_RCONST );
+ }
+
   F77_Inline("      INCLUDE '%s_Global.h'", rootFileName);
   MATLAB_Inline("global SUN TEMP RCONST");
 
@@ -2181,8 +2230,9 @@ int UPDATE_RCONST;
 
   NewLines(1);
 
+  // Inline code from {C,F77,F90_MATLAB}_RCONST inline keys
   NewLines(1);
-  WriteComment("Begin INLINED RCONST");
+  WriteComment("Begin inlined code from F90_RCONST");
   NewLines(1);
 
   switch( useLang ) {
@@ -2198,7 +2248,7 @@ int UPDATE_RCONST;
   FlushBuf();
 
   NewLines(1);
-  WriteComment("End INLINED RCONST");
+  WriteComment("End inlined code from F90_RCONST");
   NewLines(1);
 
   for( i = 0; i < EqnNr; i++) {
@@ -2219,9 +2269,22 @@ int UPDATE_RCONST;
   }
 
   MATLAB_Inline("   RCONST = RCONST(:);");
-
-  FunctionEnd( UPDATE_RCONST );
-  FreeVariable( UPDATE_RCONST );
+  //
+  // SPECIAL HANDLING FOR F90:
+  // -------------------------
+  // Manually write the "END SUBROUTINE UPDATE_RCONST" line when
+  // generating F90 output.  But if generating C, F77, MatLab output,
+  // then close the UPDATE_RCONST routine as we normally would.
+  //   -- Bob Yantosca (19 Dec 2024)
+  //
+  if (useLang == F90_LANG) {
+    NewLines(1);
+    bprintf("END SUBROUTINE UPDATE_RCONST");
+    NewLines(1);
+  } else {
+    FunctionEnd( UPDATE_RCONST );
+    FreeVariable( UPDATE_RCONST );
+  }
 }
 
 
@@ -2237,6 +2300,21 @@ int UPDATE_PHOTO;
   UPDATE_PHOTO = DefFnc( "Update_PHOTO", 0, "function to update photolytical rate constants");
 
   FunctionBegin( UPDATE_PHOTO );
+
+  if (useLang==F90_LANG) {
+    //
+    // SPECIAL HANDLING FOR F90:
+    // -------------------------
+    // Inline USE statements right after the subroutine declaration
+    WriteComment("Begin inlined code from F90_RCONST_USE");
+    NewLines(1);
+    bprintf( InlineCode[ F90_RCONST_USE ].code );
+    FlushBuf();
+    NewLines(1);
+    WriteComment("End inlined code from F90_RCONST_USE");
+    NewLines(1);
+  }
+
   F77_Inline("      INCLUDE '%s_Global.h'", rootFileName);
   /*  mz_rs_20220212+ */
   /* global is already used in the rates module, don't use it twice */
@@ -2245,7 +2323,7 @@ int UPDATE_PHOTO;
   MATLAB_Inline("global SUN TEMP RCONST");
 
   NewLines(1);
-  WriteComment("Begin INLINED RCONST");
+  WriteComment("Begin inlined code from F90_RCONST");
   NewLines(1);
 
   switch( useLang ) {
@@ -2261,7 +2339,7 @@ int UPDATE_PHOTO;
   FlushBuf();
 
   NewLines(1);
-  WriteComment("End INLINED RCONST");
+  WriteComment("End inlined code from F90_RCONST");
   NewLines(1);
 
   for( i = 0; i < EqnNr; i++) {
@@ -2326,7 +2404,7 @@ int UTIL;
 
   UseFile( utilFile );
   NewLines(1);
-  WriteComment("User INLINED Utility Functions");
+  WriteComment("Begin inlined code from F90_UTIL");
 
   switch( useLang ) {
     case C_LANG:  bprintf( InlineCode[ C_UTIL ].code );
@@ -2341,10 +2419,10 @@ int UTIL;
   FlushBuf();
 
   NewLines(1);
-  WriteComment("End INLINED Utility Functions");
+  WriteComment("End inlined code from F90_UTIL");
   NewLines(1);
 
-  WriteComment("Utility Functions from KPP_HOME/util/util");
+  WriteComment("Begin Utility Functions from KPP_HOME/util/util");
   UTIL = DefFnc( "UTIL", 0, "Utility functions");
   CommentFunctionBegin( UTIL);
 
@@ -2621,7 +2699,7 @@ void GenerateGlobalHeader()
   }
 
   NewLines(1);
-  WriteComment("INLINED global variable declarations");
+  WriteComment("Begin inlined code from F90_GLOBAL");
 
   switch( useLang ) {
     case C_LANG:  bprintf( InlineCode[ C_GLOBAL ].code );
@@ -2636,7 +2714,7 @@ void GenerateGlobalHeader()
   FlushBuf();
 
   NewLines(1);
-  WriteComment("INLINED global variable declarations");
+  WriteComment("End inlined code from F90_GLOBAL");
   NewLines(1);
 }
 
@@ -2951,15 +3029,15 @@ int INITVAL;
     }
   }
 
-  WriteComment("constant rate coefficients");
+  WriteComment("Begin constant rate coefficients");
   for( i = 0; i < EqnNr; i++) {
     if ( kr[i].type == NUMBER )
        Assign( Elm( RCONST, i ), Const( kr[i].val.f ) );
   }
-  WriteComment("END constant rate coefficients");
+  WriteComment("End constant rate coefficients");
 
   NewLines(1);
-  WriteComment("INLINED initializations");
+  WriteComment("Begin inlined code from F90_INIT");
 
   switch( useLang ) {
     case C_LANG: bprintf( InlineCode[ C_INIT ].code );
@@ -2974,7 +3052,7 @@ int INITVAL;
   FlushBuf();
 
   NewLines(1);
-  WriteComment("End INLINED initializations");
+  WriteComment("End inlined code from F90_INIT");
   NewLines(1);
 
   MATLAB_Inline("   VAR = VAR(:);\n   FIX = FIX(:);\n" );
@@ -3472,7 +3550,7 @@ default:
 
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-void Generate()
+void Generate( char* rootFileName )
 {
 int i;
 int n;

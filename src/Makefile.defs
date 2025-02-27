@@ -73,18 +73,18 @@ FLEX         := flex
 FLEX_LIB_DIR := /usr/lib
 BISON        := bison
 INCLUDE_DIR  := /usr/include
-SYSTEM       := $(shell uname)        # returns e.g. "Linux"
-SYSTEM_M     := $(shell uname -m)     # returns e.g. "x86_64"
-HOST         := $(shell hostname)     # returns name of machine
+SYSTEM       := $(shell uname)       # e.g. "Linux", "Darwin"
+SYSTEM_M     := $(shell uname -m)    # e.g. "x86_64", "arm64"
+HOST         := $(shell hostname)    # name of machine
 
 ############################################################
 ### Keep looking for the flex library until found        ###
 ### Otherwise use the path specified in KPP_FLEX_LIB_DIR ###
 ###                                                      ###
 ### NOTE for MacOS X: IF you have installed flex with    ###
-### HomeBrew, then flex will be installed to a path such ### 
+### HomeBrew, then flex will be installed to a path such ###
 ### as /usr/local/Cellar/flex/X.Y.Z/lib, where X.Y.Z is  ###
-### the version number.  --  Bob Yantosca (01 Nov 2021)  ###   
+### the version number.  --  Bob Yantosca (01 Nov 2021)  ###
 ############################################################
 
 # Try /usr/lib64
@@ -128,8 +128,18 @@ endif
 ############################################################
 
 # Settings for MacOS
-ifeq ($(SYSTEM),Darwin)
+ifeq ($(strip $(SYSTEM)),Darwin)
   CC_FLAGS += -DMACOS -O
+  ifeq ($(strip $(SYSTEM_M)),x86_64)
+    # Build for Intel x86_64 chipsets
+    CC_FLAGS += -arch x86_64
+  else
+    ifeq ($(strip $(SYSTEM_M)),arm64)
+      # Build for Apple Silicon chipsets
+      CC_FLAGS += -arch arm64
+    else
+      $(warning Unknown architecture: $(strip $(SYSTEM_M)))
+    endif
+  endif
 endif
-
 #############################################################

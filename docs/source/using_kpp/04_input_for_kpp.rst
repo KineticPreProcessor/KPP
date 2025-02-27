@@ -24,8 +24,9 @@ description file:
    :ref:`kpp-commands`, and :ref:`inlined-code`. Their syntax is
    presented in :ref:`bnf-description`.
 
--  Comments are either enclosed between the curly braces :code:`{` and
-   :code:`}`, or written in a line starting with two slashes :code:`//`.
+-  Comments are either enclosed between the curly braces ":code:`{`" and
+   ":code:`}`", or written in a line starting with two slashes and a
+   space ":code:`// `".
 
 -  Any name given by the user to denote an atom or a species is
    restricted to be less than 32 character in length and can only
@@ -789,26 +790,28 @@ by :code:`C`, or :code:`matlab`, respectively.
 .. table:: KPP inlined types
    :align: center
 
-   +-----------------+-------------------+---------------------+---------------------+
-   | Inline_type     | File              | Placement           | Usage               |
-   +=================+===================+=====================+=====================+
-   | **F90_DATA**    | :ref:`Monitor`    | specification       | (obsolete)          |
-   |                 |                   | section             |                     |
-   +-----------------+-------------------+---------------------+---------------------+
-   | **F90_GLOBAL**  | :ref:`Global`     | specification       | global variables    |
-   |                 |                   | section             |                     |
-   +-----------------+-------------------+---------------------+---------------------+
-   | **F90_INIT**    | :ref:`Initialize` | subroutine          | integration         |
-   |                 |                   |                     | parameters          |
-   +-----------------+-------------------+---------------------+---------------------+
-   | **F90_RATES**   | :ref:`Rates`      | executable section  | rate law functions  |
-   +-----------------+-------------------+---------------------+---------------------+
-   | **F90_RCONST**  | :ref:`Rates`      | subroutine          | statements and      |
-   |                 |                   |                     | definitions of rate |
-   |                 |                   |                     | coefficients        |
-   +-----------------+-------------------+---------------------+---------------------+
-   | **F90_UTIL**    | :ref:`Util`       | executable section  | utility functions   |
-   +-----------------+-------------------+---------------------+---------------------+
+   +--------------------+-------------------+---------------------+---------------------+
+   | Inline_type        | File              | Placement           | Usage               |
+   +====================+===================+=====================+=====================+
+   | **F90_DATA**       | :ref:`Monitor`    | specification       | (obsolete)          |
+   |                    |                   | section             |                     |
+   +--------------------+-------------------+---------------------+---------------------+
+   | **F90_GLOBAL**     | :ref:`Global`     | specification       | global variables    |
+   |                    |                   | section             |                     |
+   +--------------------+-------------------+---------------------+---------------------+
+   | **F90_INIT**       | :ref:`Initialize` | subroutine          | integration         |
+   |                    |                   |                     | parameters          |
+   +--------------------+-------------------+---------------------+---------------------+
+   | **F90_RATES**      | :ref:`Rates`      | executable section  | rate law functions  |
+   +--------------------+-------------------+---------------------+---------------------+
+   | **F90_RCONST**     | :ref:`Rates`      | subroutine          | rate coefficient    |
+   |                    |                   |                     | definitions         |
+   +--------------------+-------------------+---------------------+---------------------+
+   | **F90_RCONST_USE** | :ref:`Rates`      | subroutine          | rate coefficient    |
+   |                    |                   |                     | definitions         |
+   +--------------------+-------------------+---------------------+---------------------+
+   | **F90_UTIL**       | :ref:`Util`       | executable section  | utility functions   |
+   +--------------------+-------------------+---------------------+---------------------+
 
 .. _f90-data:
 
@@ -908,16 +911,7 @@ F90_RCONST
 ----------
 
 This inline type can be used to define time-dependent values of rate
-coefficients. You may inline :code:`USE` statements that reference
-modules where rate coefficients are computed, e.g.:
-
-.. code-block:: fortran
-
-   #INLINE F90_RCONST
-     USE MyRateFunctionModule
-   #ENDINLINE
-
-or define variables directly, e.g.:
+coefficients.  You may inline variables directly, e.g.:
 
 .. code-block:: fortran
 
@@ -925,12 +919,30 @@ or define variables directly, e.g.:
      k_DMS_OH = 1.E-9*EXP(5820./temp)*C(ind_O2)/ &
        (1.E30+5.*EXP(6280./temp)*C(ind_O2))
    #ENDINLINE
-   
-Note that the :code:`USE` statements must precede any variable
-definitions.
-    
+
 The inlined code will be placed directly into the subroutines
 :code:`UPDATE_RCONST` and :code:`UPDATE_PHOTO` in the :ref:`Rates` file.
+
+.. _f90-rconst-use:
+
+F90_RCONST_USE
+--------------
+
+Similar to :ref:`f90-rconst`, but allows you to inline Fortran-90
+:code:`USE` statements referencing modules where rate coefficients are
+computed, such as:
+
+.. code-block:: fortran
+
+   #INLINE F90_RCONST_USE
+     USE MyRateFunctionModule
+   #ENDINLINE
+
+The inlined code will be placed directly into the subroutines
+:code:`UPDATE_RCONST` and :code:`UPDATE_PHOTO` in the :ref:`Rates`
+file.  :code:`USE` statements will be placed before Fortran variable
+definitions and executable statements, as is required by the
+Fortran-90 language standard.  
 
 .. _f90-util:
 
@@ -1077,7 +1089,7 @@ List of symbols replaced by the substitution preprocessor
    +--------------------------+-------------------------------+----------------------------+
 
 .. _icntrl-rcntrl:
-   
+
 =================================================================
 Controlling the Integrator with :code:`ICNTRL` and :code:`RCNTRL`
 =================================================================
@@ -1219,6 +1231,18 @@ ICNTRL
    For example :code:`ICNTRL(15)=6)` (4+2) will activate the calls to
    :code:`Update_SUN` and :code:`Update_PHOTO`, but not to
    :code:`Update_RCONST`.
+
+   Calling :code:`Update_RCONST` may be necessary when reaction rate
+   coefficients depend on the concentration of a specific species, e.
+   g.:
+
+   .. code-block:: console
+
+      HSO3m + HSO5m + Hp = 2 HSO4m + Hp : k_aqueous( C(ind_Hp) );
+
+   This ensures that the concentration :code:`C(ind_Hp)` at the specific
+   integration time is used when the reaction rate coefficient is
+   updated within the integrator.
 
 .. option:: ICNTRL(16)
 
