@@ -31,7 +31,7 @@
 
 // Version numbers must be synchronized in CHANGELOG.md, src/gdata.h,
 // and docs/source/conf.py
-#define KPP_VERSION "3.1.1"
+#define KPP_VERSION "3.2.0"
 
 #ifndef _GDATA_H_
 #define _GDATA_H_
