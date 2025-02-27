@@ -46,7 +46,7 @@ function get_ci_test_path() {
     return
 }
 
-# Prints a headeer with the compiler versions
+# Prints a header with the compiler versions
 function print_compiler_versions() {
     echo \
 "###########################################################################"

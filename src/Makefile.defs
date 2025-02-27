@@ -73,9 +73,9 @@ FLEX         := flex
 FLEX_LIB_DIR := /usr/lib
 BISON        := bison
 INCLUDE_DIR  := /usr/include
-SYSTEM       := $(shell uname)       # e.g. "Linux", "Darwin"
-SYSTEM_M     := $(shell uname -m)    # e.g. "x86_64", "arm64"
-HOST         := $(shell hostname)    # name of machine
+SYSTEM       := $(shell uname)    # kernel name, e.g., "Linux", "Darwin"
+SYSTEM_M     := $(shell uname -m) # machine hardware name, e.g., "x86_64", "arm64"
+HOST         := $(shell hostname) # name of machine
 
 ############################################################
 ### Keep looking for the flex library until found        ###
