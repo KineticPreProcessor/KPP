@@ -30,7 +30,7 @@
 ******************************************************************************/
 
 // Version numbers must be synchronized in CHANGELOG.md, src/gdata.h,
-// and docs/source/conf.py
+// docs/source/conf.py and https://en.wikipedia.org/wiki/Kinetic_PreProcessor
 #define KPP_VERSION "3.2.0"
 
 #ifndef _GDATA_H_
