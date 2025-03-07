@@ -11,6 +11,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - TBD
+### Added
+- Added reminder in `CHANGELOG.md` to update version numbers on the KPP Wikipedia page
+- Added the Backward Euler formula in the "Numerical Methods" ReadTheDocs chapter
+
 ## [3.2.0] - 2025-02-27
 ### Added
 - Added new inline key `F90_RCONST_USE` in `src/gdata.h` and `src/scanner.c`
@@ -79,7 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `CITATION.cff` file which will activate the "Cite this repository" option.
 
 ### Fixed
-- Fixed a segmentation fault when using #STOICHMAT by using dynamically-sized variables `EqnNr` and `VarNr` rather than static variables `MAX_EQN` and `MAX_SPECIES`. 
+- Fixed a segmentation fault when using #STOICHMAT by using dynamically-sized variables `EqnNr` and `VarNr` rather than static variables `MAX_EQN` and `MAX_SPECIES`.
 
 ## [3.0.0] - 2022-11-09
 
