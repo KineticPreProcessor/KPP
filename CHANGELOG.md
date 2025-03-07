@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added reminder in `CHANGELOG.md` to update version numbers on the KPP Wikipedia page
 - Added the Backward Euler formula in the "Numerical Methods" ReadTheDocs chapter
 
+### Changed
+- Updated `int/sdirk.f90` to always set `H=Hmax` for Backward Euler if `ICNTRL(7) = 1`
+
 ## [3.2.0] - 2025-02-27
 ### Added
 - Added new inline key `F90_RCONST_USE` in `src/gdata.h` and `src/scanner.c`
