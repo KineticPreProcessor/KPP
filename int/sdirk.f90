@@ -205,22 +205,30 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !    Note: For input parameters equal to zero the default values of the
 !          corresponding variables are used.
 !~~~>
-!    ICNTRL(1) = not used
+!    ICNTRL(1) -> not used
 !
-!    ICNTRL(2) = 0: AbsTol, RelTol are NVAR-dimensional vectors
-!              = 1: AbsTol, RelTol are scalars
+!    ICNTRL(2) -> Select dimension of AbsTol, RelTol
+!        =  0 : AbsTol, RelTol are NVAR-dimensional vectors
+!        =  1 : AbsTol, RelTol are scalars
 !
-!    ICNTRL(3) = Method
+!    ICNTRL(3)  -> Select integration method
+!        =  0 : Sdirk 2a (default selection)
+!        =  1 : Sdirk 2a
+!        =  2 : Sdirk 2b
+!        =  3 : Sdirk 3a
+!        =  4 : Sdirk 4a 
+!        =  5 : Sdirk 4b
+!        =  6 : Backward Euler (aka BEuler)
 !
 !    ICNTRL(4)  -> maximum number of integration steps
-!        For ICNTRL(4)=0 the default value of 200000 is used
+!        =  0 : the default value of 200000 is used
 !
 !    ICNTRL(5)  -> maximum number of Newton iterations
-!        For ICNTRL(5)=0 the default value of 8 is used
+!        =  0 : the default value of 8 is used
 !
 !    ICNTRL(6)  -> starting values of Newton iterations:
-!        ICNTRL(6)=0 : starting values are interpolated (the default)
-!        ICNTRL(6)=1 : starting values are zero
+!        =  0 : starting values are interpolated (the default)
+!        =  1 : starting values are zero
 !
 !    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
 !        = -1 :  Do not call Update_* functions within the integrator
@@ -233,6 +241,10 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
 !        =  7 :  Call Update_SUN, Update_PHOTO, Update_RCONST from w/in the int.
 !
+!    ICNTRL(18) -> Always set internal timestep H to Hmax (for BEuler only)
+!        =  0 : Allow internal timestep H to evolve with time
+!        =  1 : Always set H to Hmax
+!
 !~~~>  Real parameters
 !
 !    RCNTRL(1)  -> Hmin, lower bound for the integration step size
@@ -243,7 +255,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !    RCNTRL(4)  -> FacMin, lower bound on step decrease factor (default=0.2)
 !    RCNTRL(5)  -> FacMax, upper bound on step increase factor (default=6)
 !    RCNTRL(6)  -> FacRej, step decrease factor after multiple rejections
-!                 (default=0.1)
+!                  (default=0.1)
 !    RCNTRL(7)  -> FacSafe, by which the new step is slightly smaller
 !                  than the predicted value  (default=0.9)
 !    RCNTRL(8)  -> ThetaMin. If Newton convergence rate smaller
@@ -300,6 +312,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
       INTEGER :: sdMethod, rkS ! The number of stages
 ! Local variables
       LOGICAL :: StartNewton
+      LOGICAL :: SetHtoHmax
       KPP_REAL :: Hmin, Hmax, Hstart, Roundoff,    &
                        FacMin, Facmax, FacSafe, FacRej, &
                        ThetaMin, NewtonTol, Qmin, Qmax
@@ -313,11 +326,14 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 
 !~~~>  For Scalar tolerances (ICNTRL(2).NE.0)  the code uses AbsTol(1) and RelTol(1)
 !   For Vector tolerances (ICNTRL(2) == 0) the code uses AbsTol(1:NVAR) and RelTol(1:NVAR)
-      IF (ICNTRL(2) == 0) THEN
-         ITOL = 1
-      ELSE
-         ITOL = 0
-      END IF
+      ITOL = 0
+      IF ( ICNTRL(2) == 0 ) ITOL = 1
+! Avoid ELSE block
+!      IF (ICNTRL(2) == 0) THEN
+!         ITOL = 1
+!      ELSE
+!         ITOL = 0
+!      END IF
 
 !~~~> ICNTRL(3) - method selection
       SELECT CASE (ICNTRL(3))
@@ -358,12 +374,16 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
          END IF
       END IF
 
-!~~~> StartNewton:  Use extrapolation for starting values of Newton iterations
-      IF (ICNTRL(6) == 0) THEN
-         StartNewton = .TRUE.
-      ELSE
-         StartNewton = .FALSE.
-      END IF
+!~~~> StartNewton: Use extrapolation for starting values of Newton iterations
+      StartNewton = ( ICNTRL(6) == 0 )
+!      IF (ICNTRL(6) == 0) THEN
+!         StartNewton = .TRUE.
+!      ELSE
+!         StartNewton = .FALSE.
+!      END IF
+
+!~~~> SetHtoHMax: Always set the internal timestep to Hmax for BEuler
+      SetHtoHMax = ( sdMethod == BEL .and. ICNTRL(18) == 1 )
 
 !~~~>  Unit roundoff (1+Roundoff>1)
       Roundoff = WLAMCH('E')
@@ -551,9 +571,15 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 
       T = Tinitial
       Tdirection = SIGN(ONE,Tfinal-Tinitial)
-      H = MAX(ABS(Hmin),ABS(Hstart))
-      IF (ABS(H) <= 10.D0*Roundoff) H=1.0D-6
-      H=MIN(ABS(H),Hmax)
+      IF ( SetHtoHMax ) THEN
+         ! Always set H to HMax (for BEuler only)
+         H = Hmax          
+      ELSE
+         ! Normal computation of H
+         H = MAX(ABS(Hmin),ABS(Hstart))
+         IF (ABS(H) <= 10.D0*Roundoff) H=1.0D-6
+         H=MIN(ABS(H),Hmax)
+      ENDIF
       H=SIGN(H,Tdirection)
       SkipLU =.FALSE.
       SkipJac = .FALSE.
