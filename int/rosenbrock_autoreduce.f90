@@ -4,7 +4,9 @@
 !               * Ros3                                                    !
 !               * Ros4                                                    !
 !               * Rodas3                                                  !
+!               * Rodas3.1                                                !
 !               * Rodas4                                                  !
+!               * Rang                                                    !
 !  By default the code employs the KPP sparse linear algebra routines     !
 !  Compile with -DFULL_ALGEBRA to use full linear algebra (LAPACK)        !
 !                                                                         !
@@ -191,12 +193,14 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !              = 1: AbsTol, RelTol are scalars
 !
 !    ICNTRL(3)  -> selection of a particular Rosenbrock method
-!        = 0 :    Rodas3 (default)
+!        = 0 :    Rodas3.1 (default)
 !        = 1 :    Ros2
 !        = 2 :    Ros3
 !        = 3 :    Ros4
 !        = 4 :    Rodas3
 !        = 5 :    Rodas4
+!        = 6 :    Rodas4
+!        = 7 :    Rodas3.1
 !
 !    ICNTRL(4)  -> maximum number of integration steps
 !        For ICNTRL(4)=0) the default value of 200000 is used
@@ -217,7 +221,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
 !        =  7 :  Call Update_SUN, Update_PHOTO, Update_RCONST w/in the int.
 !
-!    ICNTRL(16) -> 
+!    ICNTRL(16) ->
 !        = 0 : allow negative concentrations (default)
 !        = 1 : set negative concentrations to zero
 !
@@ -322,13 +326,15 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 
 !~~~>   Initialize the particular Rosenbrock method selected
    SELECT CASE (ICNTRL(3))
+     CASE (0,7)
+       CALL Rodas3_1
      CASE (1)
        CALL Ros2
      CASE (2)
        CALL Ros3
      CASE (3)
        CALL Ros4
-     CASE (0,4)
+     CASE (4)
        CALL Rodas3
      CASE (5)
        CALL Rodas4
@@ -484,7 +490,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
          !  Error indicator
          IERR)
     ENDIF
-    
+
 !~~~>  CALL Normal Rosenbrock method
     IF ( .not. Autoreduce .or. IERR .eq. -99 ) &
          CALL ros_Integrator(Y, Tstart, Tend, Texit,   &
@@ -597,7 +603,7 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
    DO_SLV  = .true.
    DO_FUN  = .true.
    DO_JVS  = .true.
-   
+
    T = Tstart
    RSTATUS(Nhexit) = ZERO
    H = MIN( MAX(ABS(Hmin),ABS(Hstart)) , ABS(Hmax) )
@@ -719,7 +725,7 @@ Stage: DO istage = 1, ros_S
       ELSE
         !slim: CALL WCOPY(N,Ynew,1,Y,1)
         Y(1:N) = Ynew(1:N)
-      ENDIF      
+      ENDIF
       T = T + Direction*H
       Hnew = MAX(Hmin,MIN(Hnew,Hmax))
       IF (RejectLastH) THEN  ! No step size increase after a rejected step
@@ -1189,7 +1195,7 @@ Stage: DO istage = 1, ros_S
    ! 1st order calculation for removed species per Shen et al. (2020) Eq. 4
    ! -- currently, DO_FUN() selects
    ! -- DO_FUN loops over 1,NVAR. Only needs to loop over NVAR-rNVAR
-   !    but the structure doesn't exist. Maybe worth considering 
+   !    but the structure doesn't exist. Maybe worth considering
    !    for efficiency purposes.
    DO i=1,N
       IF (.not. DO_SLV(i)) THEN
@@ -1652,7 +1658,7 @@ Stage: DO istage = 1, ros_S
    ! 1st order calculation for removed species per Shen et al. (2020) Eq. 4
    ! -- currently, DO_FUN() selects
    ! -- DO_FUN loops over 1,NVAR. Only needs to loop over NVAR-rNVAR
-   !    but the structure doesn't exist. Maybe worth considering 
+   !    but the structure doesn't exist. Maybe worth considering
    !    for efficiency purposes.
    DO i=1,N
       IF (.not. DO_SLV(i)) THEN
@@ -1753,7 +1759,7 @@ Stage: DO istage = 1, ros_S
    KPP_REAL, INTENT(IN) ::  Jac0(N,N)
 #else
    KPP_REAL, INTENT(IN) ::  Jac0(LU_NONZERO)
-#endif   
+#endif
    KPP_REAL, INTENT(IN) ::  gam
    INTEGER, INTENT(IN) ::  Direction
 !~~~> Output arguments
@@ -1761,7 +1767,7 @@ Stage: DO istage = 1, ros_S
    KPP_REAL, INTENT(OUT) :: Ghimj(N,N)
 #else
    KPP_REAL, INTENT(OUT) :: Ghimj(cNONZERO)
-#endif   
+#endif
    LOGICAL, INTENT(OUT) ::  Singular
    INTEGER, INTENT(OUT) ::  Pivot(N)
 !~~~> Inout arguments
@@ -1793,7 +1799,7 @@ Stage: DO istage = 1, ros_S
      DO i=1,rNVAR
        Ghimj(cLU_DIAG(i)) = Ghimj(cLU_DIAG(i))+ghinv
      END DO
-#endif   
+#endif
 !~~~>    Compute LU decomposition
      CALL ros_cDecomp( Ghimj, Pivot, ISING )
      IF (ISING == 0) THEN
@@ -1826,7 +1832,7 @@ Stage: DO istage = 1, ros_S
 !~~~> Inout variables
 #ifdef FULL_ALGEBRA
    KPP_REAL, INTENT(INOUT) :: A(N,N)
-#else   
+#else
    KPP_REAL, INTENT(INOUT) :: A(cNONZERO)
 #endif
 !~~~> Output variables
@@ -1834,14 +1840,14 @@ Stage: DO istage = 1, ros_S
 
 #ifdef FULL_ALGEBRA
    CALL  DGETRF( N, N, A, N, Pivot, ISING )
-#else   
+#else
    CALL cKppDecomp ( A, ISING )
    Pivot(1) = 1
 #endif
    ISTATUS(Ndec) = ISTATUS(Ndec) + 1
 
  END SUBROUTINE ros_cDecomp
- 
+
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE ros_cSolve( A, Pivot, b, map1, map2 )
@@ -1853,7 +1859,7 @@ Stage: DO istage = 1, ros_S
 #ifdef FULL_ALGEBRA
    KPP_REAL, INTENT(IN) :: A(N,N)
    INTEGER :: ISING
-#else   
+#else
    KPP_REAL, INTENT(IN) :: A(cNONZERO)
 #endif
    INTEGER, INTENT(IN) :: Pivot(N)
@@ -1866,8 +1872,8 @@ Stage: DO istage = 1, ros_S
    CALL  DGETRS( 'N', N , 1, A, N, Pivot, b, N, ISING )
    IF ( Info < 0 ) THEN
       PRINT*,"Error in DGETRS. ISING=",ISING
-   END IF  
-#else   
+   END IF
+#else
 
    Atmp = 0.d0
    Btmp = 0.d0
@@ -2265,8 +2271,73 @@ Stage: DO istage = 1, ros_S
    ros_Gamma(2) = 1.5_dp
    ros_Gamma(3) = 0.0_dp
    ros_Gamma(4) = 0.0_dp
+   ros_NewF(4)  = .TRUE.
 
   END SUBROUTINE Rodas3
+
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  SUBROUTINE Rodas3_1
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+! --- A STIFFLY-STABLE METHOD, 4 stages, order 3
+! --- Updated coefficients by Mike Long
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   IMPLICIT NONE
+
+   rosMethod = RD3
+!~~~> Name of the method
+   ros_Name = 'RODAS-3.1'
+!~~~> Number of stages
+   ros_S = 4
+
+!~~~> The coefficient matrices A and C are strictly lower triangular.
+!   The lower triangular (subdiagonal) elements are stored in row-wise order:
+!   A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
+!   The general mapping formula is:
+!       A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
+!       C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
+   ros_A(1)     =  0.0000000000000000
+   ros_A(2)     =  1.5522749561331444_dp
+   ros_A(3)     = -0.28748239678405541_dp
+   ros_A(4)     =  1.5522749561331441_dp
+   ros_A(5)     = -0.28748239678405541_dp
+   ros_A(6)     =  1.0000000000000000_dp
+   ros_C(1)     = -4.0822837078364387_dp
+   ros_C(2)     = -5.2690201551695556E-002_dp
+   ros_C(3)     =  1.5762168387326447_dp
+   ros_C(4)     =  9.9274020776066105E-002_dp
+   ros_C(5)     =  1.7068140101558635_dp
+   ros_C(6)     = -2.5869229856413907_dp
+!~~~> M_i = Coefficients for new step solution
+   ros_M(1)     =  1.5522749561331439_dp
+   ros_M(2)     = -0.28748239678405552_dp
+   ros_M(3)     =  0.99999999999999989_dp
+   ros_M(4)     =  1.0000000000000000_dp
+!~~~> E_i  = Coefficients for error estimator
+   ros_E(1)     =  0.00000_dp
+   ros_E(2)     =  0.00000_dp
+   ros_E(3)     =  0.00000_dp
+   ros_E(4)     =  1.0000000000000000_dp
+!~~~> ros_ELO  = estimator of local order - the minimum between the
+!    main and the embedded scheme orders plus 1
+   ros_ELO      =  3.0000000000000000_dp
+   ros_Alpha(1) =  0.0000000000000000_dp
+   ros_Alpha(2) =  0.0000000000000000_dp
+   ros_Alpha(3) =  1.0000000000000000_dp
+   ros_Alpha(4) =  1.0000000000000000_dp
+!~~~> Gamma_i = \sum_j  gamma_{i,j}
+   ros_Gamma(1) =  0.53000000000000003_dp
+   ros_Gamma(2) = -0.61671349353125593_dp
+   ros_Gamma(3) =  0.0000000000000000_dp
+   ros_Gamma(4) =  0.0000000000000000_dp
+!~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
+!   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
+   ros_NewF(1)  =  .TRUE.
+   ros_NewF(2)  =  .FALSE.
+   ros_NewF(3)  =  .TRUE.
+   ros_NewF(4)  =  .TRUE.
+
+  END SUBROUTINE Rodas3_1
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Rodas4
@@ -2623,7 +2694,7 @@ SUBROUTINE cKppDecomp( JVS, IER )
             JVS(kk) = W( cLU_ICOL(kk) )
          END DO
       END DO
-      
+
 END SUBROUTINE cKppDecomp
 
 SUBROUTINE APPEND(IDX)
@@ -2635,7 +2706,7 @@ SUBROUTINE APPEND(IDX)
   DO_SLV(IDX) = .true.
   DO_FUN(IDX) = .true.
   ! increment rNVAR
-  rNVAR    = rNVAR+1 
+  rNVAR    = rNVAR+1
   ! append SPC_MAP & iSPC_MAP
   SPC_MAP(rNVAR) = IDX ! From AR to full species
   iSPC_MAP(IDX)  = rNVAR ! From full to AR species
