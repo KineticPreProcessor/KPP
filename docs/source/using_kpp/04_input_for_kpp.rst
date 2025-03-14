@@ -1167,122 +1167,436 @@ ICNTRL
    | tau_leap               |   |   |   |   |   |   |   |   |   |    |    |    |    |    |    |    |    |
    +------------------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
 
-.. option:: ICNTRL(1)
+ICNTRL(1)
+~~~~~~~~~
 
-   :code:`= 1`: :math:`F = F(y)`, i.e. independent of t (autonomous)
+Specifies the time-dependence of the function :math:`F` to be integrated:
 
-   :code:`= 0`: :math:`F = F(t,y)`, i.e. depends on t (non-autonomous)
+.. table::
+   :align: left
 
-.. option:: ICNTRL(2)
+   +------------+----------------------------------------+
+   | ICNTRL(1)  | Time dependence of :math:`F`           |
+   +============+========================================+
+   | 0          | :math:`F = F(t,y)` aka non-autonomous  |
+   +------------+----------------------------------------+
+   | 1          | :math:`F = F(y)` aka autonomous        |
+   +------------+----------------------------------------+
 
-   The absolute (:code:`ATOL`) and relative (:code:`RTOL`) tolerances
-   can be expressed by either a scalar or individually for each
-   species in a vector:
+ICNTRL(2)
+~~~~~~~~~
 
-   :code:`= 0` : :code:`NVAR` -dimensional vector
+Specifies the dimensionality of the absolute (:code:`ATOL`) and
+relative (:code:`RTOL`) tolerances.  These can be expressed by
+either a scalar or individually for each species in a vector.
 
-   :code:`= 1` : scalar
+.. table::
+   :align: left
 
-.. option:: ICNTRL(3)
+   +------------+-------------------------------------------+
+   | ICNTRL(2)  | Dimensionality of ``ATOL`` and ``RTOL``   |
+   +============+===========================================+
+   | 0          | :code:`NVAR` -dimensional vector          |
+   +------------+-------------------------------------------+
+   | 1          | scalar                                    |
+   +------------+-------------------------------------------+
 
-   Selection of a specific method.
+ICNTRL(3)
+~~~~~~~~~
 
-.. option:: ICNTRL(4)
+Selects a specific integration method.
 
-   Maximum number of integration steps.
+.. table::
+   :align: left
 
-.. option:: ICNTRL(5)
+   +-----------------------+------------+-----------------------+
+   | Integrator            | ICNTRL(3)  | Method selected       |
+   +=======================+============+=======================+
+   | rosenbrock            | 0 or 4     | Rodas3 (default)      |
+   |                       +------------+-----------------------+
+   | rosenbrock_adj        | 1          | Ros2                  |
+   |                       +------------+-----------------------+
+   | rosenbrock_autoreduce | 2          | Ros3                  |
+   |                       +------------+-----------------------+
+   | rosenbrock_tlm        | 3          | Ros4                  |
+   |                       +------------+-----------------------+
+   |                       | 5          | Rodas4                |
+   |                       +------------+-----------------------+
+   |                       | 6          | Rang                  |
+   |                       +------------+-----------------------+
+   |                       | 7          | For future use        |
+   +-----------------------+------------+-----------------------+
+   | runge_kutta           | 0 or 1     | Radau-2A (default)    |
+   |                       +------------+-----------------------+
+   | runge_kutta_adj       | 2          | Lobatto-3C            |
+   |                       +------------+-----------------------+
+   | runge_kutta_tlm       | 3          | Gauss                 |
+   |                       +------------+-----------------------+
+   |                       | 4          | Radau-1A              |
+   |                       +------------+-----------------------+
+   |                       | 5          | Lobatto-3A            |
+   +-----------------------+------------+-----------------------+
+   | sdirk                 | 0 or 1     | Sdirk-2A (default)    |
+   |                       +------------+-----------------------+
+   | sdirk_adj             | 2          | Sdirk-2B              |
+   |                       +------------+-----------------------+
+   | sdirk_tlm             | 3          | Sdirk-3A              |
+   |                       +------------+-----------------------+
+   |                       | 4          | Sdirk-4A              |
+   |                       +------------+-----------------------+
+   |                       | 5          | Sdirk-4B              |
+   |                       +------------+-----------------------+
+   |                       | 6          | Backward Euler        |
+   +-----------------------+------------+-----------------------+
 
-   Maximum number of Newton iterations.
 
-.. option:: ICNTRL(6)
+ICNTRL(4)
+~~~~~~~~~
 
-   Starting values of Newton iterations (only avaialble for some of
-   the integrators).
+Specifies the maximum number of integration steps.
 
-   :code:`= 0` : Interpolated
+ICNTRL(5)
+~~~~~~~~~
 
-   :code:`= 1` : Zero
+Specifies the maximum number of Newton iterations.
 
-.. option:: ICNTRL(11)
+ICNTRL(6)
+~~~~~~~~~
 
-   Gustafsson step size controller
+Selects integrator-specific settings.
 
-.. option:: ICNTRL(12)
+.. table::
+   :align: left
 
-   (Solver-specific for :code:`rosenbrock_autoreduce`) Controls
-   whether auto-reduction of the mechanism is performed. If set to
-   :code:`= 0`, then the integrator behaves the same as
-   :code:`rosenbrock`.
+   +-----------------+------------+-----------------------------------+
+   | Integrator      | ICNTRL(6)  | Option selected                   |
+   +=================+============+===================================+
+   | rosenbrock_adj  | 0 thru 6   | Selection of a particular         |
+   |                 |            | Rosenbrock method for the         |
+   |                 |            | continuous adjoint integration    |
+   |                 |            | (see ``ICNTRL(3)``)               |
+   +-----------------+------------+-----------------------------------+
+   | radau5          | 0          | Starting values for Newton        |
+   |                 |            | iterations are interpolated       |
+   |                 |            | (default)                         |
+   | runge_kutta_adj +------------+-----------------------------------+
+   |                 | 1          | Starting values for Newton        |
+   | runge_kutta_tlm |            | iterations are zero               |
+   |                 |            |                                   |
+   | sdirk           |            |                                   |
+   |                 |            |                                   |
+   | sdirk_adj       |            |                                   |
+   |                 |            |                                   |
+   | sdirk_tlm       |            |                                   |
+   +-----------------+------------+-----------------------------------+
 
-.. option:: ICNTRL(13)
+ICNTRL(7)
+~~~~~~~~~
 
-   (Solver-specific for :code:`rosenbrock_autoreduce`) Controls
-   whether in auto-reduction species production and loss rates are
-   scanned throughout the internal time steps of the integrator for
-   repartitioning.
+Selects options for adjoint integrators.
 
-.. option:: ICNTRL(14)
+.. table:: Selection of adjoint algorithm
+   :align: left
 
-   (Solver-specific for :code:`rosenbrock_autoreduce`) If set to
-   :code:`> 0`, then the threshold is calculated based on the max of
-   production and loss rate of the species ID specified in
-   :code:`ICNTRL(14)` multiplied by :code:`RCNTRL(14)`.
+   +-----------------+------------+----------------------------------+
+   | Integrator      | ICNTRL(7)  | Adjoint algorithm selected       |
+   +=================+============+==================================+
+   | rosenbrock_adj  | 0 or 2     | Discrete adjoint with method     |
+   |                 |            | ``ICNTRL(3)`` (default)          |
+   |                 +------------+----------------------------------+
+   |                 | 1          | No adjoint                       |
+   |                 +------------+----------------------------------+
+   |                 | 3          | Fully adaptive continous adjoint |
+   |                 |            | with method ``ICNTRL(6)``        |
+   |                 +------------+----------------------------------+
+   |                 | 4          | Simplified continuous adjoint    |
+   |                 |            | with method ``ICNTRL(6)``        |
+   +-----------------+------------+----------------------------------+
 
-.. option:: ICNTRL(15)
+.. table:: Method to solve the linear Adj equations
+   :align: left
 
-   This determines which :code:`Update_*` subroutines are called
-   within the integrator.
+   +-----------------+------------+----------------------------------+
+   | Integrator      | ICNTRL(7)  | Method selected                  |
+   +=================+============+==================================+
+   | runge_kutta_adj | 0 or 1     | Modified Newton re-using LU      |
+   |                 |            | (default)                        |
+   |                 +------------+----------------------------------+
+   |                 | 2          | Direct solution (additional one  |
+   |                 |            | LU factorizsation of 3Nx3N       |
+   |                 |            | matrix per step; good for        |
+   |                 |            | debugging                        |
+   |                 +------------+----------------------------------+
+   |                 | 3          | Adaptive solution (if Newton     |
+   |                 |            | does not converge, switch to     |
+   |                 |            | direct)                          |
+   +-----------------+------------+----------------------------------+
+   | sdirk_adj       | 0          | Modified Newton re-using LU      |
+   |                 |            | (default)                        |
+   | sdirk_tlm       +------------+----------------------------------+
+   |                 | 1          | Direct solution (additional one  |
+   |                 |            | LU factorizsation per stage)     |
+   +-----------------+------------+----------------------------------+
 
-   :code:`= -1` : Do not call any :code:`Update_*` subroutines
+ICNTRL(8)
+~~~~~~~~
 
-   :code:`=  0` :  Use the integrator-specific default values
+Determines if LU factorization will be checkpointed at each step
+(for adjoint integrators only).
 
-   :code:`>  1` : A number between 1 and 7, derived by adding up bits
-   with values 4, 2, and 1.  The first digit (4) activates
-   :code:`Update_SUN`.  The second digit (2) activates
-   :code:`Update_PHOTO`.  The third digit (1) activates
-   :code:`Update_RCONST`.    |
+.. table::
+   :align: left
 
-   For example :code:`ICNTRL(15)=6)` (4+2) will activate the calls to
-   :code:`Update_SUN` and :code:`Update_PHOTO`, but not to
-   :code:`Update_RCONST`.
+   +-----------------+------------+------------------------------------+
+   | Integrator      | ICNTRL(8)  | Option selected                    |
+   +=================+============+====================================+
+   | rosenbrock_adj  | 0          | Do not save LU factorization at    |
+   |                 |            | each step (default)                |
+   | runge_kutta_adj +------------+------------------------------------+
+   |                 | 1          | Save LU factorization at each step |
+   | sdirk_adj       |            |                                    |
+   +-----------------+------------+------------------------------------+
 
-   Calling :code:`Update_RCONST` may be necessary when reaction rate
-   coefficients depend on the concentration of a specific species, e.
-   g.:
+ICNTRL(9)
+~~~~~~~~~
 
-   .. code-block:: console
+Selects options for adjoint and tangent linear method (TLM)
+integrators.
 
-      HSO3m + HSO5m + Hp = 2 HSO4m + Hp : k_aqueous( C(ind_Hp) );
+.. table:: Selection of adjoint algorithm
+   :align: left
 
-   This ensures that the concentration :code:`C(ind_Hp)` at the specific
-   integration time is used when the reaction rate coefficient is
-   updated within the integrator.
+   +-----------------+------------+----------------------------------+
+   | Integrator      | ICNTRL(9)  | Adjoint algorithm selected       |
+   +=================+============+==================================+
+   | runge_kutta_adj | 0 or 2     | Discrete adjoint with method     |
+   |                 |            | ``ICNTRL(3)`` (default)          |
+   |                 +------------+----------------------------------+
+   |                 | 1          | No adjoint                       |
+   |                 +------------+----------------------------------+
+   |                 | 3          | Fully adaptive continous adjoint |
+   |                 |            | with method ``ICNTRL(6)``        |
+   |                 +------------+----------------------------------+
+   |                 | 4          | Simplified continuous adjoint    |
+   |                 |            | with method ``ICNTRL(6)``        |
+   +-----------------+------------+----------------------------------+
 
-.. option:: ICNTRL(16)
+.. table:: Selection of tangent linear method (TLM) error
+	      estimation strategy
+   :align: left
 
-   Treatment of negative concentrations:
+   +-----------------+------------+-----------------------------------+
+   | Integrator      | ICNTRL(9)  | Strategy selected                 |
+   +=================+============+===================================+
+   | runge_kutta_tlm | 0          | Base number of iterations as      |
+   |                 |            | forward solution                  |
+   | sdirk_tlm       +------------+-----------------------------------+
+   |                 | 1          | USE ``ATOL_tlm`` and ``RTOL_tlm`` |
+   |                 |            | to calculate error estimation     |
+   |                 |            | for TLM at Newton stages          |
+   +-----------------+------------+-----------------------------------+
 
-   :code:`= 0` : Leave negative values unchanged
+ICNTRL(10)
+~~~~~~~~~~
 
-   :code:`= 1` : Set negative values to zero
+Selects integrator-specific options.
 
-   :code:`= 2` : Print warning and continue
+.. table::
+   :align: left
 
-   :code:`= 3` : Print error message and stop
+   +-----------------+------------+-----------------------------------+
+   | Integrator      | ICNTRL(10) | Option selected                   |
+   +=================+============+===================================+
+   | lsode           | user       | Maximum order of the integration  |
+   |                 | supplied   | formula allowed                   |
+   +-----------------+------------+-----------------------------------+
+   | runge_kutta     | 0          | Error estimation strategy:        |
+   |                 |            | one additional stage at ``c=0``   |
+   | runge_kutta_adj |            | (default)                         |
+   |                 +------------+-----------------------------------+
+   | runge_kutta_tlm | 1          | Error estimation strategy:        |
+   |                 |            | Two additional stages at ``c=0``  |
+   |                 |            | and SDIRK at ``c=1``, stiffly     |
+   |                 |            | accurate                          |
+   |                 +------------+-----------------------------------+
+   |                 |            |                                   |
+   +-----------------+------------+-----------------------------------+
+   | seulex          | 0          | No verbose output                 |
+   |                 +------------+-----------------------------------+
+   |                 | 1          | Dense verbose output              |
+   +-----------------+------------+-----------------------------------+
 
-.. option:: ICNTRL(17)
+ICNTRL(11)
+~~~~~~~~~~
 
-   Verbosity:
+Selects integrator-specific settings.
 
-   :code:`= 0` : Only return error number
+.. table::
+   :align: left
 
-   :code:`= 1` : Verbose error output
+   +-----------------+------------+-----------------------------------+
+   | Integrator      | ICNTRL(11) | Option selected                   |
+   +=================+============+===================================+
+   | seulex          | user       | Maximum number of columns in the  |
+   |                 | supplied   | extrapolation. Default is 12.     |
+   +-----------------+------------+-----------------------------------+
+   | radau5          | 0          | Gustaffson step size control      |
+   |                 +------------+-----------------------------------+
+   |                 | 1          | Classical step size control       |
+   | runge_kutta     |            |                                   |
+   |                 |            |                                   |
+   | runge_kutta_adj |            |                                   |
+   |                 |            |                                   |
+   | runge_kutta_tlm |            |                                   |
+   |                 |            |                                   |
+   |                 |            |                                   |
+   +-----------------+------------+-----------------------------------+
 
-.. option:: ICNTRL(18) ... ICNTRL(20)
+ICNTRL(12)
+~~~~~~~~~~
 
-   currently not used
+Selects integrator-specific settings.
+
+.. table::
+   :align: left
+
+   +-----------------------+------------+-----------------------------------+
+   | Integrator            | ICNTRL(12) | Option selected                   |
+   +=======================+============+===================================+
+   | rosenbrock_autoreduce | 0          | Disable mechanism auto-reduction  |
+   |                       |            | (i.e. acts in the same way as the |
+   |                       |            | ``rosenbrock`` integrator)        |
+   |                       +------------+-----------------------------------+
+   |                       | 1          | Enables mechanism auto-reduction, |
+   |                       |            | set threshold in ``RCNTRL(`12)``  |
+   |                       +------------+-----------------------------------+
+   |                       |            |                                   |
+   +-----------------------+------------+-----------------------------------+
+   | rosenbrock_tlm        | 0          | TLM truncation error is not used  |
+   |                       +------------+-----------------------------------+
+   | runge_kutta_tlm       | 1          | TLM truncation error is computed  |
+   |                       |            | and used                          |
+   | sdirk_tlm             |            |                                   |
+   |                       +------------+-----------------------------------+
+   |                       |            |                                   |
+   +-----------------------+------------+-----------------------------------+
+   | seulex                | 0          | Nsequence = 2 (default)           |
+   |                       +------------+-----------------------------------+
+   |                       | 1          | Nsequence =                       |
+   |                       |            | 1,2,3,4,6,8,12,16,24,32,48,...    |
+   |                       +------------+-----------------------------------+
+   |                       | 2          | Nsequence =                       |
+   |                       |            | 2,3,4,6,8,12,16,24,32,48,64,...   |
+   |                       +------------+-----------------------------------+
+   |                       | 3          | Nsequence =                       |
+   |                       |            | 1,2,3,4,5,6,7,8,9,10,...          |
+   |                       +------------+-----------------------------------+
+   |                       | 4          | Nsequence =                       |
+   |                       |            | 2,3,4,5,6,7,8,9,10,11,...         |
+   +-----------------------+------------+-----------------------------------+
+
+ICNTRL(13)
+~~~~~~~~~~
+
+Selects integrator-specific settings.
+
+.. table::
+   :align: left
+
+   +-----------------------+------------+-----------------------------------+
+   | Integrator            | ICNTRL(13) | Option selected                   |
+   +=======================+============+===================================+
+   | rosenbrock_autoreduce | 0          | In auto-reduction, disables       |
+   |                       |            | scanning species P and L rates    |
+   |                       |            | throughout the internal timesteps |
+   |                       |            | of the integrator.                |
+   |                       +------------+-----------------------------------+
+   |                       | 1          | In auto-reduction, ensables       |
+   |                       |            | scanning species P and L rates    |
+   |                       |            | throughout the internal timesteps |
+   |                       |            | of the integrator, for            |
+   |                       |            | repartitioning.                   |
+   +-----------------------+------------+-----------------------------------+
+   | seulex                | 0, 1       | Sets the ``lambda`` parameter     |
+   |                       |            | for verbose output.               |
+   +-----------------------+------------+-----------------------------------+
+
+ICNTRL(14)
+~~~~~~~~~~
+
+(Solver-specific for :code:`rosenbrock_autoreduce`) If set to
+:code:`> 0`, then the threshold is calculated based on the max of
+production and loss rate of the species ID specified in
+:code:`ICNTRL(14)` multiplied by :code:`RCNTRL(14)`.
+
+ICNTRL(15)
+~~~~~~~~~~
+
+This determines which :code:`Update_*` subroutines are called
+within the integrator.
+
+:code:`= -1` : Do not call any :code:`Update_*` subroutines
+
+:code:`=  0` :  Use the integrator-specific default values
+
+:code:`>  1` : A number between 1 and 7, derived by adding up bits
+with values 4, 2, and 1.  The first digit (4) activates
+:code:`Update_SUN`.  The second digit (2) activates
+:code:`Update_PHOTO`.  The third digit (1) activates
+:code:`Update_RCONST`.    |
+
+For example :code:`ICNTRL(15)=6)` (4+2) will activate the calls to
+:code:`Update_SUN` and :code:`Update_PHOTO`, but not to
+:code:`Update_RCONST`.
+
+Calling :code:`Update_RCONST` may be necessary when reaction rate
+coefficients depend on the concentration of a specific species, e.
+g.:
+
+.. code-block:: console
+
+   HSO3m + HSO5m + Hp = 2 HSO4m + Hp : k_aqueous( C(ind_Hp) );
+
+This ensures that the concentration :code:`C(ind_Hp)` at the specific
+integration time is used when the reaction rate coefficient is
+updated within the integrator.
+
+ICNTRL(16)
+~~~~~~~~~~
+
+Treatment of negative concentrations:
+
+:code:`= 0` : Leave negative values unchanged
+
+:code:`= 1` : Set negative values to zero
+
+:code:`= 2` : Print warning and continue
+
+:code:`= 3` : Print error message and stop
+
+ICNTRL(17)
+~~~~~~~~~~
+
+Verbosity:
+
+:code:`= 0` : Only return error number
+
+:code:`= 1` : Verbose error output
+
+ICNTRL(18)
+~~~~~~~~~~
+
+Currently not used.
+
+ICNTRL(19)
+~~~~~~~~~~
+
+Currently not used.
+
+ICNTRL(20)
+~~~~~~~~~~
+
+Currently not used.
 
 RCNTRL
 ------
