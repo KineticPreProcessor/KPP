@@ -24,9 +24,9 @@ description file:
    :ref:`kpp-commands`, and :ref:`inlined-code`. Their syntax is
    presented in :ref:`bnf-description`.
 
--  Comments are either enclosed between the curly braces ":code:`{`" and
-   ":code:`}`", or written in a line starting with two slashes and a
-   space ":code:`// `".
+-  Comments are either enclosed between the curly braces ":code:`{`"
+   and ":code:`}`", or written in a line starting with two slashes and
+   a space "// ".
 
 -  Any name given by the user to denote an atom or a species is
    restricted to be less than 32 character in length and can only
@@ -351,56 +351,58 @@ are given in the following subsections.
 
 .. _table-cmd-defaults:
 
-.. table:: Default values for KPP commands
+.. list-table:: Default values for KPP commands
    :align: center
+   :header-rows: 1
 
-   +--------------------------+-----------------------+
-   | KPP command              | default value         |
-   +==========================+=======================+
-   | :command:`#AUTOREDUCE`   | :code:`OFF`           |
-   +--------------------------+-----------------------+
-   | :command:`#CHECKALL`     |                       |
-   +--------------------------+-----------------------+
-   | :command:`#DECLARE`      | :code:`SYMBOL`        |
-   +--------------------------+-----------------------+
-   | :command:`#DOUBLE`       | :code:`ON`            |
-   +--------------------------+-----------------------+
-   | :command:`#DRIVER`       | :code:`none`          |
-   +--------------------------+-----------------------+
-   | :command:`#DUMMYINDEX`   | :code:`OFF`           |
-   +--------------------------+-----------------------+
-   | :command:`#EQNTAGS`      | :code:`OFF`           |
-   +--------------------------+-----------------------+
-   | :command:`#FUNCTION`     | :code:`AGGREGATE`     |
-   +--------------------------+-----------------------+
-   | :command:`#HESSIAN`      | :code:`ON`            |
-   +--------------------------+-----------------------+
-   | :command:`#INCLUDE`      |                       |
-   +--------------------------+-----------------------+
-   | :command:`#INTEGRATOR`   |                       |
-   +--------------------------+-----------------------+
-   | :command:`#INTFILE`      |                       |
-   +--------------------------+-----------------------+
-   | :command:`#JACOBIAN`     | :code:`SPARSE_LU_ROW` |
-   +--------------------------+-----------------------+
-   | :command:`#LANGUAGE`     |                       |
-   +--------------------------+-----------------------+
-   | :command:`#LOOKATALL`    |                       |
-   +--------------------------+-----------------------+
-   | :command:`#MEX`          | :code:`ON`            |
-   +--------------------------+-----------------------+
-   | :command:`#MINVERSION`   |                       |
-   +--------------------------+-----------------------+
-   | :command:`#MODEL`        |                       |
-   +--------------------------+-----------------------+
-   | :command:`#REORDER`      | :code:`ON`            |
-   +--------------------------+-----------------------+
-   | :command:`#STOCHASTIC`   | :code:`OFF`           |
-   +--------------------------+-----------------------+
-   | :command:`#STOICMAT`     | :code:`ON`            |
-   +--------------------------+-----------------------+
-   | :command:`#UPPERCASEF90` | :code:`OFF`           |
-   +--------------------------+-----------------------+
+   * - KPP command
+     - default value
+     - KPP command
+     - default value
+   * - :command:`#AUTOREDUCE`
+     - :code:`OFF`
+     - :command:`#INTFILE`
+     -
+   * - :command:`#CHECKALL`
+     -
+     - :command:`#JACOBIAN`
+     - :code:`SPARSE_LU_ROW`
+   * - :command:`#DECLARE`
+     - :code:`SYMBOL`
+     - :command:`#LANGUAGE`
+     -
+   * - :command:`#DOUBLE`
+     - :code:`ON`
+     - :command:`#LOOKATALL`
+     -
+   * - :command:`#DRIVER`
+     - :code:`none`
+     - :command:`#MEX`
+     - :code:`ON`
+   * - :command:`#DUMMYINDEX`
+     - :code:`OFF`
+     - :command:`#MINVERSION`
+     -
+   * - :command:`#EQNTAGS`
+     - :code:`OFF`
+     - :command:`#MODEL`
+     -
+   * - :command:`#FUNCTION`
+     - :code:`AGGREGATE`
+     - :command:`#REORDER`
+     - :code:`ON`
+   * - :command:`#HESSIAN`
+     - :code:`ON`
+     - :command:`#STOCHASTIC`
+     - :code:`OFF`
+   * - :command:`#INCLUDE`
+     -
+     - :command:`#STOICMAT`
+     - :code:`ON`
+   * - :command:`#INTEGRATOR`
+     -
+     - :command:`#UPPERCASEF90`
+     - :code:`OFF`
 
 .. _autoreduce-cmd:
 
@@ -787,31 +789,42 @@ by :code:`C`, or :code:`matlab`, respectively.
 
 .. _table-inl-type:
 
-.. table:: KPP inlined types
+.. list-table:: KPP inlined types
    :align: center
+   :header-rows: 1
 
-   +--------------------+-------------------+---------------------+---------------------+
-   | Inline_type        | File              | Placement           | Usage               |
-   +====================+===================+=====================+=====================+
-   | **F90_DATA**       | :ref:`Monitor`    | specification       | (obsolete)          |
-   |                    |                   | section             |                     |
-   +--------------------+-------------------+---------------------+---------------------+
-   | **F90_GLOBAL**     | :ref:`Global`     | specification       | global variables    |
-   |                    |                   | section             |                     |
-   +--------------------+-------------------+---------------------+---------------------+
-   | **F90_INIT**       | :ref:`Initialize` | subroutine          | integration         |
-   |                    |                   |                     | parameters          |
-   +--------------------+-------------------+---------------------+---------------------+
-   | **F90_RATES**      | :ref:`Rates`      | executable section  | rate law functions  |
-   +--------------------+-------------------+---------------------+---------------------+
-   | **F90_RCONST**     | :ref:`Rates`      | subroutine          | rate coefficient    |
-   |                    |                   |                     | definitions         |
-   +--------------------+-------------------+---------------------+---------------------+
-   | **F90_RCONST_USE** | :ref:`Rates`      | subroutine          | rate coefficient    |
-   |                    |                   |                     | definitions         |
-   +--------------------+-------------------+---------------------+---------------------+
-   | **F90_UTIL**       | :ref:`Util`       | executable section  | utility functions   |
-   +--------------------+-------------------+---------------------+---------------------+
+   * - Inline_type
+     - File
+     - Placement
+     - Usage
+   * - **F90_DATA**
+     - :ref:`Monitor`
+     - specification section
+     - (obsolete)
+   * - **F90_GLOBAL**
+     - :ref:`Global`
+     - specification section
+     - global variables
+   * - **F90_INIT**
+     - :ref:`Initialize`
+     - subroutine
+     - integration parameters
+   * - **F90_RATES**
+     - :ref:`Rates`
+     - executable section
+     - rate law functions
+   * - **F90_RCONST**
+     - :ref:`Rates`
+     - subroutine
+     - rate coefficient definitions
+   * - **F90_RCONST_USE**
+     - :ref:`Rates`
+     - subroutine
+     - rate coefficient definitions
+   * - **F90_UTIL**
+     - :ref:`Util`
+     - executable section
+     - utility functions
 
 .. _f90-data:
 
@@ -942,7 +955,7 @@ The inlined code will be placed directly into the subroutines
 :code:`UPDATE_RCONST` and :code:`UPDATE_PHOTO` in the :ref:`Rates`
 file.  :code:`USE` statements will be placed before Fortran variable
 definitions and executable statements, as is required by the
-Fortran-90 language standard.  
+Fortran-90 language standard.
 
 .. _f90-util:
 
@@ -1016,38 +1029,32 @@ List of auxiliary files for Fortran90
 
 .. _table-aux-files:
 
-.. table:: Auxiliary files for Fortran90
+.. list-table:: Auxiliary files for Fortran90
    :align: center
+   :header-rows: 1
 
-   +--------------------------------+------------------------------------------+
-   | File                           | Contents                                 |
-   +================================+==========================================+
-   | ``dFun_dRcoeff.f90``           | Derivatives with respect to reaction     |
-   |                                | rates.                                   |
-   +--------------------------------+------------------------------------------+
-   | ``dJac_dRcoeff.f90``           | Derivatives with respect to reaction     |
-   |                                | rates.                                   |
-   +--------------------------------+------------------------------------------+
-   | ``Makefile_f90`` and           | Makefiles to build Fortran-90 code.      |
-   | ``Makefile_upper_F90``         |                                          |
-   +--------------------------------+------------------------------------------+
-   | ``Mex_Fun.f90``                | Mex files.                               |
-   +--------------------------------+------------------------------------------+
-   | ``Mex_Jac_SP.f90``             | Mex files.                               |
-   +--------------------------------+------------------------------------------+
-   | ``Mex_Hessian.f90``            | Mex files.                               |
-   +--------------------------------+------------------------------------------+
-   | ``sutil.f90``                  | Sparse utility functions.                |
-   +--------------------------------+------------------------------------------+
-   | ``tag2num.f90``                | Function related to equation tags.       |
-   +--------------------------------+------------------------------------------+
-   | ``UpdateSun.f90``              | Function related to solar zenith angle.  |
-   +--------------------------------+------------------------------------------+
-   | ``UserRateLaws.f90`` and       | User-defined rate-law functions.         |
-   | ``UserRateLawsInterfaces.f90`` |                                          |
-   +--------------------------------+------------------------------------------+
-   | ``util.f90``                   | Input/output utilities.                  |
-   +--------------------------------+------------------------------------------+
+   * - File
+     - Contents
+   * - :code:`dFun_dRcoeff.f90`
+     - Derivatives with respect to reaction rates
+   * - :code:`dJac_dRcoeff.f90`
+     - Derivatives with respect to reaction rates
+   * - :code:`Makefile_f90` and :code:`Makefile_upper_F90`
+     - Makefiles to build Fortran-90 code
+   * - :code:`Mex_Fun.f90` and :code:`Mex_Jac_SP.f90`
+     - Mex files.
+   * - :code:`Mex_Hessian.f90`
+     - Mex files.
+   * - :code:`sutil.f90`
+     - Sparse utility functions.
+   * - :code:`tag2num.f90`
+     - Function related to equation tags.
+   * - :code:`UpdateSun.f90`
+     - Function related to solar zenith angle.
+   * - :code:`UserRateLaws.f90` and :code:`UserRateLawsInterfaces.f90`
+     - User-defined rate-law functions.
+   * - :code:`util.f90`
+     - Input/output utilities.
 
 .. _list-of-symbols-replaced:
 
@@ -1056,37 +1063,43 @@ List of symbols replaced by the substitution preprocessor
 
 .. _table-sym-repl:
 
-.. table:: Symbols and their replacements
+.. list-table:: Symbols and their replacements
    :align: center
+   :header-rows: 1
 
-   +--------------------------+-------------------------------+----------------------------+
-   | Symbol                   | Replacement                   | Example                    |
-   +==========================+===============================+============================+
-   | **KPP_ROOT**             | The ``ROOT`` name             |  ``small_strato``          |
-   +--------------------------+-------------------------------+----------------------------+
-   | **KPP_REAL**             | The real data type            | ``REAL(kind=dp)``          |
-   +--------------------------+-------------------------------+----------------------------+
-   | **KPP_NSPEC**            | Number of species             | 7                          |
-   +--------------------------+-------------------------------+----------------------------+
-   | **KPP_NVAR**             | Number of variable species    | 5                          |
-   +--------------------------+-------------------------------+----------------------------+
-   | **KPP_NFIX**             | Number of fixed species       | 2                          |
-   +--------------------------+-------------------------------+----------------------------+
-   | **KPP_NREACT**           | Number of chemical            | 10                         |
-   |                          | reactions                     |                            |
-   +--------------------------+-------------------------------+----------------------------+
-   | **KPP_NONZERO**          | Number of Jacobian nonzero    | 18                         |
-   |                          | elements                      |                            |
-   +--------------------------+-------------------------------+----------------------------+
-   | **KPP_LU_NONZERO**       | Number of Jacobian nonzero    | 19                         |
-   |                          | elements, with LU fill-in     |                            |
-   +--------------------------+-------------------------------+----------------------------+
-   | **KPP_LU_NHESS**         | Number of Hessian nonzero     | 10                         |
-   |                          | elements                      |                            |
-   +--------------------------+-------------------------------+----------------------------+
-   | **KPP_FUN_OR_FUN_SPLIT** | Name of the function to be    | ``FUN(Y,FIX,RCONST,Ydot)`` |
-   |                          | called                        |                            |
-   +--------------------------+-------------------------------+----------------------------+
+   * - Symbol
+     - Replacement
+     - Example
+   * - **KPP_ROOT**
+     - The :literal:`ROOT` name
+     - :literal:`small_strato`
+   * - **KPP_REAL**
+     - The real data type
+     - :code:`REAL(kind=dp)`
+   * - **KPP_NSPEC**
+     - Number of species
+     - 7
+   * - **KPP_NVAR**
+     - Number of variable species
+     - 5
+   * - **KPP_NFIX**
+     - Number of fixed species
+     - 2
+   * - **KPP_NREACT**
+     - Number of chemical reactopms
+     - 10
+   * - **KPP_NONZERO**
+     - Number of Jacobian nonzero elements
+     - 18
+   * - **KPP_LU_NONZERO**
+     - Number of Jacobian nonzero elements, with LU fill0in
+     - 19
+   * - **KPP_LU_NHESS**
+     - Number of Hessian nonzero elements
+     - 19
+   * - **KPP_FUN_OR_FUN_SPLIT**
+     - Name of the function to be called
+     - ``FUN(Y,FIX,RCONST,Ydot)``
 
 .. _icntrl-rcntrl:
 
@@ -1113,7 +1126,7 @@ ICNTRL
    +------------------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
    | ICNTRL                 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 |
    +========================+===+===+===+===+===+===+===+===+===+====+====+====+====+====+====+====+====+
-   | beuler                 |   | Y | Y | Y | Y | Y |   |   |   |    |    |    |    |    | Y  |    |    |
+   | beuler                 |   | Y | Y | Y | Y | Y | s |   |   |    |    |    |    |    | Y  |    |    |
    +------------------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
    | dvode                  |   |   |   |   |   |   |   |   |   |    |    |    |    |    | Y  |    |    |
    +------------------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+
@@ -1197,21 +1210,24 @@ ICNTRL
 
 .. option:: ICNTRL(12)
 
-   (Solver-specific for :code:`rosenbrock_autoreduce`) Controls whether auto-reduction
-   of the mechanism is performed. If set to :code:`= 0`, then the integrator behaves
-   the same as :code:`rosenbrock`.
+   (Solver-specific for :code:`rosenbrock_autoreduce`) Controls
+   whether auto-reduction of the mechanism is performed. If set to
+   :code:`= 0`, then the integrator behaves the same as
+   :code:`rosenbrock`.
 
 .. option:: ICNTRL(13)
 
-   (Solver-specific for :code:`rosenbrock_autoreduce`) Controls whether in auto-reduction
-   species production and loss rates are scanned throughout the internal time steps
-   of the integrator for repartitioning.
+   (Solver-specific for :code:`rosenbrock_autoreduce`) Controls
+   whether in auto-reduction species production and loss rates are
+   scanned throughout the internal time steps of the integrator for
+   repartitioning.
 
 .. option:: ICNTRL(14)
 
-   (Solver-specific for :code:`rosenbrock_autoreduce`) If set to :code:`> 0`, then the
-   threshold is calculated based on the max of production and loss rate of the species
-   ID specified in :code:`ICNTRL(14)` multiplied by :code:`RCNTRL(14)`.
+   (Solver-specific for :code:`rosenbrock_autoreduce`) If set to
+   :code:`> 0`, then the threshold is calculated based on the max of
+   production and loss rate of the species ID specified in
+   :code:`ICNTRL(14)` multiplied by :code:`RCNTRL(14)`.
 
 .. option:: ICNTRL(15)
 
