@@ -1532,22 +1532,37 @@ production and loss rate of the species ID specified in
 ICNTRL(15)
 ~~~~~~~~~~
 
-This determines which :code:`Update_*` subroutines are called
-within the integrator.
+Determines which :code:`Update_*` subroutines are called within the
+integrator.
 
-:code:`= -1` : Do not call any :code:`Update_*` subroutines
+.. list-table::
+   :align: left
+   :header-rows: 1
 
-:code:`=  0` :  Use the integrator-specific default values
-
-:code:`>  1` : A number between 1 and 7, derived by adding up bits
-with values 4, 2, and 1.  The first digit (4) activates
-:code:`Update_SUN`.  The second digit (2) activates
-:code:`Update_PHOTO`.  The third digit (1) activates
-:code:`Update_RCONST`.    |
-
-For example :code:`ICNTRL(15)=6)` (4+2) will activate the calls to
-:code:`Update_SUN` and :code:`Update_PHOTO`, but not to
-:code:`Update_RCONST`.
+   * - ICNTRL(15)
+     - Option selcted
+   * - -1
+     - Do not call any :code:`Update_*` subroutines
+   * - 0
+     - Use the integrator-specific default values
+   * - 1
+     - Call  :code:`Update_RCONST` from within the integrator.
+   * - 2
+     - Call :code:`Update_PHOTO` from within the integrator
+   * - 3
+     - Call :code:`Update_RCONST` and :code:`Update_PHOTO` from within
+       the integrator.
+   * - 4
+     - Call :code:`Update_SUN` from within the integrator
+   * - 5
+     - Call :code:`Update_SUN` and :code:`Update_RCONST` from within
+       the integrator
+   * - 6
+     - Call :code:`Update_SUN` and :code:`Update_PHOTO` from within
+       the integrator.
+   * - 7
+     - Call :code:`Update_SUN`, :code:`Update_PHOTO`, and
+       :code:`Update_RCONST` from within the integrator.
 
 Calling :code:`Update_RCONST` may be necessary when reaction rate
 coefficients depend on the concentration of a specific species, e.
@@ -1564,24 +1579,38 @@ updated within the integrator.
 ICNTRL(16)
 ~~~~~~~~~~
 
-Treatment of negative concentrations:
+Specifies how negative values should be handled.
 
-:code:`= 0` : Leave negative values unchanged
+.. list-table::
+   :align: left
+   :header-rows: 1
 
-:code:`= 1` : Set negative values to zero
-
-:code:`= 2` : Print warning and continue
-
-:code:`= 3` : Print error message and stop
+   * - ICNTRL(16)
+     - Option selcted
+   * - 0
+     - Leave negative values unchanged
+   * - 1
+     - Set negative values to zero
+   * - 2
+     - Print warning and continue
+   * - 3
+     - Print error message and stop
 
 ICNTRL(17)
 ~~~~~~~~~~
 
-Verbosity:
+Selects the amount of verbose output that will be generated.
 
-:code:`= 0` : Only return error number
+.. list-table::
+   :align: left
+   :header-rows: 1
 
-:code:`= 1` : Verbose error output
+   * - ICNTRL(17)
+     - Option selcted
+   * - 0
+     - Only return error number
+   * - 1
+     - Full verbose error output
 
 ICNTRL(18)
 ~~~~~~~~~~
@@ -1651,72 +1680,88 @@ RCNTRL
    | tau_leap               |   |   |   |   |   |   |   |   |   |    |    |    |    |    |    |    |    |    |    |
    +------------------------+---+---+---+---+---+---+---+---+---+----+----+----+----+----+----+----+----+----+----+
 
-.. option:: RCNTRL(1)
+RCNTRL(1)
+~~~~~~~~~
 
-   :code:`Hmin`, the lower bound of the integration step size. It is
-   not recommended to change the default value of zero.
+:code:`Hmin`, the lower bound of the integration step size. It is
+not recommended to change the default value of zero.
 
-.. option:: RCNTRL(2)
+RCNTRL(2)
+~~~~~~~~~
 
-   :code:`Hmax`, the upper bound of the integration step size.
+:code:`Hmax`, the upper bound of the integration step size.
 
-.. option:: RCNTRL(3)
+RCNTRL(3)
+~~~~~~~~~
 
-   :code:`Hstart`, the starting value of the integration step size.
+:code:`Hstart`, the starting value of the integration step size.
 
-.. option:: RCNTRL(4)
+RCNTRL(4)
+~~~~~~~~~
 
-   :code:`FacMin`, lower bound on step decrease factor.
+:code:`FacMin`, lower bound on step decrease factor.
 
-.. option:: RCNTRL(5)
+RCNTRL(5)
+~~~~~~~~~
 
-   :code:`FacMax`, upper bound on step increase factor.
+:code:`FacMax`, upper bound on step increase factor.
 
-.. option:: RCNTRL(6)
+RCNTRL(6)
+~~~~~~~~~
 
-   :code:`FacRej`, step decrease factor after multiple rejections.
+:code:`FacRej`, step decrease factor after multiple rejections.
 
-.. option:: RCNTRL(7)
+RCNTRL(7)
+~~~~~~~~~
 
-   :code:`FacSafe`, the factor by which the new step is slightly
+:code:`FacSafe`, the factor by which the new step is slightly
    smaller than the predicted value.
 
-.. option:: RCNTRL(8)
+RCNTRL(8)
+~~~~~~~~~
 
-   :code:`ThetaMin`. If the Newton convergence rate is smaller than
-   ThetaMin, the Jacobian is not recomputed.
+:code:`ThetaMin`. If the Newton convergence rate is smaller than
+ThetaMin, the Jacobian is not recomputed.
 
-.. option:: RCNTRL(9)
+RCNTRL(9)
+~~~~~~~~~
 
-   :code:`NewtonTol`, the stopping criterion for Newton’s method.
+:code:`NewtonTol`, the stopping criterion for Newton’s method.
 
-.. option:: RCNTRL(10)
+RCNTRL(10)
+~~~~~~~~~~
 
-   :code:`Qmin`
+:code:`Qmin`
 
-.. option:: RCNTRL(11)
+RCNTRL(11)
+~~~~~~~~~~
 
-   :code:`Qmax`. If :code:`Qmin < Hnew/Hold < Qmax`, then the step
-   size is kept constant and the LU factorization is reused.
+:code:`Qmax`. If :code:`Qmin < Hnew/Hold < Qmax`, then the step
+size is kept constant and the LU factorization is reused.
 
-.. option:: RCNTRL(12)
+RCNTRL(12)
+~~~~~~~~~~
 
-   (Solver-specific for :code:`rosenbrock_autoreduce`) Used to specify
-   the threshold for auto-reduction partitioning, if :code:`ICNTRL(12) = 1`,
-   and :code:`ICNTRL(14) = 0`. Will be ignored if :code:`ICNTRL(14) > 0`.
+(Solver-specific for :code:`rosenbrock_autoreduce`) Used to specify
+the threshold for auto-reduction partitioning, if :code:`ICNTRL(12) = 1`,
+and :code:`ICNTRL(14) = 0`. Will be ignored if :code:`ICNTRL(14) > 0`.
 
-.. option:: RCNTRL(14)
+RCNTRL(14)
+~~~~~~~~~~
 
-   (Solver-specific for :code:`rosenbrock_autoreduce`) Used to specify
-   the multiplier for threshold for auto-reduction partitioning, if :code:`ICNTRL(12) = 1`,
-   and :code:`ICNTRL(14) > 0`, :code:`RCNTRL(14)` is multiplied against max
-   of production and loss rates of species :code:`ICNTRL(14)` to produce
-   the partitioning threshold, ignoring :code:`RCNTRL(12)`.
+(Solver-specific for :code:`rosenbrock_autoreduce`) Used to specify
+the multiplier for threshold for auto-reduction partitioning, if
+:code:`ICNTRL(12) = 1`, and :code:`ICNTRL(14) > 0`, :code:`RCNTRL(14)`
+is multiplied against max  of production and loss rates of species
+:code:`ICNTRL(14)` to produce the partitioning threshold, ignoring
+:code:`RCNTRL(12)`.
 
-.. option:: RCNTRL(10) ... RCNTRL(19)
+RCNTRL(15) - RCNTRL(19)
+~~~~~~~~~~~~~~~~~~~~~~~
 
-   (Solver-specific for :code:`seulex`)
+Solver-specific settings for :code:`seulex`.
 
-.. option:: RCNTRL(20)
+RCNTRL(20)
+~~~~~~~~~~
 
-   currently not used
+currently not used.
