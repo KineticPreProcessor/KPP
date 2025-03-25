@@ -186,13 +186,13 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !              = 1: AbsTol, RelTol are scalars
 !
 !    ICNTRL(3)  -> selection of a particular Rosenbrock method
-!        = 0 :    Rodas3.1 (default)
+!        = 0 :    Rodas3 (default)
 !        = 1 :    Ros2
 !        = 2 :    Ros3
 !        = 3 :    Ros4
 !        = 4 :    Rodas3
 !        = 5 :    Rodas4
-!        = 6 :    Rang3
+!        = 6 :    Rang
 !        = 7 :    Rodas3.1
 !
 !    ICNTRL(4)  -> maximum number of integration steps
@@ -307,20 +307,20 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 
 !~~~>   Initialize the particular Rosenbrock method selected
    SELECT CASE (ICNTRL(3))
-     CASE (0,7)
-       CALL Rodas3_1
+     CASE (0,4)
+       CALL Rodas3
      CASE (1)
        CALL Ros2
      CASE (2)
        CALL Ros3
      CASE (3)
        CALL Ros4
-     CASE (4)
-       CALL Rodas3
      CASE (5)
        CALL Rodas4
      CASE (6)
        CALL Rang3
+     CASE (7)
+       CALL Rodas3_1
      CASE DEFAULT
        PRINT * , 'Unknown Rosenbrock method: ICNTRL(3)=',ICNTRL(3)
        CALL ros_ErrorMsg(-2,Tstart,ZERO,IERR)
