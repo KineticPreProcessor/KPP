@@ -12,8 +12,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased] - TBD
+### Added
+- Added documentation in the `#INITVALUES` section about using Fortran `d` (double precision) exponents
+
 ### Changed
 - Updated `.ci-pipelines/build-testing.yml` to use `ubuntu-24.04` instead of `ubuntu-20.04` container for Azure C-I tests
+
+### Fixed
+- Fixed parsing of `#INITVALUES` section to allow Fortran `d` (double-precision) exponents
 
 ## [3.2.0] - 2025-02-27
 ### Added
