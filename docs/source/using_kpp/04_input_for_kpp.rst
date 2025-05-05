@@ -24,9 +24,9 @@ description file:
    :ref:`kpp-commands`, and :ref:`inlined-code`. Their syntax is
    presented in :ref:`bnf-description`.
 
--  Comments are either enclosed between the curly braces ":code:`{`" and
-   ":code:`}`", or written in a line starting with two slashes and a
-   space ":code:`// `".
+-  Comments are either enclosed between the curly braces
+   ":literal:`{`" and ":literal:`}`", or written in a line starting
+   with two slashes and a space "// ".
 
 -  Any name given by the user to denote an atom or a species is
    restricted to be less than 32 character in length and can only
@@ -266,7 +266,7 @@ The initial concentration values for all species can be defined in the
 .. code-block:: console
 
    #INITVALUES
-     CFACTOR = 2.5E19;
+     CFACTOR = 2.5E+19;
      NO2 = 1.4E-9;
      CO2 = MyCO2Func();
      ALL_SPEC = 0.0;
@@ -280,11 +280,22 @@ factor can be set by using the generic name :code:`CFACTOR`. Each of
 the initial values will be multiplied by this factor before being
 used. If :code:`CFACTOR` is omitted, it defaults to one.
 
-The information gathered in this section is used to generate the :code:`Initialize`
-subroutine (cf  :ref:`Initialize`). In more complex 3D
+The information gathered in this section is used to generate the
+:code:`Initialize` subroutine (cf  :ref:`Initialize`). In more complex 3D
 models, the initial values are usually taken from some input files or
 some global data structures. In this case, :command:`#INITVALUES` may
 not be needed.
+
+.. note::
+
+   If you are building your mechanism in Fortran 90, note that using
+   floating point constants such as :literal:`2.5E+19` will only give
+   you a single precision value (which will incur roundoff error after
+   the 6th or 7th decimal place.
+
+   If you are using double precision, you should use Fortran double
+   precision exponents (e.g. :literal:`2.5D+19`) instead.  This will
+   give you a true double precision value.
 
 .. _lookat-and-monitor:
 
@@ -942,7 +953,7 @@ The inlined code will be placed directly into the subroutines
 :code:`UPDATE_RCONST` and :code:`UPDATE_PHOTO` in the :ref:`Rates`
 file.  :code:`USE` statements will be placed before Fortran variable
 definitions and executable statements, as is required by the
-Fortran-90 language standard.  
+Fortran-90 language standard.
 
 .. _f90-util:
 
