@@ -11,6 +11,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - TBD
+### Added
+- Added C-I test `F90_feuler`, using the Forward Euler integrator
+- Added carbon gases mechanism (`models/carbon.*`)
+
+### Fixed
+- Updated `int/feuler.f90` to return the `Texit` value as `RSTATUS(1)` (this was not being done)
+
 ## [3.2.0] - 2025-02-27
 ### Added
 - Added new inline key `F90_RCONST_USE` in `src/gdata.h` and `src/scanner.c`

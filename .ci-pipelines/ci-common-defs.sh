@@ -28,6 +28,7 @@ F90_sd
 F90_sdadj
 F90_seulex
 F90_small_strato
+F90_feuler
 "
 # Testing if #MINVERSION works
 MINVERSION_TEST="X_minver"

@@ -1229,7 +1229,7 @@ RSTATUS
    +----------------------------+---+---+---+---+
    | exponential                |   |   |   |   |
    +----------------------------+---+---+---+---+
-   | feuler                     |   |   |   |   |
+   | feuler                     | Y |   |   |   |
    +----------------------------+---+---+---+---+
    | gillespie                  |   |   |   |   |
    +----------------------------+---+---+---+---+
@@ -1271,7 +1271,7 @@ RSTATUS
 
 .. option:: RSTATUS(2)
 
-  :code:`Hexit`: the last accepted step before exit.
+   :code:`Hexit`: the last accepted step before exit.
 
 .. option:: RSTATUS(3)
 

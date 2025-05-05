@@ -1,0 +1,9 @@
+//
+// Example based on the GEOS-Chem carbon gases mechanism
+//
+#EQUATIONS
+<R1> CH4      + FixedOH = LCH4byOH                : 2.45d-12*EXP(-1775.0d0/TEMP);
+<R2> CH4      + FixedCl = LCH4byCl                : 9.60d-12*EXP(-1360.0d0/TEMP);
+<R3> DummyCH4           = CO       + PCOfromCH4   : 4.2566446d-15;
+<R4> CO       + FixedOH = LCObyOH                 : 7.3679649d-14;
+<R5> DummyNMVOC         = CO       + PCOfromNMVOC : 3.8199012d+04;
