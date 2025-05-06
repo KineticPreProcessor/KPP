@@ -14,12 +14,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - TBD
 ### Added
 - Added documentation in the `#INITVALUES` section about using Fortran `d` (double precision) exponents
+- Added C-I test `F90_feuler`, using the Forward Euler integrator
+- Added carbon gases mechanism (`models/carbon.*`)
 
 ### Changed
 - Updated `.ci-pipelines/build-testing.yml` to use `ubuntu-24.04` instead of `ubuntu-20.04` container for Azure C-I tests
 
 ### Fixed
 - Fixed parsing of `#INITVALUES` section to allow Fortran `d` (double-precision) exponents
+- Updated `int/feuler.f90` to return the `Texit` value as `RSTATUS(1)` (this was not being done)
 
 ## [3.2.0] - 2025-02-27
 ### Added
