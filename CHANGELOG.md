@@ -3,10 +3,27 @@
 <!-- Github markdown syntax: -->
 <!-- https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax -->
 
+<!-- Version numbers must be synchronized in CHANGELOG.md, src/gdata.h, -->
+<!-- docs/source/conf.py and https://en.wikipedia.org/wiki/Kinetic_PreProcessor -->
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [3.2.1] - 2025-05-06
+### Added
+- Added documentation in the `#INITVALUES` section about using Fortran `d` (double precision) exponents
+- Added C-I test `F90_feuler`, using the Forward Euler integrator
+- Added carbon gases mechanism (`models/carbon.*`)
+
+### Changed
+- Updated `.ci-pipelines/build-testing.yml` to use `ubuntu-24.04` instead of `ubuntu-20.04` container for Azure C-I tests
+- Updated `jinja2` to version 3.1.6 (for ReadTheDocs) to fix a security issue identified by @dependabot
+
+### Fixed
+- Fixed parsing of `#INITVALUES` section to allow Fortran `d` (double-precision) exponents
+- Updated `int/feuler.f90` to return the `Texit` value as `RSTATUS(1)` (this was not being done)
 
 ## [3.2.0] - 2025-02-27
 ### Added
@@ -48,8 +65,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Now only add tha extra `Aout` argument to `Fun` and `Fun_Split` for F90 (see issues #56, #96)
 
-<!-- Version numbers must be synchronized in CHANGELOG.md, -->
-<!-- src/gdata.h, and docs/source/conf.py-->
 ## [3.1.0] - 2023-12-20
 ### Added
 - `#AUTOREDUCE` has been added to the list of KPP commands in the ReadTheDocs documentaton

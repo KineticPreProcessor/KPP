@@ -24,8 +24,8 @@ author = "A. Sandu, R. Sander, M. Long, H. Lin, R. Yantosca, L. Estrada, L. Shen
 
 # The full version, including alpha/beta/rc tags
 # (version numbers must be synchronized in CHANGELOG.md, src/gdata.h,
-# and docs/source/conf.py)
-release = "3.2.0"
+# docs/source/conf.py and https://en.wikipedia.org/wiki/Kinetic_PreProcessor)
+release = "3.2.1"
 
 
 # -- General configuration ---------------------------------------------------
