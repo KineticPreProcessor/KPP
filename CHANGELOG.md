@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Updated `.ci-pipelines/build-testing.yml` to use `ubuntu-24.04` instead of `ubuntu-20.04` container for Azure C-I tests
+- Updated `jinja2` to version 3.1.6 (for ReadTheDocs) to fix a security issue identified by @dependabot
 
 ### Fixed
 - Fixed parsing of `#INITVALUES` section to allow Fortran `d` (double-precision) exponents

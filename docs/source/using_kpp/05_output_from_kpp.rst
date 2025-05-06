@@ -856,7 +856,7 @@ KPP generates several utility subroutines and functions in the file
    +-----------------------------------+---------------------------------------------+
    | :code:`Integrator_Update_Options` | Choose :code:`Update_RCONST/PHOTO/SUN`      |
    +-----------------------------------+---------------------------------------------+
-           
+
 The subroutines :code:`InitSaveData`, :code:`SaveData`, and
 :code:`CloseSaveData` can be used to print the concentration of the
 species that were selected with :command:`#LOOKAT` to the file
@@ -909,7 +909,7 @@ The C code
 The driver file :file:`ROOT.c` contains the main (driver) program and
 numerical integrator functions, as well as declarations and
 initializations of global variables.
-   
+
 The generated C code includes three header files which are
 :code:`#include`-d in other files as appropriate.
 
@@ -1171,45 +1171,56 @@ ISTATUS
    | tau_leap                   |   |   |   |   |   |   |   |   |   |
    +----------------------------+---+---+---+---+---+---+---+---+---+
 
-.. option:: ISTATUS(1)
+ISTATUS(1)
+~~~~~~~~~~
 
-   Number of function calls.
+Number of times that the :ref:`function containing the chemical ODE system
+<Function>` was called.
 
-.. option:: ISTATUS(2)
+ISTATUS(2)
+~~~~~~~~~~
 
-   Number of Jacobian calls.
+Number times :ref:`the Jacobian matrix <Jacobian-and-JacobianSP>` was constructed.
 
-.. option:: ISTATUS(3)
+ISTATUS(3)
+~~~~~~~~~~
 
-   Number of steps.
+Total number of integration timesteps.
 
-.. option:: ISTATUS(4)
+ISTATUS(4)
+~~~~~~~~~~
 
-   Number of accepted steps.
+Number of accepted timesteps.
 
-.. option:: ISTATUS(5)
+ISTATUS(5)
+~~~~~~~~~~
 
-   Number of rejected steps (except at very beginning).
+Number of rejected timesteps (except at very beginning).
 
-.. option:: ISTATUS(6)
+ISTATUS(6)
+~~~~~~~~~~
 
-   Number of LU decompositions.
+Number of LU decompositions that were performed.
 
-.. option:: ISTATUS(7)
+ISTATUS(7)
+~~~~~~~~~~
 
-   Number of forward/backward substitutions.
+Number of forward/backward substitutions that were performed.
 
-.. option:: ISTATUS(8)
+ISTATUS(8)
+~~~~~~~~~~
 
-   Number of singular matrix decompositions.
+Number of singular matrix decompositions that were performed.
 
-.. option:: ISTATUS(9)
+ISTATUS(9)
+~~~~~~~~~~
 
-   Number of Hessian calls.
+Number of times :ref:`the Hessian matrix <Hessian-and-HessianSP>` was evaluated.
 
-.. option:: ISTATUS(10) ... ISTATUS(20)
+ISTATUS(10) .. ISTATUS(20)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   Currently not used.
+Currently not used.
 
 RSTATUS
 -------
@@ -1264,27 +1275,32 @@ RSTATUS
    | tau_leap                   |   |   |   |   |
    +----------------------------+---+---+---+---+
 
-.. option:: RSTATUS(1)
+RSTATUS(1)
+~~~~~~~~~~
 
-   :code:`Texit`, the time corresponding to the computed :math:`Y`
-   upon return.
+:code:`Texit`, the time corresponding to the computed :math:`Y`
+upon return.
 
-.. option:: RSTATUS(2)
+RSTATUS(2)
+~~~~~~~~~~
 
-   :code:`Hexit`: the last accepted step before exit.
+:code:`Hexit`: the last accepted step before exit.
 
-.. option:: RSTATUS(3)
+RSTATUS(3)
+~~~~~~~~~~
 
-   :code:`Hnew`: The last predicted step (not yet taken.  For multiple
-   restarts, use :code:`Hnew` as :code:`Hstart` in the subsequent run.
+:code:`Hnew`: The last predicted step (not yet taken.  For multiple
+restarts, use :code:`Hnew` as :code:`Hstart` in the subsequent run.
 
-.. option:: RSTATUS(4)
+RSTATUS(4)
+~~~~~~~~~~
 
-   (Solver-specific for :code:`rosenbrock_autoreduce`) :code:`AR_thr`:
-   used to output the calculated (used) auto-reduction threshold for
-   the integration. Useful when :code:`ICNTRL(10) > 0` where the
-   threshold is dynamically determined based on a given species.
+(Solver-specific for :code:`rosenbrock_autoreduce`) :code:`AR_thr`:
+used to output the calculated (used) auto-reduction threshold for
+the integration. Useful when :code:`ICNTRL(10) > 0` where the
+threshold is dynamically determined based on a given species.
 
-.. option:: RSTATUS(5) ... RSTATUS(20)
+RSTATUS(5) .. RSTATUS(20)
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   Currently not used.
+Currently not used.
