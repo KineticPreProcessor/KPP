@@ -13,7 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - TBD
 ### Added
-- Added `Rodas3_1` integration method to `rosenbrock_autoreduce.f90` and `rosenbrock.f90`, with updated coefficents by @msl3v
+- Added `Rodas3_1` integration method to `rosenbrock_autoreduce.f90`  and `rosenbrock.f90`, with updated coefficents by @msl3v
+  
+### Fixed
+- Fixed incorrect comment in `int/rosenbrock_autoreduce.f90`: `10*H` should be `0.1*H`
 
 ## [3.2.1] - 2025-05-06
 ### Added
