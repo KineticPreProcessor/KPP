@@ -4,7 +4,9 @@
 !               * Ros3                                                    !
 !               * Ros4                                                    !
 !               * Rodas3                                                  !
+!               * Rodas3.1                                                !
 !               * Rodas4                                                  !
+!               * Rang                                                    !
 !  By default the code employs the KPP sparse linear algebra routines     !
 !  Compile with -DFULL_ALGEBRA to use full linear algebra (LAPACK)        !
 !                                                                         !
@@ -1127,10 +1129,11 @@ Stage: DO istage = 1, ros_S
 
   END SUBROUTINE Rodas3
 
+!~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SUBROUTINE Rodas3_1
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ! --- A STIFFLY-STABLE METHOD, 4 stages, order 3
-! --- Updated coefficients by Mike Long
+! --- Updated coefficients by Mike Long (08 Apr 2025)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
@@ -1147,27 +1150,27 @@ Stage: DO istage = 1, ros_S
 !   The general mapping formula is:
 !       A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
 !       C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
-   ros_A(1)     =  0.0000000000000000
-   ros_A(2)     =  1.5522749561331444_dp
-   ros_A(3)     = -0.28748239678405541_dp
-   ros_A(4)     =  1.5522749561331441_dp
-   ros_A(5)     = -0.28748239678405541_dp
+   ros_A(1)     =  0.0000000000000000_dp
+   ros_A(2)     =  1.5455859854946308_dp
+   ros_A(3)     = -0.32423259753566347_dp
+   ros_A(4)     =  1.5455859854946306_dp
+   ros_A(5)     = -0.32423259753566347_dp
    ros_A(6)     =  1.0000000000000000_dp
-   ros_C(1)     = -4.0822837078364387_dp
-   ros_C(2)     = -5.2690201551695556E-002_dp
-   ros_C(3)     =  1.5762168387326447_dp
-   ros_C(4)     =  9.9274020776066105E-002_dp
-   ros_C(5)     =  1.7068140101558635_dp
-   ros_C(6)     = -2.5869229856413907_dp
+   ros_C(1)     = -4.0878103224931062_dp
+   ros_C(2)     = -4.0508515340792348E-002_dp
+   ros_C(3)     =  1.6492636626438379_dp
+   ros_C(4)     =  0.14650751606744400_dp
+   ros_C(5)     =  1.8139077133343517_dp
+   ros_C(6)     = -2.6067779278557426_dp
 !~~~> M_i = Coefficients for new step solution
-   ros_M(1)     =  1.5522749561331439_dp
-   ros_M(2)     = -0.28748239678405552_dp
-   ros_M(3)     =  0.99999999999999989_dp
+   ros_M(1)     =  1.5455859854946306_dp
+   ros_M(2)     = -0.32423259753566347_dp
+   ros_M(3)     =  1.0000000000000000_dp
    ros_M(4)     =  1.0000000000000000_dp
 !~~~> E_i  = Coefficients for error estimator
-   ros_E(1)     =  0.00000_dp
-   ros_E(2)     =  0.00000_dp
-   ros_E(3)     =  0.00000_dp
+   ros_E(1)     =  0.0000000000000000_dp
+   ros_E(2)     =  0.0000000000000000_dp
+   ros_E(3)     =  0.0000000000000000_dp
    ros_E(4)     =  1.0000000000000000_dp
 !~~~> ros_ELO  = estimator of local order - the minimum between the
 !    main and the embedded scheme orders plus 1
@@ -1177,10 +1180,11 @@ Stage: DO istage = 1, ros_S
    ros_Alpha(3) =  1.0000000000000000_dp
    ros_Alpha(4) =  1.0000000000000000_dp
 !~~~> Gamma_i = \sum_j  gamma_{i,j}
-   ros_Gamma(1) =  0.53000000000000003_dp
-   ros_Gamma(2) = -0.61671349353125593_dp
+   ros_Gamma(1) =  0.52249999999999996_dp
+   ros_Gamma(2) = -0.59349776685513334_dp
    ros_Gamma(3) =  0.0000000000000000_dp
    ros_Gamma(4) =  0.0000000000000000_dp
+
 !~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
 !   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
    ros_NewF(1)  =  .TRUE.
