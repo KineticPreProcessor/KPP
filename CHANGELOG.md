@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added `Rodas3_1` integration method to `rosenbrock_autoreduce.f90` and `rosenbrock.f90`, with updated coefficents by @msl3v
 
+### Fixed
+- Fixed incorrect comment in `int/rosenbrock_autoreduce.f90`: `10*H` should be `0.1*H`
+
 ## [3.3.1] - 2026-03-27
 ### Added
 - Added GitHub Action to run C-I tests with GCC compilers v9, v10, v11, v12, and v13
