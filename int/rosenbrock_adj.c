@@ -98,6 +98,7 @@ void Ros2();
 void Ros3();
 void Ros4();
 void Rodas3();
+void Rodas3_1();
 void Rodas4();
 void JacTemplate( KPP_REAL T, KPP_REAL Y[], KPP_REAL Jcb[] );
 void HessTemplate( KPP_REAL T, KPP_REAL Y[], KPP_REAL Hes[] );
@@ -2308,7 +2309,7 @@ void Rodas3_1()
    strcpy(ros_Name, "RODAS-3.1");
 
   /*~~~> Number of stages */
-   *ros_S = 4;
+   ros_S = 4;
 
   /*~~~> The coefficient matrices A and C are strictly lower triangular.
     The lower triangular (subdiagonal) elements are stored in row-wise order:
@@ -2351,7 +2352,7 @@ void Rodas3_1()
 
   /*~~~> ros_ELO  = estimator of local order - the minimum between the
 !    main and the embedded scheme orders plus 1 */
-   *ros_ELO  = (KPP_REAL)3.0000000000000000;
+   ros_ELO  = (KPP_REAL)3.0000000000000000;
 
   /*~~~> Y_stage_i ~ Y( T + H*Alpha_i ) */
    ros_Alpha[0] = (KPP_REAL)0.0000000000000000;
