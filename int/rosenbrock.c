@@ -1055,7 +1055,7 @@ void Rodas3_1 ( int *ros_S, KPP_REAL ros_A[], KPP_REAL ros_C[],
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 {
   /*~~~> Name of the method */
-   strcpy(ros_Name, "RODAS-3");
+   strcpy(ros_Name, "RODAS-3.1");
 
   /*~~~> Number of stages */
    *ros_S = 4;

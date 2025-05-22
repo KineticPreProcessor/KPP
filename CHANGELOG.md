@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - TBD
 ### Added
-- Added `Rodas3_1` integration method to `rosenbrock_autoreduce.f90`, `rosenbrock.f90`, `rosenbrock.c`, and `rosenbrock.m`, with updated coefficents by @msl3v
+- Added `Rodas3_1` integration method (with updated coefficents by @msl3v) to `rosenbrock_autoreduce.f90`, `rosenbrock.{c,f90,m}`, `rosenbrock_adj.{c,f90}`
   
 ### Fixed
 - Fixed incorrect comment in `int/rosenbrock_autoreduce.f90`: `10*H` should be `0.1*H`
@@ -502,3 +502,4 @@ Changes by Domenico Taraborrelli:
 - examples/mimi* deleted
 
 ## [2.1] - 2005-07-19
+ 
