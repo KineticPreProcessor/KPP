@@ -395,6 +395,9 @@ int RosenbrockADJ( KPP_REAL Y[], int NADJ, KPP_REAL Lambda[][NVAR],
     case 5:
       Rodas4();
       break;
+    case 7:
+      Rodas3_1();
+      break;
     default:
       printf( "Unknown Rosenbrock method: ICNTRL[2]=%d", ICNTRL[2] );
       return ros_ErrorMsg(-2, Tstart, ZERO);
@@ -555,6 +558,8 @@ int RosenbrockADJ( KPP_REAL Y[], int NADJ, KPP_REAL Lambda[][NVAR],
 	break;
       case 5:
 	Rodas4();
+      case 7:
+	Rodas3_1();
 	break;
       default:
 	printf( "Unknown Rosenbrock method: ICNTRL[2]=%d", ICNTRL[2] );
@@ -2293,11 +2298,79 @@ void Rodas3() {
 
 } /* End of Rodas3 */
 
+void Rodas3_1()
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  --- A STIFFLY-STABLE METHOD, 4 stages, order 3
+  --- Updated coefficients by Mike Long (22 May 2025)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+{
+  /*~~~> Name of the method */
+   strcpy(ros_Name, "RODAS-3.1");
+
+  /*~~~> Number of stages */
+   *ros_S = 4;
+
+  /*~~~> The coefficient matrices A and C are strictly lower triangular.
+    The lower triangular (subdiagonal) elements are stored in row-wise order:
+    A(2,1) = ros_A[0], A(3,1)=ros_A[1], A(3,2)=ros_A[2], etc.
+    The general mapping formula is:
+        A_{i,j} = ros_A[ (i-1)*(i-2)/2 + j -1 ]  */
+   ros_A[0] = (KPP_REAL)0.00000000000000000;
+   ros_A[1] = (KPP_REAL)1.5382237953138116;
+   ros_A[2] = (KPP_REAL)(-0.36440683885434433);
+   ros_A[3] = (KPP_REAL)1.538223795313811;
+   ros_A[4] = (KPP_REAL)(-0.36440683885434433);
+   ros_A[5] = (KPP_REAL)1.0000000000000000;
+
+  /*~~~>     C_{i,j} = ros_C[ (i-1)*(i-2)/2 + j -1]  */
+   ros_C[0] = (KPP_REAL)(-4.0919303685081028);
+   ros_C[1] = (KPP_REAL)(-3.0551174378039538e-002);
+   ros_C[2] = (KPP_REAL)1.7259281281917580;
+   ros_C[3] = (KPP_REAL)0.19561160936073679;
+   ros_C[4] = (KPP_REAL)1.9301670595355112;
+   ros_C[5] = (KPP_REAL)(-2.6267006001193960);
+
+  /*~~~> does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
+    or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE) */
+   ros_NewF[0]  = 1;
+   ros_NewF[1]  = 0;
+   ros_NewF[2]  = 1;
+   ros_NewF[3]  = 1;
+
+  /*~~~> M_i = Coefficients for new step solution */
+   ros_M[0] = (KPP_REAL)1.5382237953138116;
+   ros_M[1] = (KPP_REAL)(-0.36440683885434444);
+   ros_M[2] = (KPP_REAL)1.0000000000000002;
+   ros_M[3] = (KPP_REAL)1.0000000000000000;
+
+  /*~~~> E_i  = Coefficients for error estimator */
+   ros_E[0] = (KPP_REAL)0.0000000000000000;
+   ros_E[1] = (KPP_REAL)0.0000000000000000;
+   ros_E[2] = (KPP_REAL)0.0000000000000000;
+   ros_E[3] = (KPP_REAL)1.0000000000000000;
+
+  /*~~~> ros_ELO  = estimator of local order - the minimum between the
+!    main and the embedded scheme orders plus 1 */
+   *ros_ELO  = (KPP_REAL)3.0000000000000000;
+
+  /*~~~> Y_stage_i ~ Y( T + H*Alpha_i ) */
+   ros_Alpha[0] = (KPP_REAL)0.0000000000000000;
+   ros_Alpha[1] = (KPP_REAL)0.0000000000000000;
+   ros_Alpha[2] = (KPP_REAL)1.0000000000000000;
+   ros_Alpha[3] = (KPP_REAL)1.0000000000000000;
+
+  /*~~~> Gamma_i = \sum_j  gamma_{i,j}  */
+   ros_Gamma[0] = (KPP_REAL)0.5150000000000000;
+   ros_Gamma[1] = (KPP_REAL)(-0.57028223198756145);
+   ros_Gamma[2] = (KPP_REAL)0.0000000000000000;
+   ros_Gamma[3] = (KPP_REAL)0.0000000000000000;
+
+}  /* End of Rodas3.1 */
+
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void Rodas4() {
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     STIFFLY-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 6 STAGES
-
+     STIFFLY-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 6 
       E. HAIRER AND G. WANNER, SOLVING ORDINARY DIFFERENTIAL
       EQUATIONS II. STIFF AND DIFFERENTIAL-ALGEBRAIC PROBLEMS.
       SPRINGER SERIES IN COMPUTATIONAL MATHEMATICS,
