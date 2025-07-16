@@ -115,8 +115,8 @@ NR  	{CIF}*
 NRS 	[+-]?{CIF}+
 REAL  	{NRS}?"."?{NR}
 UREAL  	{NR}?"."?{NR}
-FLOAT   {REAL}([eE]{NRS})?
-UFLOAT  {UREAL}([eE]{NRS})?
+FLOAT   {REAL}([eEdD]{NRS})?
+UFLOAT  {UREAL}([eEdD]{NRS})?
 STOICH  {LIT}[a-zA-Z_0-9]*[*]
 
 %%

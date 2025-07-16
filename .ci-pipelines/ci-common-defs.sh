@@ -29,6 +29,7 @@ F90_sd
 F90_sdadj
 F90_seulex
 F90_small_strato
+F90_feuler
 "
 # Testing if #MINVERSION works
 MINVERSION_TEST="X_minver"
@@ -46,6 +47,18 @@ MCM_2="F90_mcm_h211b"
 function get_ci_test_path() {
     echo "${KPP_HOME}/ci-tests/${1}"
     return
+}
+
+# Prints a headeer with the compiler versions
+function print_compiler_versions() {
+    echo \
+"###########################################################################"
+    echo "         KPP CONTINUOUS INTEGRATION TESTS, USING THESE COMPILERS:"
+    echo ""
+    gcc --version
+    gfortran --version
+    echo \
+"###########################################################################"
 }
 
 # Run a C-I test

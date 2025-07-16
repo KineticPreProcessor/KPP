@@ -3,24 +3,57 @@
 <!-- Github markdown syntax: -->
 <!-- https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax -->
 
+<!-- Version numbers must be synchronized in CHANGELOG.md, src/gdata.h, -->
+<!-- docs/source/conf.py and https://en.wikipedia.org/wiki/Kinetic_PreProcessor -->
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - TBD
+## [3.2.1] - 2025-05-06
 ### Added
-- New integrator: `rosenbrock_h211b_qssa.f90`
-- New C-I tests: `F90_ros_h211b`, `F90_mcm_h211b`
-- `run_example.csh` and `run_example.sh` scripts for the `mcm` and `mcm_h211b` examples
-
+- Added documentation in the `#INITVALUES` section about using Fortran `d` (double precision) exponents
+- Added C-I test `F90_feuler`, using the Forward Euler integrator
+- Added carbon gases mechanism (`models/carbon.*`)
 
 ### Changed
-- Updated C-I test scripts to specify the name of the folder and name of the mechanism to build separately
-- Renamed `mcm` C-I test to `F90_mcm`
+- Updated `.ci-pipelines/build-testing.yml` to use `ubuntu-24.04` instead of `ubuntu-20.04` container for Azure C-I tests
+- Updated `jinja2` to version 3.1.6 (for ReadTheDocs) to fix a security issue identified by @dependabot
 
 ### Fixed
-- Add `char* rootFileName` to functions and function prototypes for `Use_C`, `Use_F`, `Use_F90`, `Use_MATLAB`, and `Generate`
+- Fixed parsing of `#INITVALUES` section to allow Fortran `d` (double-precision) exponents
+- Updated `int/feuler.f90` to return the `Texit` value as `RSTATUS(1)` (this was not being done)
+
+## [3.2.0] - 2025-02-27
+### Added
+- Added new inline key `F90_RCONST_USE` in `src/gdata.h` and `src/scanner.c`
+- Added documentation about `F90_RCONST_USE` for ReadTheDocs
+- Added `F90_RCONST_USE` inlined code to `Update_RConst`and `Update_Photo` routines
+- Added warning that LSODE is not thread-safe to ReadTheDocs documentation
+
+### Changed
+- Updated `Update_RCONST` to use `Y` instead of `C` to account for updated variable species concentrations
+- Updated C-I tests to print the compiler versions that are used
+- Updated routine `GenerateUpdateRconst` to manually write the `SUBROUTINE` and `END SUBROUTINE` lines (F90 only)
+- Updated routine `GenerateUpdateRconst` to inline code from `#INLINE F90_RCONST_USE` before any other F90 variable declarations or statements
+- Updated `.gitignore` to ignore all executable files
+- Changed `Begin INLINED RCONST - F90 USE STATEMENTS` to `Begin inlined code from F90_RCONST_USE` in `src/gen.c`
+- Changed inlined code comments to be more precise (e.g. `Begin inlined code from F90_RCONST`) in `src/gen.c`
+- Updated Flex library installation example on ReadTheDocs
+- Renamed `int/beuler.f90` to the `int/sdirk.f90`, as this is a newer version of the SDIRK integrator
+- Updated documentation for Backwards Euler to instruct user to select `#INTEGRATOR sdirk` with `ICNTRL(3) = 6`
+- Updated ReadTheDocs dependency`jinja2` to version 3.1.5 (fixes a security issue)
+
+### Fixed
+- Added `char* rootFileName` to functions and function prototypes for `Use_C`, `Use_F`, `Use_F90`, `Use_MATLAB`, and `Generate`
+- Updated `docs/requirements.txt` to use `jinja2==3.1.4` (fixes a security issue)
+- Moved `USE constants_mcm` from `F90_RCONST` to `F90_RCONST_USE` in `examples/mcm/mcm_isoprene.eqn`
+- Fixed MacOS-specific handling for x86_64 or arm64 in `src/Makefile.defs`
+
+### Removed
+- Removed `int/beuler.f90`
+- Removed `int/beuler.def`
 
 ## [3.1.1] - 2024-04-30
 ### Changed
@@ -32,8 +65,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Now only add tha extra `Aout` argument to `Fun` and `Fun_Split` for F90 (see issues #56, #96)
 
-<!-- Version numbers must be synchronized in CHANGELOG.md, -->
-<!-- src/gdata.h, and docs/source/conf.py-->
 ## [3.1.0] - 2023-12-20
 ### Added
 - `#AUTOREDUCE` has been added to the list of KPP commands in the ReadTheDocs documentaton

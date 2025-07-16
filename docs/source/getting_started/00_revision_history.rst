@@ -8,13 +8,22 @@ Only the major new features are listed here. For a detailed description
 of the changes, read `CHANGELOG.md
 <https://github.com/KineticPreProcessor/KPP/blob/main/CHANGELOG.md>`_.
 
-.. _unreleased:
+.. _kpp320:
 
-==========
-Unreleased
-==========
+=========
+KPP 3.2.0
+=========
 
-- Added the **rosenbrock_h211b_qssa** integrator.
+- Added new inline key :literal:`F90_RCONST_USE` so that F90
+  :literal:`USE` statements can be inlined into the
+  :code:`Update_RCONST` and :literal:`UPDATE_PHOTO` routines
+- Updated code in :code:`src/gen.c` to generate the
+  :code:`UPDATE_RCONST` routine with an optional argument :code:`Y`
+- Updated C-I tests to print the compiler versions that are used
+- Updated :literal:`int/sdirk.f90` to a newer version
+- Removed :literal:`int/beuler.f90`; Users can select Backward Euler
+  with :literal:`sdirk` integrator and :literal:`ICNTRL(3)=6`
+- Added MacOS architecture-specific compilation flags to the build sequence
 
 .. _kpp311:
 

@@ -1,0 +1,40 @@
+//
+// Example based on the GEOS-Chem carbon gases mechanism
+//
+
+// Species definitions
+#INCLUDE carbon.spc
+
+// Equation definitions
+#INCLUDE carbon.eqn
+
+// Output all species to carbon.dat
+#LOOKATALL
+
+// Print selected species to screen
+#MONITOR CH4; CO; PCOfromCH4; PCOfromNMVOC; LCH4byOH; LCObyOH;
+
+// Initial conditions
+#INITVALUES
+   CFACTOR      = 1.0e+00;
+   CH4          = 4.6703420e+13;
+   CO           = 3.4487402e+12;
+   PCOfromCH4   = 2.5302681e-01;
+   PCOfromNMVOC = 2.5302681e-01;
+   LCH4byOH     = 2.5302681e-01;
+   LCH4byCl     = 2.5302681e-01;
+   LCObyOH      = 2.5302681e-01;
+   FixedOH      = 1.0121073e+05;
+   FixedCl      = 2.5302681e-01;
+   DummyCH4     = 4.5544823e+13;
+   DummyNMVOC   = 2.5302681e-01;
+
+// F90 code to be inlined into ROOT_Global
+#INLINE F90_INIT
+   TSTART       = 0.0d0
+   TEND         = TSTART + (3.0d0 * 24.0d0 * 3600.0d0)
+   DT           = 3600.0d0
+   TEMP         = 270.0d0
+#ENDINLINE
+
+// NOTE: The Forward Euler integrator is only implemented in Fortran90!

@@ -110,6 +110,9 @@ CONTAINS
    VAR => NULL()
    FIX => NULL()
 
+   !~~~> Return the ending timestep as RSTATUS(1)
+   RSTATUS(1) = TOUT
+
    !~~~> Return error status (NOTE: ISTATUS_U does nothing)
    IF ( PRESENT( IERR_U    ) ) IERR_U    = IERR
    IF ( PRESENT( RSTATUS_U ) ) RSTATUS_U = RSTATUS

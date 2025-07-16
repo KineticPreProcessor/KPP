@@ -14,7 +14,7 @@ pr:
       - '*'
 
 pool:
-  vmImage: 'ubuntu-20.04'
+  vmImage: 'ubuntu-24.04'
 # Login to Docker Hub, build the image, and push the built image
 # to Docker Hub
 steps:

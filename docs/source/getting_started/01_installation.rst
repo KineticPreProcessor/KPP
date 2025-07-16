@@ -178,8 +178,9 @@ the :envvar:`KPP_FLEX_LIB_DIR`  environment variable in your
 .. code-block:: bash
 
    export KPP_FLEX_LIB_DIR=/usr/lib
+   export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${KPP_FLEX_LIB_DIR}:"
 
-And then apply the changes with:
+Then apply the changes with:
 
 .. code-block:: console
 

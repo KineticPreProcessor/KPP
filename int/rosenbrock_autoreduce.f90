@@ -2471,7 +2471,7 @@ SUBROUTINE FunTemplate( T, Y, Ydot, P_VAR, D_VAR )
    Told = TIME
    TIME = T
    IF ( Do_Update_SUN    ) CALL Update_SUN()
-   IF ( Do_Update_RCONST ) CALL Update_RCONST()
+   IF ( Do_Update_RCONST ) CALL Update_RCONST(Y)
    CALL KPP_FUN_OR_FUN_SPLIT
    TIME = Told
 
@@ -2568,7 +2568,7 @@ SUBROUTINE JacTemplate( T, Y, Jcb )
     Told = TIME
     TIME = T
     IF ( Do_Update_SUN    ) CALL Update_SUN()
-    IF ( Do_Update_RCONST ) CALL Update_RCONST()
+    IF ( Do_Update_RCONST ) CALL Update_RCONST(Y)
 #ifdef FULL_ALGEBRA
     CALL Jac_SP(Y, FIX, RCONST, JV)
     DO j=1,NVAR

@@ -1348,7 +1348,7 @@ SUBROUTINE FunTemplate( T, Y, Ydot )
    Told = TIME
    TIME = T
    IF ( Do_Update_SUN    ) CALL Update_SUN()
-   IF ( Do_Update_RCONST ) CALL Update_RCONST()
+   IF ( Do_Update_RCONST ) CALL Update_RCONST(Y)
    CALL Fun( Y, FIX, RCONST, Ydot )
    TIME = Told
 
@@ -1373,7 +1373,7 @@ SUBROUTINE JacTemplate( T, Y, Jcb )
     Told = TIME
     TIME = T
     IF ( Do_Update_SUN    ) CALL Update_SUN()
-    IF ( Do_Update_RCONST ) CALL Update_RCONST()
+    IF ( Do_Update_RCONST ) CALL Update_RCONST(Y)
     CALL Jac_SP( Y, FIX, RCONST, Jcb )
     TIME = Told
 
@@ -1398,7 +1398,7 @@ SUBROUTINE HessTemplate( T, Y, Hes )
     Told = TIME
     TIME = T
     IF ( Do_Update_SUN    ) CALL Update_SUN()
-    IF ( Do_Update_RCONST ) CALL Update_RCONST()
+    IF ( Do_Update_RCONST ) CALL Update_RCONST(Y)
     CALL Hessian( Y, FIX, RCONST, Hes )
     TIME = Told
 

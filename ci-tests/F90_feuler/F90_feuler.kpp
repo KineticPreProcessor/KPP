@@ -1,0 +1,9 @@
+#MINVERSION   3.2.0
+#INTEGRATOR   feuler
+#LANGUAGE     Fortran90
+#UPPERCASEF90 on
+#MODEL        carbon
+#DRIVER       general
+#HESSIAN      off
+#MEX          off
+#STOICMAT     off
