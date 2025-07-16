@@ -380,7 +380,8 @@ Rosenbrock with H211b time stepping
 
 **Integrator file:** :file:`int/rosenbrock_h211b_qssa.f90`
 
-H211b time stepping according to :cite:t:`Soederlind_2022` added.
+H211b time stepping according to :cite:t:`Soederlind_2022`, as
+implemented by :cite:t:`Dreger_2025`.
 
 .. _rk-methods:
 

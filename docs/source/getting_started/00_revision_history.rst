@@ -8,6 +8,14 @@ Only the major new features are listed here. For a detailed description
 of the changes, read `CHANGELOG.md
 <https://github.com/KineticPreProcessor/KPP/blob/main/CHANGELOG.md>`_.
 
+.. _unreleased:
+
+==========
+Unreleased
+==========
+
+- Added the **rosenbrock_h211b_qssa** integrator.
+
 .. _kpp320:
 
 =========
