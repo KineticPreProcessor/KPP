@@ -464,7 +464,7 @@ Notes about C-I tests:
    :ref:`running-kpp-with-an-example-mechanism`.
 #. :file:`X_minver` tests if the :ref:`minversion-cmd` command works
    properly.
-* Due to memory restrictions, the :file:`F90_mcm` and
+#. Due to memory restrictions, the :file:`F90_mcm` and
   :file:`F90_mcm_h211b` are not run on the Microsoft Azure Dev
   pipelines platform.  However, you can run these tests manaully.
 
