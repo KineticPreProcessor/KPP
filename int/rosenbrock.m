@@ -77,6 +77,7 @@ function [T, Y, RCNTRL, ICNTRL, RSTAT, ISTAT] = ...
 %        = 3 :    Ros4
 %        = 4 :    Rodas3
 %        = 5 :    Rodas4
+%        = 7 :    Rodas3.1
 %
 %    ICNTRL(4)  -> maximum number of integration steps
 %        For ICNTRL(4)=0) the default value of 100000 is used
@@ -882,7 +883,7 @@ return
 function [ params ] = Rodas3_1()
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 % --- A STIFFLY-STABLE METHOD, 4 stages, order 3
-% --- Updated coefficients by Mike Long (22 May 2025)
+% --- Updated coefficients by Mike Long (17 Jul 2025)
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 rosMethod = 4;
@@ -898,31 +899,31 @@ ros_S = 4;
 %       A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
 %       C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
 
-ros_A(1)     =  0.0000000000000000;
-ros_A(2)     =  1.5382237953138116;
-ros_A(3)     = -0.36440683885434433;
-ros_A(4)     =  1.5382237953138118;
-ros_A(5)     = -0.36440683885434433;
-ros_A(6)     =  1.0000000000000000;
+ros_A(1)     =  0.000000000000000;
+ros_A(2)     =  0.646601929740551;
+ros_A(3)     =  0.409567801987914;
+ros_A(4)     =  0.646601929740551;
+ros_A(5)     =  0.409567801987914;
+ros_A(6)     =  1.000000000000000;
 
-ros_C(1)     = -4.0919303685081028;
-ros_C(2)     = -3.0551174378039538e-002;
-ros_C(3)     =  1.7259281281917580;
-ros_C(4)     =  0.19561160936073679;
-ros_C(5)     =  1.9301670595355112;
-ros_C(6)     = -2.6267006001193960;
+ros_C(1)     =  4.198495621784201;
+ros_C(2)     =  3.711590161613010;
+ros_C(3)     = -1.787771994729384;
+ros_C(4)     =  4.458898153216104;
+ros_C(5)     = -2.024095448516552;
+ros_C(6)     = -2.626700600119396;
 
 %~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
 %   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
-ros_NewF(1)  = true;
-ros_NewF(2)  = false;
-ros_NewF(3)  = true;
-ros_NewF(4)  = true;
+ros_NewF(1)  =  true;
+ros_NewF(2)  =  false;
+ros_NewF(3)  =  true;
+ros_NewF(4)  =  true;
 %~~~> M_i = Coefficients for new step solution
-ros_M(1)     =  1.5382237953138116;
-ros_M(2)     = -0.36440683885434444;
-ros_M(3)     =  1.0000000000000002;
-ros_M(4)     =  1.0000000000000000;
+ros_M(1)     =  0.646601929740551;
+ros_M(2)     =  0.409567801987914;
+ros_M(3)     =  1.000000000000000;
+ros_M(4)     =  1.000000000000000;
 %~~~> E_i  = Coefficients for error estimator
 ros_E(1)     =  0.0000000000000000;
 ros_E(2)     =  0.0000000000000000;
@@ -930,15 +931,15 @@ ros_E(3)     =  0.0000000000000000;
 ros_E(4)     =  1.0000000000000000;
 %~~~> ros_ELO  = estimator of local order - the minimum between the
 %    main and the embedded scheme orders plus 1
-ros_ELO  = 3.0;
+ros_ELO      =  3.0;
 %~~~> Y_stage_i ~ Y( T + H*Alpha_i )
 ros_Alpha(1) =  0.0000000000000000;
 ros_Alpha(2) =  0.0000000000000000;
 ros_Alpha(3) =  1.0000000000000000;
 ros_Alpha(4) =  1.0000000000000000;
 %~~~> Gamma_i = \sum_j  gamma_{i,j}
-ros_Gamma(1) =  0.51500000000000001;
-ros_Gamma(2) = -0.57028223198756145;
+ros_Gamma(1) =  0.515000000000000;
+ros_Gamma(2) =  1.628546001287715;
 ros_Gamma(3) =  0.0000000000000000;
 ros_Gamma(4) =  0.0000000000000000;
 
