@@ -8,6 +8,31 @@ Only the major new features are listed here. For a detailed description
 of the changes, read `CHANGELOG.md
 <https://github.com/KineticPreProcessor/KPP/blob/main/CHANGELOG.md>`_.
 
+.. _unreleased:
+
+.. _kpp330:
+
+=========
+KPP 3.3.0
+=========
+
+- Added the :ref:`rosenbrock_h211b_qssa <rosenbrock-h211b-qssa>`
+  integrator as described in :cite:t:`Dreger_2025`, along with the
+  corresponding C-I tests.
+  
+.. _kpp321:
+
+=========
+KPP 3.2.1
+=========
+
+- Updated the Forward Euler integrator to return the :code:`Texit`
+  value via the :code:`RSTATUS(1)` argument
+- Fixed parsing of :code:`INITVALUES` to allow Fortran
+  double-precision exponents
+- Added carbon gases mechanism in :file:`models/carbon` folder
+- Added the C-I test :code:`F90_feuler` to validate the forward Euler integrator
+
 .. _kpp320:
 
 =========

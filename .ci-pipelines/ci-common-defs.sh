@@ -12,6 +12,7 @@ C_rosadj
 C_sd
 C_sdadj
 C_small_strato
+F90_feuler
 F90_lsode
 F90_radau
 F90_rk
@@ -20,6 +21,7 @@ F90_ros
 F90_rosadj
 F90_ros_autoreduce
 F90_rosenbrock
+F90_ros_h211b
 F90_ros_split
 F90_rostlm
 F90_ros_upcase
@@ -28,14 +30,14 @@ F90_sd
 F90_sdadj
 F90_seulex
 F90_small_strato
-F90_feuler
 "
 # Testing if #MINVERSION works
 MINVERSION_TEST="X_minver"
 
-# Testing if the Master Chemical Mechanism test works
+# Testing if the Master Chemical Mechanism tests work
 DO_MCM=1
-MCM_TEST="mcm"
+MCM_1="F90_mcm"
+MCM_2="F90_mcm_h211b"
 
 #=======================================================================
 # Functions
@@ -63,9 +65,10 @@ function print_compiler_versions() {
 function run_ci_test() {
 
     # Arguments
-    this_test=${1}     # Name of test
-    return_dir=${2}    # Directory where we will return upon test completion
-    extra_cmds=${3}    # Extra commands to pass to compilation
+    this_test=${1}     # Name of test directory
+    kpp_mech=${2}      # Name of the KPP mechanism
+    return_dir=${3}    # Directory where we will return upon test completion
+    extra_cmds=${4}    # Extra commands to pass to compilation
 
     # Navigate to C-I test folder (or exit if error)
     test_path=$(get_ci_test_path "${this_test}")
@@ -75,20 +78,23 @@ function run_ci_test() {
     echo ""
     echo ">>>>>>>> Generating ${this_test} mechanism with KPP <<<<<<<<"
     echo ""
-    ${KPP_HOME}/bin/kpp $this_test.kpp
+    ${KPP_HOME}/bin/kpp ${kpp_mech}.kpp
     [[ $? -ne 0 ]] && exit 1
 
     echo ""
     echo ">>>>>>>> Building the ${this_test} test executable <<<<<<<<<"
     echo ""
-    make -j -f Makefile_$this_test COMPILER=GFORTRAN ${extra_cmds}
+    make -j -f Makefile_${kpp_mech} COMPILER=GFORTRAN ${extra_cmds}
     [[ $? -ne 0 ]] && exit 1
 
     echo ""
     echo ">>>>>>>> Running the ${this_test} test <<<<<<<<"
     echo ""
-    ./$this_test.exe
+    ./${kpp_mech}.exe
     [[ $? -ne 0 ]] && exit 1
+
+    # For MCM mechanisms, print the mixing ratios to stdout
+    [[ -f mixrat.dat ]] && cat mixrat.dat
 
     echo ""
     echo ">>>>>>>> ${this_test} test was successful! <<<<<<<<"
@@ -125,6 +131,7 @@ function clean_ci_test_folder()  {
 
     # Arguments
     this_test=${1}     # Name of test
+    kpp_mech=${2}      # Name of KPP mechanism
     return_dir=${2}    # Directory where we will return upon test completion
 
     # Navigate to test folder (or exit if error)
@@ -135,11 +142,11 @@ function clean_ci_test_folder()  {
     echo ""
     echo ">>>>>>>> Making distclean for ${this_test} <<<<<<<<"
     echo ""
-    make -f Makefile_${this_test} distclean
+    make -f Makefile_${kpp_mech} distclean
 
     # Also remove other output files from the tests
     rm -f *.m
-    rm -f Makefile.${this_test}
+    rm -f Makefile.${kpp_mech}
 
     # Navigate back to original path and return w/ success
     cd ${cwd}
