@@ -343,62 +343,118 @@ integration tests :ref:`locally on your own computer
 List of continuous integration tests
 ------------------------------------
 
-.. _table-ci-tests:
-
-.. table:: Continuous integration tests
+.. list-table:: Continuous integration tests
+   :header-rows: 1
    :align: center
 
-   +------------------------+-----------+-----------------+-----------------------+
-   | C-I test               | Language  | Model           | Integrator            |
-   +========================+===========+=================+=======================+
-   | ``C_rk``               | C         | small_strato    | runge_kutta           |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``C_rosadj``           | C         | small_strato    | rosenbrock_adj        |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``C_sd``               | C         | small_strato    | sdirk                 |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``C_sdadj``            | C         | small_strato    | sdirk_adj             |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``C_small_strato``     | C         | small_strato    | rosenbrock            |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``F90_lsode``          | Fortran90 | small_strato    | lsode                 |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``F90_radau``          | Fortran90 | saprc99         | radau5                |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``F90_rk``             | Fortran90 | small_strato    | runge_kutta           |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``F90_rktlm``          | Fortran90 | small_strato    | runge_kutta_tlm       |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``F90_ros``            | Fortran90 | small_strato    | rosenbrock            |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``F90_ros_autoreduce`` | Fortran90 | saprc99         | rosenbrock_autoreduce |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``F90_ros_split``      | Fortran90 | small_strato    | rosenbrock            |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``F90_ros_upcase``     | Fortran90 | saprc99         | rosenbrock            |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``F90_rosadj``         | Fortran90 | small_strato    | rosenbrock_adj        |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``F90_rosenbrock``     | Fortran90 | saprc99         | rosenbrock            |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``F90_rostlm``         | Fortran90 | small_strato    | rosenbrock_tlm        |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``F90_saprc_2006``     | Fortran90 | saprcnov        | rosenbrock            |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``F90_sd``             | Fortran90 | small_strato    | sdirk                 |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``F90_sdadj``          | Fortran90 | small_strato    | sdirk_adj             |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``F90_seulex``         | Fortran90 | saprcnov        | seulex                |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``F90_small_strato``   | Fortran90 | small_strato    | rosenbrock            |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``F90_feuler``         | Fortran90 | carbon          | feuler                |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``mcm``                | Fortran90 | mcm             | rosenbrock            |
-   +------------------------+-----------+-----------------+-----------------------+
-   | ``X_minver``           | Fortran90 | small_strato    | runge_kutta           |
-   +------------------------+-----------+-----------------+-----------------------+
+   * - C-I test
+     - Language
+     - Model
+     - Integrator
+   * - :code:`C_rk`
+     - C
+     - small_strato
+     - runge_kutta
+   * - :code:`C_rosadj`
+     - C
+     - small_strato
+     - rosenbrock_adj
+   * - :code:`C_sd`
+     - C
+     - small_strato
+     - sdirk
+   * - :code:`C_sdadj`
+     - C
+     - small_strato
+     - sdirk_adj
+   * - :code:`C_small_strato`
+     - C
+     - small_strato
+     - rosenbrock
+   * - :code:`F90_feuler`
+     - Fortran90
+     - carbon
+     - feuler
+   * - :code:`F90_lsode`
+     - Fortran90
+     - small_strato
+     - lsode
+   * - :code:`F90_mcm`
+     - Fortran90
+     - mcm
+     - rosenbrock
+   * - :code:`F90_mcm_h211b`
+     - Fortran90
+     - mcm
+     - rosenbrock_h211b_qssa
+   * - :code:`F90_radau`
+     - Fortran90
+     - saprc99
+     - radau5
+   * - :code:`F90_rk`
+     - Fortran90
+     - small_strato
+     - runge_kutta
+   * - :code:`F90_rktlm`
+     - Fortran90
+     - small_strato
+     - runge_kutta_tlm
+   * - :code:`F90_ros`
+     - Fortran90
+     - small_strato
+     - rosenbrock
+   * - :code:`F90_rosadj`
+     - Fortran90
+     - small_strato
+     - rosenbrock_adj
+   * - :code:`F90_ros_autoreduce`
+     - Fortran90
+     - saprc99
+     - rosenbrock_autoreduce
+   * - :code:`F90_rosenbrock`
+     - Fortran90
+     - saprc99
+     - rosenbrock
+   * - :code:`F90_ros_h211b`
+     - Fortran90
+     - saprc99
+     - rosenbrock_h211b_qssa
+   * - :code:`F90_ros_split`
+     - Fortran90
+     - small_strato
+     - rosenbrock
+   * - :code:`F90_rostlm`
+     - Fortran90
+     - small_strato
+     - rosenbrock_tlm
+   * - :code:`F90_ros_upcase`
+     - Fortran90
+     - saprc99
+     - rosenbrock
+   * - :code:`F90_saprc_2006`
+     - Fortran90
+     - saprcnov
+     - rosenbrock
+   * - :code:`F90_sd`
+     - Fortran90
+     - small_strato
+     - sdirk
+   * - :code:`F90_sdadj`
+     - Fortran90
+     - small_strato
+     - sdirk_adj
+   * - :code:`F90_seulex`
+     - Fortran90
+     - saprcnov
+     - seulex
+   * - :code:`F90_small_strato`
+     - Fortran90
+     - small_strato
+     - rosenbrock
+   * - :code:`X_minver`
+     - Fortran90
+     - small_strato
+     - runge_kutta
 
 Notes about C-I tests:
 
@@ -408,6 +464,9 @@ Notes about C-I tests:
    :ref:`running-kpp-with-an-example-mechanism`.
 #. :file:`X_minver` tests if the :ref:`minversion-cmd` command works
    properly.
+* Due to memory restrictions, the :file:`F90_mcm` and
+  :file:`F90_mcm_h211b` are not run on the Microsoft Azure Dev
+  pipelines platform.  However, you can run these tests manaully.
 
 Each continuous integration test is contained in a subdirectory of
 :file:`$KPP_HOME/ci-tests`.  In each subdirectory is a KPP definition

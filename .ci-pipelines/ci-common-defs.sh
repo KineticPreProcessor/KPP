@@ -12,6 +12,7 @@ C_rosadj
 C_sd
 C_sdadj
 C_small_strato
+F90_feuler
 F90_lsode
 F90_radau
 F90_rk
@@ -29,7 +30,6 @@ F90_sd
 F90_sdadj
 F90_seulex
 F90_small_strato
-F90_feuler
 "
 # Testing if #MINVERSION works
 MINVERSION_TEST="X_minver"

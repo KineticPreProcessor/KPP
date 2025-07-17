@@ -1352,7 +1352,7 @@ Selects options for adjoint integrators.
    +-----------------+------------+----------------------------------+
 
 ICNTRL(8)
-~~~~~~~~
+~~~~~~~~~
 
 Determines if LU factorization will be checkpointed at each step
 (for adjoint integrators only).
