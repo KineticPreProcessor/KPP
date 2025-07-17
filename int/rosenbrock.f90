@@ -1133,7 +1133,7 @@ Stage: DO istage = 1, ros_S
   SUBROUTINE Rodas3_1
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ! --- A STIFFLY-STABLE METHOD, 4 stages, order 3
-! --- Updated coefficients by Mike Long (22 May 2025)
+! --- Updated coefficients by Mike Long (17 Jul 2025)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    IMPLICIT NONE
@@ -1145,52 +1145,54 @@ Stage: DO istage = 1, ros_S
    ros_S = 4
 
 !~~~> The coefficient matrices A and C are strictly lower triangular.
-!   The lower triangular (subdiagonal) elements are stored in row-wise order:
-!   A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
-!   The general mapping formula is:
+!     The lower triangular (subdiagonal) elements are stored 
+!     in row-wise order:
+!        A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
+!     The general mapping formula is:
 !       A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
 !       C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
-   ros_A(1)     =  0.0000000000000000_dp
-   ros_A(2)     =  1.5382237953138116_dp
-   ros_A(3)     = -0.36440683885434433_dp
-   ros_A(4)     =  1.5382237953138118_dp
-   ros_A(5)     = -0.36440683885434433_dp
-   ros_A(6)     =  1.0000000000000000_dp
-   ros_C(1)     = -4.0919303685081028_dp
-   ros_C(2)     = -3.0551174378039538E-002_dp
-   ros_C(3)     =  1.7259281281917580_dp
-   ros_C(4)     =  0.19561160936073679_dp
-   ros_C(5)     =  1.9301670595355112_dp
-   ros_C(6)     = -2.6267006001193960_dp
+   ros_A(1)     =  0.000000000000000_dp
+   ros_A(2)     =  0.646601929740551_dp
+   ros_A(3)     =  0.409567801987914_dp
+   ros_A(4)     =  0.646601929740551_dp
+   ros_A(5)     =  0.409567801987914_dp
+   ros_A(6)     =  1.000000000000000_dp
+   ros_C(1)     =  4.198495621784201_dp
+   ros_C(2)     =  3.711590161613010_dp
+   ros_C(3)     = -1.787771994729384_dp
+   ros_C(4)     =  4.458898153216104_dp
+   ros_C(5)     = -2.024095448516552_dp
+   ros_C(6)     = -2.626700600119396_dp
 !~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
-!   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
-   ros_NewF(1)  =  .TRUE.
-   ros_NewF(2)  =  .FALSE.
-   ros_NewF(3)  =  .TRUE.
-   ros_NewF(4)  =  .TRUE.
+!     or does it re-use the function evaluation from stage i-1 
+!     (ros_NewF(i)=FALSE)
+   ros_NewF(1)  = .TRUE.
+   ros_NewF(2)  = .FALSE.
+   ros_NewF(3)  = .TRUE.
+   ros_NewF(4)  = .TRUE.
 !~~~> M_i = Coefficients for new step solution
-   ros_M(1)     =  1.5382237953138116_dp
-   ros_M(2)     = -0.36440683885434444_dp
-   ros_M(3)     =  1.0000000000000002_dp
-   ros_M(4)     =  1.0000000000000000_dp
+   ros_M(1)     =  0.646601929740551_dp
+   ros_M(2)     =  0.409567801987914_dp
+   ros_M(3)     =  1.000000000000000_dp
+   ros_M(4)     =  1.000000000000000_dp
 !~~~> E_i  = Coefficients for error estimator
-   ros_E(1)     =  0.0000000000000000_dp
-   ros_E(2)     =  0.0000000000000000_dp
-   ros_E(3)     =  0.0000000000000000_dp
-   ros_E(4)     =  1.0000000000000000_dp
+   ros_E(1)     =  0.000000000000000_dp
+   ros_E(2)     =  0.000000000000000_dp
+   ros_E(3)     =  0.000000000000000_dp
+   ros_E(4)     =  1.000000000000000_dp
 !~~~> ros_ELO  = estimator of local order - the minimum between the
-!    main and the embedded scheme orders plus 1
-   ros_ELO      =  3.0000000000000000_dp
+!     main and the embedded scheme orders plus 1
+   ros_ELO      =  3.000000000000000_dp
 ! ~~~> Y_stage_i ~ Y( T + H*Alpha_i ) 
-   ros_Alpha(1) =  0.0000000000000000_dp
-   ros_Alpha(2) =  0.0000000000000000_dp
-   ros_Alpha(3) =  1.0000000000000000_dp
-   ros_Alpha(4) =  1.0000000000000000_dp
+   ros_Alpha(1) =  0.000000000000000_dp
+   ros_Alpha(2) =  0.000000000000000_dp
+   ros_Alpha(3) =  1.000000000000000_dp
+   ros_Alpha(4) =  1.000000000000000_dp
 !~~~> Gamma_i = \sum_j  gamma_{i,j}
-   ros_Gamma(1) =  0.51500000000000001_dp
-   ros_Gamma(2) = -0.57028223198756145_dp
-   ros_Gamma(3) =  0.0000000000000000_dp
-   ros_Gamma(4) =  0.0000000000000000_dp
+   ros_Gamma(1) =  0.515000000000000_dp
+   ros_Gamma(2) =  1.628546001287715_dp
+   ros_Gamma(3) =  0.000000000000000_dp
+   ros_Gamma(4) =  0.000000000000000_dp
 
   END SUBROUTINE Rodas3_1
 
