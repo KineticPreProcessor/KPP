@@ -6,7 +6,7 @@
 !               * Rodas3                                                  !
 !               * Rodas3.1                                                !
 !               * Rodas4                                                  !
-!               * Rang                                                    !
+!               * Rang3                                                   !
 !  By default the code employs the KPP sparse linear algebra routines     !
 !  Compile with -DFULL_ALGEBRA to use full linear algebra (LAPACK)        !
 !                                                                         !
@@ -194,7 +194,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !        = 3 :    Ros4
 !        = 4 :    Rodas3
 !        = 5 :    Rodas4
-!        = 6 :    Rang
+!        = 6 :    Rang3
 !        = 7 :    Rodas3.1
 !
 !    ICNTRL(4)  -> maximum number of integration steps
