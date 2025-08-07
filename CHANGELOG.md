@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added GitHub Action to run C-I tests with GCC compilers v9, v10, v11, v12, and v13
 - Added "Lint" GitHub Action to check other actions for security issues
 
+### Changed
+- Updated ReadTheDocs documentation to reflect that C-I tests are now done as a GitHub Action
+
 ### Removed
 - Removed C-I tests on Microsoft Azure Dev Pipelines
 
