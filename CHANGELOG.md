@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated ReadTheDocs documentation to reflect that C-I tests are now done as a GitHub Action
 
+## Fixed
+- Moved the `which kpp` instruction to the end of the "Build the KPP executable" section in the installation guide on ReadTheDocs
+
 ### Removed
 - Removed C-I tests on Microsoft Azure Dev Pipelines
 
