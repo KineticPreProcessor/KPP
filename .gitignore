@@ -6,7 +6,6 @@
 
 # Keep empty directory for executables, but ignore its contents
 /bin/*
-!/bin/.gitkeep
 
 # Ignore temporary files everywhere
 **/*.~*
@@ -60,5 +59,14 @@ docs/build/*
 
 # Ignore other files & folders
 *.pdf
-/examples/mcm*/__pycache__
+**/__pycache__
 
+# IMPORTANT: Do not ignore these files!
+!/bin/.gitkeep
+!/docs/figures/*.pdf
+!/util/*.c
+!/util/*.f
+!/util/*.h
+!/util/*.f90
+!/util/*.m
+!/util/Makefile*
