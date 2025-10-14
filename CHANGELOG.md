@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 - Moved the `which kpp` instruction to the end of the "Build the KPP executable" section in the installation guide on ReadTheDocs
+- Updated `.gitignore` to prevent inadvertently excluding files from `util/`
 
 ### Removed
 - Removed C-I tests on Microsoft Azure Dev Pipelines

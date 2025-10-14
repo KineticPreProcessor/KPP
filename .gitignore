@@ -20,6 +20,7 @@
 # results from ci-tests:
 /ci-tests/**/*.m
 /ci-tests/**/*results*
+/ci-tests/**/Makefile_*
 /ci-tests/**/*.exe
 /ci-tests/**/*.h
 /ci-tests/**/*.log
@@ -32,7 +33,7 @@
 # KPP-generated files:
 *_Function*
 *_Global*
-*_Hessian*
+/*_Hessian*
 *_HessianSP*
 *_Initialize*
 *_Integrator*
@@ -52,7 +53,7 @@
 *_Stoichiom*
 *_StoichiomSP*
 *_Util*
-Makefile_*
+/Makefile_*
 
 # LaTeX and BibTeX files:
 /manual/*.aux
