@@ -31,42 +31,32 @@
 !/bin/.gitkeep
 
 # KPP-generated files:
-*_Function*
-*_Global*
+/*_Function*
+/*_Global*
 /*_Hessian*
-*_HessianSP*
-*_Initialize*
-*_Integrator*
-*_Jacobian*
-*_JacobianSP*
-*_LinearAlgebra*
-*.log
-*_Main*
-*_mex_Fun*
-*_mex_Hessian*
-*_mex_Jac_SP*
-*_Model*
-*_Monitor*
-*_Parameters*
-*_Precision*
-*_Rates*
-*_Stoichiom*
-*_StoichiomSP*
-*_Util*
+/*_HessianSP*
+/*_Initialize*
+/*_Integrator*
+/*_Jacobian*
+/*_JacobianSP*
+/*_LinearAlgebra*
+/*.log
+/*_Main*
+/*_mex_Fun*
+/*_mex_Hessian*
+/*_mex_Jac_SP*
+/*_Model*
+/*_Monitor*
+/*_Parameters*
+/*_Precision*
+/*_Rates*
+/*_Stoichiom*
+/*_StoichiomSP*
+/*_Util*
 /Makefile_*
-
-# LaTeX and BibTeX files:
-/manual/*.aux
-/manual/*.bbl
-/manual/*.blg
-/manual/*.log
-/manual/*.toc
 
 # ReadTheDocs files
 docs/build/*
-
-# are there any *.dat files to exclude?
-*.dat
 
 # Other files/dirs to exclude
 *.pdf
