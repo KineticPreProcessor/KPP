@@ -528,7 +528,7 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
     CASE (-6)
       PRINT * , '--> No of steps exceeds maximum bound'
     CASE (-7)
-      PRINT * , '--> Step size too small: T + 10*H = T', &
+      PRINT * , '--> Step size too small: T + 0.1*H = T', &
             ' or H < Roundoff'
     CASE (-8)
       PRINT * , '--> Matrix is repeatedly singular'
@@ -653,38 +653,41 @@ UntilAccepted: DO
        RETURN
    END IF
 
-   !~~~>   Compute the stages
-   Stage: DO istage = 1, ros_S
-      
+!~~~>   Compute the stages
+Stage: DO istage = 1, ros_S
+
       ! Current istage offset. Current istage vector is K(ioffset+1:ioffset+N)
-      ioffset = N*(istage-1)
+       ioffset = N*(istage-1)
 
       ! For the 1st istage the function has been computed previously
-      IF ( istage == 1 ) THEN
+       IF ( istage == 1 ) THEN
          Fcn(1:N) = Fcn0(1:N)
-         ! istage>1 and a new function evaluation is needed at the current istage
-      ELSEIF ( ros_NewF(istage) ) THEN
+      ! istage>1 and a new function evaluation is needed at the current istage
+       ELSEIF ( ros_NewF(istage) ) THEN
          Ynew(1:N) = Y(1:N)
          DO j = 1, istage-1
-            Ynew(1:N) = Ynew(1:N) &
-                      + ros_A((istage-1)*(istage-2)/2+j) * K(N*(j-1)+1:N*j)
+           Ynew(1:N) = Ynew(1:N) + &
+                       ros_A((istage-1)*(istage-2)/2+j) * K(N*(j-1)+1:N*j)
          END DO
          Tau = T + ros_Alpha(istage)*Direction*H
          CALL FunTemplate( Tau, Ynew, Fcn )
          ISTATUS(Nfun) = ISTATUS(Nfun) + 1
-      END IF ! if istage == 1 elseif ros_NewF(istage)
-      K(ioffset+1:ioffset+N) = Fcn(1:N)
-      DO j = 1, istage-1
+       END IF ! if istage == 1 elseif ros_NewF(istage)
+       K(ioffset+1:ioffset+N) = Fcn(1:N)
+       DO j = 1, istage-1
          HC = ros_C((istage-1)*(istage-2)/2+j)/(Direction*H)
-         K(ioffset+1:ioffset+N) = K(ioffset+1:ioffset+N) + HC * K(N*(j-1)+1:N*j)
-      END DO
-      IF ((.NOT. Autonomous).AND.(ros_Gamma(istage).NE.ZERO)) THEN
+         K(ioffset+1:ioffset+N) = K(ioffset+1:ioffset+N) &
+                                + HC * K(N*(j-1)+1:N*j)
+       END DO
+       IF ((.NOT. Autonomous).AND.(ros_Gamma(istage).NE.ZERO)) THEN
          HG = Direction*H*ros_Gamma(istage)
-         K(ioffset+1:ioffset+N) = K(ioffset+1:ioffset+N) + HG * dFdT(1:N)
-      END IF
-      CALL ros_Solve(Ghimj, Pivot, K(ioffset+1))
+         K(ioffset+1:ioffset+N) = K(ioffset+1:ioffset+N) &
+                                + HG * dFdT(1:N)
+       END IF
+       CALL ros_Solve(Ghimj, Pivot, K(ioffset+1))
 
    END DO Stage
+
 
 !~~~>  Compute the new solution
    Ynew(1:N) = Y(1:N)
@@ -1015,7 +1018,7 @@ Stage: DO istage = 1, ros_S
          ! istage>1 and a new function evaluation is needed at the current istage
          ! K = 0.0_dp ! is this fix needed? hplin 14:04 -- not. 3 hours wiser later
        ELSEIF ( ros_NewF(istage) ) THEN
-         Fcn(1:N) = Fcn0(1:N)
+         Ynew(1:N) = Y(1:N)
          DO j = 1, istage-1
             ! In full vector space. Just use WAXPY as normal
             ! other entries in K are set to 1 previously.
@@ -1081,7 +1084,8 @@ Stage: DO istage = 1, ros_S
 
          ! faster version:
          DO i = 1,rNVAR
-            K(ioffset+SPC_MAP(i)) = K(ioffset+SPC_MAP(i)) + HC * K(N*(j-1)+SPC_MAP(i))
+            K(ioffset+SPC_MAP(i)) = K(ioffset+SPC_MAP(i)) &
+                                  + HC * K(N*(j-1)+SPC_MAP(i))
          ENDDO
          ! CALL zWAXPY(N,HC,K(N*(j-1)+1),K(ioffset+1),SPC_MAP)
          ! loop unrolling is consistently slower here. 18:58
@@ -1093,7 +1097,8 @@ Stage: DO istage = 1, ros_S
          ! full version: CALL WAXPY(N,HG,dFdT,1,K(ioffset+1),1)
          ! faster version:
          DO i = 1,rNVAR
-            K(ioffset+SPC_MAP(i)) = K(ioffset+SPC_MAP(i)) + HG * dFdT(SPC_MAP(i))
+            K(ioffset+SPC_MAP(i)) = K(ioffset+SPC_MAP(i)) &
+                                  + HG * dFdT(SPC_MAP(i))
          ENDDO
       ENDIF
 
@@ -1144,7 +1149,7 @@ Stage: DO istage = 1, ros_S
    ISTATUS(Nstp) = ISTATUS(Nstp) + 1
    IF ( (Err <= ONE).OR.(H <= Hmin) ) THEN  !~~~> Accept step
       ISTATUS(Nacc) = ISTATUS(Nacc) + 1
-      Ynew(1:N) = Y(1:N)
+      Y(1:N) = Ynew(1:N)
       T = T + Direction*H
       Hnew = MAX(Hmin,MIN(Hnew,Hmax))
       IF (RejectLastH) THEN  ! No step size increase after a rejected step
@@ -1542,7 +1547,8 @@ Stage: DO istage = 1, ros_S
 
          ! faster version:
          DO i = 1,rNVAR
-            K(ioffset+SPC_MAP(i)) = K(ioffset+SPC_MAP(i)) + HC * K(N*(j-1)+SPC_MAP(i))
+            K(ioffset+SPC_MAP(i)) = K(ioffset+SPC_MAP(i)) &
+                                  + HC * K(N*(j-1)+SPC_MAP(i))
          ENDDO
          ! CALL zWAXPY(N,HC,K(N*(j-1)+1),K(ioffset+1),SPC_MAP)
          ! loop unrolling is consistently slower here. 18:58
@@ -1554,7 +1560,8 @@ Stage: DO istage = 1, ros_S
          ! full version: CALL WAXPY(N,HG,dFdT,1,K(ioffset+1),1)
          ! faster version:
          DO i = 1,rNVAR
-            K(ioffset+SPC_MAP(i)) = K(ioffset+SPC_MAP(i)) + HG * dFdT(SPC_MAP(i))
+            K(ioffset+SPC_MAP(i)) = K(ioffset+SPC_MAP(i)) &
+                                  + HG * dFdT(SPC_MAP(i))
          ENDDO
       ENDIF
 
