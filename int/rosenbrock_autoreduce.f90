@@ -307,7 +307,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
    ISTATUS(1:8) = 0
    RSTATUS(1:4) = ZERO
 
-!~~~>  Autonomous or time dependent ODE. Default is time dependent.
+!~~~>  Autonomous (1) or time dependent ODE (0). Default is time dependent.
    Autonomous = .NOT.(ICNTRL(1) == 0)
 
 !~~~>  For Scalar tolerances (ICNTRL(2).NE.0)  the code uses AbsTol(1) and RelTol(1)
@@ -653,55 +653,49 @@ UntilAccepted: DO
        RETURN
    END IF
 
-!~~~>   Compute the stages
-Stage: DO istage = 1, ros_S
-
+   !~~~>   Compute the stages
+   Stage: DO istage = 1, ros_S
+      
       ! Current istage offset. Current istage vector is K(ioffset+1:ioffset+N)
-       ioffset = N*(istage-1)
+      ioffset = N*(istage-1)
 
       ! For the 1st istage the function has been computed previously
-       IF ( istage == 1 ) THEN
-         !slim: CALL WCOPY(N,Fcn0,1,Fcn,1)
+      IF ( istage == 1 ) THEN
          Fcn(1:N) = Fcn0(1:N)
-      ! istage>1 and a new function evaluation is needed at the current istage
-       ELSEIF ( ros_NewF(istage) ) THEN
-         !slim: CALL WCOPY(N,Y,1,Ynew,1)
+         ! istage>1 and a new function evaluation is needed at the current istage
+      ELSEIF ( ros_NewF(istage) ) THEN
          Ynew(1:N) = Y(1:N)
          DO j = 1, istage-1
-           CALL WAXPY(N,ros_A((istage-1)*(istage-2)/2+j), &
-            K(N*(j-1)+1),1,Ynew,1)
+            Ynew(1:N) = Ynew(1:N) &
+                      + ros_A((istage-1)*(istage-2)/2+j) * K(N*(j-1)+1:N*j)
          END DO
          Tau = T + ros_Alpha(istage)*Direction*H
          CALL FunTemplate( Tau, Ynew, Fcn )
          ISTATUS(Nfun) = ISTATUS(Nfun) + 1
-       END IF ! if istage == 1 elseif ros_NewF(istage)
-       !slim: CALL WCOPY(N,Fcn,1,K(ioffset+1),1)
-       K(ioffset+1:ioffset+N) = Fcn(1:N)
-       DO j = 1, istage-1
+      END IF ! if istage == 1 elseif ros_NewF(istage)
+      K(ioffset+1:ioffset+N) = Fcn(1:N)
+      DO j = 1, istage-1
          HC = ros_C((istage-1)*(istage-2)/2+j)/(Direction*H)
-         CALL WAXPY(N,HC,K(N*(j-1)+1),1,K(ioffset+1),1)
-       END DO
-       IF ((.NOT. Autonomous).AND.(ros_Gamma(istage).NE.ZERO)) THEN
+         K(ioffset+1:ioffset+N) = K(ioffset+1:ioffset+N) + HC * K(N*(j-1)+1:N*j)
+      END DO
+      IF ((.NOT. Autonomous).AND.(ros_Gamma(istage).NE.ZERO)) THEN
          HG = Direction*H*ros_Gamma(istage)
-         CALL WAXPY(N,HG,dFdT,1,K(ioffset+1),1)
-       END IF
-       CALL ros_Solve(Ghimj, Pivot, K(ioffset+1))
+         K(ioffset+1:ioffset+N) = K(ioffset+1:ioffset+N) + HG * dFdT(1:N)
+      END IF
+      CALL ros_Solve(Ghimj, Pivot, K(ioffset+1))
 
    END DO Stage
 
-
 !~~~>  Compute the new solution
-   !slim: CALL WCOPY(N,Y,1,Ynew,1)
    Ynew(1:N) = Y(1:N)
    DO j=1,ros_S
-         CALL WAXPY(N,ros_M(j),K(N*(j-1)+1),1,Ynew,1)
+      Ynew(1:N) = Ynew(1:N) + ros_M(j) * K(N*(j-1)+1:N*j)
    END DO
 
 !~~~>  Compute the error estimation
-   !slim: CALL WSCAL(N,ZERO,Yerr,1)
    Yerr(1:N) = ZERO
    DO j=1,ros_S
-        CALL WAXPY(N,ros_E(j),K(N*(j-1)+1),1,Yerr,1)
+      Yerr(1:N) = Yerr(1:N) + ros_E(j) * K(N*(j-1)+1:N*j)
    END DO
    Err = ros_ErrorNorm ( Y, Ynew, Yerr, AbsTol, RelTol, VectorTol )
 
@@ -717,7 +711,6 @@ Stage: DO istage = 1, ros_S
         ! new value is non-negative:
         Y = MAX(Ynew,ZERO)
       ELSE
-        !slim: CALL WCOPY(N,Ynew,1,Y,1)
         Y(1:N) = Ynew(1:N)
       ENDIF      
       T = T + Direction*H
@@ -1018,13 +1011,11 @@ Stage: DO istage = 1, ros_S
 
       ! For the 1st istage the function has been computed previously
        IF ( istage == 1 ) THEN
-         call WCOPY(N,Fcn0,1,Fcn,1)
-         ! Fcn(1:N) = Fcn0(1:N)
+         Fcn(1:N) = Fcn0(1:N)
          ! istage>1 and a new function evaluation is needed at the current istage
          ! K = 0.0_dp ! is this fix needed? hplin 14:04 -- not. 3 hours wiser later
        ELSEIF ( ros_NewF(istage) ) THEN
-         call WCOPY(N,Y,1,Ynew,1)
-         ! Ynew(1:N) = Y(1:N)
+         Fcn(1:N) = Fcn0(1:N)
          DO j = 1, istage-1
             ! In full vector space. Just use WAXPY as normal
             ! other entries in K are set to 1 previously.
@@ -1153,8 +1144,7 @@ Stage: DO istage = 1, ros_S
    ISTATUS(Nstp) = ISTATUS(Nstp) + 1
    IF ( (Err <= ONE).OR.(H <= Hmin) ) THEN  !~~~> Accept step
       ISTATUS(Nacc) = ISTATUS(Nacc) + 1
-      CALL WCOPY(N,Ynew,1,Y,1)
-      !Y(1:N) = Ynew(1:N)
+      Ynew(1:N) = Y(1:N)
       T = T + Direction*H
       Hnew = MAX(Hmin,MIN(Hnew,Hmax))
       IF (RejectLastH) THEN  ! No step size increase after a rejected step
@@ -1482,13 +1472,11 @@ Stage: DO istage = 1, ros_S
 
       ! For the 1st istage the function has been computed previously
        IF ( istage == 1 ) THEN
-         call WCOPY(N,Fcn0,1,Fcn,1)
-         ! Fcn(1:N) = Fcn0(1:N)
+         Fcn(1:N) = Fcn0(1:N)
          ! istage>1 and a new function evaluation is needed at the current istage
          ! K = 0.0_dp ! is this fix needed? hplin 14:04 -- not. 3 hours wiser later
        ELSEIF ( ros_NewF(istage) ) THEN
-         call WCOPY(N,Y,1,Ynew,1)
-         ! Ynew(1:N) = Y(1:N)
+         Ynew(1:N) = Y(1:N)
          DO j = 1, istage-1
             ! In full vector space. Just use WAXPY as normal
             ! other entries in K are set to 1 previously.
@@ -1616,8 +1604,7 @@ Stage: DO istage = 1, ros_S
    ISTATUS(Nstp) = ISTATUS(Nstp) + 1
    IF ( (Err <= ONE).OR.(H <= Hmin) ) THEN  !~~~> Accept step
       ISTATUS(Nacc) = ISTATUS(Nacc) + 1
-      CALL WCOPY(N,Ynew,1,Y,1)
-      !Y(1:N) = Ynew(1:N)
+      Y(1:N) = Ynew(1:N)
       T = T + Direction*H
       Hnew = MAX(Hmin,MIN(Hnew,Hmax))
       IF (RejectLastH) THEN  ! No step size increase after a rejected step
@@ -1729,8 +1716,8 @@ Stage: DO istage = 1, ros_S
    Delta = SQRT(Roundoff)*MAX(DeltaMin,ABS(T))
    CALL FunTemplate( T+Delta, Y, dFdT )
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
-   CALL WAXPY(N,(-ONE),Fcn0,1,dFdT,1)
-   CALL WSCAL(N,(ONE/Delta),dFdT,1)
+   dFdT(1:N) = dFdT(1:N) - Fcn0(1:N)
+   dFdT(1:N) = dFdT(1:N) * (ONE/Delta)
 
   END SUBROUTINE ros_FunTimeDerivative
 
@@ -1778,16 +1765,12 @@ Stage: DO istage = 1, ros_S
 
 !~~~>    Construct Ghimj = 1/(H*gam) - Jac0
 #ifdef FULL_ALGEBRA
-     !slim: CALL WCOPY(N*N,Jac0,1,Ghimj,1)
-     !slim: CALL WSCAL(N*N,(-ONE),Ghimj,1)
      Ghimj = -Jac0
      ghinv = ONE/(Direction*H*gam)
      DO i=1,rNVAR
        Ghimj(i,i) = Ghimj(i,i)+ghinv
      END DO
 #else
-     !slim: CALL WCOPY(LU_NONZERO,Jac0,1,Ghimj,1)
-     !slim: CALL WSCAL(LU_NONZERO,(-ONE),Ghimj,1)
      Ghimj(1:cNONZERO) = -Jac0(JVS_MAP(1:cNONZERO))
      ghinv = ONE/(Direction*H*gam)
      DO i=1,rNVAR
@@ -1873,8 +1856,6 @@ Stage: DO istage = 1, ros_S
    Btmp = 0.d0
    Atmp(map1(1:cNONZERO)) = A
    btmp(map2(1:rNVAR))    = b
-!   call cWCOPY(cNONZERO,LU_NONZERO,A,1,Atmp,1,map1)
-!   call cWCOPY(rNVAR,NVAR,B,1,Btmp,1,map2)
    CALL KppSolve( Atmp, btmp )
    b = btmp(map2(1:rNVAR))
 #endif
@@ -1926,16 +1907,12 @@ Stage: DO istage = 1, ros_S
 
 !~~~>    Construct Ghimj = 1/(H*gam) - Jac0
 #ifdef FULL_ALGEBRA
-     !slim: CALL WCOPY(N*N,Jac0,1,Ghimj,1)
-     !slim: CALL WSCAL(N*N,(-ONE),Ghimj,1)
      Ghimj = -Jac0
      ghinv = ONE/(Direction*H*gam)
      DO i=1,N
        Ghimj(i,i) = Ghimj(i,i)+ghinv
      END DO
 #else
-     !slim: CALL WCOPY(LU_NONZERO,Jac0,1,Ghimj,1)
-     !slim: CALL WSCAL(LU_NONZERO,(-ONE),Ghimj,1)
      Ghimj(1:LU_NONZERO) = -Jac0(1:LU_NONZERO)
      ghinv = ONE/(Direction*H*gam)
      DO i=1,N

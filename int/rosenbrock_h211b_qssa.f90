@@ -837,31 +837,25 @@ Stage: DO istage = 1, ros_S
 
       ! For the 1st istage the function has been computed previously
        IF ( istage == 1 ) THEN
-         !slim: CALL WCOPY(N,Fcn0,1,Fcn,1)
          Fcn(1:N) = Fcn0(1:N)
       ! istage>1 and a new function evaluation is needed at the current istage
        ELSEIF ( ros_NewF(istage) ) THEN
-         !slim: CALL WCOPY(N,Y,1,Ynew,1)
          Ynew(1:N) = Y(1:N)
          DO j = 1, istage-1
-           ! CALL WAXPY(N,ros_A((istage-1)*(istage-2)/2+j), &
-           ! K(N*(j-1)+1),1,Ynew,1)
-           Ynew(1:N) = Ynew(1:N) + K(N*(j-1)+1:N*j) * ros_A((istage-1)*(istage-2)/2+j)
+           Ynew(1:N) = Ynew(1:N) +                                 &
+                K(N*(j-1)+1:N*j) * ros_A((istage-1)*(istage-2)/2+j)
          END DO
          Tau = T + ros_Alpha(istage)*Direction*H
          CALL FunTemplate( Tau, Ynew, Fcn )
          ISTATUS(Nfun) = ISTATUS(Nfun) + 1
        END IF ! if istage == 1 elseif ros_NewF(istage)
-       !slim: CALL WCOPY(N,Fcn,1,K(ioffset+1),1)
        K(ioffset+1:ioffset+N) = Fcn(1:N)
        DO j = 1, istage-1
          HC = ros_C((istage-1)*(istage-2)/2+j)/(Direction*H)
-         ! CALL WAXPY(N,HC,K(N*(j-1)+1),1,K(ioffset+1),1)
          K(ioffset+1:ioffset+N) = K(ioffset+1:ioffset+N) + K(N*(j-1)+1:N*j) * HC
        END DO
        IF ((.NOT. Autonomous).AND.(ros_Gamma(istage).NE.ZERO)) THEN
          HG = Direction*H*ros_Gamma(istage)
-!         CALL WAXPY(N,HG,dFdT,1,K(ioffset+1),1)
          K(ioffset+1:ioffset+N) = K(ioffset+1:ioffset+N) + dFdT(1:N) * HG
        END IF
        CALL ros_Solve(Ghimj, Pivot, K(ioffset+1))
@@ -870,18 +864,14 @@ Stage: DO istage = 1, ros_S
 
 
 !~~~>  Compute the new solution
-   !slim: CALL WCOPY(N,Y,1,Ynew,1)
    Ynew(1:N) = Y(1:N)
    DO j=1,ros_S
-     ! CALL WAXPY(N,ros_M(j),K(N*(j-1)+1),1,Ynew,1)
      Ynew(1:N) = Ynew(1:N) + K(N*(j-1)+1:N*j) * ros_m(j)
    END DO
 
 !~~~>  Compute the error estimation
-   !slim: CALL WSCAL(N,ZERO,Yerr,1)
    Yerr(1:N) = ZERO
    DO j=1,ros_S
-     ! CALL WAXPY(N,ros_E(j),K(N*(j-1)+1),1,Yerr,1)
      Yerr(1:N) = Yerr(1:N) + K(N*(j-1)+1:N*j) * ros_E(j)
    END DO
    Err = ros_ErrorNorm ( Y, Ynew, Yerr, AbsTol, RelTol, VectorTol )
@@ -908,7 +898,6 @@ Stage: DO istage = 1, ros_S
         ! new value is non-negative:
         Y = MAX(Ynew,ZERO)
       ELSE
-        !slim: CALL WCOPY(N,Ynew,1,Y,1)
         Y(1:N) = Ynew(1:N)
       ENDIF      
       T = T + Direction*H
@@ -995,9 +984,7 @@ Stage: DO istage = 1, ros_S
    Delta = SQRT(Roundoff)*MAX(DeltaMin,ABS(T))
    CALL FunTemplate( T+Delta, Y, dFdT )
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
-   ! CALL WAXPY(N,(-ONE),Fcn0,1,dFdT,1)
    dFdt(1:N) = dFdt(1:N) - ONE * FcN0(1:N)
-   ! CALL WSCAL(N,(ONE/Delta),dFdT,1)
    dFDT(1:N) = dFDT(1:N) * (ONE/Delta)
   END SUBROUTINE ros_FunTimeDerivative
 
@@ -1045,16 +1032,12 @@ Stage: DO istage = 1, ros_S
 
 !~~~>    Construct Ghimj = 1/(H*gam) - Jac0
 #ifdef FULL_ALGEBRA
-     !slim: CALL WCOPY(N*N,Jac0,1,Ghimj,1)
-     !slim: CALL WSCAL(N*N,(-ONE),Ghimj,1)
      Ghimj = -Jac0
      ghinv = ONE/(Direction*H*gam)
      DO i=1,N
        Ghimj(i,i) = Ghimj(i,i)+ghinv
      END DO
 #else
-     !slim: CALL WCOPY(LU_NONZERO,Jac0,1,Ghimj,1)
-     !slim: CALL WSCAL(LU_NONZERO,(-ONE),Ghimj,1)
      Ghimj(1:LU_NONZERO) = -Jac0(1:LU_NONZERO)
      ghinv = ONE/(Direction*H*gam)
      DO i=1,N
