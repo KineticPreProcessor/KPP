@@ -22,9 +22,7 @@ MODULE KPP_ROOT_Integrator
   USE KPP_ROOT_Global
   USE KPP_ROOT_Parameters
   USE KPP_ROOT_JacobianSP,    ONLY : LU_DIAG
-  USE KPP_ROOT_LinearAlgebra, ONLY : KppDecomp, KppSolve, Set2zero, &
-                                     WLAMCH,    WCOPY,    WAXPY,    &
-                                     WSCAL,     WADD
+  USE KPP_ROOT_LinearAlgebra, ONLY : KppDecomp, KppSolve, WLAMCH
 
   IMPLICIT NONE
   PUBLIC
@@ -591,17 +589,16 @@ stages:DO istage = 1, rkS
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 !~~~>  Starting values for Newton iterations
-       CALL Set2zero(N,Z(1,istage))
-
+       G(1:N)        = 0.0_dp
+       Z(1:N,istage) = 0.0_dp
 !~~~>   Prepare the loop-independent part of the right-hand side
-       CALL Set2zero(N,G)
        IF (istage > 1) THEN
            DO j = 1, istage-1
                ! Gj(:) = sum_j Theta(i,j)*Zj(:) = H * sum_j A(i,j)*Fun(Zj)
-               CALL WAXPY(N,rkTheta(istage,j),Z(1,j),1,G,1)
+               G(1:N) = G(1:N) + rkTheta(istage,j) * Z(1:N,j)
                ! Zi(:) = sum_j Alpha(i,j)*Zj(:)
                IF (StartNewton) THEN
-                  CALL WAXPY(N,rkAlpha(istage,j),Z(1,j),1,Z(1,istage),1)
+                  Z(1:N,istage) = Z(1:N,istage) + rkAlpha(istage,j) * Z(1:N,j)
                END IF
            END DO
        END IF
@@ -613,13 +610,13 @@ stages:DO istage = 1, rkS
 NewtonLoop:DO NewtonIter = 1, NewtonMaxit
 
 !~~~>   Prepare the loop-dependent part of the right-hand side
-            CALL WADD(N,Y,Z(1,istage),TMP)              ! TMP <- Y + Zi
+            TMP(1:N) = Y(1:N) + Z(1:N,istage)           ! TMP <- Y + Zi
             CALL FUN_CHEM(T+rkC(istage)*H,TMP,RHS)      ! RHS <- Fun(Y+Zi)
             ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 !            RHS(1:N) = G(1:N) - Z(1:N,istage) + (H*rkGamma)*RHS(1:N)
-            CALL WSCAL(N, H*rkGamma, RHS, 1)
-            CALL WAXPY (N, -ONE, Z(1,istage), 1, RHS, 1)
-            CALL WAXPY (N, ONE, G,1, RHS,1)
+            RHS(1:N) = RHS(1:N) * (H * rkGamma)
+            RHS(1:N) = RHS(1:N) - Z(1:N,istage)
+            RHS(1:N) = RHS(1:N) + G(1:N)
 
 !~~~>   Solve the linear system
             CALL SDIRK_Solve ( H, N, E, IP, IER, RHS )
@@ -648,7 +645,7 @@ NewtonLoop:DO NewtonIter = 1, NewtonMaxit
             END IF
             NewtonIncrementOld = NewtonIncrement
             ! Update solution: Z(:) <-- Z(:)+RHS(:)
-            CALL WAXPY(N,ONE,RHS,1,Z(1,istage),1)
+            Z(1:N,istage) = Z(1:N,istage) + RHS(1:N)
 
             ! Check error in Newton iterations
             NewtonDone = (NewtonRate*NewtonIncrement <= NewtonTol)
@@ -675,9 +672,9 @@ NewtonLoop:DO NewtonIter = 1, NewtonMaxit
       ISTATUS(Nstp) = ISTATUS(Nstp) + 1
 
       IF (sdMethod /= BEL) THEN ! All methods but Backward Euler
-        CALL Set2zero(N,TMP)
+        TMP(1:N) = 0.0_dp
         DO i = 1,rkS
-          IF (rkE(i)/=ZERO) CALL WAXPY(N,rkE(i),Z(1,i),1,TMP,1)
+          IF (rkE(i)/=ZERO) TMP(1:N) = TMP(1:N) + rkE(i) * Z(1:N,i)
         END DO
 
         CALL SDIRK_Solve( H, N, E, IP, IER, TMP )
@@ -704,7 +701,7 @@ accept: IF ( Err < ONE ) THEN !~~~> Step is accepted
          T  =  T + H
          ! Y(:) <-- Y(:) + Sum_j rkD(j)*Z_j(:)
          DO i = 1,rkS
-            IF (rkD(i)/=ZERO) CALL WAXPY(N,rkD(i),Z(1,i),1,Y,1)
+            IF (rkD(i)/=ZERO) Y(1:N) = Y(1:N) + rkD(i) * Z(1:N,i)
          END DO
 
 !~~~> Update scaling coefficients
@@ -918,10 +915,10 @@ Hloop: DO WHILE (ISING /= 0)
       KPP_REAL, INTENT(IN) :: E(LU_NONZERO)
 #endif
       KPP_REAL, INTENT(INOUT) :: RHS(N)
-      KPP_REAL                :: HGammaInv
 
-      HGammaInv = ONE/(H*rkGamma)
-      CALL WSCAL(N,HGammaInv,RHS,1)
+      ! NOTE: This line reproduces the results of the
+      ! previous WAXPY call (@yantosca, 16 Oct 2025)
+      RHS(1:N) = RHS(1:N) * (ONE / (H * rkGamma))
 #ifdef FULL_ALGEBRA
       CALL DGETRS( 'N', N, 1, E, N, IP, RHS, N, ISING )
 #else
