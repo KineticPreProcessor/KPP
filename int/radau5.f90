@@ -726,9 +726,9 @@ NewtonLoop:DO  NewtonIter = 1, NewtonMaxit
                 END IF
             END IF
             DYNOLD=MAX(DYNO,Roundoff) 
-            CALL WAXPY(N,ONE,Z1,1,F1,1) ! F1 <- F1 + Z1
-            CALL WAXPY(N,ONE,Z2,1,F2,1) ! F2 <- F2 + Z2
-            CALL WAXPY(N,ONE,Z3,1,F3,1) ! F3 <- F3 + Z3
+            F1(1:N) = F1(1:N) + Z1(1:N)  ! F1 <- F1 + Z1
+            F2(1:N) = F2(1:N) + Z2(1:N)  ! F2 <- F2 + Z2
+            F3(1:N) = F3(1:N) + Z3(1:N)  ! F3 <- F3 + Z3
             !  Z(1,2,3) = Transf x F(1,2,3)
             CALL RAD_Transform(N,Transf,F1,F2,F3,Z1,Z2,Z3)
             NewtonDone = (FacConv*DYNO <= TolNewton)
