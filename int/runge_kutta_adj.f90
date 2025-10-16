@@ -813,15 +813,11 @@ CONTAINS ! Internal procedures to RungeKuttaADJ
    END IF  
    chk_H( stack_ptr ) = H
    chk_T( stack_ptr ) = T
-   ! CALL WCOPY(NVAR,Y,1,chk_Y(1,stack_ptr),1)
-   ! CALL WCOPY(NVAR*3,Zstage,1,chk_Z(1,stack_ptr),1)
    chk_Y(1:N,stack_ptr) = Y(1:N)
    chk_Z(1:3*N,stack_ptr) = Zstage(1:3*N)
    chk_NiT( stack_ptr ) = NewIt
    IF (SaveLU) THEN 
 #ifdef FULL_ALGEBRA      
-     ! CALL WCOPY(NVAR*NVAR, E1,1,chk_E1(1,stack_ptr),1)
-     ! CALL WCOPYCmplx(NVAR*NVAR, E2,1,chk_E2(1,stack_ptr),1)
      DO j=1,NVAR
        DO i=1,NVAR
          chk_E1(NVAR*(j-1)+i,stack_ptr) = E1(i,j)
@@ -829,13 +825,10 @@ CONTAINS ! Internal procedures to RungeKuttaADJ
        END DO
      END DO
 #else      
-     ! CALL WCOPY(LU_NONZERO, E1,1,chk_E1(1,stack_ptr),1)
-     ! CALL WCOPYCmplx(LU_NONZERO, E2,1,chk_E2(1,stack_ptr),1)
      chk_E1(1:LU_NONZERO,stack_ptr) = E1(1:LU_NONZERO)
      chk_E2(1:LU_NONZERO,stack_ptr) = E2(1:LU_NONZERO)
 #endif      
    END IF  
-   !CALL WCOPY(LU_NONZERO,Jcb,1,chk_J(1,stack_ptr),1)
   
   END SUBROUTINE rk_DPush
   
@@ -863,15 +856,11 @@ CONTAINS ! Internal procedures to RungeKuttaADJ
    END IF  
    H = chk_H( stack_ptr )
    T = chk_T( stack_ptr )
-   ! CALL WCOPY(NVAR,chk_Y(1,stack_ptr),1,Y,1)
    Y(1:NVAR) = chk_Y(1:NVAR,stack_ptr)
-   ! CALL WCOPY(NVAR*3,chk_Z(1,stack_ptr),1,Zstage,1)
    Zstage(1:3*NVAR) = chk_Z(1:3*NVAR,stack_ptr)
    NewIt = chk_NiT( stack_ptr )
    IF (SaveLU) THEN
 #ifdef FULL_ALGEBRA      
-     ! CALL WCOPY(NVAR*NVAR,chk_E1(1,stack_ptr),1, E1,1)
-     ! CALL WCOPYCmplx(NVAR*NVAR,chk_E2(1,stack_ptr),1, E2,1)
      DO j=1,NVAR
        DO i=1,NVAR
          E1(i,j) = chk_E1(NVAR*(j-1)+i,stack_ptr)
@@ -879,13 +868,10 @@ CONTAINS ! Internal procedures to RungeKuttaADJ
        END DO
      END DO
 #else      
-     ! CALL WCOPY(LU_NONZERO,chk_E1(1,stack_ptr),1, E1,1)
-     ! CALL WCOPYCmplx(LU_NONZERO,chk_E2(1,stack_ptr),1, E2,1)
      E1(1:LU_NONZERO) = chk_E1(1:LU_NONZERO,stack_ptr)
      E2(1:LU_NONZERO) = chk_E2(1:LU_NONZERO,stack_ptr)
 #endif      
    END IF  
-   !CALL WCOPY(LU_NONZERO,chk_J(1,stack_ptr),1,Jcb,1)
 
    stack_ptr = stack_ptr - 1
   
@@ -906,9 +892,6 @@ CONTAINS ! Internal procedures to RungeKuttaADJ
    END IF  
    chk_H( stack_ptr ) = H
    chk_T( stack_ptr ) = T
-   ! CALL WCOPY(NVAR,Y,1,chk_Y(1,stack_ptr),1)
-   ! CALL WCOPY(NVAR,dY,1,chk_dY(1,stack_ptr),1)
-   ! CALL WCOPY(NVAR,d2Y,1,chk_d2Y(1,stack_ptr),1)
    chk_Y(1:NVAR,stack_ptr)  =  Y(1:NVAR)
    chk_dY(1:NVAR,stack_ptr) = dY(1:NVAR)
    chk_d2Y(1:NVAR,stack_ptr)= d2Y(1:NVAR)
@@ -930,9 +913,6 @@ CONTAINS ! Internal procedures to RungeKuttaADJ
    END IF  
    H = chk_H( stack_ptr )
    T = chk_T( stack_ptr )
-   ! CALL WCOPY(NVAR,chk_Y(1,stack_ptr),1,Y,1)
-   ! CALL WCOPY(NVAR,chk_dY(1,stack_ptr),1,dY,1)
-   ! CALL WCOPY(NVAR,chk_d2Y(1,stack_ptr),1,d2Y,1)
      Y(1:NVAR) = chk_Y(1:NVAR,stack_ptr)
     dY(1:NVAR) = chk_dY(1:NVAR,stack_ptr)
    d2Y(1:NVAR) = chk_d2Y(1:NVAR,stack_ptr)
@@ -1221,9 +1201,6 @@ SDNewtonLoop:DO NewtonIter = 1, NewtonMaxit
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 accept:IF (Err < ONE) THEN !~~~> STEP IS ACCEPTED
          IF (AdjointType == KPP_ROOT_discrete) THEN ! Save stage solution
-            ! CALL WCOPY(N,Z1,1,Zstage(1),1)
-            ! CALL WCOPY(N,Z2,1,Zstage(N+1),1)
-            ! CALL WCOPY(N,Z3,1,Zstage(2*N+1),1)
             Zstage(1:N)       = Z1(1:N) 
             Zstage(N+1:2*N)   = Z2(1:N)
             Zstage(2*N+1:3*N) = Z3(1:N)
@@ -1403,7 +1380,6 @@ TimeLoop:DO WHILE ( stack_ptr > 0 )
           Jbig(i,i) = Jbig(i,i) + ONE
        END DO
        CALL DGETRF(3*N,3*N,Jbig,3*N,IPbig,ISING) 
-       ! CALL WGEFA(3*N,Jbig,IPbig,ISING) 
        IF (ISING /= 0) THEN
          PRINT*,'Big guy is singular'; STOP
        END IF 
@@ -1440,7 +1416,6 @@ TimeLoop:DO WHILE ( stack_ptr > 0 )
       DO i=1, 3*N
          Jbig(i,i) = ONE + Jbig(i,i)
       END DO
-      ! CALL DGETRF(3*N,3*N,Jbig,3*N,IPbig,ISING) 
       CALL WGEFA(3*N,Jbig,IPbig,ISING) 
       IF (ISING /= 0) THEN
          PRINT*,'Big guy is singular'; STOP
@@ -1453,9 +1428,6 @@ TimeLoop:DO WHILE ( stack_ptr > 0 )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Adj:DO iadj = 1, NADJ      
       !~~~>  Starting values for Newton iteration
-      ! CALL WCOPY(N,Lambda(1,iadj),1,U1(1,iadj),1)
-      ! CALL WCOPY(N,Lambda(1,iadj),1,U2(1,iadj),1)
-      ! CALL WCOPY(N,Lambda(1,iadj),1,U3(1,iadj),1)
       U1(1:N,iadj) = 0.0_dp
       U2(1:N,iadj) = 0.0_dp
       U3(1:N,iadj) = 0.0_dp
@@ -1547,7 +1519,6 @@ NewtonLoopAdj:DO  NewtonIter = 1, NewtonMaxit
         X(N+1:2*N)   = -G2(1:N)
         X(2*N+1:3*N) = -G3(1:N)
         CALL DGETRS('T',3*N,1,Jbig,3*N,IPbig,X,3*N,ISING) 
-        ! CALL WGESL('T',3*N,Jbig,IPbig,X)
         Lambda(1:N,iadj) = Lambda(1:N,iadj)+X(1:N)+X(N+1:2*N)+X(2*N+1:3*N)
 #else        
 !   Commented lines for sparse big algebra:
@@ -1560,7 +1531,6 @@ NewtonLoopAdj:DO  NewtonIter = 1, NewtonMaxit
         X(1:N)       = -G1(1:N)
         X(N+1:2*N)   = -G2(1:N)
         X(2*N+1:3*N) = -G3(1:N)
-        ! CALL DGETRS('T',3*N,1,Jbig,3*N,IPbig,X,3*N,ISING) 
         CALL WGESL('T',3*N,Jbig,IPbig,X)
         Lambda(1:N,iadj) = Lambda(1:N,iadj)+X(1:N)+X(N+1:2*N)+X(2*N+1:3*N)
 #endif        

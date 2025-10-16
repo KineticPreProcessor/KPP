@@ -857,7 +857,6 @@ TLMDIR: IF (TLMDirect) THEN
           Jbig(i,i) = ONE + Jbig(i,i)
       END DO
       !~~~>  Solve the big system
-      ! CALL DGETRF(3*NVAR,3*NVAR,Jbig,3*NVAR,IPbig,j) 
       CALL WGEFA(3*N,Jbig,IPbig,info) 
       IF (info /= 0) THEN
         PRINT*,'Big big guy is singular'; STOP
@@ -869,7 +868,6 @@ TLMDIR: IF (TLMDirect) THEN
             Zbig(2*NVAR+j) = Y_tlm(j,itlm)
         END DO
         Zbig = MATMUL(Ebig,Zbig)
-        !CALL DGETRS ('N',3*NVAR,1,Jbig,3*NVAR,IPbig,Zbig,3*NVAR,ISING) 
         CALL WGESL('N',3*N,Jbig,IPbig,Zbig)
         DO j=1,NVAR
             Z1_tlm(j,itlm) = Zbig(j)
@@ -911,7 +909,6 @@ TLMDIR: IF (TLMDirect) THEN
       DO i=1, 3*N
          Jbig(i,i) = ONE + Jbig(i,i)
       END DO
-      ! CALL DGETRF(3*N,3*N,Jbig,3*N,IPbig,info) 
       CALL WGEFA(3*N,Jbig,IPbig,info) 
       IF (info /= 0) THEN
         PRINT*,'Big guy is singular'; STOP
@@ -931,7 +928,6 @@ TLMDIR: IF (TLMDirect) THEN
         ! Compute RHS
         CALL RK_PrepareRHS_TLMdirect(N,H,Jac1,Jac2,Jac3,Y_tlm(1,itlm),Zbig)
         ! Solve the system
-        ! CALL DGETRS('N',3*N,1,Jbig,3*N,IPbig,Zbig,3*N,ISING) 
         CALL WGESL('N',3*N,Jbig,IPbig,Zbig)
         Z1_tlm(1:NVAR,itlm) = Zbig(1:NVAR)
         Z2_tlm(1:NVAR,itlm) = Zbig(NVAR+1:2*NVAR)
