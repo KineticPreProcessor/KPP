@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added GitHub Action to run C-I tests with GCC compilers v9, v10, v11, v12, and v13
 - Added "Lint" GitHub Action to check other actions for security issues
+- Added new example files: `rkadj.kpp`, `sd4.kpp`, `sdtlm.kpp`
+- Added new C-I tests: `F90_rkadj`, `F90_sd4`, `F90_sdtlm`
 
 ### Changed
 - Updated ReadTheDocs documentation to reflect that C-I tests are now done as a GitHub Action
