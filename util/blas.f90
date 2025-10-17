@@ -124,13 +124,19 @@ col:  DO k = 1, n-1
                t = A(l,k); A(l,k) = A(k,k); A(k,k) = t
             END IF
             t = -ONE/A(k,k)
-            CALL WSCAL(n-k,t,A(k+1,k),1)
+!            CALL WSCAL(n-k,t,A(k+1,k),1)
+            DO i = k+1, n
+               A(i,k) = t * A(i,k)
+            END DO
             DO j = k+1, n
                t = A(l,j)
                IF (l /= k) THEN
                   A(l,j) = A(k,j); A(k,j) = t
                END IF
-               CALL WAXPY(n-k,t,A(k+1,k),1,A(k+1,j),1)
+               !CALL WAXPY(n-k,t,A(k+1,k),1,A(k+1,j),1)
+               DO i = k+1, n
+                  A(i,j) = A(i,j) + t * A(i,k)
+               END DO
             END DO         
          END IF
          
@@ -176,7 +182,10 @@ col:  DO k = 1, n-1
                b(l) = b(k)
                b(k) = t
             END IF
-            CALL WAXPY(n-k,t,a(k+1,k),1,b(k+1),1)
+            !CALL WAXPY(n-k,t,a(k+1,k),1,b(k+1),1)
+            DO i = k+1, n
+               b(i) = b(i) + t * a(i,k)
+            END DO
           END DO
          END IF
 !        now solve  U*x = y
@@ -184,7 +193,10 @@ col:  DO k = 1, n-1
             k = n + 1 - kb
             b(k) = b(k)/a(k,k)
             t = -b(k)
-            CALL WAXPY(k-1,t,a(1,k),1,b(1),1)
+            !CALL WAXPY(k-1,t,a(1,k),1,b(1),1)
+            DO i = 1, k-1
+               b(i) = b(i) + t * a(i,k)
+            END DO
          END DO
       
       CASE ('t','T')  !  Solve transpose(A) * x = b
