@@ -95,7 +95,7 @@
       INTEGER       :: N,Ipvt(N),info
       KPP_REAL :: A(N,N)
       KPP_REAL :: t, dmax, da
-      INTEGER       :: j,k,l
+      INTEGER       :: i,j,k,l
       KPP_REAL, PARAMETER :: ZERO = 0.0, ONE = 1.0
 
       info = 0
@@ -166,7 +166,7 @@ col:  DO k = 1, n-1
       CHARACTER     :: trans
       KPP_REAL :: A(N,N),b(N)
       KPP_REAL :: t
-      INTEGER       :: k,kb,l
+      INTEGER       :: i, k,kb,l
 
       
       SELECT CASE (Trans)

@@ -21,7 +21,7 @@ MODULE KPP_ROOT_Integrator
   USE KPP_ROOT_Global
   USE KPP_ROOT_Jacobian
   USE KPP_ROOT_LinearAlgebra
-  USE KPP_ROOT_LinearAlgebra, ONLY : KppDecomp,      KppSolve, 
+  USE KPP_ROOT_LinearAlgebra, ONLY : KppDecomp,      KppSolve,     &
                                      KppDecompCmplx, KppSolveCmplx
 
   IMPLICIT NONE
