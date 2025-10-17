@@ -438,7 +438,7 @@ SUBROUTINE RosenbrockADJ( Y, NADJ, Lambda,             &
 
 
 !~~~>  Unit roundoff (1+Roundoff>1)
-   Roundoff = WLAMCH('E')
+   Roundoff = EPSILON( 0.0_dp )
 
 !~~~>  Lower bound on the step size: (positive value)
    IF (RCNTRL(1) == ZERO) THEN
@@ -1461,7 +1461,6 @@ Stage: DO istage = 1, ros_S
 #else
              CALL JacTR_SP_Vec(Jac,Ynew(1,iadj),Fcn(1,iadj))
 #endif
-             !CALL WSCAL(NVAR,(-ONE),Fcn(1,iadj),1)
          END DO
        END IF ! if istage == 1 elseif ros_NewF(istage)
 
@@ -1593,9 +1592,6 @@ Stage: DO istage = 1, ros_S
 !~~~>  Local parameters
    KPP_REAL, PARAMETER :: ZERO = 0.0d0, ONE  = 1.0d0
    KPP_REAL, PARAMETER :: DeltaMin = 1.0d-5
-!~~~>  Locally called functions
-!    KPP_REAL WLAMCH
-!    EXTERNAL WLAMCH
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 

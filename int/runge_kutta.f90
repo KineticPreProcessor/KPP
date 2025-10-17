@@ -20,8 +20,8 @@ MODULE KPP_ROOT_Integrator
   USE KPP_ROOT_Parameters
   USE KPP_ROOT_Global
   USE KPP_ROOT_Jacobian,      ONLY : LU_DIAG
-  USE KPP_ROOT_LinearAlgebra, ONLY : KppDecomp,      KppSolve,             &
-                                     KppDecompCmplx, KppSolveCmplx, WLAMCH
+  USE KPP_ROOT_LinearAlgebra, ONLY : KppDecomp,      KppSolve,     &
+                                     KppDecompCmplx, KppSolveCmplx
 
   IMPLICIT NONE
   PUBLIC
@@ -392,7 +392,7 @@ CONTAINS
       END IF
 
 !~~~> Roundoff: smallest number s.t. 1.0 + Roundoff > 1.0
-      Roundoff=WLAMCH('E');
+      Roundoff = EPSILON( 0.0_dp )
 
 !~~~> Hmin = minimal step size
       IF (RCNTRL(1) == ZERO) THEN

@@ -23,8 +23,7 @@ MODULE KPP_ROOT_Integrator
   USE KPP_ROOT_LinearAlgebra, ONLY : KppDecomp,       KppSolve,       &
                                      KppSolveTR,      KppSolveCmplx,  &
                                      KppSolveTRCmplx, KppDecompCmplx, &
-                                     WLAMCH,          WGEFA,          &
-                                     WGESL
+                                     WGEFA,           WGESL
   IMPLICIT NONE
   PUBLIC
   SAVE
@@ -479,7 +478,7 @@ CONTAINS
       END IF
 
 !~~~> Roundoff: smallest number s.t. 1.0 + Roundoff > 1.0
-      Roundoff = WLAMCH('E');
+      Roundoff = EPSILON( 0.0_dp )
 
 !~~~> Hmin = minimal step size
       IF (RCNTRL(1) == ZERO) THEN

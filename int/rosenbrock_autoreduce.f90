@@ -360,7 +360,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
    AR_target_spc = ICNTRL(14)
 
 !~~~>  Unit roundoff (1+Roundoff>1)
-   Roundoff = WLAMCH('E')
+   Roundoff = EPSILON( 0.0_dp )
 
 !~~~>  Lower bound on the step size: (positive value)
    IF (RCNTRL(1) == ZERO) THEN
@@ -587,9 +587,6 @@ CONTAINS !  SUBROUTINES internal to Rosenbrock
 !~~~>  Local parameters
    KPP_REAL, PARAMETER :: ZERO = 0.0_dp, ONE  = 1.0_dp
    KPP_REAL, PARAMETER :: DeltaMin = 1.0E-5_dp
-!~~~>  Locally called functions
-!    KPP_REAL WLAMCH
-!    EXTERNAL WLAMCH
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 

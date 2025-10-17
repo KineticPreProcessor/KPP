@@ -412,7 +412,7 @@ CONTAINS
 
 
 !~~~> Roundoff   SMALLEST NUMBER SATISFYING 1.0d0+Roundoff>1.0d0
-      Roundoff=WLAMCH('E');
+      Roundoff = EPSILON( 0.0_dp )
 
 !~~~> RCNTRL(1) = Hmin - not used
       Hmin = ZERO
@@ -642,12 +642,12 @@ Tloop: DO WHILE ( (Tend-T)*Tdirection - Roundoff > ZERO )
 !  STARTING VALUES FOR NEWTON ITERATION
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       IF ( FirstStep .OR. (.NOT.StartNewton) ) THEN
-         CALL Set2zero(N,Z1)
-         CALL Set2zero(N,Z2)
-         CALL Set2zero(N,Z3)
-         CALL Set2zero(N,F1)
-         CALL Set2zero(N,F2)
-         CALL Set2zero(N,F3)
+         Z1(1:N) = 0.0_dp
+         Z2(1:N) = 0.0_dp
+         Z3(1:N) = 0.0_dp
+         F1(1:N) = 0.0_dp
+         F2(1:N) = 0.0_dp
+         F3(1:N) = 0.0_dp
       ELSE
          C3Q=H/Hold
          C1Q=rkC(1)*C3Q

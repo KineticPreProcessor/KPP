@@ -20,7 +20,7 @@ MODULE KPP_ROOT_Integrator
   USE KPP_ROOT_Parameters, ONLY: NVAR, NSPEC, NFIX, LU_NONZERO
   USE KPP_ROOT_JacobianSP, ONLY: LU_DIAG
   USE KPP_ROOT_Jacobian, ONLY: Jac_SP_Vec, JacTR_SP_Vec
-  USE KPP_ROOT_LinearAlgebra, ONLY: KppDecomp, KppSolve, KppSolveTR, WLAMCH
+  USE KPP_ROOT_LinearAlgebra, ONLY: KppDecomp, KppSolve, KppSolveTR
 
   IMPLICIT NONE
   PUBLIC
@@ -394,7 +394,7 @@ SUBROUTINE INTEGRATE_ADJ( NADJ, Y, Lambda, TIN, TOUT, &
       SaveLU = (ICNTRL(8) /= 0) .AND. (.NOT.DirectADJ)
 
 !~~~>  Unit roundoff (1+Roundoff>1)
-      Roundoff = WLAMCH('E')
+      Roundoff = EPSILON( 0.0_dp )
 
 !~~~>  Lower bound on the step size: (positive value)
       IF (RCNTRL(1) == ZERO) THEN

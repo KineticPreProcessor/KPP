@@ -20,7 +20,7 @@ MODULE KPP_ROOT_Integrator
   USE KPP_ROOT_Parameters
   USE KPP_ROOT_JacobianSP,    ONLY : LU_DIAG
   USE KPP_ROOT_Jacobian,      ONLY : Jac_SP_Vec
-  USE KPP_ROOT_LinearAlgebra, ONLY : KppDecomp, KppSolve, WLAMCH
+  USE KPP_ROOT_LinearAlgebra, ONLY : KppDecomp, KppSolve
 
   IMPLICIT NONE
   PUBLIC
@@ -394,7 +394,7 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm,RTOL_tlm, &
       END IF
 
 !~~~>  Unit roundoff (1+Roundoff>1)
-      Roundoff = WLAMCH('E')
+      Roundoff = EPSILON( 0.0_dp )
 
 !~~~>  Lower bound on the step size: (positive value)
       IF (RCNTRL(1) == ZERO) THEN

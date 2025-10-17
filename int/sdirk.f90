@@ -22,7 +22,7 @@ MODULE KPP_ROOT_Integrator
   USE KPP_ROOT_Global
   USE KPP_ROOT_Parameters
   USE KPP_ROOT_JacobianSP,    ONLY : LU_DIAG
-  USE KPP_ROOT_LinearAlgebra, ONLY : KppDecomp, KppSolve, WLAMCH
+  USE KPP_ROOT_LinearAlgebra, ONLY : KppDecomp, KppSolve
 
   IMPLICIT NONE
   PUBLIC

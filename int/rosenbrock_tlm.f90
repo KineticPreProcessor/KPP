@@ -372,7 +372,7 @@ SUBROUTINE RosenbrockTLM(N,Y,NTLM,Y_tlm,                      &
       END IF
 
 !~~~>  Unit roundoff (1+Roundoff>1)
-   Roundoff = WLAMCH('E')
+   Roundoff = EPSILON( 0.0_dp )
 
 !~~~>  Lower bound on the step size: (positive value)
    IF (RCNTRL(1) == ZERO) THEN
@@ -545,9 +545,6 @@ CONTAINS ! Procedures internal to RosenbrockTLM
    LOGICAL  :: RejectLastH, RejectMoreH, Singular
 !~~~>  Local parameters
    KPP_REAL, PARAMETER :: DeltaMin = 1.0d-5
-!~~~>  Locally called functions
-!   KPP_REAL WLAMCH
-!   EXTERNAL WLAMCH
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
