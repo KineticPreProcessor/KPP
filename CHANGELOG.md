@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added GitHub Action to run C-I tests with GCC compilers v9, v10, v11, v12, and v13
 - Added "Lint" GitHub Action to check other actions for security issues
+- Added new example files: `rkadj.kpp`, `sd4.kpp`, `sdtlm.kpp`
+- Added new C-I tests: `F90_rkadj`, `F90_sd4`, `F90_sdtlm`
 
 ### Changed
 - Updated ReadTheDocs documentation to reflect that C-I tests are now done as a GitHub Action
@@ -23,9 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Moved the `which kpp` instruction to the end of the "Build the KPP executable" section in the installation guide on ReadTheDocs
 - Updated rules to ignore files in `.gitignore` and updated comments accordingly
 - Fixed a bug that prevented `.ci-pipelines/ci-cleanup-script.sh` from removing KPP-generated files for MCM mechanisms
+- Fixed typo in error message in `int/rosenbrock_autoreduce.f90`
 
 ### Removed
 - Removed C-I tests on Microsoft Azure Dev Pipelines
+- Replaced BLAS functions (`WAXPY`, `WCOPY`, `WSCAL`, `WADD`, `WLAMCH`) with pure F90 code from `int/*.f90` integrators (thanks to AI for the help)
 
 ## [3.3.0] - 2025-07-17
 ### Added

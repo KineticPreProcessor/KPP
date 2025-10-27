@@ -415,6 +415,10 @@ List of continuous integration tests
      - Fortran90
      - small_strato
      - runge_kutta
+   * - :code:`F90_rkadj`
+     - Fortran90
+     - small_strato
+     - runge_kutta_adj
    * - :code:`F90_rktlm`
      - Fortran90
      - small_strato
@@ -455,6 +459,10 @@ List of continuous integration tests
      - Fortran90
      - saprcnov
      - rosenbrock
+   * - :code:`F90_sd4`
+     - Fortran90
+     - small_strato
+     - sdirk4
    * - :code:`F90_sd`
      - Fortran90
      - small_strato
@@ -463,6 +471,10 @@ List of continuous integration tests
      - Fortran90
      - small_strato
      - sdirk_adj
+   * - :code:`F90_sdtlm`
+     - Fortran90
+     - small_strato
+     - sdirk_tlm
    * - :code:`F90_seulex`
      - Fortran90
      - saprcnov
