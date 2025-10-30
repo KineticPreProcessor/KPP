@@ -2208,45 +2208,36 @@ void GenerateGraphStoic()
   if ( useGraph == 2 ) {
     /* Write the species-reaction bipartite graph as a csv edgelist */
     UseFile( edge_listFile );
-    /* write a header for edge_listFile */
-    fprintf(edge_listFile,"# species index (starts from 1),from,to,stoichiometric value \n");
+    /* write a header for edge_listFile: species_index,reaction_index,from,to,directed_stoichiometric_value */
+    fprintf(edge_listFile,"# species_index (starts from 1),reaction_index (starts from 1),from,to, directed stoichiometric value\n");
     firstindex = 0;
     n_elist = 0;
     for (j=0; j<EqnNr; j++) {
       for (i=0; i<VarNr; i++) {
-        if ( Stoich[i][j] < 0.0 ) {
+        /* Emit an edge for the left-hand side (consumption) if present */
+        if ( Stoich_Left[i][j] != 0.0 ) {
           spc_elist[ n_elist ] = i;
           rxn_elist[ n_elist ] = j;
-          val_elist[ n_elist ] = Stoich[i][j];
+          /* directed value for consumption should be negative */
+          val_elist[ n_elist ] = -Stoich_Left[i][j];
           k = n_elist;
-        //   printf("%s%s %ss%d\n",SpeciesTable[Code[i-firstindex]].name, ",","R", j+1);
-          fprintf(edge_listFile,"%d,%s,%s%d,%f\n",i+1,SpeciesTable[Code[i-firstindex]].name, "R", j+1, fabs(Stoich[i][j]));
+          fprintf(edge_listFile, "%d,%d,%s,%s%d,%g\n", i+1, j+1,
+                  SpeciesTable[ Code[i-firstindex] ].name, "R", j+1, -Stoich_Left[i][j] );
           n_elist++;
         }
-        else if ( Stoich[i][j] > 0.0 ) {
-        //   printf("%s%d%s %s\n","R", j+1,",",SpeciesTable[Code[i-firstindex]].name);
-          fprintf(edge_listFile,"%d,%s%d,%s,%f\n",i+1,"R", j+1,SpeciesTable[Code[i-firstindex]].name,fabs(Stoich[i][j]));
+
+        /* Emit an edge for the right-hand side (production) if present */
+        if ( Stoich_Right[i][j] != 0.0 ) {
+          spc_elist[ n_elist ] = i;
+          rxn_elist[ n_elist ] = j;
+          /* directed value for production should be positive */
+          val_elist[ n_elist ] = Stoich_Right[i][j];
+          fprintf(edge_listFile, "%d,%d,%s%d,%s,%g\n", i+1, j+1,
+                  "R", j+1, SpeciesTable[ Code[i-firstindex] ].name, Stoich_Right[i][j] );
           n_elist++;
-        }
-        else {
-          if (Stoich_Left[i][j] != 0.0) {
-            spc_elist[ n_elist ] = i;
-            rxn_elist[ n_elist ] = j;
-            val_elist[ n_elist ] = -Stoich_Left[i][j];
-            k = n_elist;
-            // printf("%s%s %s%d\n",SpeciesTable[Code[i-firstindex]].name, ",","R", j+1);
-            fprintf(edge_listFile,"%d,%s,%s%d,%f\n",i+1,SpeciesTable[Code[i-firstindex]].name, "R", j+1, fabs(Stoich_Left[i][j]));
-            n_elist++;
-          }
-          if (Stoich_Right[i][j] != 0.0) {
-            // printf("%s%d%s %s\n","R", j+1,",",SpeciesTable[Code[i-firstindex]].name);
-            fprintf(edge_listFile,"%d,%s%d,%s,%f\n",i+1,"R", j+1,SpeciesTable[Code[i-firstindex]].name,fabs(Stoich_Right[i][j]));
-            n_elist++;
-          }
         }
       }
     }
-    // printf("this print statement is happening before any segfault \n");
   }
 
   /* write biadjacency CSV using sparse arrays */
