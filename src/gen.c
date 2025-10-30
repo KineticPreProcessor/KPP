@@ -2149,26 +2149,51 @@ void GenerateRateLaws()
 void GenerateGraphStoic()
 {
   int i, j, k, nnz_stoicm;
+  int firstindex; /* does numbering start at zero or one */
+  int *spc_elist;
+  int *rxn_elist;
+  double *val_elist;
+  int n_elist;
   int *irow_stoicm;
+  int *ccol_stoicm;
   int *icol_stoicm;
   double *stoicm;
 
+
   /* Compute the sparsity structure and allocate data structure vectors */
   nnz_stoicm = 0;
-  for (j=0; j<EqnNr; j++)
-    for (i=0; i<VarNr; i++)
+  n_elist = 0;
+  for (j=0; j<EqnNr; j++) {
+    for (i=0; i<VarNr; i++) {
       if ( Stoich[i][j] != 0.0 )
          nnz_stoicm++;
-  if ( (irow_stoicm=(int*)calloc(nnz_stoicm+2,sizeof(int)) ) == NULL )
-      FatalError(-30,"GenerateStoicmSparseData: Cannot allocate irow_stoicm");
-  if ( (icol_stoicm=(int*)calloc(nnz_stoicm+2,sizeof(int)) ) == NULL )
-      FatalError(-30,"GenerateStoicmSparseData: Cannot allocate icol_stoicm");
-  if ( (stoicm=(double*)calloc(nnz_stoicm+2,sizeof(double)) ) == NULL )
-      FatalError(-30,"GenerateStoicmSparseData: Cannot allocate stoicm");
+      if ( Stoich_Right[i][j] != 0.0 )
+         n_elist++;
+      if ( Stoich_Left[i][j] != 0.0 )
+         n_elist++;
+    }
+  }
 
-  // UseFile( graphFile );
+  if ( (spc_elist=(int*)calloc(n_elist+2,sizeof(int)) ) == NULL )
+     FatalError(-30,"GenerateGraphStoic: Cannot allocate spc_elist");
+  if ( (rxn_elist=(int*)calloc(n_elist+2,sizeof(int)) ) == NULL )
+     FatalError(-30,"GenerateGraphStoic: Cannot allocate rxn_elist");
+  if ( (val_elist=(double*)calloc(n_elist+2,sizeof(double)) ) == NULL )
+     FatalError(-30,"GenerateGraphStoic: Cannot allocate val_elist");
+
+  if ( (irow_stoicm=(int*)calloc(nnz_stoicm+2,sizeof(int)) ) == NULL )
+     FatalError(-30,"GenerateGraphStoic: Cannot allocate irow_stoicm");
+  if ( (ccol_stoicm=(int*)calloc(EqnNr+2,sizeof(int)) ) == NULL )
+     FatalError(-30,"GenerateGraphStoic: Cannot allocate ccol_stoicm");
+  if ( (icol_stoicm=(int*)calloc(nnz_stoicm+2,sizeof(int)) ) == NULL )
+     FatalError(-30,"GenerateGraphStoic: Cannot allocate icol_stoicm");
+  if ( (stoicm=(double*)calloc(nnz_stoicm+2,sizeof(double)) ) == NULL )
+     FatalError(-30,"GenerateGraphStoic: Cannot allocate stoicm");
+
+  /* Populate sparse arrays */
   nnz_stoicm = 0;
   for (j=0; j<EqnNr; j++) {
+    ccol_stoicm[ j ] =  nnz_stoicm;
     for (i=0; i<VarNr; i++) {
       if ( Stoich[i][j] != 0 ) {
         irow_stoicm[ nnz_stoicm ] = i;
@@ -2178,22 +2203,70 @@ void GenerateGraphStoic()
       }
     }
   }
+  ccol_stoicm[ EqnNr ] =  nnz_stoicm;
 
-  /* Write the biadjacency matrix of the species reaction graph */
-  printf("Biadjacency matrix of the species reaction graph\n");
-  // fprintf( biadjacencyFile,"spc_name, species index (row), reaction index (col), stoichiometric coefficient\n");
-  printf("spc_name, species index (row), reaction index (col), stoichiometric coefficient\n");
-  for (k=0; k<nnz_stoicm; k++) {
-          // fprintf(biadjacencyFile,"%s, %d, %d, %f\n",SpeciesTable[Code[irow_stoicm[k]-firstindex]].name, irow_stoicm[k], icol_stoicm[k], stoicm[k]);
-          printf("%s, %d, %d, %f\n",SpeciesTable[Code[irow_stoicm[k]]].name, irow_stoicm[k]+1, icol_stoicm[k]+1, stoicm[k]);
+  if ( useGraph == 2 ) {
+    /* Write the species-reaction bipartite graph as a csv edgelist */
+    UseFile( edge_listFile );
+    /* write a header for edge_listFile */
+    fprintf(edge_listFile,"# species index (starts from 1),from,to,stoichiometric value \n");
+    firstindex = 0;
+    n_elist = 0;
+    for (j=0; j<EqnNr; j++) {
+      for (i=0; i<VarNr; i++) {
+        if ( Stoich[i][j] < 0.0 ) {
+          spc_elist[ n_elist ] = i;
+          rxn_elist[ n_elist ] = j;
+          val_elist[ n_elist ] = Stoich[i][j];
+          k = n_elist;
+        //   printf("%s%s %ss%d\n",SpeciesTable[Code[i-firstindex]].name, ",","R", j+1);
+          fprintf(edge_listFile,"%d,%s,%s%d,%f\n",i+1,SpeciesTable[Code[i-firstindex]].name, "R", j+1, fabs(Stoich[i][j]));
+          n_elist++;
+        }
+        else if ( Stoich[i][j] > 0.0 ) {
+        //   printf("%s%d%s %s\n","R", j+1,",",SpeciesTable[Code[i-firstindex]].name);
+          fprintf(edge_listFile,"%d,%s%d,%s,%f\n",i+1,"R", j+1,SpeciesTable[Code[i-firstindex]].name,fabs(Stoich[i][j]));
+          n_elist++;
+        }
+        else {
+          if (Stoich_Left[i][j] != 0.0) {
+            spc_elist[ n_elist ] = i;
+            rxn_elist[ n_elist ] = j;
+            val_elist[ n_elist ] = -Stoich_Left[i][j];
+            k = n_elist;
+            // printf("%s%s %s%d\n",SpeciesTable[Code[i-firstindex]].name, ",","R", j+1);
+            fprintf(edge_listFile,"%d,%s,%s%d,%f\n",i+1,SpeciesTable[Code[i-firstindex]].name, "R", j+1, fabs(Stoich_Left[i][j]));
+            n_elist++;
+          }
+          if (Stoich_Right[i][j] != 0.0) {
+            // printf("%s%d%s %s\n","R", j+1,",",SpeciesTable[Code[i-firstindex]].name);
+            fprintf(edge_listFile,"%d,%s%d,%s,%f\n",i+1,"R", j+1,SpeciesTable[Code[i-firstindex]].name,fabs(Stoich_Right[i][j]));
+            n_elist++;
+          }
+        }
+      }
+    }
+    // printf("this print statement is happening before any segfault \n");
+  }
+
+  /* write biadjacency CSV using sparse arrays */
+  if ( useGraph == 1 ) {
+    UseFile( biadjacencyFile );
+    fprintf( biadjacencyFile, "spc_name,species_index,reaction_index,stoichiometric_coefficient\n" );
+    for (k=0; k<nnz_stoicm; k++) {
+      int spc_idx = irow_stoicm[k];
+      int rxn_idx = icol_stoicm[k];
+      const char *sname = SpeciesTable[ Code[ spc_idx ] ].name;
+      fprintf( biadjacencyFile, "%s,%d,%d,%g\n", sname, Index(spc_idx), Index(rxn_idx), stoicm[k] );
+    }
   }
 
   /* Free allocated memory */
+  free(spc_elist); free(rxn_elist); free(val_elist);
   free(irow_stoicm);
   free(icol_stoicm);
+  free(ccol_stoicm);
   free(stoicm);
-
-
 
 }
 
