@@ -29,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Removed C-I tests on Microsoft Azure Dev Pipelines
-- Replaced BLAS functions (`WAXPY`, `WCOPY`, `WSCAL`, `WADD`, `WLAMCH`) with pure F90 code from `int/*.f90` integrators (thanks to AI for the help)
+- Replaced BLAS functions (`WAXPY`, `WCOPY`, `WSCAL`, `WADD`, `WLAMCH`, `WDOT`) with pure F90 code from `int/*.f90` integrators (thanks to AI for the help)
 
 ## [3.3.0] - 2025-07-17
 ### Added
