@@ -84,6 +84,7 @@ extern FILE * sparse_stoicmFile;
 extern FILE * biadjacencyFile;
 extern FILE * graphvizFile;
 extern FILE * edge_listFile;
+extern FILE * spcsCompositionFile;
 extern FILE * stoichiomFile;
 extern FILE * stochasticFile;
 extern FILE * utilFile;

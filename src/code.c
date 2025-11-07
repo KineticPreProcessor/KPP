@@ -97,6 +97,7 @@ FILE * sparse_stoicmFile = 0;
 FILE * biadjacencyFile = 0;
 FILE * graphvizFile = 0;
 FILE * edge_listFile = 0;
+FILE * spcsCompositionFile = 0;
 FILE * stochasticFile = 0;
 FILE * global_dataFile = 0;
 FILE * hessianFile = 0;

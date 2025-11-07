@@ -834,6 +834,10 @@ void Use_F90( char* rootFileName )
       sprintf( buf, "_BiadjacencyMatrix.csv" );
       OpenFile( &biadjacencyFile, rootFileName, buf,
         "Sparse Biadjacency Matrix, aka Stoichiometric Matrix, in CSV format" );
+      /* Also open the dense species-by-atom composition CSV (variable species only) */
+      sprintf( buf, "_SpeciesCompositionMatrix.csv" );
+      OpenFile( &spcsCompositionFile, rootFileName, buf,
+        "Dense species-by-atom composition matrix (variable species only) in CSV format" );
     }
   }
 

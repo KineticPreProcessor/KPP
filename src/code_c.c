@@ -559,6 +559,9 @@ void Use_C( char* rootFileName )
     } else if ( useGraph == 1 ) {
       OpenFile( &biadjacencyFile, rootFileName, "_BiadjacencyMatrix.csv",
                "Sparse Biadjacency Matrix, aka Stoichiometric Matrix, in CSV format" );
+      /* Also open species-by-atom composition CSV (variable species only) */
+      OpenFile( &spcsCompositionFile, rootFileName, "_SpeciesCompositionMatrix.csv",
+               "Dense species composition matrix (var species x atoms) in CSV format" );
     }
   }
   OpenFile( &utilFile, rootFileName, "_Util.c",

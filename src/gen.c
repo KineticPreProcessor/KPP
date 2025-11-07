@@ -2252,6 +2252,58 @@ void GenerateGraphStoic()
     }
   }
 
+  /* dense species-by-atom composition matrix for variable species.
+     Columns correspond only to atoms that actually appear in the variable
+     species set (compact atom list) */
+  if ( useGraph == 1 ) {
+    int t, ii, a, nPresent;
+    UseFile( spcsCompositionFile );
+
+    /* Determine which atoms are present in any variable species */
+    int presentIndex[ MAX_ATNR ];
+    int presentList[ MAX_ATNR ];
+    for (a = 0; a < AtomNr; a++) presentIndex[a] = -1;
+    for (t = 0; t < VarNr; t++) {
+      SPECIES_DEF *sp = &SpeciesTable[ Code[t] ];
+      for (ii = 0; ii < sp->nratoms; ii++) {
+        int a_code = sp->atoms[ii].code;
+        presentIndex[a_code] = 0; /* mark present */
+      }
+    }
+    nPresent = 0;
+    for (a = 0; a < AtomNr; a++) {
+      if ( presentIndex[a] == 0 ) {
+        presentIndex[a] = nPresent;
+        presentList[nPresent] = a;
+        nPresent++;
+      }
+    }
+
+    /* header is species_index,species_name,<atom names...> */
+    fprintf( spcsCompositionFile, "species_index,species_name" );
+    for (a = 0; a < nPresent; a++)
+      fprintf( spcsCompositionFile, ",%s", AtomTable[ presentList[a] ].name );
+    fprintf( spcsCompositionFile, "\n" );
+
+    /* rows are one per variable species, elements are columns, 
+       entries are atom totals per element per species*/
+    for (t = 0; t < VarNr; t++) {
+      SPECIES_DEF *sp = &SpeciesTable[ Code[t] ];
+      int counts[ MAX_ATNR ];
+      for (a = 0; a < AtomNr; a++) counts[a] = 0;
+      for (ii = 0; ii < sp->nratoms; ii++) {
+        int a_code = sp->atoms[ii].code;
+        int a_nr   = sp->atoms[ii].nr;
+        counts[a_code] += a_nr;
+      }
+
+      fprintf( spcsCompositionFile, "%d,%s", Index(t), sp->name );
+      for (a = 0; a < nPresent; a++)
+        fprintf( spcsCompositionFile, ",%d", counts[ presentList[a] ] );
+      fprintf( spcsCompositionFile, "\n" );
+    }
+  }
+
   /* Free allocated memory */
   free(spc_elist); free(rxn_elist); free(val_elist);
   free(irow_stoicm);
