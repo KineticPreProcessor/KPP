@@ -697,7 +697,7 @@ int err;
     }
     if ( equal ) {
       if( r1 == r2 )
-        ScanError( "Duplicate equation: "
+        ScanWarning( "Duplicate equation: "
         	   " (eqn<%d> = eqn<%d> )", i+1, EqnNr+1 );
       else
 	ScanWarning( "Linearly dependent equations: "
