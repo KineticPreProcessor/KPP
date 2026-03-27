@@ -10,6 +10,22 @@ of the changes, read `CHANGELOG.md
 
 .. _unreleased:
 
+.. _kpp331:
+
+=========
+KPP 3.3.1
+=========
+
+- Replaced calls to BLAS functions in F90 integrators with core F90
+  array operations
+- Migrated C-I tests from Microsoft Azure Dev pipelines to GitHub
+  Actions
+- Added new C-I tests: :literal:`F90_rkadj`, :literal:`F90_sd4`,
+  :literal:`F90_sdtlm`
+- Fixed a compiliation issue that prevented
+  :literal:`KPP_ROOT_Stochiom.F90` from being compiled when
+  :literal:`#STOCHIOM ON` and :literal:`#HESSIAN OFF` are used
+
 .. _kpp330:
 
 =========
