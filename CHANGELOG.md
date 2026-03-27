@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated rules to ignore files in `.gitignore` and updated comments accordingly
 - Fixed a bug that prevented `.ci-pipelines/ci-cleanup-script.sh` from removing KPP-generated files for MCM mechanisms
 - Fixed typo in error message in `int/rosenbrock_autoreduce.f90`
+- Fixed a bug in Makefile template that caused `KPP_ROOT_Stoichiom.f90` not compiled if `#STOICMAT ON` and `#HESSIAN OFF`
 
 ### Removed
 - Removed C-I tests on Microsoft Azure Dev Pipelines
