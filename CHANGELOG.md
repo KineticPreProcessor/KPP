@@ -17,9 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added "Lint" GitHub Action to check other actions for security issues
 - Added new example files: `rkadj.kpp`, `sd4.kpp`, `sdtlm.kpp`
 - Added new C-I tests: `F90_rkadj`, `F90_sd4`, `F90_sdtlm`
+- Added `docs/read_the_docs_environment.yml`
 
 ### Changed
 - Updated ReadTheDocs documentation to reflect that C-I tests are now done as a GitHub Action
+- Updated the `docs/source/reference/editing_these_docs.rst` instructions for clarity
 
 ## Fixed
 - Moved the `which kpp` instruction to the end of the "Build the KPP executable" section in the installation guide on ReadTheDocs
