@@ -56,15 +56,6 @@ and then apply the settings with:
 
    $ source $HOME/.bashrc
 
-Now if you type:
-
-.. code-block:: console
-
-   $ which kpp
-
-the path to the executable file (:file:`kpp`) will be displayed. This
-path should match the path specified by :file:`$KPP_HOME/bin/kpp`.
-
 .. _test-for-dependencies:
 
 =====================================================
@@ -247,6 +238,15 @@ You should see output similar to:
        lex.yy.o scanner.o scanutil.o y.tab.o -L/usr/lib -lfl -o kpp
 
 This will create the executable file :file:`$KPP_HOME/bin/kpp`.
+
+Now if you type:
+
+.. code-block:: console
+
+   $ which kpp
+
+the path to the executable file (:file:`kpp`) will be displayed. This
+path should match the path specified by :file:`$KPP_HOME/bin/kpp`.
 
 .. _additional-steps-macosx:
 

@@ -145,9 +145,9 @@ ifeq ($(HAS_STM_SP),1)
   STMOBJ   += KPP_ROOT_StoichiomSP.o
   STMSPOBJ += KPP_ROOT_StoichiomSP.o
 endif
-ifeq ($(HAS_HES),1)
-  HESSRC   += KPP_ROOT_Stoichiom.f90
-  HESOBJ   += KPP_ROOT_Stoichiom.o
+ifeq ($(HAS_STM),1)
+  STMSRC   += KPP_ROOT_Stoichiom.f90
+  STMOBJ   += KPP_ROOT_Stoichiom.o
 endif
 
 UTLSRC = KPP_ROOT_Rates.f90 KPP_ROOT_Util.f90 KPP_ROOT_Monitor.f90

@@ -1,0 +1,4 @@
+#MODEL      small_strato
+#INTEGRATOR sdirk4
+#LANGUAGE   Fortran90
+#DRIVER     general

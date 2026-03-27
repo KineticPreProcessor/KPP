@@ -18,9 +18,10 @@ KPP directory structure
 The KPP distribution will unfold a directory :envvar:`$KPP_HOME` with the
 following subdirectories:
 
-.. option:: src/
+src/
+----
 
-   Contains the KPP source code files:
+Contains the KPP source code files:
 
 .. _table-kpp-dirs:
 
@@ -67,72 +68,87 @@ following subdirectories:
    | :file:`y.tab.h`       | Bison generated header file         |
    +-----------------------+-------------------------------------+
 
-.. option:: bin/
+bin/
+----
 
-   Contains the KPP executable. This directory should be added to the
-   :envvar:`PATH` environment variable.
+Contains the KPP executable. This directory should be added to the
+:envvar:`PATH` environment variable.
 
-.. option:: util/
+util/
+-----
 
-   Contains different function templates useful for the simulation. Each
-   template file has a suffix that matches the appropriate target
-   language (Fortran90, C, or Matlab). KPP will run the template files
-   through the substitution preprocessor (cf.
-   :ref:`list-of-symbols-replaced`). The user can define their own
-   auxiliary functions by inserting them into the files.
+Contains different function templates useful for the simulation. Each
+template file has a suffix that matches the appropriate target
+language (Fortran90, C, or Matlab). KPP will run the template files
+through the substitution preprocessor (cf.
+:ref:`list-of-symbols-replaced`). The user can define their own
+auxiliary functions by inserting them into the files.
 
-.. option:: models/
+models/
+-------
 
-   Contains the description of the chemical models. Users
-   can define their own models by placing the model description files in
-   this directory. The KPP distribution contains several models from
-   atmospheric chemistry which can be used as templates for model
-   definitions.
+Contains the description of the chemical models. Users
+can define their own models by placing the model description files in
+this directory. The KPP distribution contains several models from
+atmospheric chemistry which can be used as templates for model
+definitions.
 
-.. option:: drv/
+drv/
+----
 
-   Contains driver templates for chemical simulations. Each driver has a
-   suffix that matches the appropriate target language (Fortran90, C, or
-   Matlab). KPP will run the appropriate driver through the substitution
-   preprocessor (cf. :ref:`list-of-symbols-replaced`). Users can also
-   define their own driver templates here.
+Contains driver templates for chemical simulations. Each driver has a
+suffix that matches the appropriate target language (Fortran90, C, or
+Matlab). KPP will run the appropriate driver through the substitution
+preprocessor (cf. :ref:`list-of-symbols-replaced`). Users can also
+define their own driver templates here.
 
-.. option:: int/
+int/
+----
 
-   Contains numerical solvers (integrators). The :command:`#INTEGRATOR`
-   command will force KPP to look into this directory for a definition
-   file with suffix :code:`.def`. This file selects the numerical solver
-   etc. Each integrator template is found in a file that ends with the
-   appropriate suffix (:code:`.f90`, :code:`.c`, or :code:`.m`). The
-   selected template is processed by the substitution preprocessor (cf.
-   :ref:`list-of-symbols-replaced`). Users can define their own
-   numerical integration routines in the :code:`user_contributed`
-   subdirectory.
+Contains numerical solvers (integrators). The :command:`#INTEGRATOR`
+command will force KPP to look into this directory for a definition
+file with suffix :code:`.def`. This file selects the numerical solver
+etc. Each integrator template is found in a file that ends with the
+appropriate suffix (:code:`.f90`, :code:`.c`, or :code:`.m`). The
+selected template is processed by the substitution preprocessor (cf.
+:ref:`list-of-symbols-replaced`). Users can define their own
+numerical integration routines in the :code:`user_contributed`
+subdirectory.
 
-.. option:: examples/
+examples/
+---------
 
-   Contains several model description examples (:file:`.kpp` files)
-   which can be used as templates for building simulations with KPP.
+Contains several model description examples (:file:`.kpp` files)
+which can be used as templates for building simulations with KPP.
 
-.. option:: site-lisp/
+site-lisp/
+----------
+Contains the file :file:`kpp.el` which provides a KPP mode for emacs
+with color highlighting.
 
-   Contains the file :file:`kpp.el` which provides a KPP mode for emacs
-   with color highlighting.
+ci-tests/
+---------
 
-.. option:: ci-tests/
+Contains directories defining several :ref:`ci-tests`.
 
-   Contains directories defining several :ref:`ci-tests`.
+.ci-pipelines/
+--------------
 
-.. option:: .ci-pipelines/
+Hidden directory containing a YAML file with settings for automatically
+running the continuous integration tests on `Azure DevOps Pipelines
+<https://azure.microsoft.com/en-us/services/devops/pipelines/>`_
 
-   Hidden directory containing a YAML file with settings for automatically
-   running the continuous integration tests on `Azure DevOps Pipelines
-   <https://azure.microsoft.com/en-us/services/devops/pipelines/>`_
+Also contains bash scripts (ending in :file:`.sh`) for running the
+continuous integration tests either automatically in Azure Dev
+Pipelines, or manually from the command line.  For more
+information, please see :ref:`ci-tests`.
 
-   Also contains bash scripts (ending in :file:`.sh`) for running the
-   continuous integration tests either automatically in Azure Dev
-   Pipelines, or manually from the command line.  For more
-   information, please see :ref:`ci-tests`.
+.github/workflows
+-----------------
+
+Contains configuration files for `GitHub Actions
+<https://github.com/KineticPreProcessor/KPP/actions>`_ that will run
+automatically when commits are pushed or when pull requests are opened.
 
 .. _kpp-env-vars:
 
@@ -151,42 +167,47 @@ The :file:`$KPP_HOME/bin` directory. should be added to the
 There are also several optional environment variable that control the places
 where KPP looks for module files, integrators, and drivers:
 
-.. option:: KPP_HOME
+KPP_HOME
+--------
 
-   Required, stores the absolute path to the KPP distribution.
+Required, stores the absolute path to the KPP distribution.
 
-   Default setting: none.
+Default setting: none.
 
-.. option:: KPP_FLEX_LIB_DIR
+KPP_FLEX_LIB_DIR
+----------------
 
-   Optional. Use this to specify the path to the :ref:`flex library
-   file <flex-dep>` (:file:`libfl.so` or :file:`libfl.a`) that are
-   needed to :ref:`build the KPP executable <build-kpp-exec>`. The KPP
-   build sequence will use the path contained in
-   :envvar:`KPP_FLEX_LIB_DIR` if the flex library file cannot be found
-   in  :file:`/usr/lib`, :file:`/usr/lib64`, and similar standard
-   library paths.
+Optional. Use this to specify the path to the :ref:`flex library
+file <flex-dep>` (:file:`libfl.so` or :file:`libfl.a`) that are
+needed to :ref:`build the KPP executable <build-kpp-exec>`. The KPP
+build sequence will use the path contained in
+:envvar:`KPP_FLEX_LIB_DIR` if the flex library file cannot be found
+in  :file:`/usr/lib`, :file:`/usr/lib64`, and similar standard
+library paths.
 
-.. option:: KPP_MODEL
+KPP_MODEL
+---------
 
-   Optional, specifies additional places where KPP will look for model
-   files before searching the default location.
+Optional, specifies additional places where KPP will look for model
+files before searching the default location.
 
-   Default setting: :file:`$KPP_HOME/models`.
+Default setting: :file:`$KPP_HOME/models`.
 
-.. option:: KPP_INT
+KPP_INT
+-------
 
-   Optional, specifies additional places where KPP will look for
-   integrator files before searching the default.
+Optional, specifies additional places where KPP will look for
+integrator files before searching the default.
 
-   Default setting: :file:`$KPP_HOME/int`.
+Default setting: :file:`$KPP_HOME/int`.
 
-.. option:: KPP_DRV
+KPP_DRV
+-------
 
-   Optional specifies additional places where KPP will look for driver
-   files before searching the default directory.
+Optional specifies additional places where KPP will look for driver
+files before searching the default directory.
 
-   Default setting: :file:`$KPP_HOME/drv`.
+Default setting: :file:`$KPP_HOME/drv`.
 
 .. _kpp-internal-modules:
 
@@ -330,13 +351,12 @@ then runs a short "box model" simulation with the generated code. C-I
 tests help to ensure that new features and updates added to KPP will
 not break any existing functionality.
 
-The continuous integration tests will run automatically on `Azure
-DevOps Pipelines
-<https://azure.microsoft.com/en-us/services/devops/pipelines/>`_ each time a
-commit is pushed to the `KPP Github repository
-<https://github.com/KineticPreProcessor/KPP>`_.  You can also run the
-integration tests :ref:`locally on your own computer
-<running-ci-tests-locally>`.
+C-I tests will run automatically as a `GitHub Action
+<https://github.com/KineticPreProcessor/KPP/actions>`_ when commits
+are pushed to the `KPP Github repository
+<https://github.com/KineticPreProcessor/KPP>`_, or when a new pull
+requests are opened.  You may also run the integration tests
+:ref:`locally on your own computer <running-ci-tests-locally>`.
 
 .. _list-of-ci-tests:
 
@@ -395,6 +415,10 @@ List of continuous integration tests
      - Fortran90
      - small_strato
      - runge_kutta
+   * - :code:`F90_rkadj`
+     - Fortran90
+     - small_strato
+     - runge_kutta_adj
    * - :code:`F90_rktlm`
      - Fortran90
      - small_strato
@@ -435,6 +459,10 @@ List of continuous integration tests
      - Fortran90
      - saprcnov
      - rosenbrock
+   * - :code:`F90_sd4`
+     - Fortran90
+     - small_strato
+     - sdirk4
    * - :code:`F90_sd`
      - Fortran90
      - small_strato
@@ -443,6 +471,10 @@ List of continuous integration tests
      - Fortran90
      - small_strato
      - sdirk_adj
+   * - :code:`F90_sdtlm`
+     - Fortran90
+     - small_strato
+     - sdirk_tlm
    * - :code:`F90_seulex`
      - Fortran90
      - saprcnov
@@ -464,84 +496,64 @@ Notes about C-I tests:
    :ref:`running-kpp-with-an-example-mechanism`.
 #. :file:`X_minver` tests if the :ref:`minversion-cmd` command works
    properly.
-#. Due to memory restrictions, the :file:`F90_mcm` and
-  :file:`F90_mcm_h211b` are not run on the Microsoft Azure Dev
-  pipelines platform.  However, you can run these tests manaully.
 
 Each continuous integration test is contained in a subdirectory of
 :file:`$KPP_HOME/ci-tests`.  In each subdirectory is a KPP definition
 file (ending in :file:`.kpp`).
 
-.. _running-ci-tests-on-azure:
+.. _running-ci-tests:
 
-Running continuous integration tests on Azure DevOps Pipelines
---------------------------------------------------------------
+Running continuous integration tests as a GitHub Action
+-------------------------------------------------------
 
-The files needed to run the C-I tests are located in the
-:file:`$KPP_HOME/.ci-pipelines` directory:
+The files needed to run the C-I tests are described below.
 
-.. _table-ci-pipelines:
+.. _running-ci-tests-action:
 
-.. table:: Files needed to execute C-I tests
-   :align: center
+run-ci-tests.yml
+~~~~~~~~~~~~~~~~
 
-   +-------------------------------+------------------------------------------+
-   | File                          | Description                              |
-   +===============================+==========================================+
-   | :file:`Dockerfile`            | File containing specifications for the   |
-   |                               | Docker container that will be used to    |
-   |                               | run C-I tests on Azure DevOps Pipelines. |
-   |                               | Also contains commands needed to run     |
-   |                               | the C-I scripts in the Docker container. |
-   +-------------------------------+------------------------------------------+
-   | :file:`build_testing.yml`     | Contains options for triggering C-I      |
-   |                               | tests on Azure DevOps Pipelines.         |
-   +-------------------------------+------------------------------------------+
-   | :file:`ci-testing-script.sh`  | Driver script for running C-I tests.     |
-   |                               | Can be used on Azure DevOps Pipelines    |
-   |                               | or on a local computer.                  |
-   +-------------------------------+------------------------------------------+
-   | :file:`ci-cleanup-script.sh`  | Script to remove compiler-generated      |
-   |                               | files (e.g. ``*.o``, ``.mod``, and       |
-   |                               | ``.exe``) from C-I test folders.         |
-   +-------------------------------+------------------------------------------+
-   | :file:`ci-common-defs.sh`     | Script with common variable and function |
-   |                               | definitions needed by                    |
-   |                               | :file:`ci-testing-script.sh` and         |
-   |                               | :file:`ci-cleanup-script.sh`.            |
-   +-------------------------------+------------------------------------------+
+**Path**: :file:`$KPP_HOME/.github/workflows/run-ci-tests.yml`
 
-The :file:`Dockerfile` contains the software environment for `Azure
-DevOps Pipelines
-<https://azure.microsoft.com/en-us/services/devops/pipelines/>`_.  You
-should not have to update this file.
+**Description:** Configuration file with commands to download KPP, load
+libraries, and run the C-I tests as a GitHub Action.
 
-File :file:`build_testing.yml` defines the runtime options for Azure
-DevOps Pipelines.  The following settings determine which branches
-will trigger C-I tests:
+C-I tests will run automatically when a commit is pushed to any branch
+at `https://github.com/KineticPreProcessor/KPP
+<https://github.com/KineticPreProcessor/KPP>`_, or when a new pull
+request is opened there.  This is the recommended setting, but you can
+restrict this so that only pushes or pull requests to certain branches
+will trigger the C-I tests.
 
-.. code-block:: yaml
+.. _running-ci-tests-testing:
 
-   # Run a C-I test when a push to any branch is made.
-   trigger:
-     branches:
-       include:
-          - '*'
-   pr:
-     branches:
-       include:
-         - '*'
+ci-testing-script.sh
+~~~~~~~~~~~~~~~~~~~~
 
-Currently this is set to trigger the C-I tests when a commit or pull
-request is made to any branch of
-`https://github.com/KineticPreProcessor/KPP
-<https://github.com/KineticPreProcessor/KPP>`_. This is the recommended
-setting, but you can restrict this so that only pushes or pull requests
-to certain branches will trigger the C-I tests.
+**Path:** :file:`$KPP_HOME/.ci-pipelines/ci-testing-script.sh`
 
-The script :file:`ci-testing-script.sh` executes all of the C-I tests
-whenever a push or a pull request is made to the selected branches in
-the KPP Github repository.
+**Description:**  Runs the KPP C-I tests as a GitHub Action, or on a
+local computer system.
+
+.. _running-ci-tests-cleanup:
+
+ci-cleanup-script.sh
+~~~~~~~~~~~~~~~~~~~~
+
+**Path:** :file:`$KPP_HOME/.ci-pipelines/ci-cleanup-script.sh` 
+
+**Description:** Removes compiler-generated files (e.g. :file:`*.o`,
+:file:`.mod` , and  :file:`.exe`) from C-I test folders.
+
+.. _running-ci-tests-defs:
+      
+ci-common-defs.sh
+~~~~~~~~~~~~~~~~~~
+
+**Path:** :file:`$KPP_HOME/.ci-pipelines/ci-common-defs.sh` 
+
+**Description** Contains common variable and function definitions needed by
+:ref:`running-ci-tests-testing` and :ref:`running-ci-tests-cleanup`.
 
 .. _running-ci-tests-locally:
 
