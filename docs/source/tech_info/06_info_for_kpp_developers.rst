@@ -178,8 +178,8 @@ KPP_FLEX_LIB_DIR
 ----------------
 
 Optional. Use this to specify the path to the :ref:`flex library
-file <flex-dep>` (:file:`libfl.so` or :file:`libfl.a`) that are
-needed to :ref:`build the KPP executable <build-kpp-exec>`. The KPP
+file <installation-flex>` (:file:`libfl.so` or :file:`libfl.a`) that are
+needed to :ref:`build the KPP executable <installation-build>`. The KPP
 build sequence will use the path contained in
 :envvar:`KPP_FLEX_LIB_DIR` if the flex library file cannot be found
 in  :file:`/usr/lib`, :file:`/usr/lib64`, and similar standard
