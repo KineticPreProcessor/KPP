@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Fixed incorrect comment in `int/rosenbrock_autoreduce.f90`: `10*H` should be `0.1*H`
+- Fixed several issues in the `int/runge_kutta.c` integrator
 
 ## [3.3.1] - 2026-03-27
 ### Added
