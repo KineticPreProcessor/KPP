@@ -1,4 +1,4 @@
-.. _install:
+.. _installation:
 
 ############
 Installation
@@ -6,227 +6,309 @@ Installation
 
 This section can be skipped if KPP is already installed on your system.
 
+.. _installation-download:
+
 ========================
-Download KPP from Github
+Download KPP from GitHub
 ========================
 
-Clone the KPP source code from the `KPP Github repository
+Clone the KPP source code from the `KPP GitHub repository
 <https://github.com/KineticPreProcessor/KPP>`_:
 
 .. code-block:: console
 
-   $ cd $HOME
-   $ git clone https://github.com/KineticPreProcessor/KPP.git
+   cd $HOME
+   git clone https://github.com/KineticPreProcessor/KPP.git
 
-This will create a directory named KPP in your home directory.
+This will create a directory named :file:`KPP` in your home directory.
+
+.. _installation-env-vars:
 
 ========================================
 Define the KPP_HOME environment variable
 ========================================
 
-Define the :envvar:`$KPP_HOME` environment variable to point to the
-complete path where KPP is installed.  Also, add the path of the KPP
-executable to the :envvar:`$PATH` environment variable.
+Define the :envvar:`KPP_HOME` environment variable to point to the
+complete path where KPP was cloned.  Also add the path of the KPP
+executable to the :envvar:`PATH` environment variable.  These commands
+may be placed in your shell startup file, as shown below.
 
-If you are using the Unix C-shell (aka :program:`csh`), add
-add these statements to your :file:`$HOME/.cshrc` file:
+.. important::
 
-.. code-block:: csh
+   The :file:`git clone` command above creates a directory named
+   :file:`KPP` (uppercase).  Make sure that :envvar:`KPP_HOME` points
+   to this exact directory name.  On case-sensitive Linux filesystems,
+   :file:`KPP` and :file:`kpp` are **different** directories.
 
-   setenv KPP_HOME $HOME/kpp
-   setenv PATH ${PATH}:$KPP_HOME/bin
 
-and then apply the settings with:
+**If you use bash:**
 
-.. code-block:: console
+   Add these statements to your :file:`$HOME/.bashrc` file:
 
-   $ source $HOME/.cshrc
+   .. code-block:: bash
 
-If, on the other hand, you are using the Unix :program:`bash` shell,
-add these statements to your :file:`$HOME/.bashrc` file:
+      export KPP_HOME=$HOME/KPP
+      export PATH=$PATH:$KPP_HOME/bin
 
-.. code-block:: bash
+   Then apply the settings with:
 
-   export KPP_HOME=$HOME/kpp
-   export PATH=$PATH:$KPP_HOME/bin
+   .. code-block:: console
 
-and then apply the settings with:
+      $ source $HOME/.bashrc
 
-.. code-block:: console
+**If you use zsh (macOS Catalina and later)**
 
-   $ source $HOME/.bashrc
+   Add these statements to your :file:`$HOME/.zshrc` file:
 
-Now if you type:
+   .. code-block:: zsh
 
-.. code-block:: console
+      export KPP_HOME=$HOME/KPP
+      export PATH=$PATH:$KPP_HOME/bin
 
-   $ which kpp
+   Then apply the settings with:
 
-the path to the executable file (:file:`kpp`) will be displayed. This
-path should match the path specified by :file:`$KPP_HOME/bin/kpp`.
+   .. code-block:: console
 
-.. _test-for-dependencies:
+      $ source $HOME/.zshrc
 
-=====================================================
-Test if KPP dependencies are installed on your system
-=====================================================
 
-KPP depends on several other Unix packages.  Before using KPP for the
-first time, test if these are installed on your system.  If any of
-these packages are missing, you can install them with your
-system's package manager (e.g. :program:`apt` for Ubuntu,
-:program:`yum` for Fedora, :program:`homebrew` for MacOS, etc.), or
-with `Spack <https://spack.readthedocs.io>`_.
+   .. important::
+
+      macOS Catalina (2019) and later versions use :program:`zsh`
+      as the default shell instead of :program:`bash`.  If you are
+      using :program:`bash` on macOS, source :file:`~/.bash_profile`
+      rather than :file:`~/.bashrc`, because macOS Terminal opens a
+      login shell by default and login shells do not source
+      :file:`~/.bashrc` automatically.  The safest approach is to
+      add the following line to your :file:`~/.bash_profile`:
+
+      .. code-block:: bash
+
+         [ -f ~/.bashrc ] && source ~/.bashrc
+
+**If you use csh or tcsh:**
+
+   Add these statements to your :file:`$HOME/.cshrc` file:
+
+   .. code-block:: csh
+
+      setenv KPP_HOME $HOME/KPP
+      setenv PATH ${PATH}:$KPP_HOME/bin
+
+   Then apply the settings with:
+
+   .. code-block:: console
+
+      $ source $HOME/.cshrc
+
+.. _installation-dependencies:
+
+======================================
+Test if KPP dependencies are installed
+======================================
+
+KPP depends on several other Unix/Linux packages.  Before using KPP
+for the first time, test whether these are installed on your system.
+If any packages are missing, you can install them with your system
+package manager (e.g. :program:`apt` for Ubuntu, :program:`yum` for
+Fedora, :program:`homebrew` for macOS) or with
+`Spack <https://spack.readthedocs.io>`_.
+
+.. _installation-gcc:
 
 gcc
 ---
 
 .. important::
 
-   You might have to follow some :ref:`additional configuration
-   and installation steps <additional-steps-macosx>` regarding
-   :program:`gcc` on MacOS X systems.
+   macOS users: please read :ref:`installation-macos-gcc` before
+   proceeding.
 
-KPP uses the `GNU Compiler Collection <https://gcc.gnu.org/>`_ (aka
-:program:`gcc`) by default. A version of :program:`gcc` comes
-pre-installed with most Linux or MacOS systems. To test if
-:program:`gcc` is installed on your system, type:
-
-.. code-block :: console
-
-   $ gcc --version
-
-This will display the version information, such as:
+KPP uses the `GNU Compiler Collection <https://gcc.gnu.org>`_
+(:program:`gcc`) by default.  A version of :program:`gcc` comes
+pre-installed with most Linux systems.  To test whether
+:program:`gcc` is installed, type:
 
 .. code-block:: console
+
+   gcc --version
+
+This will display version information such as:
+
+.. code-block:: none
 
    gcc (GCC) 11.2.0
    Copyright (C) 2021 Free Software Foundation, Inc.
-   This is free software; see the source for copying conditions.  There is NO
-   warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+   This is free software; see the source for copying conditions.
+   There is NO warranty; not even for MERCHANTABILITY or FITNESS
+   FOR A PARTICULAR PURPOSE.
+
+.. _installation-sed:
 
 sed
 ---
-The :program:`sed` utility is used to search for and replace text
-in files.  To test if :program:`sed` has been installed, type:
+
+The :program:`sed` utility searches for and replaces text in files.
+To test whether :program:`sed` is installed, type:
 
 .. code-block:: console
 
-   $ which sed
+   which sed
 
 This will print the path to :program:`sed` on your system.
+
+.. _installation-bison:
 
 bison
 -----
 
-The :program:`bison` utility parses the chemical mechanism file into a
-computer-readable syntax.  To test :program:`bison` is installed, type:
+The :program:`bison` utility parses the chemical mechanism file into
+a computer-readable syntax.  To test whether :program:`bison` is
+installed, type:
 
 .. code-block:: console
 
-   $ which bison
+   which bison
 
 This will print the path to :program:`bison` on your system.
 
-.. _flex-dep:
+.. _installation-flex:
 
 flex
 ----
 
 .. important::
 
-   You might have to follow some :ref:`additional configuration
-   and installation steps <additional-steps-macosx>` regarding
-   :program:`flex` on MacOS X systems.
+   macOS users: please read :ref:`installation-macos-flex` before
+   proceeding.
 
-The :program:`flex` (the Fast Lexical Analyzer) creates a scanner that
-can recognize the syntax generated by :program:`bison`.  To test if
-:program:`flex` is installed, type:
+The :program:`flex` (Fast Lexical Analyzer) utility creates a scanner
+that recognizes the syntax generated by :program:`bison`.  To test
+whether :program:`flex` is installed, type:
 
 .. code-block:: console
 
-   $ which flex
+   which flex
 
 This will print the path to :program:`flex` on your system.
 
 You will also need to specify the path to the :program:`flex` library
-files (:file:`libfl.so` or :file:`libfl.a`) in order to :ref:`build
-the KPP executable <build-kpp-exec>`.  This can be done with the
-:program:`find` command:
+files (:file:`libfl.so` or :file:`libfl.a`) in order to build the KPP
+executable.  Use the :program:`find` command to locate them:
 
 .. code-block:: console
 
-   $ find /usr/ -name "*libfl*" -print
+   find /usr/ -name "*libfl*" -print
 
-This will generate a list of file paths such as shown below.  Look for
-the text :file:`libfl.`:
+This generates output similar to the following.  Look for the entry
+containing :file:`libfl.`:
 
-.. code-block:: console
+.. code-block:: none
 
    /usr/include/libflashrom.h
    /usr/lib/gthumb/extensions/libflicker.so
    /usr/lib/gthumb/extensions/libflicker_utils.so
    /usr/lib/libflashrom.so.1.0.0
    /usr/lib/libfl.so                # <---- This is the flex library file
-   # ... etc ...
+   ... etc ...
 
-Once you have located the directory where flex library file
-resides (which in this example is :file:`/usr/lib`), use it to define
-the :envvar:`KPP_FLEX_LIB_DIR`  environment variable in your
-:file:`.bashrc` (or :file:`.bash_aliases` file if you have one):
+Once you have located the directory containing the flex library file
+(in this example :file:`/usr/lib`), define the
+:envvar:`KPP_FLEX_LIB_DIR` environment variable in your shell startup
+file as shown below.
 
-.. code-block:: bash
+**If you use bash:**
 
-   export KPP_FLEX_LIB_DIR=/usr/lib
-   export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${KPP_FLEX_LIB_DIR}:"
+   Add this code to your :file:`~/.bashrc` file:
 
-Then apply the changes with:
+   .. code-block:: bash
 
-.. code-block:: console
+      export KPP_FLEX_LIB_DIR=/usr/lib
+      export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${KPP_FLEX_LIB_DIR}"
 
-   . ~/.bashrc
+   Then apply the changes with:
 
-KPP will use the path specified by :envvar:`KPP_FLEX_LIB_DIR` during
-the compilation sequence (described in the next section).
+   .. code-block:: console
 
-.. _build-kpp-exec:
+      $ source ~/.bashrc
+
+**If you use zsh:**
+
+   Add this code to your :file:`~/.zshrc` file:
+
+   .. code-block:: bash
+
+      export KPP_FLEX_LIB_DIR=/usr/lib
+      export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${KPP_FLEX_LIB_DIR}"
+
+   Then apply the changes with:
+
+   .. code-block:: console
+
+      $ source ~/.zshrc
+
+**If you use csh or tcsh:**
+
+   Add this code to your :file:`~/.cshrc` file:
+
+   .. code-block:: csh
+
+      setenv KPP_FLEX_LIB_DIR /usr/lib
+      setenv LD_LIBRARY_PATH  ${LD_LIBRARY_PATH}:${KPP_FLEX_LIB_DIR}
+
+   Then apply the changes with:
+
+   .. code-block:: console
+
+      $ source ~/.cshrc
+
+KPP will use the path specified by :envvar:`KPP_FLEX_LIB_DIR`
+in the following section.
+
+.. _installation-build:
 
 ========================
 Build the KPP executable
 ========================
 
-Change to the KPP/src directory:
+Change to the :file:`KPP/src` directory:
 
 .. code-block:: console
 
-   $ cd $KPP_HOME/src
+   cd $KPP_HOME/src
 
-To clean a previously-built KPP installation, delete the KPP object
-files and all the examples with:
+.. note::
+
+   The following :program:`make clean` and :program:`make distclean`
+   commands are only necessary if you have previously built KPP and
+   wish to start from a clean state.  You can skip them on a fresh
+   clone.
+
+To remove previously-built KPP object files and example output:
 
 .. code-block:: console
 
-   $ make clean
+   make clean
 
-To delete a previoulsy-built KPP executable as well, type:
+To also remove a previously-built KPP executable:
 
 .. code-block:: console
 
-   $ make distclean
+   make distclean
 
-KPP will use :program:`gcc` as the default compiler.  If you would
-like to use a different compiler (e.g. :program:`icc`), then edit
-:file:`src/Makefile.defs` to add your compiler name.
+KPP uses :program:`gcc` as the default compiler.  If you would like
+to use a different compiler (e.g. :program:`icc`), edit
+:file:`src/Makefile.defs` to specify your compiler.
 
 Create the KPP executable with:
 
 .. code-block:: console
 
-   $ make
+   make
 
 You should see output similar to:
 
-.. code-block:: console
+.. code-block:: none
 
    gcc -g -Wall -Wno-unused-function -I/usr/include -c code.c
    gcc -g -Wall -Wno-unused-function -I/usr/include -c code_c.c
@@ -242,214 +324,321 @@ You should see output similar to:
    gcc -g -Wall -Wno-unused-function -I/usr/include -c scanner.c
    gcc -g -Wall -Wno-unused-function -I/usr/include -c scanutil.c
    gcc -g -Wall -Wno-unused-function -I/usr/include -c y.tab.c
-   gcc -g -Wall -Wno-unused-function code.o code_c.o
-       code_f77.o code_f90.o code_matlab.o debug.o gen.o kpp.o
+   gcc -g -Wall -Wno-unused-function code.o code_c.o \
+       code_f77.o code_f90.o code_matlab.o debug.o gen.o kpp.o \
        lex.yy.o scanner.o scanutil.o y.tab.o -L/usr/lib -lfl -o kpp
 
-This will create the executable file :file:`$KPP_HOME/bin/kpp`.
+This creates the executable file :file:`$KPP_HOME/bin/kpp`.
 
-.. _additional-steps-macosx:
-
-==============================
-Instructions for MacOS X users
-==============================
-
-When installing KPP on a MacOS X system, some additional configuration
-and installation steps may be necessary.
-
-.. _force-macos-to-recognize-gcc-compiler:
-
-Force MacOS to recognize the gcc compiler
------------------------------------------
-
-On MacOS X, if you type:
+To verify that the KPP executable is accessible, type:
 
 .. code-block:: console
 
-   $ gcc --version
+   which kpp
 
-you will probably see output similar to:
+The path displayed should match :file:`$KPP_HOME/bin/kpp`.
+
+.. note::
+
+   This check must be performed **after** running :command:`make`.
+   The executable does not exist before the build step completes.
+
+.. _installation-macos:
+
+==========================
+Additional steps for macOS
+==========================
+
+When installing KPP on a macOS system, some additional configuration
+steps are necessary.  The sections below address each one.
+
+.. _installation-macos-gcc:
+
+Force macOS to use the GNU gcc compiler
+---------------------------------------
+
+On macOS, the command:
 
 .. code-block:: console
+
+   gcc --version
+
+will typically produce output similar to:
+
+.. code-block:: none
 
    Apple clang version 13.1.6 (clang-1316.0.21.2.5)
    Target: x86_64-apple-darwin21.5.0
    Thread model: posix
    InstalledDir: /Library/Developer/CommandLineTools/usr/bin
 
-This is because MacOS X installs :program:`clang` as :program:`gcc`.
-To force MacOS X to recognize the :program:`gcc` compiler, follow
-these steps:
+This is because macOS installs :program:`clang` as :program:`gcc`.
+Follow the steps below to make your shell use the GNU
+:program:`gcc` compiler instead.
 
-#. Use the :program:`homebrew` package manager to install
-   :program:`gcc`:
+1. Install gcc with Homebrew
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. code-block:: console
+.. code-block:: console
 
-      $ brew install gcc
+   brew install gcc
 
-#. Type this command:
+2. Determine which version of gcc was installed
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. code-block:: console
+.. code-block:: console
 
-      $ ls /usr/local/Cellar/gcc/*/bin/ | grep gcc
+   ls $(brew --prefix gcc)/bin/ | grep "^gcc-"
 
-   You should see output such as:
+You will see output such as:
 
-   .. code-block:: console
+.. code-block:: none
 
-      gcc-11*
-      gcc-ar-11*
-      gcc-nm-11*
-      gcc-ranlib-11*
-      # ... etc ...
+   gcc-13
+   gcc-ar-13
+   gcc-nm-13
+   gcc-ranlib-13
 
-   This output indicates :program:`gcc` major version 11 has been
-   installed, and that the gcc executable is called :code:`gcc-11`.
-   (Your version may differ.)
+This indicates that gcc version 13 was installed and that the
+executable is named :file:`gcc-13`.  Your installed version may differ.
 
-#. Add  the following code block to your :file:`.bashrc` file (or to your
-   :file:`.bash_aliases` file if you have one).  This will define
-   aliases that will override :program:`clang` with :program:`gcc`.
+.. important::
+
+   The version number returned by the command above may differ from
+   the examples shown here.  Always use the actual version number
+   found on your system in the steps that follow.
+
+3. Define compiler settings in your shell startup file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code block uses :command:`brew --prefix` to locate the
+Homebrew installation directory automatically.  This works correctly
+on both Intel Macs (:file:`/usr/local`) and Apple Silicon Macs
+(:file:`/opt/homebrew`).
+
+**If you use bash:**
+
+   Add the following to your :file:`~/.bashrc` (or
+   :file:`~/.bash_profile` if you do not have a
+   :file:`~/.bashrc`):
 
    .. code-block:: bash
 
-      #============================================================================
-      # Compiler settings (MacOS)
+      #==================================================================
+      # Compiler settings (macOS)
       #
-      # NOTE: MacOSX installs Clang as /usr/bin/gcc, so we have to manually
-      # force reference to gcc-11, g++-11, and gfortran-11, which HomeBrew
-      # installs to /usr/local/bin.  (bmy, 10/28/21)
-      #============================================================================
-      alias gcc=gcc-11
-      alias g++=g++-11
-      alias gfortran=gfortran-11
-      export CC=gcc
-      export CXX=g++-11
-      export FC=gfortran-11
-      export F77=gfortran-11
+      # Detect the gcc version installed by Homebrew and define
+      # aliases and environment variables accordingly.
+      # This overrides the Apple clang that macOS installs as gcc.
+      #==================================================================
+      _GCC_VER=$(ls "$(brew --prefix gcc)/bin/" \
+                 | grep '^gcc-[0-9]' \
+                 | grep -oP '[0-9]+$' \
+                 | sort -n | tail -1)
+
+      if [[ -n "${_GCC_VER}" ]]; then
+          alias gcc="gcc-${_GCC_VER}"
+          alias g++="g++-${_GCC_VER}"
+          alias gfortran="gfortran-${_GCC_VER}"
+          export CC="gcc-${_GCC_VER}"
+          export CXX="g++-${_GCC_VER}"
+          export FC="gfortran-${_GCC_VER}"
+          export F77="gfortran-${_GCC_VER}"
+      fi
+      unset _GCC_VER
 
    Then apply the changes with:
 
    .. code-block:: console
 
-      $ . ~/.bashrc
+      $ source ~/.bashrc
 
-#. To check if your shell now recognizes the :program:`gcc` compiler, type:
+**If you use zsh:**
+
+   Add the following to your :file:`~/.zshrc`:
+
+   .. code-block:: zsh
+
+      #==================================================================
+      # Compiler settings (macOS)
+      #
+      # Detect the gcc version installed by Homebrew and define
+      # aliases and environment variables accordingly.
+      # This overrides the Apple clang that macOS installs as gcc.
+      #==================================================================
+      _GCC_VER=$(ls "$(brew --prefix gcc)/bin/" \
+                 | grep '^gcc-[0-9]' \
+                 | grep -oE '[0-9]+$' \
+                 | sort -n | tail -1)
+
+      if [[ -n "${_GCC_VER}" ]]; then
+          alias gcc="gcc-${_GCC_VER}"
+          alias g++="g++-${_GCC_VER}"
+          alias gfortran="gfortran-${_GCC_VER}"
+          export CC="gcc-${_GCC_VER}"
+          export CXX="g++-${_GCC_VER}"
+          export FC="gfortran-${_GCC_VER}"
+          export F77="gfortran-${_GCC_VER}"
+      fi
+      unset _GCC_VER
+
+   Then apply the changes with:
 
    .. code-block:: console
 
-      $ gcc --version
+      $ source ~/.zshrc
 
-   You should see output similar to:
+4. Verify that your shell now recognizes the GNU gcc compiler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: console
+
+   gcc --version
+
+You should see output similar to:
+
+.. code-block:: none
+
+   gcc-13 (Homebrew GCC 13.2.0) 13.2.0
+   Copyright (C) 2023 Free Software Foundation, Inc.
+   This is free software; see the source for copying conditions.
+   There is NO warranty; not even for MERCHANTABILITY or FITNESS
+   FOR A PARTICULAR PURPOSE.
+
+This confirms that your shell is using GNU :program:`gcc` rather
+than :program:`clang`.
+
+.. _installation-macos-flex:
+
+Install and configure flex on macOS
+------------------------------------
+
+If your macOS system does not have the :program:`flex` library
+installed, install it with Homebrew:
+
+.. code-block:: console
+
+   brew install flex
+
+Unlike Linux package managers, which install the flex library files
+under :file:`/usr/lib/`, Homebrew installs them under its own prefix
+directory.
+
+Define the :envvar:`KPP_FLEX_LIB_DIR` environment variable using
+:command:`brew --prefix` so that the path is determined automatically
+regardless of the Homebrew prefix or the installed flex version:
+
+**If you use bash:**
+
+   Add the following to your :file:`~/.bashrc` (or
+   :file:`~/.bash_profile`):
+
+   .. code-block:: bash
+
+      export KPP_FLEX_LIB_DIR=$(brew --prefix flex)/lib
+      export DYLD_LIBRARY_PATH="${DYLD_LIBRARY_PATH}:${KPP_FLEX_LIB_DIR}"
+
+   Then apply the changes with:
 
    .. code-block:: console
 
-      gcc-11 (Homebrew GCC 11.3.0_1) 11.3.0
-      Copyright (C) 2021 Free Software Foundation, Inc.
-      This is free software; see the source for copying conditions.  There is NO
-      warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+      $ source ~/.bashrc
 
-   This now indicates that your compiler is :program:`gcc` and not
-   :program:`clang`.
+**If you use zsh:**
 
-.. _install-flex-with-homebrew:
+   Add the following to your :file:`~/.zshrc`:
 
-Install flex with homebrew
---------------------------
+   .. code-block:: zsh
 
-If your MacOS X computer does not have the :program:`flex` library
-installed, then you can install it with :program:`homebrew`:
+      export KPP_FLEX_LIB_DIR=$(brew --prefix flex)/lib
+      export DYLD_LIBRARY_PATH="${DYLD_LIBRARY_PATH}:${KPP_FLEX_LIB_DIR}"
 
-.. code-block:: console
+   Then apply the changes with:
 
-   $ brew install flex
+   .. code-block:: console
 
-Unlike Linux pacakge managers, which would install the :program:`flex`
-library files in the path :file:`/usr/lib/`,
-:program:`homebrew` will install it to a path such as
-:file:`/usr/local/Cellar/flex/X.Y.Z/lib/`.
+      $ source ~/.zshrc
 
-To find the version of :program:`flex` that has been installed by
-:program:`homebrew`, type:
+.. note::
 
-.. code-block:: console
+   macOS uses :envvar:`DYLD_LIBRARY_PATH` to locate shared libraries
+   at runtime, not :envvar:`LD_LIBRARY_PATH` (which is the Linux
+   equivalent).  If you find that :envvar:`DYLD_LIBRARY_PATH` is
+   blocked by System Integrity Protection (SIP), you can instead force
+   a hard link:
 
-   $ ls /usr/local/Cellar/flex
+   .. code-block:: console
 
-and you will get a listing such as:
+      brew link --force flex
 
-.. code-block:: console
-
-   2.6.4_2
-
-This indicates that the version of :program:`flex` on your system is
-:code:`2.6.4_2` (the :code:`_2` denotes the number of bug-fix updates
-since version :code:`2.6.4` was released).
-
-The :program:`flex` library files (:file:`libfl.so` or
-:file:`libfl.a`) will be found in :file:`lib/` subfolder.  In this
-example, the path will be:
-
-.. code-block:: console
-
-   /usr/local/Cellar/flex/2.6.4_2/lib
-
-Knowing this, you can now define the :envvar:`KPP_FLEX_LIB_DIR`
-environment variable :ref:`as described above <flex-dep>`:
-
-.. code-block:: bash
-
-   export FLEX_LIB_DIR=/usr/local/Cellar/flex/2.6.4_2/lib
-
-.. _macosx-limited-stack:
+.. _installation-macos-stack:
 
 Request maximum stack memory
-----------------------------
+-----------------------------
 
-MacOS X has a hard limit of 65332 bytes for stack memory.  This is
-much less memory than what is available on GNU/Linux operating systems
-such as Ubuntu, Fedora, etc.
+macOS imposes a hard limit on stack memory of 65532 bytes, which is
+considerably less than what is available on typical GNU/Linux systems.
+To ensure that KPP uses the maximum available stack memory, add the
+following line to your shell startup file:
 
-To make sure you are using the maximum amount of stack memory on MacOS
-X add this command to your :file:`.bashrc` file:
+**If you use bash:**
 
-.. code-block:: bash
+   Add this code to your :file:`~/.bashrc` file:
 
-   ulimit -s 65532
+   .. code-block:: bash
 
-and then apply the change with:
+      ulimit -s 65532
 
-.. code-block:: console
+   Then apply the change with:
 
-   $ . ~/.bashrc
+   .. code-block:: console
 
-This stack memory limit means that KPP will not be able to parse
-mechanisms with more than about 2000 equations and 1000 species.
-Because of this, we have added an :code:`#ifdef` block to KPP header
-file :file:`src/gdata.h` to define the :code:`MAX_EQN` and
-:code:`MAX_SPECIES` parameters accordingly:
+      $ source ~/.bashrc
 
-.. code-block:: C
+**If you use zsh:**
+      
+   Add this code to your :file:`~/.zshrc` file:
+
+   .. code-block:: zsh
+
+      ulimit -s 65532
+
+   Then apply the change with:
+
+   .. code-block:: console
+
+      $ source ~/.zshrc
+
+This stack memory restriction means that KPP cannot parse mechanisms
+with more than approximately 2000 equations and 1000 species.  To
+account for this, the KPP header file :file:`src/gdata.h` defines the
+:c:macro:`MAX_EQN` and :c:macro:`MAX_SPECIES` parameters conditionally:
+
+.. code-block:: c
 
    #ifdef MACOS
-   #define MAX_EQN        2000     // Max number of equations (MacOS only)
-   #define MAX_SPECIES    1000     // Max number of species   (MacOS only)
+   #define MAX_EQN        2000   // Max number of equations (macOS only)
+   #define MAX_SPECIES    1000   // Max number of species   (macOS only)
    #else
-   #define MAX_EQN       11000     // Max number of equations
-   #define MAX_SPECIES    6000     // Max number of species
+   #define MAX_EQN       11000   // Max number of equations
+   #define MAX_SPECIES    6000   // Max number of species
    #endif
 
-If you find that KPP will not parse your mechanism, you can increase
-:code:`MAX_EQN` and decrease :code:`MAX_SPECIES` (or vice-versa) as
-needed, and then :ref:`rebuild the KPP executable <build-kpp-exec>`.
+If KPP cannot parse your mechanism you can adjust :c:macro:`MAX_EQN`
+and :c:macro:`MAX_SPECIES` in :file:`src/gdata.h` and then rebuild
+the KPP executable.
 
-.. _macosx-case-insensitive:
+.. _installation-macos-case:
 
-Know that MacOS X is case-insenstive
--------------------------------------
+macOS is case-insensitive
+--------------------------
 
-If you have two files with identical names except for case
-(e.g. :file:`integrator.F90` and :file:`integrator.f90`) then MacOS X
-will not be able to tell them apart.  Because of this, you may
-encounter an error if you try to commit such files into Git, etc.
+.. warning::
+
+   macOS uses a case-insensitive filesystem by default.  If your
+   project contains two files whose names differ only in case (for
+   example :file:`integrator.F90` and :file:`integrator.f90`), macOS
+   will treat them as the same file.  This can cause build failures
+   and unexpected behaviour when working with version control systems
+   such as Git.  Ensure that no two files in your project share a
+   case-insensitive name.

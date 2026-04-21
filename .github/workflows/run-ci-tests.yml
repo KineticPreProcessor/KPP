@@ -1,0 +1,68 @@
+---
+#
+# GitHub Action to run C-I tests with GCC compilers
+#
+name: Run C-I tests
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      KPP_HOME: ${{ github.workspace }}
+      KPP_FLEX_LIB_DIR: /usr/lib/x86_64-linux-gnu
+    strategy:
+      matrix:
+        gcc-version: [9, 10, 11, 12, 13]
+
+
+    name: Run C-I tests with GCC ${{ matrix.gcc-version }}
+    steps:
+      - name: Checkout KPP
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+
+      - name: Install libraries
+        run: |
+          sudo apt update -y
+          sudo apt install -y flex bison libfl-dev
+          sudo apt install -y gcc-${{ matrix.gcc-version }} g++-${{ matrix.gcc-version }} gfortran-${{ matrix.gcc-version }}
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${{ matrix.gcc-version }} 100 \
+             --slave /usr/bin/g++ g++ /usr/bin/g++-${{ matrix.gcc-version }} \
+             --slave /usr/bin/gfortran gfortran /usr/bin/gfortran-${{ matrix.gcc-version }}
+
+
+      - name: Verify environment
+        run: |
+          echo '%%% COMPILERS %%%'
+          gcc --version
+          echo ''
+          g++ --version
+          echo ''
+          gfortran --version
+          echo ''
+          echo '%%% ENVIRONMENT %%%'
+          echo "flex             = $(which flex)"
+          echo "bison            = $(which bison)"
+          echo "KPP_HOME         = $KPP_HOME"
+          echo "KPP_FLEX_LIB_DIR = $KPP_FLEX_LIB_DIR"
+
+      - name: Compile with Make
+        run: |
+          cd $KPP_HOME/src
+          make all
+
+
+      - name: Run C-I tests
+        run: |
+          cd $KPP_HOME/.ci-pipelines
+          ./ci-testing-script.sh

@@ -11,6 +11,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.1] - 2026-03-27
+### Added
+- Added GitHub Action to run C-I tests with GCC compilers v9, v10, v11, v12, and v13
+- Added "Lint" GitHub Action to check other actions for security issues
+- Added new example files: `rkadj.kpp`, `sd4.kpp`, `sdtlm.kpp`
+- Added new C-I tests: `F90_rkadj`, `F90_sd4`, `F90_sdtlm`
+- Added `docs/read_the_docs_environment.yml`
+
+### Changed
+- Updated ReadTheDocs documentation to reflect that C-I tests are now done as a GitHub Action
+- Updated the `docs/source/reference/editing_these_docs.rst` instructions for clarity
+- Updated GitHub Actions to the latest versions
+
+## Fixed
+- Moved the `which kpp` instruction to the end of the "Build the KPP executable" section in the installation guide on ReadTheDocs
+- Updated rules to ignore files in `.gitignore` and updated comments accordingly
+- Fixed a bug that prevented `.ci-pipelines/ci-cleanup-script.sh` from removing KPP-generated files for MCM mechanisms
+- Fixed typo in error message in `int/rosenbrock_autoreduce.f90`
+- Fixed a bug in Makefile template that caused `KPP_ROOT_Stoichiom.f90` not compiled if `#STOICMAT ON` and `#HESSIAN OFF`
+
+### Removed
+- Removed C-I tests on Microsoft Azure Dev Pipelines
+- Replaced BLAS functions (`WAXPY`, `WCOPY`, `WSCAL`, `WADD`, `WLAMCH`, `WDOT`) with pure F90 code from `int/*.f90` integrators (thanks to AI for the help)
+
 ## [3.3.0] - 2025-07-17
 ### Added
 - New integrator: `rosenbrock_h211b_qssa.f90`

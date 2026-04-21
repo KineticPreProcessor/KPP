@@ -12,8 +12,7 @@ MODULE KPP_ROOT_Integrator
   USE KPP_ROOT_Global
   USE KPP_ROOT_Parameters
   USE KPP_ROOT_JacobianSP,    ONLY : LU_DIAG
-  USE KPP_ROOT_LinearAlgebra, ONLY : KppDecomp, KppSolve, Set2zero, &
-                                     WLAMCH,    WAXPY,    WCOPY
+  USE KPP_ROOT_LinearAlgebra, ONLY : KppDecomp, KppSolve
 
   IMPLICIT NONE
   PUBLIC
@@ -320,7 +319,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
    END IF
 
 !~~~>  Unit roundoff (1+Roundoff>1)
-      Roundoff = WLAMCH('E')
+      Roundoff = EPSILON( 0.0_dp )
 
 !~~~>  Lower bound on the step size: (positive value)
    IF (RCNTRL(1) == ZERO) THEN
@@ -553,11 +552,11 @@ stages:DO istage=1,5
       NewtonFactor(istage) = MAX(NewtonFactor(istage),Roundoff)**0.8d0
 
 !~~~>  STARTING VALUES FOR NEWTON ITERATION
-      CALL Set2zero(N,G)
-      CALL Set2zero(N,Z(1,istage))
+      G(1:N)        = 0.0_dp
+      Z(1:N,istage) = 0.0_dp
       IF (istage==1) THEN
           IF (FIRST.OR.NewtonReject) THEN
-              CALL Set2zero(N,Z(1,istage))
+              Z(1:N,istage) = 0.0_dp
           ELSE
               W=ONE+rkGamma*H/Hold
               DO i=1,N
@@ -567,12 +566,11 @@ stages:DO istage=1,5
       ELSE
           DO j = 1, istage-1
             ! Gj(:) = sum_j Beta(i,j)*Zj(:) = H * sum_j A(i,j)*Fun(Zj(:))
-            CALL WAXPY(N,rkBeta(istage,j),Z(1,j),1,G,1)
-            ! CALL WAXPY(N,H*rkA(istage,j),FV(1,j),1,G,1)
+            G(1:N) = G(1:N) + rkBeta(istage,j) * Z(1:N,j)
             ! Zi(:) = sum_j Alpha(i,j)*Zj(:)
-            CALL WAXPY(N,rkAlpha(istage,j),Z(1,j),1,Z(1,istage),1)
+            Z(1:N,istage) = Z(1:N,istage) + rkAlpha(istage,j) * Z(1:N,j)
           END DO
-          IF (istage==5) CALL WCOPY(N,Z(1,istage),1,Yhat,1)  ! Yhat(:) <- Z5(:)
+          IF (istage==5) Yhat(1:N) = Z(1:N,istage)  ! Yhat(:) <- Z5(:)
       END IF
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -597,7 +595,8 @@ stages:DO istage=1,5
             TMP(1:N) = Y(1:N) + Z(1:N,istage)
             CALL FUN_CHEM(T+rkC(istage)*H,TMP,RHS)
             TMP(1:N) = G(1:N) - Z(1:N,istage)
-            CALL WAXPY(N,HGammaInv,TMP,1,RHS,1) ! RHS(:) <- RHS(:) + HGammaInv*(G(:)-Z(:))
+            ! RHS(:) <- RHS(:) + HGammaInv*(G(:)-Z(:))
+            RHS(1:N) = RHS(1:N) + HGammaInv * TMP(1:N)
 
 !~~~>     SOLVE THE LINEAR SYSTEMS
 #ifdef FULL_ALGEBRA  
@@ -630,8 +629,9 @@ stages:DO istage=1,5
                 END IF
             END IF
             NewtonErrOld = NewtonErr
-            CALL WAXPY(N,ONE,RHS,1,Z(1,istage),1) ! Z(:) <-- Z(:)+RHS(:)
-            
+            ! Z(:) <-- Z(:)+RHS(:)
+            Z(1:N,istage) = Z(1:N,istage) + RHS(1:N)            
+
             END DO Newton
 
 !~~> END OF SIMPLIFIED NEWTON ITERATION
@@ -671,13 +671,13 @@ accept:  IF ( ERR < ONE ) THEN !~~~> STEP IS ACCEPTED
          Hold=H
 
 !~~~> COEFFICIENTS FOR CONTINUOUS SOLUTION
-         CALL WAXPY(N,ONE,Z(1,5),1,Y,1) ! Y(:) <-- Y(:)+Z5(:)
-         CALL WCOPY(N,Z(1,5),1,Yhat,1)  ! Yhat <-- Z5
+         Y(1:N)    = Y(1:N) + Z(1:N,5)  ! Y(:) <-- Y(:)+Z5(:)
+         Yhat(1:N) = Z(1:N,5)           ! Yhat <-- Z5
 
          DO i=1,4  ! CONTi <-- Sum_j rkD(i,j)*Zj
-           CALL Set2zero(N,CONT(1,i))
+           CONT(1:N,i) = 0.0_dp
            DO j = 1,5
-             CALL WAXPY(N,rkD(i,j),Z(1,j),1,CONT(1,i),1)
+              CONT(1:N,i) = CONT(1:N,i) + rkD(i,j) * Z(1:N,j)
            END DO
          END DO
          
@@ -997,11 +997,7 @@ Hloop: DO WHILE (ISING /= 0)
 
 #ifdef FULL_ALGEBRA
       CALL Jac_SP(Y, FIX, RCONST, JS)
-      DO j=1,NVAR
-         DO j=1,NVAR
-          JV(i,j) = 0.0D0
-         END DO
-      END DO
+      JV(1:NVAR,1:NVAR) = 0.0d0
       DO i=1,LU_NONZERO
          JV(LU_IROW(i),LU_ICOL(i)) = JS(i)
       END DO

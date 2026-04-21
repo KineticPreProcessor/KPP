@@ -21,6 +21,8 @@ MODULE KPP_ROOT_Integrator
   USE KPP_ROOT_Global
   USE KPP_ROOT_Jacobian
   USE KPP_ROOT_LinearAlgebra
+  USE KPP_ROOT_LinearAlgebra, ONLY : KppDecomp,      KppSolve,     &
+                                     KppDecompCmplx, KppSolveCmplx
 
   IMPLICIT NONE
   PUBLIC
@@ -436,7 +438,7 @@ SUBROUTINE INTEGRATE_TLM( NTLM, Y, Y_tlm, TIN, TOUT, ATOL_tlm, RTOL_tlm, &
       END IF      
 
 !~~~> Roundoff: smallest number s.t. 1.0 + Roundoff > 1.0
-      Roundoff=WLAMCH('E');
+      Roundoff = EPSILON( 0.0_dp )
 
 !~~~> Hmin = minimal step size
       IF (RCNTRL(1) == ZERO) THEN
@@ -648,9 +650,9 @@ Tloop: DO WHILE ( (Tend-T)*Tdirection - Roundoff > ZERO )
             
       !~~~>  Starting values for Newton iteration
       IF ( FirstStep .OR. (.NOT.StartNewton) ) THEN
-         CALL Set2zero(N,Z1)
-         CALL Set2zero(N,Z2)
-         CALL Set2zero(N,Z3)
+         Z1(1:N) = 0.0_dp
+         Z2(1:N) = 0.0_dp
+         Z3(1:N) = 0.0_dp
       ELSE
          ! Evaluate quadratic polynomial
          CALL RK_Interpolate('eval',N,H,Hold,Z1,Z2,Z3,CONT)
@@ -697,9 +699,9 @@ NewtonLoop:DO  NewtonIter = 1, NewtonMaxit
 
             NewtonIncrementOld = MAX(NewtonIncrement,Roundoff) 
             ! Update solution
-            CALL WAXPY(N,-ONE,DZ1,1,Z1,1) ! Z1 <- Z1 - DZ1
-            CALL WAXPY(N,-ONE,DZ2,1,Z2,1) ! Z2 <- Z2 - DZ2
-            CALL WAXPY(N,-ONE,DZ3,1,Z3,1) ! Z3 <- Z3 - DZ3
+            Z1(1:N) = Z1(1:N) - DZ1(1:N)  ! Z1 <- Z1 - DZ1
+            Z2(1:N) = Z2(1:N) - DZ2(1:N)  ! Z2 <- Z2 - DZ2
+            Z3(1:N) = Z3(1:N) - DZ3(1:N)  ! Z3 <- Z3 - DZ3
             
             ! Check error in Newton iterations
             NewtonDone = (NewtonRate*NewtonIncrement <= NewtonTol)
@@ -734,11 +736,11 @@ NewtonLoop:DO  NewtonIter = 1, NewtonMaxit
        ISTATUS(Nfun) = ISTATUS(Nfun) + 1
        
 !       G = H*rkBgam(0)*DZ4 + rkTheta(1)*Z1 + rkTheta(2)*Z2 + rkTheta(3)*Z3
-       CALL Set2Zero(N, G)
-       CALL WAXPY(N,rkBgam(0)*H, DZ4,1,G,1) 
-       CALL WAXPY(N,rkTheta(1),Z1,1,G,1)
-       CALL WAXPY(N,rkTheta(2),Z2,1,G,1)
-       CALL WAXPY(N,rkTheta(3),Z3,1,G,1)
+       G(1:N) = 0.0_dp
+       G(1:N) = G(1:N) + rkBgam(0)*H * DZ4(1:N)
+       G(1:N) = G(1:N) + rkTheta(1)  * Z1(1:N)
+       G(1:N) = G(1:N) + rkTheta(2)  * Z2(1:N)
+       G(1:N) = G(1:N) + rkTheta(3)  * Z3(1:N)
 
        !~~~>  Initializations for Newton iteration
        NewtonDone = .FALSE.
@@ -747,12 +749,13 @@ NewtonLoop:DO  NewtonIter = 1, NewtonMaxit
 SDNewtonLoop:DO NewtonIter = 1, NewtonMaxit
 
 !~~~>   Prepare the loop-dependent part of the right-hand side
-            CALL WADD(N,Y,Z4,TMP)         ! TMP <- Y + Z4
+            TMP(1:N) = Y(1:N) + Z4(1:N)   ! TMP <- Y + Z4
             CALL FUN_CHEM(T+H,TMP,DZ4)    ! DZ4 <- Fun(Y+Z4)         
             ISTATUS(Nfun) = ISTATUS(Nfun) + 1
 !            DZ4(1:N) = (G(1:N)-Z4(1:N))*(rkGamma/H) + DZ4(1:N)
-            CALL WAXPY (N, -ONE*rkGamma/H, Z4, 1, DZ4, 1)
-            CALL WAXPY (N, rkGamma/H, G,1, DZ4,1)
+            DZ4(1:N) = DZ4(1:N) - (rkGamma/H) * Z4(1:N)
+            DZ4(1:N) = DZ4(1:N) + (rkGamma/H) * G(1:N)
+
 
 !~~~>   Solve the linear system
 #ifdef FULL_ALGEBRA  
@@ -786,7 +789,7 @@ SDNewtonLoop:DO NewtonIter = 1, NewtonMaxit
             END IF
             NewtonIncrementOld = NewtonIncrement
             ! Update solution: Z4 <-- Z4 + DZ4
-            CALL WAXPY(N,ONE,DZ4,1,Z4,1) 
+            Z4(1:N) = Z4(1:N) + DZ4(1:N)
             
             ! Check error in Newton iterations
             NewtonDone = (NewtonRate*NewtonIncrement <= NewtonTol)
@@ -807,11 +810,12 @@ SDNewtonLoop:DO NewtonIter = 1, NewtonMaxit
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       IF (SdirkError) THEN
 !         DZ4(1:N) =  rkD(1)*Z1 + rkD(2)*Z2 + rkD(3)*Z3 - Z4    
-         CALL Set2Zero(N, DZ4)
-         IF (rkD(1) /= ZERO) CALL WAXPY(N, rkD(1), Z1, 1, DZ4, 1)
-         IF (rkD(2) /= ZERO) CALL WAXPY(N, rkD(2), Z2, 1, DZ4, 1)
-         IF (rkD(3) /= ZERO) CALL WAXPY(N, rkD(3), Z3, 1, DZ4, 1)
-         CALL WAXPY(N, -ONE, Z4, 1, DZ4, 1)
+         DZ4(1:N) = 0.0_dp
+         IF (rkD(1) /= ZERO) DZ4(1:N) = DZ4(1:N) + rkD(1) * Z1(1:N)
+         IF (rkD(2) /= ZERO) DZ4(1:N) = DZ4(1:N) + rkD(2) * Z2(1:N)
+         IF (rkD(3) /= ZERO) DZ4(1:N) = DZ4(1:N) + rkD(3) * Z3(1:N)
+         DZ4(1:N) = DZ4(1:N) - Z4(1:N)
+
          Err = RK_ErrorNorm(N,SCAL,DZ4)    
       ELSE
         CALL  RK_ErrorEstimate(N,H,Y,T, &
@@ -824,11 +828,11 @@ SDNewtonLoop:DO NewtonIter = 1, NewtonMaxit
       IF (Err < ONE) THEN
 
       !~~~>  Jacobian values
-      CALL WADD(N,Y,Z1,TMP)              ! TMP  <- Y + Z1
+      TMP(1:N) = Y(1:N) + Z1(1:N)        ! TMP  <- Y + Z1
       CALL JAC_CHEM(T+rkC(1)*H,TMP,Jac1) ! Jac1 <- Jac(Y+Z1)  
-      CALL WADD(N,Y,Z2,TMP)              ! TMP  <- Y + Z2
+      TMP(1:N) = Y(1:N) + Z2(1:N)        ! TMP  <- Y + Z2
       CALL JAC_CHEM(T+rkC(2)*H,TMP,Jac2) ! Jac2 <- Jac(Y+Z2)  
-      CALL WADD(N,Y,Z3,TMP)              ! TMP  <- Y + Z3
+      TMP(1:N) = Y(1:N) + Z3(1:N)        ! TMP  <- Y + Z3
       CALL JAC_CHEM(T+rkC(3)*H,TMP,Jac3) ! Jac3 <- Jac(Y+Z3)  
        
 TLMDIR: IF (TLMDirect) THEN 
@@ -853,7 +857,6 @@ TLMDIR: IF (TLMDirect) THEN
           Jbig(i,i) = ONE + Jbig(i,i)
       END DO
       !~~~>  Solve the big system
-      ! CALL DGETRF(3*NVAR,3*NVAR,Jbig,3*NVAR,IPbig,j) 
       CALL WGEFA(3*N,Jbig,IPbig,info) 
       IF (info /= 0) THEN
         PRINT*,'Big big guy is singular'; STOP
@@ -865,7 +868,6 @@ TLMDIR: IF (TLMDirect) THEN
             Zbig(2*NVAR+j) = Y_tlm(j,itlm)
         END DO
         Zbig = MATMUL(Ebig,Zbig)
-        !CALL DGETRS ('N',3*NVAR,1,Jbig,3*NVAR,IPbig,Zbig,3*NVAR,ISING) 
         CALL WGESL('N',3*N,Jbig,IPbig,Zbig)
         DO j=1,NVAR
             Z1_tlm(j,itlm) = Zbig(j)
@@ -907,7 +909,6 @@ TLMDIR: IF (TLMDirect) THEN
       DO i=1, 3*N
          Jbig(i,i) = ONE + Jbig(i,i)
       END DO
-      ! CALL DGETRF(3*N,3*N,Jbig,3*N,IPbig,info) 
       CALL WGEFA(3*N,Jbig,IPbig,info) 
       IF (info /= 0) THEN
         PRINT*,'Big guy is singular'; STOP
@@ -927,7 +928,6 @@ TLMDIR: IF (TLMDirect) THEN
         ! Compute RHS
         CALL RK_PrepareRHS_TLMdirect(N,H,Jac1,Jac2,Jac3,Y_tlm(1,itlm),Zbig)
         ! Solve the system
-        ! CALL DGETRS('N',3*N,1,Jbig,3*N,IPbig,Zbig,3*N,ISING) 
         CALL WGESL('N',3*N,Jbig,IPbig,Zbig)
         Z1_tlm(1:NVAR,itlm) = Zbig(1:NVAR)
         Z2_tlm(1:NVAR,itlm) = Zbig(NVAR+1:2*NVAR)
@@ -944,9 +944,9 @@ TLMDIR: IF (TLMDirect) THEN
 Tlm:DO itlm = 1, NTLM      
             
       !~~~>  Starting values for Newton iteration
-      CALL Set2zero(N,Z1_tlm(1,itlm))
-      CALL Set2zero(N,Z2_tlm(1,itlm))
-      CALL Set2zero(N,Z3_tlm(1,itlm))
+      Z1_tlm(1:N,itlm) = 0.0_dp
+      Z2_tlm(1:N,itlm) = 0.0_dp
+      Z3_tlm(1:N,itlm) = 0.0_dp
       
       !~~~>  Initializations for Newton iteration
       IF (TLMNewtonEst) THEN
@@ -998,9 +998,9 @@ NewtonLoopTLM:DO  NewtonIterTLM = 1, NewtonMaxit
             NewtonIncrementOld = MAX(NewtonIncrement,Roundoff) 
             END IF !(TLMNewtonEst)
             ! Update solution
-            CALL WAXPY(N,-ONE,DZ1,1,Z1_tlm(1,itlm),1) ! Z1 <- Z1 - DZ1
-            CALL WAXPY(N,-ONE,DZ2,1,Z2_tlm(1,itlm),1) ! Z2 <- Z2 - DZ2
-            CALL WAXPY(N,-ONE,DZ3,1,Z3_tlm(1,itlm),1) ! Z3 <- Z3 - DZ3
+            Z1_tlm(1:N,itlm) = Z1_tlm(1:N,itlm) - DZ1(1:N)  ! Z1 <- Z1 - DZ1
+            Z2_tlm(1:N,itlm) = Z2_tlm(1:N,itlm) - DZ2(1:N)  ! Z2 <- Z2 - DZ2
+            Z3_tlm(1:N,itlm) = Z3_tlm(1:N,itlm) - DZ3(1:N)  ! Z3 <- Z3 - DZ3
             
             ! Check error in Newton iterations
             IF (TLMNewtonEst) THEN
@@ -1061,14 +1061,15 @@ accept:IF (Err < ONE) THEN !~~~> STEP IS ACCEPTED
          Hold = H
          T = T+H 
          ! Update solution: Y <- Y + sum(d_i Z_i)
-         IF (rkD(1)/=ZERO) CALL WAXPY(N,rkD(1),Z1,1,Y,1)
-         IF (rkD(2)/=ZERO) CALL WAXPY(N,rkD(2),Z2,1,Y,1)
-         IF (rkD(3)/=ZERO) CALL WAXPY(N,rkD(3),Z3,1,Y,1)
+         IF (rkD(1)/=ZERO) Y(1:N) = Y(1:N) + rkD(1) * Z1(1:N)
+         IF (rkD(2)/=ZERO) Y(1:N) = Y(1:N) + rkD(2) * Z2(1:N)
+         IF (rkD(3)/=ZERO) Y(1:N) = Y(1:N) + rkD(3) * Z3(1:N)
+
          ! Update TLM solution: Y <- Y + sum(d_i*Z_i_tlm)
          DO itlm = 1,NTLM
-            IF (rkD(1)/=ZERO) CALL WAXPY(N,rkD(1),Z1_tlm(1,itlm),1,Y_tlm(1,itlm),1)
-            IF (rkD(2)/=ZERO) CALL WAXPY(N,rkD(2),Z2_tlm(1,itlm),1,Y_tlm(1,itlm),1)
-            IF (rkD(3)/=ZERO) CALL WAXPY(N,rkD(3),Z3_tlm(1,itlm),1,Y_tlm(1,itlm),1)
+            IF (rkD(1)/=ZERO) Y_tlm(1:N,itlm) = Y_tlm(1:N,itlm) + rkD(1) * Z1_tlm(1:N,itlm)
+            IF (rkD(2)/=ZERO) Y_tlm(1:N,itlm) = Y_tlm(1:N,itlm) + rkD(2) * Z2_tlm(1:N,itlm)
+            IF (rkD(3)/=ZERO) Y_tlm(1:N,itlm) = Y_tlm(1:N,itlm) + rkD(3) * Z3_tlm(1:N,itlm)
          END DO   
          ! Construct the solution quadratic interpolant Q(c_i) = Z_i, i=1:3
          IF (StartNewton) CALL RK_Interpolate('make',N,H,Hold,Z1,Z2,Z3,CONT)
@@ -1264,27 +1265,27 @@ accept:IF (Err < ONE) THEN !~~~> STEP IS ACCEPTED
       KPP_REAL, INTENT(INOUT), DIMENSION(N) :: R1,R2,R3
       KPP_REAL, DIMENSION(N) :: F, TMP
       
-      CALL WCOPY(N,Z1,1,R1,1) ! R1 <- Z1
-      CALL WCOPY(N,Z2,1,R2,1) ! R2 <- Z2
-      CALL WCOPY(N,Z3,1,R3,1) ! R3 <- Z3
+      R1(1:N) = Z1(1:N)                       ! R1 <- Z1
+      R2(1:N) = Z2(1:N)                       ! R2 <- Z2
+      R3(1:N) = Z3(1:N)                       ! R3 <- Z3
 
-      CALL WADD(N,Y,Z1,TMP)              ! TMP <- Y + Z1
-      CALL FUN_CHEM(T+rkC(1)*H,TMP,F)    ! F1 <- Fun(Y+Z1)         
-      CALL WAXPY(N,-H*rkA(1,1),F,1,R1,1) ! R1 <- R1 - h*A_11*F1
-      CALL WAXPY(N,-H*rkA(2,1),F,1,R2,1) ! R2 <- R2 - h*A_21*F1
-      CALL WAXPY(N,-H*rkA(3,1),F,1,R3,1) ! R3 <- R3 - h*A_31*F1
+      TMP(1:N) = Y(1:N) + Z1(1:N)             ! TMP <- Y + Z1
+      CALL FUN_CHEM(T+rkC(1)*H,TMP,F)         ! F1 <- Fun(Y+Z1)         
+      R1(1:N) = R1(1:N) - H*rkA(1,1) * F(1:N) ! R1 <- R1 - h*A_11*F1
+      R2(1:N) = R2(1:N) - H*rkA(2,1) * F(1:N) ! R2 <- R2 - h*A_21*F1
+      R3(1:N) = R3(1:N) - H*rkA(3,1) * F(1:N) ! R3 <- R3 - h*A_31*F1
 
-      CALL WADD(N,Y,Z2,TMP)              ! TMP <- Y + Z2
-      CALL FUN_CHEM(T+rkC(2)*H,TMP,F)    ! F2 <- Fun(Y+Z2)        
-      CALL WAXPY(N,-H*rkA(1,2),F,1,R1,1) ! R1 <- R1 - h*A_12*F2
-      CALL WAXPY(N,-H*rkA(2,2),F,1,R2,1) ! R2 <- R2 - h*A_22*F2
-      CALL WAXPY(N,-H*rkA(3,2),F,1,R3,1) ! R3 <- R3 - h*A_32*F2
+      TMP(1:N) = Y(1:N) + Z2(1:N)             ! TMP <- Y + Z2
+      CALL FUN_CHEM(T+rkC(2)*H,TMP,F)         ! F2 <- Fun(Y+Z2)        
+      R1(1:N) = R1(1:N) - H*rkA(1,2) * F(1:N) ! R1 <- R1 - h*A_12*F2
+      R2(1:N) = R2(1:N) - H*rkA(2,2) * F(1:N) ! R2 <- R2 - h*A_22*F2
+      R3(1:N) = R3(1:N) - H*rkA(3,2) * F(1:N) ! R3 <- R3 - h*A_32*F2
 
-      CALL WADD(N,Y,Z3,TMP)              ! TMP <- Y + Z3
-      CALL FUN_CHEM(T+rkC(3)*H,TMP,F)    ! F3 <- Fun(Y+Z3)     
-      CALL WAXPY(N,-H*rkA(1,3),F,1,R1,1) ! R1 <- R1 - h*A_13*F3
-      CALL WAXPY(N,-H*rkA(2,3),F,1,R2,1) ! R2 <- R2 - h*A_23*F3
-      CALL WAXPY(N,-H*rkA(3,3),F,1,R3,1) ! R3 <- R3 - h*A_33*F3
+      TMP(1:N) = Y(1:N) + Z3(1:N)             ! TMP <- Y + Z3 
+      CALL FUN_CHEM(T+rkC(3)*H,TMP,F)         ! F3 <- Fun(Y+Z3)     
+      R1(1:N) = R1(1:N) - H*rkA(1,3) * F(1:N) ! R1 <- R1 - h*A_13*F3
+      R2(1:N) = R2(1:N) - H*rkA(2,3) * F(1:N) ! R2 <- R2 - h*A_23*F3
+      R3(1:N) = R3(1:N) - H*rkA(3,3) * F(1:N) ! R3 <- R3 - h*A_33*F3
             
   END SUBROUTINE RK_PrepareRHS
   
@@ -1308,39 +1309,40 @@ accept:IF (Err < ONE) THEN !~~~> STEP IS ACCEPTED
 #endif
       KPP_REAL, DIMENSION(N) :: F, TMP
 
-      CALL WCOPY(N,Z1_tlm,1,R1,1) ! R1 <- Z1_tlm
-      CALL WCOPY(N,Z2_tlm,1,R2,1) ! R2 <- Z2_tlm
-      CALL WCOPY(N,Z3_tlm,1,R3,1) ! R3 <- Z3_tlm
+      R1(1:N) = Z1_tlm(1:N)                   ! R1 <- Z1_tlm
+      R2(1:N) = Z2_tlm(1:N)                   ! R2 <- Z2_tlm
+      R3(1:N) = Z3_tlm(1:N)                   ! R3 <- Z3_tlm
 
-      CALL WADD(N,Y_tlm,Z1_tlm,TMP)      ! TMP <- Y + Z1
+      TMP(1:N) = Y_tlm(1:N) + Z1_tlm(1:N)     ! TMP <- Y + Z1
 #ifdef FULL_ALGEBRA  
       F = MATMUL(Jac1,TMP)    
 #else      
-      CALL Jac_SP_Vec ( Jac1, TMP, F )   ! F1 <- Jac(Y+Z1)*(Y_tlm+Z1_tlm)  
+      CALL Jac_SP_Vec ( Jac1, TMP, F )        ! F1 <- Jac(Y+Z1)*(Y_tlm+Z1_tlm)  
 #endif      
-      CALL WAXPY(N,-H*rkA(1,1),F,1,R1,1) ! R1 <- R1 - h*A_11*F1
-      CALL WAXPY(N,-H*rkA(2,1),F,1,R2,1) ! R2 <- R2 - h*A_21*F1
-      CALL WAXPY(N,-H*rkA(3,1),F,1,R3,1) ! R3 <- R3 - h*A_31*F1
+      R1(1:N) = R1(1:N) - H*rkA(1,1) * F(1:N) ! R1 <- R1 - h*A_11*F1
+      R2(1:N) = R2(1:N) - H*rkA(2,1) * F(1:N) ! R2 <- R2 - h*A_21*F1
+      R3(1:N) = R3(1:N) - H*rkA(3,1) * F(1:N) ! R3 <- R3 - h*A_31*F1
 
-      CALL WADD(N,Y_tlm,Z2_tlm,TMP)      ! TMP <- Y + Z2
+
+      TMP(1:N) = Y_tlm(1:N) + Z2_tlm(1:N)     ! TMP <- Y + Z2
 #ifdef FULL_ALGEBRA      
       F = MATMUL(Jac2,TMP)    
 #else      
-      CALL Jac_SP_Vec ( Jac2, TMP, F )   ! F2 <- Jac(Y+Z2)*(Y_tlm+Z2_tlm)  
+      CALL Jac_SP_Vec ( Jac2, TMP, F )        ! F2 <- Jac(Y+Z2)*(Y_tlm+Z2_tlm)  
 #endif      
-      CALL WAXPY(N,-H*rkA(1,2),F,1,R1,1) ! R1 <- R1 - h*A_12*F2
-      CALL WAXPY(N,-H*rkA(2,2),F,1,R2,1) ! R2 <- R2 - h*A_22*F2
-      CALL WAXPY(N,-H*rkA(3,2),F,1,R3,1) ! R3 <- R3 - h*A_32*F2
+      R1(1:N) = R1(1:N) - H*rkA(1,2) * F(1:N) ! R1 <- R1 - h*A_12*F2
+      R2(1:N) = R2(1:N) - H*rkA(2,2) * F(1:N) ! R2 <- R2 - h*A_22*F2
+      R3(1:N) = R3(1:N) - H*rkA(3,2) * F(1:N) ! R3 <- R3 - h*A_32*F2
 
-      CALL WADD(N,Y_tlm,Z3_tlm,TMP)      ! TMP <- Y + Z3
+      TMP(1:N) = Y_tlm(1:N) + Z3_tlm(1:N)     ! TMP <- Y + Z3
 #ifdef FULL_ALGEBRA      
       F = MATMUL(Jac3,TMP)    
 #else      
-      CALL Jac_SP_Vec ( Jac3, TMP, F )   ! F3 <- Jac(Y+Z3)*(Y_tlm+Z3_tlm)  
+      CALL Jac_SP_Vec ( Jac3, TMP, F )        ! F3 <- Jac(Y+Z3)*(Y_tlm+Z3_tlm)  
 #endif      
-      CALL WAXPY(N,-H*rkA(1,3),F,1,R1,1) ! R1 <- R1 - h*A_13*F3
-      CALL WAXPY(N,-H*rkA(2,3),F,1,R2,1) ! R2 <- R2 - h*A_23*F3
-      CALL WAXPY(N,-H*rkA(3,3),F,1,R3,1) ! R3 <- R3 - h*A_33*F3
+      R1(1:N) = R1(1:N) - H*rkA(1,3) * F(1:N) ! R1 <- R1 - h*A_13*F3
+      R2(1:N) = R2(1:N) - H*rkA(2,3) * F(1:N) ! R2 <- R2 - h*A_23*F3
+      R3(1:N) = R3(1:N) - H*rkA(3,3) * F(1:N) ! R3 <- R3 - h*A_33*F3
             
   END SUBROUTINE RK_PrepareRHS_TLM
   
