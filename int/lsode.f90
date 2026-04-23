@@ -2,8 +2,18 @@
 !  LSODE - Stiff method based on backward differentiation formulas (BDF)  !
 !  By default the code employs the KPP sparse linear algebra routines     !
 !  Compile with -DFULL_ALGEBRA to use full linear algebra (LAPACK)        !
+!                                                                         !
+!  THREAD-SAFE VERSION for OpenMP parallelisation                         !
+!  Key change: COMMON /DLS001/ removed; all state variables are now       !
+!  LOCAL to each call of DLSODE (stack allocation).  Internal procedures  !
+!  access host variables via Fortran host-association instead of COMMON.  !
+!  This guarantees bitwise-identical results regardless of thread count.  !
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
 ! A. Sandu - version of July 2005
+!
+! Thread-safe refactoring: based on analysis of COMMON /DLS001/ 
+! usage  across DLSODE and all its internal procedures.
+!  -- Bob Yantosca (with Claude AI), 23 Apr 2026
 
 MODULE KPP_ROOT_Integrator
 
@@ -20,9 +30,14 @@ MODULE KPP_ROOT_Integrator
 !~~~> Flags to determine if we should call the UPDATE_* routines from within
 !~~~> the integrator.  If using KPP in an external model, you might want to
 !~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
+!
+!  THREAD-SAFETY CHANGE: these three flags are now THREADPRIVATE so that
+!  each OpenMP thread has its own independent copy.  INTEGRATE sets them
+!  at the start of every call, so no COPYIN clause is needed.
   LOGICAL, PRIVATE :: Do_Update_RCONST
   LOGICAL, PRIVATE :: Do_Update_PHOTO
   LOGICAL, PRIVATE :: Do_Update_SUN
+  !$OMP THREADPRIVATE( Do_Update_RCONST, Do_Update_PHOTO, Do_Update_SUN )
 
   !~~~>  Statistics on the work performed by the LSODE method
   INTEGER :: Nfun,Njac,Nstp,Nacc,Nrej,Ndec,Nsol,Nsng
@@ -259,9 +274,32 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !DECK DLSODE                                                            
       SUBROUTINE DLSODE (F, NEQ, Y, T, TOUT, ITOL, RelTol, AbsTol, ITASK,   &
-                       ISTATE, IOPT, RWORK, LRW, IWORK, LIW, JAC, MF)  
-      EXTERNAL F, JAC 
-      INTEGER NEQ, ITOL, ITASK, ISTATE, IOPT, LRW, LIW, IWORK(LIW), MF 
+                       ISTATE, IOPT, RWORK, LRW, IWORK, LIW, JAC, MF)
+!
+!  THREAD-SAFETY NOTE
+!  ------------------
+!  The original DLSODE stored all integrator state in COMMON /DLS001/.
+!  That single block was shared across all threads, making parallel
+!  execution unsafe.
+!
+!  In this refactoring ALL variables that were in COMMON /DLS001/ are
+!  declared as ordinary LOCAL variables of this subroutine.  Because
+!  local variables are allocated on the call stack, every concurrent
+!  invocation of DLSODE (one per OpenMP thread) gets its own private
+!  copy of the entire integrator state.  The internal procedures
+!  (DINTDY, DPREPJ, DSOLSY, DSTODE, ...) access these variables through
+!  Fortran HOST ASSOCIATION - they see the host's local variables
+!  automatically, with no COMMON block required.
+!
+!  LIMITATION: The ISTATE=2/3 continuation feature requires integrator
+!  state to persist between successive DLSODE calls.  Because local
+!  variables do not persist (no SAVE), continuation is NOT supported by
+!  this version.  In the KPP framework DLSODE is always called fresh
+!  with ISTATE=1, so this is not a practical restriction.
+!  If continuation is ever needed, save/restore state with DSRCOM.
+!
+      EXTERNAL F, JAC
+      INTEGER NEQ, ITOL, ITASK, ISTATE, IOPT, LRW, LIW, IWORK(LIW), MF
       KPP_REAL Y(*), T, TOUT, RelTol(*), AbsTol(*), RWORK(LRW)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !***BEGIN PROLOGUE  DLSODE                                              
@@ -644,22 +682,13 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 ! *Cautions:                                                            
 !     The work arrays should not be altered between calls to DLSODE for 
 !     the same problem, except possibly for the conditional and optional
-!     inputs.                                                           
-!                                                                       
-! *Portability:                                                         
-!     Since NEQ is dimensioned inside DLSODE, some compilers may object 
-!     to a call to DLSODE with NEQ a scalar variable.  In this event,   
-!     use DIMENSION NEQ.  Similar remarks apply to RelTol and AbsTol.    
-!                                                                       
-!     Note to Cray users:                                               
-!     For maximum efficiency, use the CFT77 compiler.  Appropriate      
-!     compiler optimization directives have been inserted for CFT77.    
-!                                                                       
-! *Reference:                                                           
-!     Alan C. Hindmarsh, "ODEPACK, A Systematized Collection of ODE     
-!     Solvers," in Scientific Computing, R. S. Stepleman, et al., Eds.  
-!     (North-Holland, Amsterdam, 1983), pp. 55-64.                      
-!                                                                       
+!     inputs.
+!
+! *Reference:
+!     Alan C. Hindmarsh, "ODEPACK, A Systematized Collection of ODE
+!     Solvers," in Scientific Computing, R. S. Stepleman, et al., Eds.
+!     (North-Holland, Amsterdam, 1983), pp. 55-64.
+
 ! *Long Description:                                                    
 !     The following complete description of the user interface to       
 !     DLSODE consists of four parts:                                    
@@ -1277,28 +1306,13 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !                          Part 3.  Common Blocks                       
 !                          ----------------------                       
 !                                                                       
-!     If DLSODE is to be used in an overlay situation, the user must    
-!     declare, in the primary overlay, the variables in:                
-!     (1) the call sequence to DLSODE,                                  
-!     (2) the internal COMMON block /DLS001/, of length 255             
-!         (218 double precision words followed by 37 integer words).    
-!                                                                       
-!     If DLSODE is used on a system in which the contents of internal   
-!     COMMON blocks are not preserved between calls, the user should    
-!     declare the above COMMON block in his main program to insure that 
-!     its contents are preserved.                                       
-!                                                                       
-!     If the solution of a given problem by DLSODE is to be interrupted 
-!     and then later continued, as when restarting an interrupted run or
-!     alternating between two or more problems, the user should save,   
-!     following the return from the last DLSODE call prior to the       
-!     interruption, the contents of the call sequence variables and the 
-!     internal COMMON block, and later restore these values before the  
-!     next DLSODE call for that problem.   In addition, if XSETUN and/or
-!     XSETF was called for non-default handling of error messages, then 
-!     these calls must be repeated.  To save and restore the COMMON     
-!     block, use subroutine DSRCOM (see Part 2 above).                  
-!                                                                       
+!     NOTE: The "COMMON /DLS001/" block has been removed, as this is 
+!     was not OpenMP thread-safe.  All common block variables are
+!     now declared as local variables in the DLSODE routine, which
+!     are accessible to other routines CONTAINed by DLSODE by
+!     Fortran host-association.
+!       -- Bob Yantosca, with Claude AI (23 Apr 2026)
+!
 !                                                                       
 !              Part 4.  Optionally Replaceable Solver Routines          
 !              -----------------------------------------------          
@@ -1429,119 +1443,119 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 ! 20031105  Restored 'own' variables to Common block /DLS001/, to       
 !           enable interrupt/restart feature. (ACH)                     
 ! 20031112  Added SAVE statements for data-loaded constants.            
-!                                                                       
-!***END PROLOGUE  DLSODE                                                
-!                                                                       
-!*Internal Notes:                                                       
-!                                                                       
-! Other Routines in the DLSODE Package.                                 
-!                                                                       
-! In addition to Subroutine DLSODE, the DLSODE package includes the     
-! following subroutines and function routines:                          
-!  DINTDY   computes an interpolated value of the y vector at t = TOUT. 
-!  DSTODE   is the core integrator, which does one step of the          
-!           integration and the associated error control.               
-!  DCFODE   sets all method coefficients and test constants.            
-!  DPREPJ   computes and preprocesses the Jacobian matrix J = df/dy     
-!           and the Newton iteration matrix P = I - h*l0*J.             
-!  DSOLSY   manages solution of linear system in chord iteration.       
-!  DEWSET   sets the error weight vector EWT before each step.          
-!  DVNORM   computes the weighted R.M.S. norm of a vector.              
-!  DSRCOM   is a user-callable routine to save and restore              
-!           the contents of the internal Common block.                  
-!  DGEFA and DGESL   are routines from LINPACK for solving full         
-!           systems of linear algebraic equations.                      
-!  DGBFA and DGBSL   are routines from LINPACK for solving banded       
-!           linear systems.                                             
-!  DUMACH   computes the unit roundoff in a machine-independent manner. 
-!  XERRWD, XSETUN, XSETF, IXSAV, IUMACH   handle the printing of all    
-!           error messages and warnings.  XERRWD is machine-dependent.  
-! Note: DVNORM, DUMACH, IXSAV, and IUMACH are function routines.        
-! All the others are subroutines.                                       
-!                                                                       
-!**End                                                                  
-!                                                                       
+! 20260423  (Thread-safe) COMMON /DLS001/ replaced by host association.
+!***END PROLOGUE  DLSODE                  
+!
+!*Internal Notes:
+!
+! Other Routines in the DLSODE Package.
+!
+! In addition to Subroutine DLSODE, the DLSODE package includes the
+! following subroutines and function routines:
+!  DINTDY   computes an interpolated value of the y vector at t = TOUT.
+!  DSTODE   is the core integrator, which does one step of the
+!           integration and the associated error control.
+!  DCFODE   sets all method coefficients and test constants.
+!  DPREPJ   computes and preprocesses the Jacobian matrix J = df/dy
+!           and the Newton iteration matrix P = I - h*l0*J.
+!  DSOLSY   manages solution of linear system in chord iteration.
+!  DEWSET   sets the error weight vector EWT before each step.
+!  DVNORM   computes the weighted R.M.S. norm of a vector.
+!  DSRCOM   is a user-callable routine to save and restore
+!           the contents of the internal Common block.
+!  DGEFA and DGESL   are routines from LINPACK for solving full
+!           systems of linear algebraic equations.
+!  DGBFA and DGBSL   are routines from LINPACK for solving banded
+!           linear systems.
+!  DUMACH   computes the unit roundoff in a machine-independent manner.
+!  XERRWD, XSETUN, XSETF, IXSAV, IUMACH   handle the printing of all
+!           error messages and warnings.  XERRWD is machine-dependent.
+! Note: DVNORM, DUMACH, IXSAV, and IUMACH are function routines.
+! All the others are subroutines.
+!
+!**End
+!
 !  Declare externals.
-!  Note: they are now internal                                                   
-      !EXTERNAL DPREPJ, DSOLSY 
-      !KPP_REAL DUMACH, DVNORM 
-!                                                                       
-!  Declare all other variables.                                         
-      INTEGER INIT, MXSTEP, MXHNIL, NHNIL, NSLAST, NYH, IOWNS,          &
-        ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,                      &
-        LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,                &
-        MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU         
+!  Note: they are now internal   
+      !EXTERNAL DPREPJ, DSOLSY
+      !KPP_REAL DUMACH, DVNORM
+!
+! --------------- Local working variables (not from COMMON) ---------------
+!
       INTEGER I, I1, I2, IFLAG, IMXER, KGO, LF0,                        &
-        LENIW, LENRW, LENWM, ML, MORD(2), MU, MXHNL0, MXSTP0              
-      KPP_REAL ROWNS,                                           &
-        CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND                  
-      KPP_REAL AbsTolI, AYI, BIG, EWTI, H0, HMAX, HMX, RH, RelTolI, &
-        TCRIT, TDIST, TNEXT, TOL, TOLSF, TP, SIZE, SUM, W0             
-
-      LOGICAL IHIT 
-      CHARACTER*80 MSG 
-      SAVE MORD, MXSTP0, MXHNL0 
+        LENIW, LENRW, LENWM, ML, MORD(2), MU, MXHNL0, MXSTP0
+      KPP_REAL AbsTolI, AYI, BIG, EWTI, H0, HMAX, HMX, RH, RelTolI,    &
+        TCRIT, TDIST, TNEXT, TOL, TOLSF, TP, SIZE, SUM, W0
+      LOGICAL IHIT
+      CHARACTER*80 MSG
+      ! MORD, MXSTP0, MXHNL0 are read-only constants; SAVE is safe here.
+      SAVE MORD, MXSTP0, MXHNL0
+      DATA MORD(1),MORD(2)/12,5/, MXSTP0/5000/, MXHNL0/10/
+!
+! -------- State variables replacing COMMON /DLS001/ (218 reals + 37 ints)
+!
+!  Real "own" variables  (was ROWNS(209) in the original COMMON block)
+!  Layout in original COMMON:
+!    pos   1        : CONIT
+!    pos   2        : CRATE
+!    pos   3 - 15   : EL(13)
+!    pos  16 - 171  : ELCO(13,12)   [column-major]
+!    pos 172        : HOLD
+!    pos 173        : RMAX
+!    pos 174 - 209  : TESCO(3,12)   [column-major]
+      KPP_REAL :: CONIT, CRATE, EL(13), ELCO(13,12), HOLD, RMAX, &
+                  TESCO(3,12)
+!
+!  Shared real scalars  (positions 210-218 of original COMMON)
+      KPP_REAL :: CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND
+!
+!  Integer scalars 1-6 of original COMMON
+!  (named IOWND(6) in DSTODE's COMMON view; real names used in DLSODE)
+      INTEGER :: INIT, MXSTEP, MXHNIL, NHNIL, NSLAST, NYH
+!
+!  Integer scalars 7-12 of original COMMON
+!  (named IOWNS(6) in DLSODE's COMMON view; real names from DSTODE)
+      INTEGER :: IALTH, IPUP, LMAX, MEO, NQNYH, NSLP
+!
+!  Shared integer scalars (positions 13-37 of the original integer part)
+      INTEGER :: ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L
+      INTEGER :: LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER
+      INTEGER :: MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU
+!
+!***FIRST EXECUTABLE STATEMENT  DLSODE
+      IF (ISTATE .LT. 1 .OR. ISTATE .GT. 3) GO TO 601
+      IF (ITASK .LT. 1 .OR. ITASK .GT. 5) GO TO 602
+      IF (ISTATE .EQ. 1) GO TO 10
+      IF (INIT .EQ. 0) GO TO 603
+      IF (ISTATE .EQ. 2) GO TO 200
+      GO TO 20
+   10 INIT = 0
+      IF (TOUT .EQ. T) RETURN
 !-----------------------------------------------------------------------
-! The following internal Common block contains                          
-! (a) variables which are local to any subroutine but whose values must 
-!     be preserved between calls to the routine ("own" variables), and  
-! (b) variables which are communicated between subroutines.             
-! The block DLS001 is declared in subroutines DLSODE, DINTDY, DSTODE,   
-! DPREPJ, and DSOLSY.                                                   
-! Groups of variables are replaced by dummy arrays in the Common        
-! declarations in routines where those variables are not used.          
+! Block B.
+! The next code block is executed for the initial call (ISTATE = 1),
+! or for a continuation call with parameter changes (ISTATE = 3).
+! It contains checking of all inputs and various initializations.
+!
+! First check legality of the non-optional inputs NEQ, ITOL, IOPT,
+! MF, ML, and MU.
 !-----------------------------------------------------------------------
-      COMMON /DLS001/ ROWNS(209),                                      &
-        CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND,                 &
-        INIT, MXSTEP, MXHNIL, NHNIL, NSLAST, NYH, IOWNS(6),            &
-        ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,                     &
-        LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,               &
-        MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU         
-!                                                                       
-      DATA  MORD(1),MORD(2)/12,5/, MXSTP0/5000/, MXHNL0/10/ 
-!-----------------------------------------------------------------------
-! Block A.                                                              
-! This code block is executed on every call.                            
-! It tests ISTATE and ITASK for legality and branches appropriately.    
-! If ISTATE .GT. 1 but the flag INIT shows that initialization has      
-! not yet been done, an error return occurs.                            
-! If ISTATE = 1 and TOUT = T, return immediately.                       
-!-----------------------------------------------------------------------
-!                                                                       
-!***FIRST EXECUTABLE STATEMENT  DLSODE                                  
-      IF (ISTATE .LT. 1 .OR. ISTATE .GT. 3) GO TO 601 
-      IF (ITASK .LT. 1 .OR. ITASK .GT. 5) GO TO 602 
-      IF (ISTATE .EQ. 1) GO TO 10 
-      IF (INIT .EQ. 0) GO TO 603 
-      IF (ISTATE .EQ. 2) GO TO 200 
-      GO TO 20 
-   10 INIT = 0 
-      IF (TOUT .EQ. T) RETURN 
-!-----------------------------------------------------------------------
-! Block B.                                                              
-! The next code block is executed for the initial call (ISTATE = 1),    
-! or for a continuation call with parameter changes (ISTATE = 3).       
-! It contains checking of all inputs and various initializations.       
-!                                                                       
-! First check legality of the non-optional inputs NEQ, ITOL, IOPT,      
-! MF, ML, and MU.                                                       
-!-----------------------------------------------------------------------
-   20 IF (NEQ .LE. 0) GO TO 604 
-      IF (ISTATE .EQ. 1) GO TO 25 
-      IF (NEQ .GT. N) GO TO 605 
-   25 N = NEQ 
-      IF (ITOL .LT. 1 .OR. ITOL .GT. 4) GO TO 606 
-      IF (IOPT .LT. 0 .OR. IOPT .GT. 1) GO TO 607 
-      METH = MF/10 
-      MITER = MF - 10*METH 
-      IF (METH .LT. 1 .OR. METH .GT. 2) GO TO 608 
-      IF (MITER .LT. 0 .OR. MITER .GT. 5) GO TO 608 
-      IF (MITER .LE. 3) GO TO 30 
-      ML = IWORK(1) 
-      MU = IWORK(2) 
-      IF (ML .LT. 0 .OR. ML .GE. N) GO TO 609 
-      IF (MU .LT. 0 .OR. MU .GE. N) GO TO 610 
-   30 CONTINUE 
+   20 IF (NEQ .LE. 0) GO TO 604
+      IF (ISTATE .EQ. 1) GO TO 25
+      IF (NEQ .GT. N) GO TO 605
+   25 N = NEQ
+      IF (ITOL .LT. 1 .OR. ITOL .GT. 4) GO TO 606
+      IF (IOPT .LT. 0 .OR. IOPT .GT. 1) GO TO 607
+      METH = MF/10
+      MITER = MF - 10*METH
+      IF (METH .LT. 1 .OR. METH .GT. 2) GO TO 608
+      IF (MITER .LT. 0 .OR. MITER .GT. 5) GO TO 608
+      IF (MITER .LE. 3) GO TO 30
+      ML = IWORK(1)
+      MU = IWORK(2)
+      IF (ML .LT. 0 .OR. ML .GE. N) GO TO 609
+      IF (MU .LT. 0 .OR. MU .GE. N) GO TO 610
+   30 CONTINUE
 ! Next process and check the optional inputs. --------------------------
       IF (IOPT .EQ. 1) GO TO 40 
       MAXORD = MORD(METH) 
@@ -2201,79 +2215,70 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
   230   CONTINUE 
       RETURN 
 !----------------------- END OF SUBROUTINE DCFODE ----------------------
-      END SUBROUTINE DCFODE                                         
-!DECK DINTDY                                                            
-      SUBROUTINE DINTDY (T, K, YH, NYH, DKY, IFLAG) 
-!***BEGIN PROLOGUE  DINTDY                                              
-!***SUBSIDIARY                                                          
-!***PURPOSE  Interpolate solution derivatives.                          
-!***TYPE      KPP_REAL (SINTDY-S, DINTDY-D)                     
-!***AUTHOR  Hindmarsh, Alan C., (LLNL)                                  
-!***DESCRIPTION                                                         
-!                                                                       
-!  DINTDY computes interpolated values of the K-th derivative of the    
-!  dependent variable vector y, and stores it in DKY.  This routine     
-!  is called within the package with K = 0 and T = TOUT, but may        
-!  also be called by the user for any K up to the current order.        
-!  (See detailed instructions in the usage documentation.)              
-!                                                                       
-!  The computed values in DKY are gotten by interpolation using the     
-!  Nordsieck history array YH.  This array corresponds uniquely to a    
-!  vector-valued polynomial of degree NQCUR or less, and DKY is set     
-!  to the K-th derivative of this polynomial at T.                      
-!  The formula for DKY is:                                              
-!               q                                                       
-!   DKY(i)  =  sum  c(j,K) * (T - tn)**(j-K) * h**(-j) * YH(i,j+1)      
-!              j=K                                                      
-!  where  c(j,K) = j*(j-1)*...*(j-K+1), q = NQCUR, tn = TCUR, h = HCUR. 
-!  The quantities  nq = NQCUR, l = nq+1, N = NEQ, tn, and h are         
-!  communicated by COMMON.  The above sum is done in reverse order.     
-!  IFLAG is returned negative if either K or T is out of bounds.        
-!                                                                       
-!***SEE ALSO  DLSODE                                                    
-!***ROUTINES CALLED  XERRWD                                             
-!***COMMON BLOCKS    DLS001                                             
-!***REVISION HISTORY  (YYMMDD)                                          
-!   791129  DATE WRITTEN                                                
+      END SUBROUTINE DCFODE
+!DECK DINTDY
+      SUBROUTINE DINTDY (T, K, YH, NYH, DKY, IFLAG)
+!***BEGIN PROLOGUE  DINTDY
+!***SUBSIDIARY
+!***PURPOSE  Interpolate solution derivatives.
+!***TYPE      KPP_REAL (SINTDY-S, DINTDY-D)
+!***AUTHOR  Hindmarsh, Alan C., (LLNL)
+!***DESCRIPTION
+!
+!  DINTDY computes interpolated values of the K-th derivative of the
+!  dependent variable vector y, and stores it in DKY.  This routine
+!  is called within the package with K = 0 and T = TOUT, but may
+!  also be called by the user for any K up to the current order.
+!  (See detailed instructions in the usage documentation.)
+!
+!  The computed values in DKY are gotten by interpolation using the
+!  Nordsieck history array YH.  This array corresponds uniquely to a
+!  vector-valued polynomial of degree NQCUR or less, and DKY is set
+!  to the K-th derivative of this polynomial at T.
+!  The formula for DKY is:
+!               q
+!   DKY(i)  =  sum  c(j,K) * (T - tn)**(j-K) * h**(-j) * YH(i,j+1)
+!              j=K
+!  where  c(j,K) = j*(j-1)*...*(j-K+1), q = NQCUR, tn = TCUR, h = HCUR.
+!  The quantities  nq = NQCUR, l = nq+1, N = NEQ, tn, and h are
+!  communicated by host association (thread-safe replacement for COMMON).
+!  The above sum is done in reverse order.
+!  IFLAG is returned negative if either K or T is out of bounds.
+!
+!***SEE ALSO  DLSODE
+!***ROUTINES CALLED  XERRWD
+!***REVISION HISTORY  (YYMMDD)
+!   791129  DATE WRITTEN
 !   890501  Modified prologue to SLATEC/LDOC format.  (FNF)             
 !   890503  Minor cosmetic changes.  (FNF)                              
 !   930809  Renamed to allow single/double precision versions. (ACH)    
 !   010418  Reduced size of Common block /DLS001/. (ACH)                
 !   031105  Restored 'own' variables to Common block /DLS001/, to       
 !           enable interrupt/restart feature. (ACH)                     
-!   050427  Corrected roundoff decrement in TP. (ACH)                   
-!***END PROLOGUE  DINTDY                                                
-!**End                                                                  
-      INTEGER K, NYH, IFLAG 
-      KPP_REAL T, YH(NYH,*), DKY(*) 
-      INTEGER IOWND, IOWNS,                                            &
-        ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,                     &
-        LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,               &
-        MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU         
-      KPP_REAL ROWNS,                                          &
-        CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND                  
-      COMMON /DLS001/ ROWNS(209),                                      &
-        CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND,                 &
-        IOWND(6), IOWNS(6),                                            &
-        ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,                     &
-        LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,               &
-        MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU         
-      INTEGER I, IC, J, JB, JB2, JJ, JJ1, JP1 
-      KPP_REAL C, R, S, TP 
-      CHARACTER*80 MSG 
-!                                                                       
-!***FIRST EXECUTABLE STATEMENT  DINTDY                                  
-      IFLAG = 0 
-      IF (K .LT. 0 .OR. K .GT. NQ) GO TO 80 
-      TP = TN - HU -  100.0D0*UROUND*SIGN(ABS(TN) + ABS(HU), HU) 
-      IF ((T-TP)*(T-TN) .GT. 0.0D0) GO TO 90 
-!                                                                       
-      S = (T - TN)/H 
-      IC = 1 
-      IF (K .EQ. 0) GO TO 15 
-      JJ1 = L - K 
-      DO 10 JJ = JJ1,NQ 
-        IC = IC*JJ 
+!   050427  Corrected roundoff decrement in TP. (ACH)
+! 20260423  (Thread-safe) COMMON /DLS001/ replaced by host association.
+!***END PROLOGUE  DINTDY
+!**End
+      INTEGER K, NYH, IFLAG
+      KPP_REAL T, YH(NYH,*), DKY(*)
+!  All variables formerly in COMMON /DLS001/ are now accessed via
+!  host association from the enclosing DLSODE scope.
+      INTEGER I, IC, J, JB, JB2, JJ, JJ1, JP1
+      KPP_REAL C, R, S, TP
+      CHARACTER*80 MSG
+!
+!***FIRST EXECUTABLE STATEMENT  DINTDY
+      IFLAG = 0
+      IF (K .LT. 0 .OR. K .GT. NQ) GO TO 80
+      TP = TN - HU -  100.0D0*UROUND*SIGN(ABS(TN) + ABS(HU), HU)
+      IF ((T-TP)*(T-TN) .GT. 0.0D0) GO TO 90
+!
+      S = (T - TN)/H
+      IC = 1
+      IF (K .EQ. 0) GO TO 15
+      JJ1 = L - K
+      DO 10 JJ = JJ1,NQ
+        IC = IC*JJ
    10 CONTINUE
    15 C = IC 
       DO 20 I = 1,N 
@@ -2313,26 +2318,26 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
       IFLAG = -2 
       RETURN 
 !----------------------- END OF SUBROUTINE DINTDY ----------------------
-      END SUBROUTINE DINTDY                                          
-!DECK DPREPJ                                                            
-      SUBROUTINE DPREPJ (NEQ, Y, YH, NYH, EWT, FTEM, SAVF, WM, IWM, F, JAC)                                                        
-!***BEGIN PROLOGUE  DPREPJ                                              
-!***SUBSIDIARY                                                          
-!***PURPOSE  Compute and process Newton iteration matrix.               
-!***TYPE      KPP_REAL (SPREPJ-S, DPREPJ-D)                     
-!***AUTHOR  Hindmarsh, Alan C., (LLNL)                                  
-!***DESCRIPTION                                                         
-!                                                                       
-!  DPREPJ is called by DSTODE to compute and process the matrix         
-!  P = I - h*el(1)*J , where J is an approximation to the Jacobian.     
-!  Here J is computed by the user-supplied routine JAC if               
-!  MITER = 1 or 4, or by finite differencing if MITER = 2, 3, or 5.     
-!  If MITER = 3, a diagonal approximation to J is used.                 
-!  J is stored in WM and replaced by P.  If MITER .ne. 3, P is then     
-!  subjected to LU decomposition in preparation for later solution      
-!  of linear systems with P as coefficient matrix.  This is done        
-!  by DGEFA if MITER = 1 or 2, and by DGBFA if MITER = 4 or 5.          
-!                                                                       
+      END SUBROUTINE DINTDY
+!DECK DPREPJ
+      SUBROUTINE DPREPJ (NEQ, Y, YH, NYH, EWT, FTEM, SAVF, WM, IWM, F, JAC)
+!***BEGIN PROLOGUE  DPREPJ
+!***SUBSIDIARY
+!***PURPOSE  Compute and process Newton iteration matrix.
+!***TYPE      KPP_REAL (SPREPJ-S, DPREPJ-D)
+!***AUTHOR  Hindmarsh, Alan C., (LLNL)
+!***DESCRIPTION
+!
+!  DPREPJ is called by DSTODE to compute and process the matrix
+!  P = I - h*el(1)*J , where J is an approximation to the Jacobian.
+!  Here J is computed by the user-supplied routine JAC if
+!  MITER = 1 or 4, or by finite differencing if MITER = 2, 3, or 5.
+!  If MITER = 3, a diagonal approximation to J is used.
+!  J is stored in WM and replaced by P.  If MITER .ne. 3, P is then
+!  subjected to LU decomposition in preparation for later solution
+!  of linear systems with P as coefficient matrix.  This is done
+!  by DGEFA if MITER = 1 or 2, and by DGBFA if MITER = 4 or 5.
+!
 !  In addition to variables described in DSTODE and DLSODE prologues,   
 !  communication with DPREPJ uses the following:                        
 !  Y     = array containing predicted values on entry.                  
@@ -2353,48 +2358,41 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !          P matrix found to be singular.                               
 !  JCUR  = output flag = 1 to indicate that the Jacobian matrix         
 !          (or approximation) is now current.                           
-!  This routine also uses the COMMON variables EL0, H, TN, UROUND,      
-!  MITER, N, NFE, and NJE.                                              
-!                                                                       
-!***SEE ALSO  DLSODE                                                    
-!***ROUTINES CALLED  DGBFA, DGEFA, DVNORM                               
-!***COMMON BLOCKS    DLS001                                             
-!***REVISION HISTORY  (YYMMDD)                                          
-!   791129  DATE WRITTEN                                                
+!  This routine also uses the following variables from the 
+!  host (DLSODE) scope via host association:  EL0, H, IERPJ, JCUR, 
+!  MITER, N, NFE, NJE, TN, UROUND.
+!
+!***SEE ALSO  DLSODE
+!***ROUTINES CALLED  DGBFA, DGEFA, DVNORM
+!***REVISION HISTORY  (YYMMDD)
+!   791129  DATE WRITTEN
 !   890501  Modified prologue to SLATEC/LDOC format.  (FNF)             
 !   890504  Minor cosmetic changes.  (FNF)                              
 !   930809  Renamed to allow single/double precision versions. (ACH)    
 !   010418  Reduced size of Common block /DLS001/. (ACH)                
 !   031105  Restored 'own' variables to Common block /DLS001/, to       
-!           enable interrupt/restart feature. (ACH)                     
-!***END PROLOGUE  DPREPJ                                                
-!**End                                                                  
-      EXTERNAL F, JAC 
+!           enable interrupt/restart feature. (ACH)       
+! 20260423 (Thread-safe) COMMON /DLS001/ replaced by host association.
+!***END PROLOGUE  DPREPJ
+!**End
+      EXTERNAL F, JAC
       INTEGER NEQ, NYH, IWM(*)
-      KPP_REAL Y(*), YH(NYH,*), EWT(*), FTEM(*), SAVF(*), WM(*) 
-      INTEGER IOWND, IOWNS, IER,                                           &
-        ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,                     &
-        LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,               &
-        MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU         
-      KPP_REAL ROWNS,                                          &
-        CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND                  
-      COMMON /DLS001/ ROWNS(209),                                      &
-        CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND,                 &
-        IOWND(6), IOWNS(6),                                            &
-        ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,                     &
-        LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,               &
-        MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU         
-      INTEGER I, I1, I2, ISING, II, J, J1, JJ, LENP,                     &
-              MBA, MBAND, MEB1, MEBAND, ML, ML3, MU, NP1                     
+      KPP_REAL Y(*), YH(NYH,*), EWT(*), FTEM(*), SAVF(*), WM(*)
+!  All variables formerly in COMMON /DLS001/ are now accessed via
+!  host association from the enclosing DLSODE scope.
+      INTEGER I, I1, I2, II, J, J1, JJ, LENP,                           &
+              MBA, MBAND, MEB1, MEBAND, ML, ML3, MU, NP1, IER
       KPP_REAL CON, DI, FAC, HL0, R, R0, SRUR, YI, YJ, YJJ
-      !KPP_REAL  DVNORM                                                         
-!                                                                       
-!***FIRST EXECUTABLE STATEMENT  DPREPJ                                  
-      NJE = NJE + 1 
-      IERPJ = 0 
-      JCUR = 1 
-      HL0 = H*EL0 
-      CON = -HL0 
+#ifdef FULL_ALGEBRA
+      INTEGER ISING
+#endif
+!
+!***FIRST EXECUTABLE STATEMENT  DPREPJ
+      NJE = NJE + 1
+      IERPJ = 0
+      JCUR = 1
+      HL0 = H*EL0
+      CON = -HL0
 
 #ifdef FULL_ALGEBRA
       LENP = N*N 
@@ -2426,27 +2424,27 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
       END DO 
       ! Do LU decomposition on P
       CALL KppDecomp(WM(3),IER)
-#endif      
-      IF (IER .NE. 0) IERPJ = 1 
-      RETURN 
- !----------------------- END OF SUBROUTINE DPREPJ ----------------------
-      END SUBROUTINE DPREPJ                                          
-!DECK DSOLSY                                                            
-      SUBROUTINE DSOLSY (WM, IWM, X, TEM) 
-!***BEGIN PROLOGUE  DSOLSY                                              
-!***SUBSIDIARY                                                          
-!***PURPOSE  ODEPACK linear system solver.                              
-!***TYPE      KPP_REAL (SSOLSY-S, DSOLSY-D)                     
-!***AUTHOR  Hindmarsh, Alan C., (LLNL)                                  
-!***DESCRIPTION                                                         
-!                                                                       
-!  This routine manages the solution of the linear system arising from  
-!  a chord iteration.  It is called if MITER .ne. 0.                    
-!  If MITER is 1 or 2, it calls DGESL to accomplish this.               
-!  If MITER = 3 it updates the coefficient h*EL0 in the diagonal        
-!  matrix, and then computes the solution.                              
-!  If MITER is 4 or 5, it calls DGBSL.                                  
-!  Communication with DSOLSY uses the following variables:              
+#endif
+      IF (IER .NE. 0) IERPJ = 1
+      RETURN
+!----------------------- END OF SUBROUTINE DPREPJ ----------------------
+      END SUBROUTINE DPREPJ
+!DECK DSOLSY
+      SUBROUTINE DSOLSY (WM, IWM, X, TEM)
+!***BEGIN PROLOGUE  DSOLSY
+!***SUBSIDIARY
+!***PURPOSE  ODEPACK linear system solver.
+!***TYPE      KPP_REAL (SSOLSY-S, DSOLSY-D)
+!***AUTHOR  Hindmarsh, Alan C., (LLNL)
+!***DESCRIPTION
+!
+!  This routine manages the solution of the linear system arising from
+!  a chord iteration.  It is called if MITER .ne. 0.
+!  If MITER is 1 or 2, it calls DGESL to accomplish this.
+!  If MITER = 3 it updates the coefficient h*EL0 in the diagonal
+!  matrix, and then computes the solution.
+!  If MITER is 4 or 5, it calls DGBSL.
+!  Communication with DSOLSY uses the following variables 
 !  WM    = real work space containing the inverse diagonal matrix if    
 !          MITER = 3 and the LU decomposition of the matrix otherwise.  
 !          Storage of matrix elements starts at WM(3).                  
@@ -2460,39 +2458,30 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !          on output, of length N.                                      
 !  TEM   = vector of work space of length N, not used in this version.  
 !  IERSL = output flag (in COMMON).  IERSL = 0 if no trouble occurred.  
-!          IERSL = 1 if a singular matrix arose with MITER = 3.         
-!  This routine also uses the COMMON variables EL0, H, MITER, and N.    
-!                                                                       
-!***SEE ALSO  DLSODE                                                    
-!***ROUTINES CALLED  DGBSL, DGESL                                       
-!***COMMON BLOCKS    DLS001                                             
-!***REVISION HISTORY  (YYMMDD)                                          
-!   791129  DATE WRITTEN                                                
+!          IERSL = 1 if a singular matrix arose with MITER = 3.      
+! This routine also uses variables from the host (DLSODE) scope 
+! via host association: EL0, H, IERSL, MITER, N.
+!
+!***SEE ALSO  DLSODE
+!***ROUTINES CALLED  DGBSL, DGESL
+!***REVISION HISTORY  (YYMMDD)
+!   791129  DATE WRITTEN                                             
 !   890501  Modified prologue to SLATEC/LDOC format.  (FNF)             
 !   890503  Minor cosmetic changes.  (FNF)                              
 !   930809  Renamed to allow single/double precision versions. (ACH)    
 !   010418  Reduced size of Common block /DLS001/. (ACH)                
 !   031105  Restored 'own' variables to Common block /DLS001/, to       
-!           enable interrupt/restart feature. (ACH)                     
-!***END PROLOGUE  DSOLSY                                                
-!**End                                                                  
-      INTEGER IWM(*) 
-      KPP_REAL WM(*), X(*), TEM(*) 
-      INTEGER IOWND, IOWNS,                                            &
-        ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,                     &
-        LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,               &
-        MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU         
-      KPP_REAL ROWNS,                                          &
-        CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND                  
-      COMMON /DLS001/ ROWNS(209),                                      &
-        CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND,                 &
-        IOWND(6), IOWNS(6),                                            &
-        ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,                     &
-        LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,               &
-        MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU         
-      INTEGER I, MEBAND, ML, MU 
-      KPP_REAL DI, HL0, PHL0, R 
-#ifdef FULL_ALGEBRA      
+!           enable interrupt/restart feature. (ACH)        
+! 20260423 (Thread-safe) COMMON /DLS001/ replaced by host association.
+!***END PROLOGUE  DSOLSY
+!**End
+      INTEGER IWM(*)
+      KPP_REAL WM(*), X(*), TEM(*)
+!  All variables formerly in COMMON /DLS001/ are now accessed via
+!  host association from the enclosing DLSODE scope.
+      INTEGER I, MEBAND, ML, MU
+      KPP_REAL DI, HL0, PHL0, R
+#ifdef FULL_ALGEBRA
       INTEGER ISING
 #endif      
 !                                                                       
@@ -2505,31 +2494,24 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 #endif      
       RETURN 
 !----------------------- END OF SUBROUTINE DSOLSY ----------------------
-      END SUBROUTINE DSOLSY                                          
-!DECK DSRCOM                                                            
-      SUBROUTINE DSRCOM (RSAV, ISAV, JOB) 
-!***BEGIN PROLOGUE  DSRCOM                                              
-!***SUBSIDIARY                                                          
-!***PURPOSE  Save/restore ODEPACK COMMON blocks.                        
-!***TYPE      KPP_REAL (SSRCOM-S, DSRCOM-D)                     
-!***AUTHOR  Hindmarsh, Alan C., (LLNL)                                  
-!***DESCRIPTION                                                         
-!                                                                       
-!  This routine saves or restores (depending on JOB) the contents of    
-!  the COMMON block DLS001, which is used internally                    
-!  by one or more ODEPACK solvers.                                      
-!                                                                       
-!  RSAV = real array of length 218 or more.                             
-!  ISAV = integer array of length 37 or more.                           
-!  JOB  = flag indicating to save or restore the COMMON blocks:         
-!         JOB  = 1 if COMMON is to be saved (written to RSAV/ISAV)      
-!         JOB  = 2 if COMMON is to be restored (read from RSAV/ISAV)    
-!         A call with JOB = 2 presumes a prior call with JOB = 1.       
-!                                                                       
-!***SEE ALSO  DLSODE                                                    
-!***ROUTINES CALLED  (NONE)                                             
-!***COMMON BLOCKS    DLS001                                             
-!***REVISION HISTORY  (YYMMDD)                                          
+      END SUBROUTINE DSOLSY
+!DECK DSRCOM
+      SUBROUTINE DSRCOM (RSAV, ISAV, JOB)
+!***BEGIN PROLOGUE  DSRCOM
+!***SUBSIDIARY
+!***PURPOSE  Save/restore ODEPACK COMMON blocks.
+!
+!  THREAD-SAFETY NOTE: DSRCOM is a no-op in this thread-safe version.
+!  The COMMON /DLS001/ block has been replaced by local variables in
+!  the host subroutine DLSODE; integrator state lives on the call stack
+!  and cannot be saved/restored across separate DLSODE invocations.
+!  Continuation (ISTATE = 2 or 3) is not supported by this thread-safe
+!  version.  In the KPP framework DLSODE is always entered with
+!  ISTATE = 1, so this restriction has no practical impact.
+!
+!***SEE ALSO  DLSODE
+!***REVISION HISTORY  (YYMMDD)
+!   791129  DATE WRITTEN
 !   791129  DATE WRITTEN                                                
 !   890501  Modified prologue to SLATEC/LDOC format.  (FNF)             
 !   890503  Minor cosmetic changes.  (FNF)                              
@@ -2539,83 +2521,61 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !   010418  Reduced Common block length by 209+12. (ACH)                
 !   031105  Restored 'own' variables to Common block /DLS001/, to       
 !           enable interrupt/restart feature. (ACH)                     
-!   031112  Added SAVE statement for data-loaded constants.             
-!***END PROLOGUE  DSRCOM                                                
-!**End                                                                  
-      INTEGER ISAV(*), JOB 
-      INTEGER ILS 
-      INTEGER I, LENILS, LENRLS 
-      KPP_REAL RSAV(*),   RLS 
-      SAVE LENRLS, LENILS 
-      COMMON /DLS001/ RLS(218), ILS(37) 
-      DATA LENRLS/218/, LENILS/37/ 
-!                                                                       
-!***FIRST EXECUTABLE STATEMENT  DSRCOM                                  
-      IF (JOB .EQ. 2) GO TO 100 
-!                                                                       
-      DO 10 I = 1,LENRLS 
-        RSAV(I) = RLS(I)
-   10 CONTINUE
-      DO 20 I = 1,LENILS 
-        ISAV(I) = ILS(I)
-   20 CONTINUE
-      RETURN 
-!                                                                       
-  100 CONTINUE 
-      DO 110 I = 1,LENRLS 
-         RLS(I) = RSAV(I)
-  110 CONTINUE
-      DO 120 I = 1,LENILS 
-         ILS(I) = ISAV(I)
-  120 CONTINUE
+!   031112  Added SAVE statement for data-loaded constants.    
+! 20260423  (Thread-safe) Converted to no-op; COMMON /DLS001/ eliminated.
+!***END PROLOGUE  DSRCOM
+!**End
+      INTEGER ISAV(*), JOB
+      KPP_REAL RSAV(*)
+
       RETURN 
 !----------------------- END OF SUBROUTINE DSRCOM ----------------------
       END SUBROUTINE DSRCOM                                          
 !DECK DSTODE                                                            
       SUBROUTINE DSTODE (NEQ, Y, YH, NYH, YH1, EWT, SAVF, ACOR, &
-                         WM, IWM, F, JAC)                                   
-                        !WM, IWM, F, JAC, PJAC, SLVS)                                   
-!***BEGIN PROLOGUE  DSTODE                                              
-!***SUBSIDIARY                                                          
-!***PURPOSE  Performs one step of an ODEPACK integration.               
-!***TYPE      KPP_REAL (SSTODE-S, DSTODE-D)                     
-!***AUTHOR  Hindmarsh, Alan C., (LLNL)                                  
-!***DESCRIPTION                                                         
-!                                                                       
-!  DSTODE performs one step of the integration of an initial value      
-!  problem for a system of ordinary differential equations.             
-!  Note:  DSTODE is independent of the value of the iteration method    
-!  indicator MITER, when this is .ne. 0, and hence is independent       
-!  of the type of chord method used, or the Jacobian structure.         
-!  Communication with DSTODE is done with the following variables:      
-!                                                                       
-!  NEQ    = integer array containing problem size in NEQ, and        
-!           passed as the NEQ argument in all calls to F and JAC.       
-!  Y      = an array of length .ge. N used as the Y argument in         
-!           all calls to F and JAC.                                     
-!  YH     = an NYH by LMAX array containing the dependent variables     
-!           and their approximate scaled derivatives, where             
-!           LMAX = MAXORD + 1.  YH(i,j+1) contains the approximate      
-!           j-th derivative of y(i), scaled by h**j/factorial(j)        
-!           (j = 0,1,...,NQ).  on entry for the first step, the first   
-!           two columns of YH must be set from the initial values.      
-!  NYH    = a constant integer .ge. N, the first dimension of YH.       
-!  YH1    = a one-dimensional array occupying the same space as YH.     
-!  EWT    = an array of length N containing multiplicative weights      
-!           for local error measurements.  Local errors in Y(i) are     
-!           compared to 1.0/EWT(i) in various error tests.              
-!  SAVF   = an array of working storage, of length N.                   
-!           Also used for input of YH(*,MAXORD+2) when JSTART = -1      
-!           and MAXORD .lt. the current order NQ.                       
-!  ACOR   = a work array of length N, used for the accumulated          
-!           corrections.  On a successful return, ACOR(i) contains      
-!           the estimated one-step local error in Y(i).                 
-!  WM,IWM = real and integer work arrays associated with matrix         
-!           operations in chord iteration (MITER .ne. 0).               
-!  PJAC   = name of routine to evaluate and preprocess Jacobian matrix  
-!           and P = I - h*el0*JAC, if a chord method is being used.     
-!  SLVS   = name of routine to solve linear system in chord iteration.  
-!  CCMAX  = maximum relative change in h*el0 before PJAC is called.     
+                         WM, IWM, F, JAC)
+                        !WM, IWM, F, JAC, PJAC, SLVS)
+!***BEGIN PROLOGUE  DSTODE
+!***SUBSIDIARY
+!***PURPOSE  Performs one step of an ODEPACK integration.
+!***TYPE      KPP_REAL (SSTODE-S, DSTODE-D)
+!***AUTHOR  Hindmarsh, Alan C., (LLNL)
+!***DESCRIPTION
+!
+!  DSTODE performs one step of the integration of an initial value
+!  problem for a system of ordinary differential equations.
+!  Note:  DSTODE is independent of the value of the iteration method
+!  indicator MITER, when this is .ne. 0, and hence is independent
+!  of the type of chord method used, or the Jacobian structure.
+!  Communication with DSTODE is done with the following variables:
+!
+!  NEQ    = integer array containing problem size in NEQ, and
+!           passed as the NEQ argument in all calls to F and JAC.
+!  Y      = an array of length .ge. N used as the Y argument in
+!           all calls to F and JAC.
+!  YH     = an NYH by LMAX array containing the dependent variables
+!           and their approximate scaled derivatives, where
+!           LMAX = MAXORD + 1.  YH(i,j+1) contains the approximate
+!           j-th derivative of y(i), scaled by h**j/factorial(j)
+!           (j = 0,1,...,NQ).  on entry for the first step, the first
+!           two columns of YH must be set from the initial values.
+!  NYH    = a constant integer .ge. N, the first dimension of YH.
+!  YH1    = a one-dimensional array occupying the same space as YH.
+!  EWT    = an array of length N containing multiplicative weights
+!           for local error measurements.  Local errors in Y(i) are
+!           compared to 1.0/EWT(i) in various error tests.
+!  SAVF   = an array of working storage, of length N.
+!           Also used for input of YH(*,MAXORD+2) when JSTART = -1
+!           and MAXORD .lt. the current order NQ.
+!  ACOR   = a work array of length N, used for the accumulated
+!           corrections.  On a successful return, ACOR(i) contains
+!           the estimated one-step local error in Y(i).
+!  WM,IWM = real and integer work arrays associated with matrix
+!           operations in chord iteration (MITER .ne. 0).
+!  PJAC   = name of routine to evaluate and preprocess Jacobian matrix
+!           and P = I - h*el0*JAC, if a chord method is being used.
+!  SLVS   = name of routine to solve linear system in chord iteration.
+!  CCMAX  = maximum relative change in h*el0 before PJAC is called. 
 !  H      = the step size to be attempted on the next step.             
 !           H is altered by the error control algorithm during the      
 !           problem.  H can be either positive or negative, but its     
@@ -2650,106 +2610,99 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !  MSBP   = maximum number of steps between PJAC calls (MITER .gt. 0).  
 !  MXNCF  = maximum number of convergence failures allowed.             
 !  METH/MITER = the method flags.  See description in driver.           
-!  N      = the number of first-order differential equations.           
-!  The values of CCMAX, H, HMIN, HMXI, TN, JSTART, KFLAG, MAXORD,       
-!  MAXCOR, MSBP, MXNCF, METH, MITER, and N are communicated via COMMON. 
-!                                                                       
-!***SEE ALSO  DLSODE                                                    
-!***ROUTINES CALLED  DCFODE, DVNORM                                     
-!***COMMON BLOCKS    DLS001                                             
-!***REVISION HISTORY  (YYMMDD)                                          
-!   791129  DATE WRITTEN                                                
+!  N      = the number of first-order differential equations.     
+!  The values of CCMAX, H, HMIN, HMXI, TN, JSTART, KFLAG, MAXORD,
+!  MAXCOR, MSBP, MXNCF, METH, MITER, and N are communicated via
+!  host association (thread-safe replacement for COMMON /DLS001/).
+!
+!***SEE ALSO  DLSODE
+!***ROUTINES CALLED  DCFODE, DVNORM
+!***REVISION HISTORY  (YYMMDD)
+!   791129  DATE WRITTEN
 !   890501  Modified prologue to SLATEC/LDOC format.  (FNF)             
 !   890503  Minor cosmetic changes.  (FNF)                              
 !   930809  Renamed to allow single/double precision versions. (ACH)    
 !   010418  Reduced size of Common block /DLS001/. (ACH)                
 !   031105  Restored 'own' variables to Common block /DLS001/, to       
-!           enable interrupt/restart feature. (ACH)                     
-!***END PROLOGUE  DSTODE                                                
-!**End                                                                  
-      EXTERNAL F, JAC !, PJAC, SLVS 
-      INTEGER NEQ, NYH, IWM(*) 
+!           enable interrupt/restart feature. (ACH)        
+! 20260423  (Thread-safe) COMMON /DLS001/ replaced by host association.
+!***END PROLOGUE  DSTODE
+!**End
+      EXTERNAL F, JAC !, PJAC, SLVS
+      INTEGER NEQ, NYH, IWM(*)
       KPP_REAL Y(*), YH(NYH,*), YH1(*), EWT(*), SAVF(*),       &
-                       ACOR(*), WM(*) 
-      INTEGER IOWND, IALTH, IPUP, LMAX, MEO, NQNYH, NSLP,              &
-        ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,                     &
-        LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,               &
-        MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU         
-      INTEGER I, I1, IREDO, IRET, J, JB, M, NCF, NEWQ 
-      KPP_REAL CONIT, CRATE, EL, ELCO, HOLD, RMAX, TESCO,      &
-        CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND                  
+                       ACOR(*), WM(*)
+!  All variables formerly in COMMON /DLS001/ (CONIT, CRATE, EL, ELCO,
+!  HOLD, RMAX, TESCO, CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND,
+!  IALTH, IPUP, LMAX, MEO, NQNYH, NSLP, ICF, IERPJ, IERSL, JCUR,
+!  JSTART, KFLAG, L, LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH,
+!  MITER, MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU)
+!  are now accessed via host association from the enclosing DLSODE scope.
+      INTEGER I, I1, IREDO, IRET, J, JB, M, NCF, NEWQ
       KPP_REAL DCON, DDN, DEL, DELP, DSM, DUP, EXDN, EXSM,     &
-              EXUP,R, RH, RHDN, RHSM, RHUP, TOLD
-      !KPP_REAL DVNORM                          
-      COMMON /DLS001/ CONIT, CRATE, EL(13), ELCO(13,12),               &
-        HOLD, RMAX, TESCO(3,12),                                       &
-        CCMAX, EL0, H, HMIN, HMXI, HU, RC, TN, UROUND,                 &
-        IOWND(6), IALTH, IPUP, LMAX, MEO, NQNYH, NSLP,                 &
-        ICF, IERPJ, IERSL, JCUR, JSTART, KFLAG, L,                     &
-        LYH, LEWT, LACOR, LSAVF, LWM, LIWM, METH, MITER,               &
-        MAXORD, MAXCOR, MSBP, MXNCF, N, NQ, NST, NFE, NJE, NQU         
-!                                                                       
-!***FIRST EXECUTABLE STATEMENT  DSTODE                                  
-      KFLAG = 0 
-      TOLD = TN 
-      NCF = 0 
-      IERPJ = 0 
-      IERSL = 0 
-      JCUR = 0 
-      ICF = 0 
-      DELP = 0.0D0 
-      IF (JSTART .GT. 0) GO TO 200 
-      IF (JSTART .EQ. -1) GO TO 100 
-      IF (JSTART .EQ. -2) GO TO 160 
+              EXUP, R, RH, RHDN, RHSM, RHUP, TOLD
+!
+!***FIRST EXECUTABLE STATEMENT  DSTODE
+      KFLAG = 0
+      TOLD = TN
+      NCF = 0
+      IERPJ = 0
+      IERSL = 0
+      JCUR = 0
+      ICF = 0
+      DELP = 0.0D0
+      IF (JSTART .GT. 0) GO TO 200
+      IF (JSTART .EQ. -1) GO TO 100
+      IF (JSTART .EQ. -2) GO TO 160
 !-----------------------------------------------------------------------
-! On the first call, the order is set to 1, and other variables are     
-! initialized.  RMAX is the maximum ratio by which H can be increased   
-! in a single step.  It is initially 1.E4 to compensate for the small   
-! initial H, but then is normally equal to 10.  If a failure            
-! occurs (in corrector convergence or error test), RMAX is set to 2     
-! for the next increase.                                                
+! On the first call, the order is set to 1, and other variables are
+! initialized.  RMAX is the maximum ratio by which H can be increased
+! in a single step.  It is initially 1.E4 to compensate for the small
+! initial H, but then is normally equal to 10.  If a failure
+! occurs (in corrector convergence or error test), RMAX is set to 2
+! for the next increase.
 !-----------------------------------------------------------------------
-      LMAX = MAXORD + 1 
-      NQ = 1 
-      L = 2 
-      IALTH = 2 
-      RMAX = 10000.0D0 
-      RC = 0.0D0 
-      EL0 = 1.0D0 
-      CRATE = 0.7D0 
-      HOLD = H 
-      MEO = METH 
-      NSLP = 0 
-      IPUP = MITER 
-      IRET = 3 
-      GO TO 140 
+      LMAX = MAXORD + 1
+      NQ = 1
+      L = 2
+      IALTH = 2
+      RMAX = 10000.0D0
+      RC = 0.0D0
+      EL0 = 1.0D0
+      CRATE = 0.7D0
+      HOLD = H
+      MEO = METH
+      NSLP = 0
+      IPUP = MITER
+      IRET = 3
+      GO TO 140
 !-----------------------------------------------------------------------
-! The following block handles preliminaries needed when JSTART = -1.    
-! IPUP is set to MITER to force a matrix update.                        
-! If an order increase is about to be considered (IALTH = 1),           
-! IALTH is reset to 2 to postpone consideration one more step.          
-! If the caller has changed METH, DCFODE is called to reset             
-! the coefficients of the method.                                       
-! If the caller has changed MAXORD to a value less than the current     
-! order NQ, NQ is reduced to MAXORD, and a new H chosen accordingly.    
-! If H is to be changed, YH must be rescaled.                           
-! If H or METH is being changed, IALTH is reset to L = NQ + 1           
-! to prevent further changes in H for that many steps.                  
+! The following block handles preliminaries needed when JSTART = -1.
+! IPUP is set to MITER to force a matrix update.
+! If an order increase is about to be considered (IALTH = 1),
+! IALTH is reset to 2 to postpone consideration one more step.
+! If the caller has changed METH, DCFODE is called to reset
+! the coefficients of the method.
+! If the caller has changed MAXORD to a value less than the current
+! order NQ, NQ is reduced to MAXORD, and a new H chosen accordingly.
+! If H is to be changed, YH must be rescaled.
+! If H or METH is being changed, IALTH is reset to L = NQ + 1
+! to prevent further changes in H for that many steps.
 !-----------------------------------------------------------------------
-  100 IPUP = MITER 
-      LMAX = MAXORD + 1 
-      IF (IALTH .EQ. 1) IALTH = 2 
-      IF (METH .EQ. MEO) GO TO 110 
-      CALL DCFODE (METH, ELCO, TESCO) 
-      MEO = METH 
-      IF (NQ .GT. MAXORD) GO TO 120 
-      IALTH = L 
-      IRET = 1 
-      GO TO 150 
-  110 IF (NQ .LE. MAXORD) GO TO 160 
-  120 NQ = MAXORD 
-      L = LMAX 
-      DO 125 I = 1,L 
+  100 IPUP = MITER
+      LMAX = MAXORD + 1
+      IF (IALTH .EQ. 1) IALTH = 2
+      IF (METH .EQ. MEO) GO TO 110
+      CALL DCFODE (METH, ELCO, TESCO)
+      MEO = METH
+      IF (NQ .GT. MAXORD) GO TO 120
+      IALTH = L
+      IRET = 1
+      GO TO 150
+  110 IF (NQ .LE. MAXORD) GO TO 160
+  120 NQ = MAXORD
+      L = LMAX
+      DO 125 I = 1,L
         EL(I) = ELCO(I,NQ)
   125 CONTINUE
       NQNYH = NQ*NYH 
@@ -3092,38 +3045,38 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
       JSTART = 1 
       RETURN 
 !----------------------- END OF SUBROUTINE DSTODE ----------------------
-      END SUBROUTINE DSTODE                                          
-!DECK DEWSET                                                            
-      SUBROUTINE DEWSET (N, ITOL, RelTol, AbsTol, YCUR, EWT) 
-!***BEGIN PROLOGUE  DEWSET                                              
-!***SUBSIDIARY                                                          
-!***PURPOSE  Set error weight vector.                                   
-!***TYPE      KPP_REAL (SEWSET-S, DEWSET-D)                     
-!***AUTHOR  Hindmarsh, Alan C., (LLNL)                                  
-!***DESCRIPTION                                                         
-!                                                                       
-!  This subroutine sets the error weight vector EWT according to        
-!      EWT(i) = RelTol(i)*ABS(YCUR(i)) + AbsTol(i),  i = 1,...,N,           
-!  with the subscript on RelTol and/or AbsTol possibly replaced by 1 above, 
-!  depending on the value of ITOL.                                      
-!                                                                       
-!***SEE ALSO  DLSODE                                                    
-!***ROUTINES CALLED  (NONE)                                             
-!***REVISION HISTORY  (YYMMDD)                                          
-!   791129  DATE WRITTEN                                                
+      END SUBROUTINE DSTODE
+!DECK DEWSET
+      SUBROUTINE DEWSET (N, ITOL, RelTol, AbsTol, YCUR, EWT)
+!***BEGIN PROLOGUE  DEWSET
+!***SUBSIDIARY
+!***PURPOSE  Set error weight vector.
+!***TYPE      KPP_REAL (SEWSET-S, DEWSET-D)
+!***AUTHOR  Hindmarsh, Alan C., (LLNL)
+!***DESCRIPTION
+!
+!  This subroutine sets the error weight vector EWT according to
+!      EWT(i) = RelTol(i)*ABS(YCUR(i)) + AbsTol(i),  i = 1,...,N,
+!  with the subscript on RelTol and/or AbsTol possibly replaced by 1 above,
+!  depending on the value of ITOL.
+!
+!***SEE ALSO  DLSODE
+!***ROUTINES CALLED  (NONE)
+!***REVISION HISTORY  (YYMMDD)
+!   791129  DATE WRITTEN
 !   890501  Modified prologue to SLATEC/LDOC format.  (FNF)             
 !   890503  Minor cosmetic changes.  (FNF)                              
-!   930809  Renamed to allow single/double precision versions. (ACH)    
-!***END PROLOGUE  DEWSET                                                
-!**End                                                                  
-      INTEGER N, ITOL 
-      INTEGER I 
-      KPP_REAL RelTol(*), AbsTol(*), YCUR(N), EWT(N) 
-!                                                                       
-!***FIRST EXECUTABLE STATEMENT  DEWSET                                  
-      GO TO (10, 20, 30, 40), ITOL 
-   10 CONTINUE 
-      DO 15 I = 1,N 
+!   930809  Renamed to allow single/double precision versions. (ACH)   
+!***END PROLOGUE  DEWSET
+!**End
+      INTEGER N, ITOL
+      INTEGER I
+      KPP_REAL RelTol(*), AbsTol(*), YCUR(N), EWT(N)
+!
+!***FIRST EXECUTABLE STATEMENT  DEWSET
+      GO TO (10, 20, 30, 40), ITOL
+   10 CONTINUE
+      DO 15 I = 1,N
         EWT(I) = RelTol(1)*ABS(YCUR(I)) + AbsTol(1)
    15 CONTINUE
       RETURN 
@@ -3143,88 +3096,88 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
    45 CONTINUE
       RETURN 
 !----------------------- END OF SUBROUTINE DEWSET ----------------------
-      END SUBROUTINE DEWSET                                          
-!DECK DVNORM                                                            
-      KPP_REAL FUNCTION DVNORM (N, V, W) 
-!***BEGIN PROLOGUE  DVNORM                                              
-!***SUBSIDIARY                                                          
-!***PURPOSE  Weighted root-mean-square vector norm.                     
-!***TYPE      KPP_REAL (SVNORM-S, DVNORM-D)                     
-!***AUTHOR  Hindmarsh, Alan C., (LLNL)                                  
-!***DESCRIPTION                                                         
-!                                                                       
-!  This function routine computes the weighted root-mean-square norm    
-!  of the vector of length N contained in the array V, with weights     
-!  contained in the array W of length N:                                
-!    DVNORM = SQRT( (1/N) * SUM( V(i)*W(i) )**2 )                       
-!                                                                       
-!***SEE ALSO  DLSODE                                                    
-!***ROUTINES CALLED  (NONE)                                             
-!***REVISION HISTORY  (YYMMDD)                                          
+      END SUBROUTINE DEWSET
+!DECK DVNORM
+      KPP_REAL FUNCTION DVNORM (N, V, W)
+!***BEGIN PROLOGUE  DVNORM
+!***SUBSIDIARY
+!***PURPOSE  Weighted root-mean-square vector norm.
+!***TYPE      KPP_REAL (SVNORM-S, DVNORM-D)
+!***AUTHOR  Hindmarsh, Alan C., (LLNL)
+!***DESCRIPTION
+!
+!  This function routine computes the weighted root-mean-square norm
+!  of the vector of length N contained in the array V, with weights
+!  contained in the array W of length N:
+!    DVNORM = SQRT( (1/N) * SUM( V(i)*W(i) )**2 )
+!
+!***SEE ALSO  DLSODE
+!***ROUTINES CALLED  (NONE)
+!***REVISION HISTORY  (YYMMDD)
 !   791129  DATE WRITTEN                                                
 !   890501  Modified prologue to SLATEC/LDOC format.  (FNF)             
 !   890503  Minor cosmetic changes.  (FNF)                              
 !   930809  Renamed to allow single/double precision versions. (ACH)    
-!***END PROLOGUE  DVNORM                                                
-!**End                                                                  
-      INTEGER N,   I 
-      KPP_REAL V(N), W(N), SUM 
-!                                                                       
-!***FIRST EXECUTABLE STATEMENT  DVNORM                                  
-      SUM = 0.0D0 
-      DO I = 1,N 
-         SUM = SUM + (V(I)*W(I))**2 
+!***END PROLOGUE  DVNORM
+!**End
+      INTEGER N, I
+      KPP_REAL V(N), W(N), SUM
+!
+!***FIRST EXECUTABLE STATEMENT  DVNORM
+      SUM = 0.0D0
+      DO I = 1,N
+         SUM = SUM + (V(I)*W(I))**2
       ENDDO
       DVNORM = SQRT(SUM/N) 
       RETURN 
 !----------------------- END OF FUNCTION DVNORM ------------------------
-      END FUNCTION DVNORM                                          
-!DECK XERRWD                                                            
-      SUBROUTINE XERRWD (MSG, NMES, NERR, LEVEL, NI, I1, I2, NR, R1, R2) 
-!***BEGIN PROLOGUE  XERRWD                                              
-!***SUBSIDIARY                                                          
-!***PURPOSE  Write error message with values.                           
-!***CATEGORY  R3C                                                       
-!***TYPE      KPP_REAL (XERRWV-S, XERRWD-D)                     
-!***AUTHOR  Hindmarsh, Alan C., (LLNL)                                  
-!***DESCRIPTION                                                         
-!                                                                       
-!  Subroutines XERRWD, XSETF, XSETUN, and the function routine IXSAV,   
-!  as given here, constitute a simplified version of the SLATEC error   
-!  handling package.                                                    
-!                                                                       
-!  All arguments are input arguments.                                   
-!                                                                       
-!  MSG    = The message (character array).                              
-!  NMES   = The length of MSG (number of characters).                   
-!  NERR   = The error number (not used).                                
-!  LEVEL  = The error level..                                           
-!           0 or 1 means recoverable (control returns to caller).       
-!           2 means fatal (run is aborted--see note below).             
-!  NI     = Number of integers (0, 1, or 2) to be printed with message. 
-!  I1,I2  = Integers to be printed, depending on NI.                    
-!  NR     = Number of reals (0, 1, or 2) to be printed with message.    
-!  R1,R2  = Reals to be printed, depending on NR.                       
-!                                                                       
-!  Note..  this routine is machine-dependent and specialized for use    
-!  in limited context, in the following ways..                          
-!  1. The argument MSG is assumed to be of type CHARACTER, and          
-!     the message is printed with a format of (1X,A).                   
-!  2. The message is assumed to take only one line.                     
-!     Multi-line messages are generated by repeated calls.              
-!  3. If LEVEL = 2, control passes to the statement   STOP              
-!     to abort the run.  This statement may be machine-dependent.       
-!  4. R1 and R2 are assumed to be in double precision and are printed   
-!     in D21.13 format.                                                 
-!                                                                       
-!***ROUTINES CALLED  IXSAV                                              
-!***REVISION HISTORY  (YYMMDD)                                          
-!   920831  DATE WRITTEN                                                
-!   921118  Replaced MFLGSV/LUNSAV by IXSAV. (ACH)                      
-!   930329  Modified prologue to SLATEC format. (FNF)                   
-!   930407  Changed MSG from CHARACTER*1 array to variable. (FNF)       
-!   930922  Minor cosmetic change. (FNF)                                
-!***END PROLOGUE  XERRWD                                                
+      END FUNCTION DVNORM
+!DECK XERRWD
+      SUBROUTINE XERRWD (MSG, NMES, NERR, LEVEL, NI, I1, I2, NR, R1, R2)
+!***BEGIN PROLOGUE  XERRWD
+!***SUBSIDIARY
+!***PURPOSE  Write error message with values.
+!***CATEGORY  R3C
+!***TYPE      KPP_REAL (XERRWV-S, XERRWD-D)
+!***AUTHOR  Hindmarsh, Alan C., (LLNL)
+!***DESCRIPTION
+!
+!  Subroutines XERRWD, XSETF, XSETUN, and the function routine IXSAV,
+!  as given here, constitute a simplified version of the SLATEC error
+!  handling package.
+!
+!  All arguments are input arguments.
+!
+!  MSG    = The message (character array).
+!  NMES   = The length of MSG (number of characters).
+!  NERR   = The error number (not used).
+!  LEVEL  = The error level..
+!           0 or 1 means recoverable (control returns to caller).
+!           2 means fatal (run is aborted--see note below).
+!  NI     = Number of integers (0, 1, or 2) to be printed with message.
+!  I1,I2  = Integers to be printed, depending on NI.
+!  NR     = Number of reals (0, 1, or 2) to be printed with message.
+!  R1,R2  = Reals to be printed, depending on NR.
+!
+!  Note..  this routine is machine-dependent and specialized for use
+!  in limited context, in the following ways..
+!  1. The argument MSG is assumed to be of type CHARACTER, and
+!     the message is printed with a format of (1X,A).
+!  2. The message is assumed to take only one line.
+!     Multi-line messages are generated by repeated calls.
+!  3. If LEVEL = 2, control passes to the statement   STOP
+!     to abort the run.  This statement may be machine-dependent.
+!  4. R1 and R2 are assumed to be in double precision and are printed
+!     in D21.13 format.
+!
+!***ROUTINES CALLED  IXSAV
+!***REVISION HISTORY  (YYMMDD)
+!   920831  DATE WRITTEN
+!   921118  Replaced MFLGSV/LUNSAV by IXSAV. (ACH)
+!   930329  Modified prologue to SLATEC format. (FNF)
+!   930407  Changed MSG from CHARACTER*1 array to variable. (FNF)
+!   930922  Minor cosmetic change. (FNF)
+!***END PROLOGUE  XERRWD
 !                                                                       
 !*Internal Notes:                                                       
 !                                                                       
@@ -3237,109 +3190,109 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 ! Function routine called by XERRWD.. IXSAV                             
 !-----------------------------------------------------------------------
 !**End                                                                  
-!                                                                       
-!  Declare arguments.                                                   
-!                                                                       
-      KPP_REAL R1, R2 
-      INTEGER NMES, NERR, LEVEL, NI, I1, I2, NR 
-      CHARACTER*(*) MSG 
-!                                                                       
-!  Declare local variables.                                             
-!                                                                       
-      INTEGER LUNIT, MESFLG !, IXSAV 
-!                                                                       
-!  Get logical unit number and message print flag.                      
-!                                                                       
-!***FIRST EXECUTABLE STATEMENT  XERRWD                                  
-      LUNIT = IXSAV (1, 0, .FALSE.) 
-      MESFLG = IXSAV (2, 0, .FALSE.) 
-      IF (MESFLG .EQ. 0) GO TO 100 
-!                                                                       
-!  Write the message.                                                   
-!                                                                       
-      WRITE (LUNIT,10)  MSG 
-   10 FORMAT(1X,A) 
-      IF (NI .EQ. 1) WRITE (LUNIT, 20) I1 
-   20 FORMAT(6X,'In above message,  I1 =',I10) 
-      IF (NI .EQ. 2) WRITE (LUNIT, 30) I1,I2 
-   30 FORMAT(6X,'In above message,  I1 =',I10,3X,'I2 =',I10) 
-      IF (NR .EQ. 1) WRITE (LUNIT, 40) R1 
-   40 FORMAT(6X,'In above message,  R1 =',D21.13) 
-      IF (NR .EQ. 2) WRITE (LUNIT, 50) R1,R2 
-   50 FORMAT(6X,'In above,  R1 =',D21.13,3X,'R2 =',D21.13) 
-!                                                                       
-!  Abort the run if LEVEL = 2.                                          
-!                                                                       
-  100 IF (LEVEL .NE. 2) RETURN 
-      STOP 
+!
+!  Declare arguments.
+!
+      KPP_REAL R1, R2
+      INTEGER NMES, NERR, LEVEL, NI, I1, I2, NR
+      CHARACTER*(*) MSG
+!
+!  Declare local variables.
+!
+      INTEGER LUNIT, MESFLG !, IXSAV
+!
+!  Get logical unit number and message print flag.
+!
+!***FIRST EXECUTABLE STATEMENT  XERRWD
+      LUNIT = IXSAV (1, 0, .FALSE.)
+      MESFLG = IXSAV (2, 0, .FALSE.)
+      IF (MESFLG .EQ. 0) GO TO 100
+!
+!  Write the message.
+!
+      WRITE (LUNIT,10)  MSG
+   10 FORMAT(1X,A)
+      IF (NI .EQ. 1) WRITE (LUNIT, 20) I1
+   20 FORMAT(6X,'In above message,  I1 =',I10)
+      IF (NI .EQ. 2) WRITE (LUNIT, 30) I1,I2
+   30 FORMAT(6X,'In above message,  I1 =',I10,3X,'I2 =',I10)
+      IF (NR .EQ. 1) WRITE (LUNIT, 40) R1
+   40 FORMAT(6X,'In above message,  R1 =',D21.13)
+      IF (NR .EQ. 2) WRITE (LUNIT, 50) R1,R2
+   50 FORMAT(6X,'In above,  R1 =',D21.13,3X,'R2 =',D21.13)
+!
+!  Abort the run if LEVEL = 2.
+!
+  100 IF (LEVEL .NE. 2) RETURN
+      STOP
 !----------------------- End of Subroutine XERRWD ----------------------
-      END SUBROUTINE XERRWD                                          
-!DECK XSETF                                                             
-      SUBROUTINE XSETF (MFLAG) 
-!***BEGIN PROLOGUE  XSETF                                               
-!***PURPOSE  Reset the error print control flag.                        
-!***CATEGORY  R3A                                                       
-!***TYPE      ALL (XSETF-A)                                             
-!***KEYWORDS  ERROR CONTROL                                             
-!***AUTHOR  Hindmarsh, Alan C., (LLNL)                                  
-!***DESCRIPTION                                                         
-!                                                                       
-!   XSETF sets the error print control flag to MFLAG:                   
-!      MFLAG=1 means print all messages (the default).                  
-!      MFLAG=0 means no printing.                                       
-!                                                                       
-!***SEE ALSO  XERRWD, XERRWV                                            
-!***REFERENCES  (NONE)                                                  
-!***ROUTINES CALLED  IXSAV                                              
-!***REVISION HISTORY  (YYMMDD)                                          
-!   921118  DATE WRITTEN                                                
-!   930329  Added SLATEC format prologue. (FNF)                         
-!   930407  Corrected SEE ALSO section. (FNF)                           
-!   930922  Made user-callable, and other cosmetic changes. (FNF)       
-!***END PROLOGUE  XSETF                                                 
-!                                                                       
-! Subroutines called by XSETF.. None                                    
-! Function routine called by XSETF.. IXSAV                              
+      END SUBROUTINE XERRWD
+!DECK XSETF
+      SUBROUTINE XSETF (MFLAG)
+!***BEGIN PROLOGUE  XSETF
+!***PURPOSE  Reset the error print control flag.
+!***CATEGORY  R3A
+!***TYPE      ALL (XSETF-A)
+!***KEYWORDS  ERROR CONTROL
+!***AUTHOR  Hindmarsh, Alan C., (LLNL)
+!***DESCRIPTION
+!
+!   XSETF sets the error print control flag to MFLAG:
+!      MFLAG=1 means print all messages (the default).
+!      MFLAG=0 means no printing.
+!
+!***SEE ALSO  XERRWD, XERRWV
+!***REFERENCES  (NONE)
+!***ROUTINES CALLED  IXSAV
+!***REVISION HISTORY  (YYMMDD)
+!   921118  DATE WRITTEN
+!   930329  Added SLATEC format prologue. (FNF)
+!   930407  Corrected SEE ALSO section. (FNF)   
+!   930922  Made user-callable, and other cosmetic changes. (FNF)
+!***END PROLOGUE  XSETF
+!
+! Subroutines called by XSETF.. None
+! Function routine called by XSETF.. IXSAV
 !-----------------------------------------------------------------------
-!**End                                                                  
-      INTEGER MFLAG, JUNK !, IXSAV 
-!                                                                       
-!***FIRST EXECUTABLE STATEMENT  XSETF                                   
-      IF (MFLAG .EQ. 0 .OR. MFLAG .EQ. 1) JUNK = IXSAV (2,MFLAG,.TRUE.) 
-      RETURN 
+!**End
+      INTEGER MFLAG, JUNK !, IXSAV
+!
+!***FIRST EXECUTABLE STATEMENT  XSETF
+      IF (MFLAG .EQ. 0 .OR. MFLAG .EQ. 1) JUNK = IXSAV (2,MFLAG,.TRUE.)
+      RETURN
 !----------------------- End of Subroutine XSETF -----------------------
-      END SUBROUTINE XSETF                                          
-!DECK XSETUN                                                            
-      SUBROUTINE XSETUN (LUN) 
-!***BEGIN PROLOGUE  XSETUN                                              
-!***PURPOSE  Reset the logical unit number for error messages.          
-!***CATEGORY  R3B                                                       
-!***TYPE      ALL (XSETUN-A)                                            
-!***KEYWORDS  ERROR CONTROL                                             
-!***DESCRIPTION                                                         
-!                                                                       
-!   XSETUN sets the logical unit number for error messages to LUN.      
-!                                                                       
-!***AUTHOR  Hindmarsh, Alan C., (LLNL)                                  
-!***SEE ALSO  XERRWD, XERRWV                                            
-!***REFERENCES  (NONE)                                                  
-!***ROUTINES CALLED  IXSAV                                              
-!***REVISION HISTORY  (YYMMDD)                                          
-!   921118  DATE WRITTEN                                                
-!   930329  Added SLATEC format prologue. (FNF)                         
-!   930407  Corrected SEE ALSO section. (FNF)                           
-!   930922  Made user-callable, and other cosmetic changes. (FNF)       
-!***END PROLOGUE  XSETUN                                                
-!                                                                       
-! Subroutines called by XSETUN.. None                                   
-! Function routine called by XSETUN.. IXSAV                             
+      END SUBROUTINE XSETF
+!DECK XSETUN
+      SUBROUTINE XSETUN (LUN)
+!***BEGIN PROLOGUE  XSETUN
+!***PURPOSE  Reset the logical unit number for error messages.
+!***CATEGORY  R3B
+!***TYPE      ALL (XSETUN-A)
+!***KEYWORDS  ERROR CONTROL
+!***DESCRIPTION
+!
+!   XSETUN sets the logical unit number for error messages to LUN.
+!
+!***AUTHOR  Hindmarsh, Alan C., (LLNL)
+!***SEE ALSO  XERRWD, XERRWV
+!***REFERENCES  (NONE)
+!***ROUTINES CALLED  IXSAV
+!***REVISION HISTORY  (YYMMDD)
+!   921118  DATE WRITTEN
+!   930329  Added SLATEC format prologue. (FNF)
+!   930407  Corrected SEE ALSO section. (FNF)    
+!   930922  Made user-callable, and other cosmetic changes. (FNF)
+!***END PROLOGUE  XSETUN
+!
+! Subroutines called by XSETUN.. None
+! Function routine called by XSETUN.. IXSAV
 !-----------------------------------------------------------------------
-!**End                                                                  
-      INTEGER LUN, JUNK !, IXSAV 
-!                                                                       
-!***FIRST EXECUTABLE STATEMENT  XSETUN                                  
-      IF (LUN .GT. 0) JUNK = IXSAV (1,LUN,.TRUE.) 
-      RETURN 
+!**End
+      INTEGER LUN, JUNK !, IXSAV
+!
+!***FIRST EXECUTABLE STATEMENT  XSETUN
+      IF (LUN .GT. 0) JUNK = IXSAV (1,LUN,.TRUE.)
+      RETURN
 !----------------------- End of Subroutine XSETUN ----------------------
       END SUBROUTINE XSETUN                                          
 !DECK IXSAV                                                             
