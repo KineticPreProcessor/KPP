@@ -2,16 +2,17 @@ function [T, Y, RCNTRL, ICNTRL, RSTAT, ISTAT] = ...
     Rosenbrock(Function, Tspan, Y0, Options, RCNTRL, ICNTRL)
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 %  Rosenbrock - Implementation of several Rosenbrock methods:
-%               * Ros2                                                
-%               * Ros3                                                
-%               * Ros4                                                
-%               * Rodas3                                              
-%               * Rodas4                                              
-%                                                                     
+%               * Ros2
+%               * Ros3
+%               * Ros4
+%               * Rodas3
+%               * Rodas4
+%               * Rodas3.1
+%
 %    Solves the system y'=F(t,y) using a Rosenbrock method defined by:
-%                                                                     
-%     G = 1/(H*gamma(1)) - Jac(t0,Y0)                                 
-%     T_i = t0 + Alpha(i)*H                                           
+%
+%     G = 1/(H*gamma(1)) - Jac(t0,Y0)
+%     T_i = t0 + Alpha(i)*H
 %     Y_i = Y0 + \sum_{j=1}^{i-1} A(i,j)*K_j
 %     G * K_i = Fun( T_i, Y_i ) + \sum_{j=1}^S C(i,j)/H * K_j +
 %         gamma(i)*dF/dT(t0, Y0)
@@ -23,9 +24,9 @@ function [T, Y, RCNTRL, ICNTRL, RSTAT, ISTAT] = ...
 %      Springer series in computational mathematics, Springer-Verlag, 1996.
 %    The codes contained in the book inspired this implementation.
 %
-%    MATLAB implementation (C) John C. Linford (jlinford@vt.edu).      
-%    Virginia Polytechnic Institute and State University             
-%    November, 2009    
+%    MATLAB implementation (C) John C. Linford (jlinford@vt.edu).
+%    Virginia Polytechnic Institute and State University
+%    November, 2009
 %
 %    Based on the Fortran90 implementation (C) Adrian Sandu, August 2004
 %    and revised by Philipp Miehe and Adrian Sandu, May 2006.
@@ -34,15 +35,15 @@ function [T, Y, RCNTRL, ICNTRL, RSTAT, ISTAT] = ...
 %
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 %  Input Arguments :
-%  The first four arguments are similar to the input arguments of 
+%  The first four arguments are similar to the input arguments of
 %  MATLAB's ODE solvers
 %      Function  - A function handle for the ODE function
 %      Tspan     - The time space to integrate
 %      Y0        - Initial value
-%      Options   - ODE solver options created by odeset():           
+%      Options   - ODE solver options created by odeset():
 %                  AbsTol, InitialStep, Jacobian, MaxStep, and RelTol
-%                  are considered.  Other options are ignored.       
-%                  'Jacobian' must be set.                           
+%                  are considered.  Other options are ignored.
+%                  'Jacobian' must be set.
 %      RCNTRL    - real value input parameters (explained below)
 %      ICNTRL    - integer input parameters (explained below)
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -76,6 +77,7 @@ function [T, Y, RCNTRL, ICNTRL, RSTAT, ISTAT] = ...
 %        = 3 :    Ros4
 %        = 4 :    Rodas3
 %        = 5 :    Rodas4
+%        = 7 :    Rodas3.1
 %
 %    ICNTRL(4)  -> maximum number of integration steps
 %        For ICNTRL(4)=0) the default value of 100000 is used
@@ -222,6 +224,8 @@ switch (ICNTRL(3))
         ros_Param = Rodas3;
     case (5)
         ros_Param = Rodas4;
+    case (7)
+        ros_Param = Rodas3_1;
     otherwise
         disp(['Unknown Rosenbrock method: ICNTRL(3)=',num2str(ICNTRL(3))]);
         IERR = ros_ErrorMsg(-2,Tstart,ZERO);
@@ -409,7 +413,7 @@ while ( (Direction > 0) && ((T-Tend)+Roundoff <= ZERO) || ...
         [H, Ghimj, Pivot, Singular] = ...
             ros_PrepareMatrix(N, H, Direction, ros_Gamma(1), Jac0);
 
-        % Not calculating LU decomposition in ros_PrepareMatrix anymore 
+        % Not calculating LU decomposition in ros_PrepareMatrix anymore
         % so don't need to check if the matrix is singular
         %
         %if Singular % More than 5 consecutive failed decompositions
@@ -425,7 +429,7 @@ while ( (Direction > 0) && ((T-Tend)+Roundoff <= ZERO) || ...
             K(:,1) = K(:,1) + HG * dFdT;
         end
         K(:,1) = ros_Solve(Ghimj, Pivot, K(:,1));
-        
+
         %~~~>   Compute the remaining stages
         for istage=2:ros_S
 
@@ -615,7 +619,7 @@ return
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 function [X] = ros_Solve(JVS, Pivot, X)
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-%  Template for the forward/backward substitution 
+%  Template for the forward/backward substitution
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 global Nsol ISTATUS
@@ -876,6 +880,75 @@ params = { ros_S, rosMethod, ros_A, ros_C, ros_M, ros_E, ...
 return
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+function [ params ] = Rodas3_1()
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% --- A STIFFLY-STABLE METHOD, 4 stages, order 3
+% --- Updated coefficients by Mike Long (17 Jul 2025)
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+rosMethod = 4;
+%~~~> Name of the method
+ros_Name = 'RODAS-3.1';
+%~~~> Number of stages
+ros_S = 4;
+
+%~~~> The coefficient matrices A and C are strictly lower triangular.
+%   The lower triangular (subdiagonal) elements are stored in row-wise order:
+%   A(2,1) = ros_A(1), A(3,1)=ros_A(2), A(3,2)=ros_A(3), etc.
+%   The general mapping formula is:
+%       A(i,j) = ros_A( (i-1)*(i-2)/2 + j )
+%       C(i,j) = ros_C( (i-1)*(i-2)/2 + j )
+
+ros_A(1)     =  0.000000000000000;
+ros_A(2)     =  0.646601929740551;
+ros_A(3)     =  0.409567801987914;
+ros_A(4)     =  0.646601929740551;
+ros_A(5)     =  0.409567801987914;
+ros_A(6)     =  1.000000000000000;
+
+ros_C(1)     =  4.198495621784201;
+ros_C(2)     =  3.711590161613010;
+ros_C(3)     = -1.787771994729384;
+ros_C(4)     =  4.458898153216104;
+ros_C(5)     = -2.024095448516552;
+ros_C(6)     = -2.626700600119396;
+
+%~~~> Does the stage i require a new function evaluation (ros_NewF(i)=TRUE)
+%   or does it re-use the function evaluation from stage i-1 (ros_NewF(i)=FALSE)
+ros_NewF(1)  =  true;
+ros_NewF(2)  =  false;
+ros_NewF(3)  =  true;
+ros_NewF(4)  =  true;
+%~~~> M_i = Coefficients for new step solution
+ros_M(1)     =  0.646601929740551;
+ros_M(2)     =  0.409567801987914;
+ros_M(3)     =  1.000000000000000;
+ros_M(4)     =  1.000000000000000;
+%~~~> E_i  = Coefficients for error estimator
+ros_E(1)     =  0.0000000000000000;
+ros_E(2)     =  0.0000000000000000;
+ros_E(3)     =  0.0000000000000000;
+ros_E(4)     =  1.0000000000000000;
+%~~~> ros_ELO  = estimator of local order - the minimum between the
+%    main and the embedded scheme orders plus 1
+ros_ELO      =  3.0;
+%~~~> Y_stage_i ~ Y( T + H*Alpha_i )
+ros_Alpha(1) =  0.0000000000000000;
+ros_Alpha(2) =  0.0000000000000000;
+ros_Alpha(3) =  1.0000000000000000;
+ros_Alpha(4) =  1.0000000000000000;
+%~~~> Gamma_i = \sum_j  gamma_{i,j}
+ros_Gamma(1) =  0.515000000000000;
+ros_Gamma(2) =  1.628546001287715;
+ros_Gamma(3) =  0.0000000000000000;
+ros_Gamma(4) =  0.0000000000000000;
+
+params = { ros_S, rosMethod, ros_A, ros_C, ros_M, ros_E, ...
+    ros_Alpha, ros_Gamma, ros_ELO, ros_NewF, ros_Name };
+
+return
+
+%~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 function [ params ] = Rodas4()
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 %     STIFFLY-STABLE ROSENBROCK METHOD OF ORDER 4, WITH 6 STAGES
@@ -982,5 +1055,3 @@ return
 
 % End of INTEGRATE function
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
