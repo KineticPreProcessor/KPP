@@ -560,7 +560,7 @@ SUBROUTINE RosenbrockADJ( Y, NADJ, Lambda,             &
      CASE (5)
        CALL Rodas4
      CASE (7)
-       CALL Rodas4
+       CALL Rodas3_1
 
      CASE DEFAULT
        PRINT * , 'Unknown Rosenbrock method: ICNTRL(3)=', ICNTRL(3)
