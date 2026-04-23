@@ -426,7 +426,7 @@ CONTAINS
 
 
 !~~~>  Unit roundoff (1+Roundoff>1)
-      Roundoff = WLAMCH('E')
+      Roundoff = EPSILON( 0.0_dp )
 
 !~~~>  Lower bound on the step size: (positive value)
    IF (RCNTRL(1) == ZERO) THEN

@@ -376,7 +376,7 @@ SUBROUTINE RosenbrockTLM(N,Y,NTLM,Y_tlm,                      &
       END IF
 
 !~~~>  Unit roundoff (1+Roundoff>1)
-   Roundoff = WLAMCH('E')
+   Roundoff = EPSILON( 0.0_dp )
 
 !~~~>  Lower bound on the step size: (positive value)
    IF (RCNTRL(1) == ZERO) THEN
@@ -549,9 +549,6 @@ CONTAINS ! Procedures internal to RosenbrockTLM
    LOGICAL  :: RejectLastH, RejectMoreH, Singular
 !~~~>  Local parameters
    KPP_REAL, PARAMETER :: DeltaMin = 1.0d-5
-!~~~>  Locally called functions
-!   KPP_REAL WLAMCH
-!   EXTERNAL WLAMCH
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -629,21 +626,23 @@ Stage: DO istage = 1, ros_S
        ioffset = N*(istage-1)
 
       ! Initialize stage solution
-       CALL WCOPY(N,Y,1,Ynew,1)
-       CALL WCOPY(N*NTLM,Y_tlm,1,Ynew_tlm,1)
+       Ynew(1:N) = Y(1:N)
+       Ynew_tlm(1:N,1:NTLM) = Y_tlm(1:N,1:NTLM)
 
       ! For the 1st istage the function has been computed previously
        IF ( istage == 1 ) THEN
-         CALL WCOPY(N,Fcn0,1,Fcn,1)
-         CALL WCOPY(N*NTLM,Fcn0_tlm,1,Fcn_tlm,1)
+         Fcn(1:N) = Fcn0(1:N)
+         Fcn_tlm(1:N,1:NTLM) = Fcn0_tlm(1:N,1:NTLM)
       ! istage>1 and a new function evaluation is needed at the current istage
        ELSEIF ( ros_NewF(istage) ) THEN
          DO j = 1, istage-1
-           CALL WAXPY(N,ros_A((istage-1)*(istage-2)/2+j),    &
-                     K(N*(j-1)+1),1,Ynew,1)
+           Ynew(1:N) = Ynew(1:N)                        &
+                     + ros_A((istage-1)*(istage-2)/2+j) &
+                     * K(N*(j-1)+1:N*j)
            DO itlm=1,NTLM
-              CALL WAXPY(N,ros_A((istage-1)*(istage-2)/2+j), &
-                     K_tlm(N*(j-1)+1,itlm),1,Ynew_tlm(1,itlm),1)
+              Ynew_tlm(1:N,itlm) = Ynew_tlm(1:N,itlm)               &
+                                 + ros_A((istage-1)*(istage-2)/2+j) &
+                                 * K_tlm(N*(j-1)+1:N*j,itlm)
            END DO
          END DO
          Tau = T + ros_Alpha(istage)*Direction*H
@@ -655,29 +654,33 @@ Stage: DO istage = 1, ros_S
            CALL Jac_SP_Vec ( Jac, Ynew_tlm(1,itlm), Fcn_tlm(1,itlm) )
          END DO
        END IF ! if istage == 1 elseif ros_NewF(istage)
-       CALL WCOPY(N,Fcn,1,K(ioffset+1),1)
+       K(ioffset+1:ioffset+N) = Fcn(1:N)
        DO itlm=1,NTLM
-          CALL WCOPY(N,Fcn_tlm(1,itlm),1,K_tlm(ioffset+1,itlm),1)
+          K_tlm(ioffset+1:ioffset+N,itlm) = Fcn_tlm(1:N,itlm)
        END DO
        DO j = 1, istage-1
          HC = ros_C((istage-1)*(istage-2)/2+j)/(Direction*H)
-         CALL WAXPY(N,HC,K(N*(j-1)+1),1,K(ioffset+1),1)
+         K(ioffset+1:ioffset+N) = K(ioffset+1:ioffset+N) &
+                                + HC * K(N*(j-1)+1:N*j)
          DO itlm=1,NTLM
-           CALL WAXPY(N,HC,K_tlm(N*(j-1)+1,itlm),1,K_tlm(ioffset+1,itlm),1)
+           K_tlm(ioffset+1:ioffset+N,itlm) = K_tlm(ioffset+1:ioffset+N,itlm) &
+                                           + HC * K_tlm(N*(j-1)+1:N*j,itlm)
          END DO
        END DO
        IF ((.NOT. Autonomous).AND.(ros_Gamma(istage).NE.ZERO)) THEN
          HG = Direction*H*ros_Gamma(istage)
-         CALL WAXPY(N,HG,dFdT,1,K(ioffset+1),1)
+         K(ioffset+1:ioffset+N) = K(ioffset+1:ioffset+N) + HG * dFdT(1:N)
          DO itlm=1,NTLM
            CALL Jac_SP_Vec ( dJdT, Ynew_tlm(1,itlm), Tmp )
-           CALL WAXPY(N,HG,Tmp,1,K_tlm(ioffset+1,itlm),1)
+           K_tlm(ioffset+1:ioffset+N,itlm) = K_tlm(ioffset+1:ioffset+N,itlm) &
+                                           + HG * Tmp(1:N)
          END DO
        END IF
        CALL ros_Solve(Ghimj, Pivot, K(ioffset+1))
        DO itlm=1,NTLM
          CALL Hess_Vec ( Hes0, K(ioffset+1), Y_tlm(1,itlm), Tmp )
-         CALL WAXPY(N,ONE,Tmp,1,K_tlm(ioffset+1,itlm),1)
+         K_tlm(ioffset+1:ioffset+N,itlm) = K_tlm(ioffset+1:ioffset+N,itlm) &
+                                         + Tmp(1:N)
          CALL ros_Solve(Ghimj, Pivot, K_tlm(ioffset+1,itlm))
        END DO
 
@@ -685,29 +688,31 @@ Stage: DO istage = 1, ros_S
 
 
 !~~~>  Compute the new solution
-   CALL WCOPY(N,Y,1,Ynew,1)
+   Ynew(1:N) = Y(1:N)
    DO j=1,ros_S
-      CALL WAXPY(N,ros_M(j),K(N*(j-1)+1),1,Ynew,1)
+      Ynew(1:N) = Ynew(1:N) + ros_M(j) * K(N*(j-1)+1:N*j)
    END DO
    DO itlm=1,NTLM
-     CALL WCOPY(N,Y_tlm(1,itlm),1,Ynew_tlm(1,itlm),1)
+     Ynew_tlm(1:N,itlm) = Y_tlm(1:N,itlm)
      DO j=1,ros_S
-       CALL WAXPY(N,ros_M(j),K_tlm(N*(j-1)+1,itlm),1,Ynew_tlm(1,itlm),1)
+       Ynew_tlm(1:N,itlm) = Ynew_tlm(1:N,itlm)                   &
+                          + ros_M(j) * K_tlm(N*(j-1)+1:N*j,itlm)
      END DO
    END DO
 
 !~~~>  Compute the error estimation
-   CALL Set2zero(N,Yerr)
+   Yerr(1:N) = 0.0_dp
    DO j=1,ros_S
-        CALL WAXPY(N,ros_E(j),K(N*(j-1)+1),1,Yerr,1)
+      Yerr(1:N) = Yerr(1:N) + ros_E(j) * K(N*(j-1)+1:N*j)
    END DO
    Err = ros_ErrorNorm ( Y, Ynew, Yerr, AbsTol, RelTol, VectorTol )
    IF (TLMtruncErr) THEN
      Err1 = 0.0d0
-     CALL Set2zero(N*NTLM,Yerr_tlm)
+     Yerr_tlm(1:N,1:NTLM) = 0.0_dp
      DO itlm=1,NTLM
        DO j=1,ros_S
-         CALL WAXPY(N,ros_E(j),K_tlm(N*(j-1)+1,itlm),1,Yerr_tlm(1,itlm),1)
+         Yerr_tlm(1:N,itlm) = Yerr_tlm(1:N,itlm)                  &
+                            + ros_E(j) * K_tlm(N*(j-1)+1:N*j,itlm)
        END DO
      END DO
      Err = ros_ErrorNorm_tlm(Y_tlm,Ynew_tlm,Yerr_tlm,AbsTol_tlm,RelTol_tlm,Err,VectorTol)
@@ -721,8 +726,8 @@ Stage: DO istage = 1, ros_S
    ISTATUS(Nstp) = ISTATUS(Nstp) + 1
    IF ( (Err <= ONE).OR.(H <= Hmin) ) THEN  !~~~> Accept step
       ISTATUS(Nacc) = ISTATUS(Nacc) + 1
-      CALL WCOPY(N,Ynew,1,Y,1)
-      CALL WCOPY(N*NTLM,Ynew_tlm,1,Y_tlm,1)
+      Y(1:N) = Ynew(1:N)
+      Y_tlm(1:N,1:NTLM) = Ynew_tlm(1:N,1:NTLM)
       T = T + Direction*H
       Hnew = MAX(Hmin,MIN(Hnew,Hmax))
       IF (RejectLastH) THEN  ! No step size increase after a rejected step
@@ -836,8 +841,8 @@ Stage: DO istage = 1, ros_S
    Delta = SQRT(Roundoff)*MAX(DeltaMin,ABS(T))
    CALL FunTemplate( T+Delta, Y, dFdT )
    ISTATUS(Nfun) = ISTATUS(Nfun) + 1
-   CALL WAXPY(N,(-ONE),Fcn0,1,dFdT,1)
-   CALL WSCAL(N,(ONE/Delta),dFdT,1)
+   dFdT(1:N) = dFdT(1:N) - Fcn0(1:N)
+   dFdT(1:N) = dFdT(1:N) * (ONE/Delta)
 
   END SUBROUTINE ros_FunTimeDerivative
 
@@ -860,8 +865,8 @@ Stage: DO istage = 1, ros_S
    Delta = SQRT(Roundoff)*MAX(DeltaMin,ABS(T))
    CALL JacTemplate( T+Delta, Y, dJdT )
    ISTATUS(Njac) = ISTATUS(Njac) + 1
-   CALL WAXPY(LU_NONZERO,(-ONE),Jac0,1,dJdT,1)
-   CALL WSCAL(LU_NONZERO,(ONE/Delta),dJdT,1)
+   dJdT(1:LU_NONZERO) = dJdT(1:LU_NONZERO) - Jac0(1:LU_NONZERO)
+   dJdT(1:LU_NONZERO) = dJdT(1:LU_NONZERO) * (ONE/Delta)
 
   END SUBROUTINE ros_JacTimeDerivative
 
@@ -899,8 +904,8 @@ Stage: DO istage = 1, ros_S
    DO WHILE (Singular)
 
 !~~~>    Construct Ghimj = 1/(H*ham) - Jac0
-     CALL WCOPY(LU_NONZERO,Jac0,1,Ghimj,1)
-     CALL WSCAL(LU_NONZERO,(-ONE),Ghimj,1)
+     Ghimj(1:LU_NONZERO) = Jac0(1:LU_NONZERO)
+     Ghimj(1:LU_NONZERO) = -Ghimj(1:LU_NONZERO)
      ghinv = ONE/(Direction*H*gam)
      DO i=1,N
        Ghimj(LU_DIAG(i)) = Ghimj(LU_DIAG(i))+ghinv

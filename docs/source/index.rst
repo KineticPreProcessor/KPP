@@ -31,9 +31,8 @@ The Kinetic PreProcessor: KPP
 This site provides instructions for :program:`KPP`, the Kinetic PreProcessor.
 
 Contributions (e.g., suggestions, edits, revisions) would be greatly
-appreciated. See :ref:`editing-this-user-guide` and our
-contributing guidelines.  If you find something hard to
-understand---let us know!
+appreciated. See :ref:`editing_this_user_guide` and our contributing
+guidelines.  If you find something hard to understand---let us know!
 
 .. toctree::
    :caption: Getting Started
