@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased] - TBD
 ### Added
 - Added `Rodas3_1` integration method (with updated coefficents by @msl3v) to `rosenbrock_autoreduce.f90`, `rosenbrock.{c,f90,m}`, `rosenbrock_adj.{c,f90}`, `rosenbrock_tlm.f90`
+- Added the `#GRAPH` command to create graph-based representations of the chemical mechanism
 
 ### Changed
 - Updated package versions for RTD documentation builds; Also use `myst_parser` instead of obsolete `recommonmark`
