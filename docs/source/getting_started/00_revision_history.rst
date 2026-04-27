@@ -10,6 +10,19 @@ of the changes, read `CHANGELOG.md
 
 .. _unreleased:
 
+.. _kpp340:
+
+=========
+KPP 3.4.0
+=========
+
+- Added the :ref:`rosenbrock-rodas-3-1` method to all Rosenbrock
+  integrators, activated with :code:`ICNTRL(3)==7`
+- Added the :ref:`graph-cmd` command, which generates graph-based
+  representations of the chemical mechanism
+- Fixed several issues in the :code:`int/runge_kutta.c` integrator
+  that were causing numerical instability
+
 .. _kpp331:
 
 =========

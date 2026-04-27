@@ -573,7 +573,7 @@ graph-based representations of the chemical mechanism.
 ~~~~~~~~~~~~
 
 This option generates two CSV files describing the structure of the
-mechanism based on stoichiometric balances and species composition. 
+mechanism based on stoichiometric balances and species composition.
 
 1. :file:`ROOT_BiadjacencyMatrix.csv`: A sparse matrix of the
    the net stoichiometric coefficients for each species in each
@@ -581,12 +581,12 @@ mechanism based on stoichiometric balances and species composition.
 
    .. list-table:: Structure of :file:`ROOT_BiadjacencyMatrix.csv`
       :header-rows: 1
-      :widths: 10 30 60	    
+      :widths: 10 30 60
 
-      * - Column 
+      * - Column
         - Header
         - Description
-      * - 1 
+      * - 1
         - spc_name
         - Species name.
       * - 2
@@ -600,7 +600,7 @@ mechanism based on stoichiometric balances and species composition.
 	- The the net, weighted biadjacency matrix of the bipartite
 	  species-reaction graph, useful for automated detection of
 	  system-wide stoichiometric invariants and other mass
-	  conservation enforcing (e.g. Sturm and Wexler 2022)  
+	  conservation enforcing :cite:`Sturm_and_Wexler_2022`.
 
 2. :file:`ROOT_SpeciesCompositionMatrix`: This is a species
    composition dense matrix that for each variable species (row),
@@ -613,7 +613,7 @@ mechanism based on stoichiometric balances and species composition.
       * - Column
         - Name
         - Description
-      * - 1 
+      * - 1
         - species_index
         - Number of the species in the chemical mechanism
       * - 2
@@ -624,10 +624,10 @@ mechanism based on stoichiometric balances and species composition.
         - One column for each atom present in the mechanism (including
           IGNORE if used for some species). This matrix can be used
           for automated mass balance checking of mechanism output or
-          individual reactions (e.g. Sturm and Silva, 2025) 
+          individual reactions :cite:`Sturm_and_Silva_2025`.
 
 .. _graph-cmd-edgelist:
-	  
+
 #GRAPH edgelist
 ~~~~~~~~~~~~~~~
 
@@ -647,7 +647,7 @@ value.
    * - Column
      - Name
      - Description
-   * - 1 
+   * - 1
      - species_index
      - Species index (starts from 1)
    * - 2

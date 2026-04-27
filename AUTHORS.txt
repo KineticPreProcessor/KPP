@@ -1,4 +1,4 @@
-Authors for KPP (30 Jun 2022)
+Authors for KPP (27 Apr 2026)
 
 Name            Github handle
 -----           -------------
@@ -8,3 +8,5 @@ Michael Long    @msl3v
 Bob Yantosca    @yantosca
 Haipeng Lin     @jimmielin
 Lucas Estrada   @laestrada
+Obin Sturm      @obin1
+Wenqing Peng    @pvvq
