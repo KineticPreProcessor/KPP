@@ -825,6 +825,20 @@ void Use_F90( char* rootFileName )
     sprintf( buf, "_StoichiomSP.%s", f90Suffix );
     OpenFile( &sparse_stoicmFile, rootFileName, buf,
 	      "Sparse Stoichiometric Data Structures File" );
+  // Graph outputs: 0=OFF, 1=STOIC, 2=EDGELIST. This uses Stoichiom
+    if ( useGraph == 2 ) {
+      sprintf( buf, "_EdgeList.csv" );
+      OpenFile( &edge_listFile, rootFileName, buf,
+        "Representation of the mechanism as a bipartite species-reaction graph in CSV format" );
+    } else if ( useGraph == 1 ) {
+      sprintf( buf, "_BiadjacencyMatrix.csv" );
+      OpenFile( &biadjacencyFile, rootFileName, buf,
+        "Sparse Biadjacency Matrix, aka Stoichiometric Matrix, in CSV format" );
+      /* Also open the dense species-by-atom composition CSV (variable species only) */
+      sprintf( buf, "_SpeciesCompositionMatrix.csv" );
+      OpenFile( &spcsCompositionFile, rootFileName, buf,
+        "Dense species-by-atom composition matrix (variable species only) in CSV format" );
+    }
   }
 
   // _Util

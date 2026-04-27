@@ -197,6 +197,8 @@ extern int useStochastic;
 extern int doFlux;
 extern int doAutoReduce;
 extern int upperCaseF90;
+extern int useGraph;
+extern char graphType[ MAX_PATH];
 extern char f90Suffix[4];
 extern char minKppVersion[30]; // size [30] must be the same as in scanner.c
 

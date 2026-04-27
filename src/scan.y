@@ -95,6 +95,7 @@
 %type <str> TPTID USEID
 %type <str> rate eqntag
 %token FLUX AUTOREDUCE
+%token GRAPH
 %token      PLSPC
 %type <str> PLSPC
 %token UPPERCASEF90
@@ -190,6 +191,8 @@ section	        : JACOBIAN PARAMETER
 		  { CmdUpperCaseF90( $2 ); }
                 | MINVERSION PARAMETER
 		  { CmdMinVersion( $2 ); }
+                | GRAPH PARAMETER
+      { CmdGraph( $2 ); }
                 ;  
 semicolon       : semicolon ';'
                   { ScanWarning("Unnecessary ';'");

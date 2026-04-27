@@ -121,6 +121,7 @@ void CmdFlux( char *cmd );
 void CmdAutoReduce( char *cmd );
 void CmdUpperCaseF90( char *cmd );
 void CmdMinVersion( char *cmd );
+void CmdGraph( char *cmd );
 int EqNoCase( char *s1, char *s2 );
 int EqnString( int eq, char * buf );
 void LookAtAll();
