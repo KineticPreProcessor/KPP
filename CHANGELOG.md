@@ -11,6 +11,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [Unreleased] - TBD
+### Added
+- Added `Rodas3_1` integration method (with updated coefficents by @msl3v) to `rosenbrock_autoreduce.f90`, `rosenbrock.{c,f90,m}`, `rosenbrock_adj.{c,f90}`, `rosenbrock_tlm.f90`
+- Added the `#GRAPH` command to create graph-based representations of the chemical mechanism
+
+### Changed
+- Updated package versions for RTD documentation builds; Also use `myst_parser` instead of obsolete `recommonmark`
+
+### Fixed
+- Fixed incorrect comment in `int/rosenbrock_autoreduce.f90`: `10*H` should be `0.1*H`
+- Fixed several issues in the `int/runge_kutta.c` integrator
+
 ## [3.3.1] - 2026-03-27
 ### Added
 - Added GitHub Action to run C-I tests with GCC compilers v9, v10, v11, v12, and v13
@@ -525,3 +538,4 @@ Changes by Domenico Taraborrelli:
 - examples/mimi* deleted
 
 ## [2.1] - 2005-07-19
+ 

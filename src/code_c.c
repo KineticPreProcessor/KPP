@@ -552,6 +552,17 @@ void Use_C( char* rootFileName )
                    "The Stoichiometric Chemical Model File" );
     OpenFile( &sparse_stoicmFile, rootFileName, "_StoichiomSP.c",
                    "Sparse Stoichiometric Data Structures File" );
+   // Graph outputs: 0=OFF, 1=STOIC, 2=EDGELIST 
+    if ( useGraph == 2 ) {
+      OpenFile( &edge_listFile, rootFileName, "_EdgeList.csv",
+               "Representation of the mechanism as a bipartite species-reaction graph edgelist in CSV format" );
+    } else if ( useGraph == 1 ) {
+      OpenFile( &biadjacencyFile, rootFileName, "_BiadjacencyMatrix.csv",
+               "Sparse Biadjacency Matrix, aka Stoichiometric Matrix, in CSV format" );
+      /* Also open species-by-atom composition CSV (variable species only) */
+      OpenFile( &spcsCompositionFile, rootFileName, "_SpeciesCompositionMatrix.csv",
+               "Dense species composition matrix (var species x atoms) in CSV format" );
+    }
   }
   OpenFile( &utilFile, rootFileName, "_Util.c",
                    "Auxiliary Routines File" );

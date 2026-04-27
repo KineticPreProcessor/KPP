@@ -70,3 +70,6 @@ docs/build/*
 !/util/*.f90
 !/util/*.m
 !/util/Makefile*
+
+# ReadTheDocs
+docs/_build/*
