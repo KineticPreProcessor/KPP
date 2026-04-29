@@ -2209,7 +2209,7 @@ void GenerateGraphStoic()
     /* Write the species-reaction bipartite graph as a csv edgelist */
     UseFile( edge_listFile );
     /* write a header for edge_listFile: species_index,reaction_index,from,to,directed_stoichiometric_value */
-    fprintf(edge_listFile,"# species_index (starts from 1),reaction_index (starts from 1),from,to, directed stoichiometric value\n");
+    fprintf(edge_listFile,"species_index,reaction_index,from,to,directed_stoichiometric_value\n");
     firstindex = 0;
     n_elist = 0;
     for (j=0; j<EqnNr; j++) {
@@ -2243,7 +2243,7 @@ void GenerateGraphStoic()
   /* write biadjacency CSV using sparse arrays */
   if ( useGraph == 1 ) {
     UseFile( biadjacencyFile );
-    fprintf( biadjacencyFile, "spc_name,species_index,reaction_index,stoichiometric_coefficient\n" );
+    fprintf( biadjacencyFile, "species_name,species_index,reaction_index,stoichiometric_coefficient\n" );
     for (k=0; k<nnz_stoicm; k++) {
       int spc_idx = irow_stoicm[k];
       int rxn_idx = icol_stoicm[k];
