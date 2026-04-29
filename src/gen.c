@@ -2208,8 +2208,8 @@ void GenerateGraphStoic()
   if ( useGraph == 2 ) {
     /* Write the species-reaction bipartite graph as a csv edgelist */
     UseFile( edge_listFile );
-    /* write a header for edge_listFile: species_index,reaction_index,from,to,directed_stoichiometric_value */
-    fprintf(edge_listFile,"species_index,reaction_index,from,to,directed_stoichiometric_value\n");
+    /* write a header for edge_listFile: species_index,reaction_index,source,target,directed_stoichiometric_value */
+    fprintf(edge_listFile,"species_index,reaction_index,source,target,directed_stoichiometric_value\n");
     firstindex = 0;
     n_elist = 0;
     for (j=0; j<EqnNr; j++) {
