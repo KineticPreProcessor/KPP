@@ -198,13 +198,13 @@ mex:    $(ALLOBJ)
 clean:
 	rm -f *.o *.mod \
 	KPP_ROOT*.dat KPP_ROOT.exe KPP_ROOT*.mexglx \
-	KPP_ROOT.log
+	KPP_ROOT.log *.csv
 
 distclean:
 	rm -f *.o *.mod \
 	KPP_ROOT*.dat KPP_ROOT*.exe KPP_ROOT.log \
 	KPP_ROOT_*.f90 KPP_ROOT_*.F90 KPP_ROOT_*.mexglx \
-	results*.m *.dat
+	results*.m *.dat *.csv
 
 KPP_ROOT_Precision.o: KPP_ROOT_Precision.F90
 	$(FC) $(FOPT) -c $<

@@ -395,6 +395,10 @@ List of continuous integration tests
      - Fortran90
      - carbon
      - feuler
+   * - :code:`F90_graph`
+     - Fortran90
+     - small_strato
+     - rosenbrock
    * - :code:`F90_lsode`
      - Fortran90
      - small_strato
