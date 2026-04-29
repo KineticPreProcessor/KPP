@@ -156,6 +156,7 @@ int blength;
   WriteComment("       M. Long,     Renaissance Fiber, LLC, North Carolina, USA");
   WriteComment("       H. Lin,      Harvard University, Cambridge, MA, USA");
   WriteComment("       R. Yantosca, Harvard University, Cambridge, MA, USA");
+  WriteComment("       P.O. Sturm,  Univ. of Southern California, Los Angeles, CA, USA");
   WriteComment("");
 
   WriteComment("%-20s : %s", "File", bufname );
