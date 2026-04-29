@@ -602,11 +602,11 @@ mechanism based on stoichiometric balances and species composition.
 	  system-wide stoichiometric invariants and other mass
 	  conservation enforcing :cite:`Sturm_and_Wexler_2022`.
 
-2. :file:`ROOT_SpeciesCompositionMatrix`: This is a species
+2. :file:`ROOT_SpeciesCompositionMatrix.csv`: This is a species
    composition dense matrix that for each variable species (row),
    records the atom count of each element present (columns).
 
-   .. list-table:: Structure of :file:`ROOT_SpeciesCompositionMatrix`
+   .. list-table:: Structure of :file:`ROOT_SpeciesCompositionMatrix.csv`
       :header-rows: 1
       :widths: 15 20 65
 
