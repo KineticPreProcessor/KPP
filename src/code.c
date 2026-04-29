@@ -95,7 +95,6 @@ FILE * sparse_jacFile = 0;
 FILE * sparse_hessFile = 0;
 FILE * sparse_stoicmFile = 0;
 FILE * biadjacencyFile = 0;
-FILE * graphvizFile = 0;
 FILE * edge_listFile = 0;
 FILE * spcsCompositionFile = 0;
 FILE * stochasticFile = 0;
