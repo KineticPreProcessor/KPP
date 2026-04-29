@@ -6,5 +6,6 @@
 #JACOBIAN   SPARSE_LU_ROW
 #HESSIAN    ON
 #STOICMAT   ON
+#GRAPH      edgelist
 
 {This is the small_strato example from Chapter 2 of the KPP manual}
