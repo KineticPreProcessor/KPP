@@ -59,11 +59,11 @@ mex:    $(HEADERS) $(SPOBJ) $(OBJ)
 	
 clean:
 	rm -f $(SPOBJ) $(OBJ) KPP_ROOT.exe KPP_ROOT.log  \
-	KPP_ROOT.dat 
+	KPP_ROOT.dat *.csv
 
 distclean:
 	rm -f $(SPOBJ) $(OBJ) KPP_ROOT.exe KPP_ROOT.log  \
-	KPP_ROOT.dat KPP_ROOT*.f  KPP_ROOT*.h 
+	KPP_ROOT.dat KPP_ROOT*.f  KPP_ROOT*.h *.csv
 
 KPP_ROOT_Monitor.o: KPP_ROOT_Monitor.f $(HEADERS)
 	$(FC) $(FOPT) -c $<

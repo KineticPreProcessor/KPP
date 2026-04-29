@@ -372,48 +372,52 @@ are given in the following subsections.
      - default value
    * - :command:`#AUTOREDUCE`
      - :code:`OFF`
-     - :command:`#INTFILE`
+     - :command:`#CHECKALL`
      -
-   * - :command:`#CHECKALL`
+   * - :command:`#DECLARE`
+     - :code:`SYMBOL`
+     - :command:`#DOUBLE`
+     - :code:`ON`
+   * - :command:`#DRIVER`
+     - :code:`none`
+     - :command:`#DUMMYINDEX`
+     - :code:`OFF`
+   * - :command:`#EQNTAGS`
+     - :code:`OFF`
+     - :command:`#FUNCTION`
+     - :code:`AGGREGATE`
+   * - :command:`#GRAPH`
+     - :code:`OFF`
+     - :command:`#HESSIAN`
+     - :code:`ON`
+   * - :command:`#INCLUDE`
+     -
+     - :command:`#INTEGRATOR`
+     -
+   * - :command:`#INTFILE`
      -
      - :command:`#JACOBIAN`
      - :code:`SPARSE_LU_ROW`
-   * - :command:`#DECLARE`
-     - :code:`SYMBOL`
-     - :command:`#LANGUAGE`
+   * - :command:`#LANGUAGE`
      -
-   * - :command:`#DOUBLE`
-     - :code:`ON`
      - :command:`#LOOKATALL`
      -
-   * - :command:`#DRIVER`
-     - :code:`none`
-     - :command:`#MEX`
+   * - :command:`#MEX`
      - :code:`ON`
-   * - :command:`#DUMMYINDEX`
-     - :code:`OFF`
      - :command:`#MINVERSION`
      -
-   * - :command:`#EQNTAGS`
-     - :code:`OFF`
-     - :command:`#MODEL`
+   * - :command:`#MODEL`
      -
-   * - :command:`#FUNCTION`
-     - :code:`AGGREGATE`
      - :command:`#REORDER`
      - :code:`ON`
-   * - :command:`#HESSIAN`
-     - :code:`ON`
-     - :command:`#STOCHASTIC`
+   * - :command:`#STOCHASTIC`
      - :code:`OFF`
-   * - :command:`#INCLUDE`
-     -
      - :command:`#STOICMAT`
      - :code:`ON`
-   * - :command:`#INTEGRATOR`
-     -
-     - :command:`#UPPERCASEF90`
+   * - :command:`#UPPERCASEF90`
      - :code:`OFF`
+     -
+     -
 
 .. _autoreduce-cmd:
 
@@ -552,6 +556,112 @@ to compute the production/destruction terms for variable
 species. :command:`AGGREGATE` generates one function that computes the
 normal derivatives. :command:`SPLIT` generates two functions
 for the derivatives in production and destruction forms.
+
+.. _graph-cmd:
+
+#GRAPH
+------
+
+Off by default, the :command:`#GRAPH` command leverages the
+pre-existing  parsing of stoichiometric structure to create
+graph-based representations of the chemical mechanism.
+:command:`#GRAPH` currently supports two options, described below.
+
+.. _graph-cmd-stoic:
+
+#GRAPH stoic
+~~~~~~~~~~~~
+
+This option generates two CSV files describing the structure of the
+mechanism based on stoichiometric balances and species composition.
+
+1. :file:`ROOT_BiadjacencyMatrix.csv`: A sparse matrix of the
+   the net stoichiometric coefficients for each species in each
+   reaction.
+
+   .. list-table:: Structure of :file:`ROOT_BiadjacencyMatrix.csv`
+      :header-rows: 1
+      :widths: 10 30 60
+
+      * - Column
+        - Header
+        - Description
+      * - 1
+        - spc_name
+        - Species name.
+      * - 2
+        - species_index
+        - Number of the species in the chemical mechanism
+      * - 3
+	- reaction_index
+        - Number of the reaction in the chemical mechanism
+      * - 4
+	- stoichiometric_coefficient
+	- The the net, weighted biadjacency matrix of the bipartite
+	  species-reaction graph, useful for automated detection of
+	  system-wide stoichiometric invariants and other mass
+	  conservation enforcing :cite:`Sturm_and_Wexler_2022`.
+
+2. :file:`ROOT_SpeciesCompositionMatrix.csv`: This is a species
+   composition dense matrix that for each variable species (row),
+   records the atom count of each element present (columns).
+
+   .. list-table:: Structure of :file:`ROOT_SpeciesCompositionMatrix.csv`
+      :header-rows: 1
+      :widths: 15 20 65
+
+      * - Column
+        - Name
+        - Description
+      * - 1
+        - species_index
+        - Number of the species in the chemical mechanism
+      * - 2
+        - species_name
+        - Species name.
+      * - 3 - NSPEC
+        - Species matrix
+        - One column for each atom present in the mechanism (including
+          IGNORE if used for some species). This matrix can be used
+          for automated mass balance checking of mechanism output or
+          individual reactions :cite:`Sturm_and_Silva_2025`.
+
+.. _graph-cmd-edgelist:
+
+#GRAPH edgelist
+~~~~~~~~~~~~~~~
+
+The :ref:`graph-cmd-stoic` option uses net stoichiometry, which
+neglects reciprocal reactions (e.g. when the same species is a
+reactant and a product its net stoichiometry is zero). This
+:command:`#GRAPH edgelist` option generates a
+:file:`ROOT_Edgelist.csv` file listing the edges of the
+species-reaction bipartite graph.  Each row represents a connection
+between a species and a reaction, with direction and stoichiometric
+value.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 70
+
+   * - Column
+     - Name
+     - Description
+   * - 1
+     - species_index
+     - Species index (starts from 1)
+   * - 2
+     - reaction_index
+     - Reaction index (starts from 1)
+   * - 3
+     - From
+     - Starting edge
+   * - 4
+     - To
+     - Ending edge
+   * - 5
+     - Stoichometric value
+     - Directed stoichiometric value
 
 .. _hessian-cmd:
 
@@ -1237,7 +1347,7 @@ Selects a specific integration method.
    |                       +------------+-----------------------+
    |                       | 6          | Rang                  |
    |                       +------------+-----------------------+
-   |                       | 7          | For future use        |
+   |                       | 7          | Rodas3.1              |
    +-----------------------+------------+-----------------------+
    | runge_kutta           | 0 or 1     | Radau-2A (default)    |
    |                       +------------+-----------------------+

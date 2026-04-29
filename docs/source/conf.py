@@ -19,13 +19,13 @@ master_doc = "index"
 # -- Project information -----------------------------------------------------
 
 project = "KPP: The Kinetic PreProcessor"
-copyright = "2023, The KPP Development Team"
+copyright = "2026, The KPP Development Team"
 author = "A. Sandu, R. Sander, M. Long, H. Lin, R. Yantosca, L. Estrada, L. Shen, and D. J. Jacob"
 
 # The full version, including alpha/beta/rc tags
 # (version numbers must be synchronized in CHANGELOG.md, src/gdata.h,
 # docs/source/conf.py and https://en.wikipedia.org/wiki/Kinetic_PreProcessor)
-release = "3.3.1"
+release = "3.4.0"
 
 
 # -- General configuration ---------------------------------------------------
@@ -36,7 +36,7 @@ release = "3.3.1"
 extensions = [
     "sphinx_rtd_theme",   
     "sphinxcontrib.bibtex",
-    "recommonmark",
+    "myst_parser",
 ]
 bibtex_default_style = "refstyle"
 bibtex_reference_style = "author_year"
@@ -82,7 +82,6 @@ bibtex_bibfiles = ["citations/kpp.bib"]
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
-
 # -- Options for HTML output -------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -107,7 +106,6 @@ html_logo = "_static/kpp-logo.png"
 # RTD theme settings
 html_theme_options = {
     'logo_only': True,
-    'display_version': False,
     'style_nav_header_background': '#FCFCFC',
 }
 

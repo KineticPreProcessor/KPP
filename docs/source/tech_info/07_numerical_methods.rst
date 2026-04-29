@@ -30,68 +30,55 @@ The symbols used in the formulas of the following sections are:
 
 .. _table-symbols:
 
-.. table:: Symbols used in numerical methods
+.. list-table:: Symbols used in numerical methods
    :align: center
+   :header-rows: 1
+   :widths: auto
 
-   +----------------------------------+----------------------------------+
-   | Symbol                           | Description                      |
-   +==================================+==================================+
-   | :math:`s`                        | Number of stages                 |
-   +----------------------------------+----------------------------------+
-   | :math:`t^n`                      | Discrete time moment             |
-   +----------------------------------+----------------------------------+
-   | :math:`h`                        | Time step :math:`h=t^{n+1}-t^n`  |
-   +----------------------------------+----------------------------------+
-   | :math:`y^n`                      | Numerical solution               |
-   |                                  | (concentration) at :math:`t^n`   |
-   +----------------------------------+----------------------------------+
-   | :math:`\delta y^n`               | tangent linear solution at       |
-   |                                  | :math:`t^n`                      |
-   +----------------------------------+----------------------------------+
-   | :math:`\lambda^n`                | Adjoint numerical solution at    |
-   |                                  | :math:`t^n`                      |
-   +----------------------------------+----------------------------------+
-   | :math:`f(\cdot,\cdot)`           | The ODE derivative function:     |
-   |                                  | :math:`y'=f(t,y)`                |
-   +----------------------------------+----------------------------------+
-   | :math:`f_t(\cdot,\cdot)`         | Partial time derivative          |
-   |                                  | :math:`f_t(                      |
-   |                                  | t,y)=\partial f(t,y)/\partial t` |
-   +----------------------------------+----------------------------------+
-   | :math:`J(\cdot,\cdot)`           | The Jacobian                     |
-   |                                  | :math:`J(                        |
-   |                                  | t,y)=\partial f(t,y)/\partial y` |
-   +----------------------------------+----------------------------------+
-   | :math:`J_t(\cdot,\cdot)`         | Partial time derivative of       |
-   |                                  | Jacobian                         |
-   |                                  | :math:`J_t(                      |
-   |                                  | t,y)=\partial J(t,y)/\partial t` |
-   +----------------------------------+----------------------------------+
-   | :math:`A`                        | The system matrix                |
-   +----------------------------------+----------------------------------+
-   | :math:`H(\cdot,\cdot)`           | The Hessian                      |
-   |                                  | :math:`H(t,y)                    |
-   |                                  | =\partial^2 f(t,y)/\partial y^2` |
-   +----------------------------------+----------------------------------+
-   | :math:`T_i`                      | Internal stage time moment for   |
-   |                                  | Runge-Kutta and Rosenbrock       |
-   |                                  | methods                          |
-   +----------------------------------+----------------------------------+
-   | :math:`Y_i`                      | Internal stage solution for      |
-   |                                  | Runge-Kutta and Rosenbrock       |
-   |                                  | methods                          |
-   +----------------------------------+----------------------------------+
-   | :math:`k_i`, :math:`\ell_i`,     | Internal stage vectors for       |
-   | :math:`u_i`, :math:`v_i`         | Runge-Kutta and Rosenbrock       |
-   |                                  | methods, their tangent linear    |
-   |                                  | and adjoint models               |
-   +----------------------------------+----------------------------------+
-   | :math:`\alpha_i`,                | Method coefficients              |
-   | :math:`\alpha_{ij}`,             |                                  |
-   | :math:`a_{ij}`, :math:`b_i`,     |                                  |
-   | :math:`c_i`, :math:`c_{ij}`,     |                                  |
-   | :math:`e_i`, :math:`m_i`         |                                  |
-   +----------------------------------+----------------------------------+
+   * - Symbol
+     - Description
+   * - :math:`s`
+     - Number of stages
+   * - :math:`t^n`
+     - Discrete time moment
+   * - :math:`h`
+     - Time step :math:`h=t^{n+1}-t^n`
+   * - :math:`y^n`
+     - Numerical solution (concentration) at :math:`t^n`
+   * - :math:`\delta y^n`
+     - Tangent linear solution at :math:`t^n`
+   * - :math:`\lambda^n`
+     - Adjoint numerical solution at :math:`t^n`
+   * - :math:`f(\cdot,\cdot)`
+     - The ODE derivative function: :math:`y'=f(t,y)`
+   * - :math:`f_t(\cdot,\cdot)`
+     - Partial time derivative
+       :math:`f_t(t,y)=\partial f(t,y)/\partial t`
+   * - :math:`J(\cdot,\cdot)`
+     - The Jacobian
+       :math:`J(t,y)=\partial f(t,y)/\partial y`
+   * - :math:`J_t(\cdot,\cdot)`
+     - Partial time derivative of Jacobian
+       :math:`J_t(t,y)=\partial J(t,y)/\partial t`
+   * - :math:`A`
+     - The system matrix
+   * - :math:`H(\cdot,\cdot)`
+     - The Hessian
+       :math:`H(t,y)=\partial^2 f(t,y)/\partial y^2`
+   * - :math:`T_i`
+     - Internal stage time moment for Runge-Kutta and
+       Rosenbrock methods
+   * - :math:`Y_i`
+     - Internal stage solution for Runge-Kutta and
+       Rosenbrock methods
+   * - :math:`k_i`, :math:`\ell_i`,
+       :math:`u_i`, :math:`v_i`
+     - Internal stage vectors for Runge-Kutta and Rosenbrock
+       methods, their tangent linear and adjoint models
+   * - :math:`\alpha_i`, :math:`\alpha_{ij}`,
+       :math:`a_{ij}`, :math:`b_i`, :math:`c_i`,
+       :math:`c_{ij}`, :math:`e_i`, :math:`m_i`
+     - Method coefficients
 
 .. _rosenbrock-methods:
 
@@ -221,6 +208,37 @@ RODAS-3
    \alpha_2 = 0   & \qquad & \alpha_3 = 1    & \qquad & \alpha_4 = 1   &\\
    \gamma_1 = 0.5 & \qquad & \gamma_2 = 1.5  & \qquad & \gamma_3 = 0   &\\
    \gamma_4 = 0
+   \end{aligned}
+
+
+.. _rosenbrock-rodas-3-1:
+
+RODAS-3.1
+---------
+- Reference: :cite:t:`Long_et_al._2026`
+- Stages (:math:`s`): 4
+- Funcion calls: 3
+- Order: 3(2)
+- Stability properties: Stiffly-accurate
+- Method Coefficients:
+
+.. math::
+
+   \begin{aligned}
+   a_{2,1} = 0                  & \qquad & a_{3,1} = 0.646601929740551  &\\
+   a_{3,2} = 0.409567801987914  & \qquad & a_{4,1} = 0.646601929740551  &\\
+   a_{4,2} = 0.409567801987914  & \qquad & a_{4,3} = 1                  &\\
+   c_{2,1} = 4.198495621784201  & \qquad & c_{3,1} = 3.711590161613010  &\\
+   c_{3,2} = -1.787771994729384 & \qquad & c_{4,1} = 4.458898153216104  &\\
+   c_{4,2} = -2.024095448516552 & \qquad & c_{4,3} = -2.626700600119396 &\\
+   m_1 = 0.646601929740551      & \qquad & m_2 = 0.409567801987914      &\\
+   m_3 = 1                      & \qquad & m_4 = 1                      &\\
+   e_1 = 0                      & \qquad & e_2 = 0                      &\\
+   e_3 = 0                      & \qquad & e_4 = 1                      &\\
+   \alpha_1 = 0                 & \qquad & \alpha_2 = 0                 &\\
+   \alpha_3 = 1                 & \qquad & \alpha_4 = 1                 &\\
+   \gamma_1 = 0.515             & \qquad & \gamma_2 = 1.628546001287715 &\\
+   \gamma_3 = 0                 & \qquad & \gamma_4 = 0
    \end{aligned}
 
 .. _rosenbrock-rodas-4:

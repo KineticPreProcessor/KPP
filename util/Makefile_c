@@ -50,11 +50,12 @@ mex:    $(HEADERS) $(SPOBJ) $(OBJ)
 
 
 clean:
-	rm -f $(SPOBJ) $(OBJ) KPP_ROOT.exe KPP_ROOT_*.mexglx KPP_ROOT*.dat
+	rm -f $(SPOBJ) $(OBJ) KPP_ROOT.exe KPP_ROOT_*.mexglx \
+	KPP_ROOT*.dat *.csv
 
 distclean:
 	rm -f $(SPOBJ) $(OBJ) KPP_ROOT.exe KPP_ROOT*.dat \
-	KPP_ROOT_*.c KPP_ROOT_*.h KPP_ROOT*.log KPP_ROOT_*.mexglx
+	KPP_ROOT_*.c KPP_ROOT_*.h KPP_ROOT*.log KPP_ROOT_*.mexglx *.csv
 
 KPP_ROOT_Monitor.o: KPP_ROOT_Monitor.c $(HEADERS)
 	$(CC) $(COPT) -c $<

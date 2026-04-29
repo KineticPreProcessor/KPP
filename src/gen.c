@@ -2144,6 +2144,174 @@ void GenerateRateLaws()
 
 }
 
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+void GenerateGraphStoic()
+{
+  int i, j, k, nnz_stoicm;
+  int firstindex; /* does numbering start at zero or one */
+  int *spc_elist;
+  int *rxn_elist;
+  double *val_elist;
+  int n_elist;
+  int *irow_stoicm;
+  int *ccol_stoicm;
+  int *icol_stoicm;
+  double *stoicm;
+
+
+  /* Compute the sparsity structure and allocate data structure vectors */
+  nnz_stoicm = 0;
+  n_elist = 0;
+  for (j=0; j<EqnNr; j++) {
+    for (i=0; i<VarNr; i++) {
+      if ( Stoich[i][j] != 0.0 )
+         nnz_stoicm++;
+      if ( Stoich_Right[i][j] != 0.0 )
+         n_elist++;
+      if ( Stoich_Left[i][j] != 0.0 )
+         n_elist++;
+    }
+  }
+
+  if ( (spc_elist=(int*)calloc(n_elist+2,sizeof(int)) ) == NULL )
+     FatalError(-30,"GenerateGraphStoic: Cannot allocate spc_elist");
+  if ( (rxn_elist=(int*)calloc(n_elist+2,sizeof(int)) ) == NULL )
+     FatalError(-30,"GenerateGraphStoic: Cannot allocate rxn_elist");
+  if ( (val_elist=(double*)calloc(n_elist+2,sizeof(double)) ) == NULL )
+     FatalError(-30,"GenerateGraphStoic: Cannot allocate val_elist");
+
+  if ( (irow_stoicm=(int*)calloc(nnz_stoicm+2,sizeof(int)) ) == NULL )
+     FatalError(-30,"GenerateGraphStoic: Cannot allocate irow_stoicm");
+  if ( (ccol_stoicm=(int*)calloc(EqnNr+2,sizeof(int)) ) == NULL )
+     FatalError(-30,"GenerateGraphStoic: Cannot allocate ccol_stoicm");
+  if ( (icol_stoicm=(int*)calloc(nnz_stoicm+2,sizeof(int)) ) == NULL )
+     FatalError(-30,"GenerateGraphStoic: Cannot allocate icol_stoicm");
+  if ( (stoicm=(double*)calloc(nnz_stoicm+2,sizeof(double)) ) == NULL )
+     FatalError(-30,"GenerateGraphStoic: Cannot allocate stoicm");
+
+  /* Populate sparse arrays */
+  nnz_stoicm = 0;
+  for (j=0; j<EqnNr; j++) {
+    ccol_stoicm[ j ] =  nnz_stoicm;
+    for (i=0; i<VarNr; i++) {
+      if ( Stoich[i][j] != 0 ) {
+        irow_stoicm[ nnz_stoicm ] = i;
+        icol_stoicm[ nnz_stoicm ] = j;
+        stoicm[ nnz_stoicm ] = Stoich[i][j];
+        nnz_stoicm++;
+      }
+    }
+  }
+  ccol_stoicm[ EqnNr ] =  nnz_stoicm;
+
+  if ( useGraph == 2 ) {
+    /* Write the species-reaction bipartite graph as a csv edgelist */
+    UseFile( edge_listFile );
+    /* write a header for edge_listFile: species_index,reaction_index,source,target,directed_stoichiometric_value */
+    fprintf(edge_listFile,"species_index,reaction_index,source,target,directed_stoichiometric_value\n");
+    firstindex = 0;
+    n_elist = 0;
+    for (j=0; j<EqnNr; j++) {
+      for (i=0; i<VarNr; i++) {
+        /* Emit an edge for the left-hand side (consumption) if present */
+        if ( Stoich_Left[i][j] != 0.0 ) {
+          spc_elist[ n_elist ] = i;
+          rxn_elist[ n_elist ] = j;
+          /* directed value for consumption should be negative */
+          val_elist[ n_elist ] = -Stoich_Left[i][j];
+          k = n_elist;
+          fprintf(edge_listFile, "%d,%d,%s,%s%d,%g\n", i+1, j+1,
+                  SpeciesTable[ Code[i-firstindex] ].name, "R", j+1, -Stoich_Left[i][j] );
+          n_elist++;
+        }
+
+        /* Emit an edge for the right-hand side (production) if present */
+        if ( Stoich_Right[i][j] != 0.0 ) {
+          spc_elist[ n_elist ] = i;
+          rxn_elist[ n_elist ] = j;
+          /* directed value for production should be positive */
+          val_elist[ n_elist ] = Stoich_Right[i][j];
+          fprintf(edge_listFile, "%d,%d,%s%d,%s,%g\n", i+1, j+1,
+                  "R", j+1, SpeciesTable[ Code[i-firstindex] ].name, Stoich_Right[i][j] );
+          n_elist++;
+        }
+      }
+    }
+  }
+
+  /* write biadjacency CSV using sparse arrays */
+  if ( useGraph == 1 ) {
+    UseFile( biadjacencyFile );
+    fprintf( biadjacencyFile, "species_name,species_index,reaction_index,stoichiometric_coefficient\n" );
+    for (k=0; k<nnz_stoicm; k++) {
+      int spc_idx = irow_stoicm[k];
+      int rxn_idx = icol_stoicm[k];
+      const char *sname = SpeciesTable[ Code[ spc_idx ] ].name;
+      fprintf( biadjacencyFile, "%s,%d,%d,%g\n", sname, Index(spc_idx), Index(rxn_idx), stoicm[k] );
+    }
+  }
+
+  /* dense species-by-atom composition matrix for variable species.
+     Columns correspond only to atoms that actually appear in the variable
+     species set (compact atom list) */
+  if ( useGraph == 1 ) {
+    int t, ii, a, nPresent;
+    UseFile( spcsCompositionFile );
+
+    /* Determine which atoms are present in any variable species */
+    int presentIndex[ MAX_ATNR ];
+    int presentList[ MAX_ATNR ];
+    for (a = 0; a < AtomNr; a++) presentIndex[a] = -1;
+    for (t = 0; t < VarNr; t++) {
+      SPECIES_DEF *sp = &SpeciesTable[ Code[t] ];
+      for (ii = 0; ii < sp->nratoms; ii++) {
+        int a_code = sp->atoms[ii].code;
+        presentIndex[a_code] = 0; /* mark present */
+      }
+    }
+    nPresent = 0;
+    for (a = 0; a < AtomNr; a++) {
+      if ( presentIndex[a] == 0 ) {
+        presentIndex[a] = nPresent;
+        presentList[nPresent] = a;
+        nPresent++;
+      }
+    }
+
+    /* header is species_index,species_name,<atom names...> */
+    fprintf( spcsCompositionFile, "species_index,species_name" );
+    for (a = 0; a < nPresent; a++)
+      fprintf( spcsCompositionFile, ",%s", AtomTable[ presentList[a] ].name );
+    fprintf( spcsCompositionFile, "\n" );
+
+    /* rows are one per variable species, elements are columns, 
+       entries are atom totals per element per species*/
+    for (t = 0; t < VarNr; t++) {
+      SPECIES_DEF *sp = &SpeciesTable[ Code[t] ];
+      int counts[ MAX_ATNR ];
+      for (a = 0; a < AtomNr; a++) counts[a] = 0;
+      for (ii = 0; ii < sp->nratoms; ii++) {
+        int a_code = sp->atoms[ii].code;
+        int a_nr   = sp->atoms[ii].nr;
+        counts[a_code] += a_nr;
+      }
+
+      fprintf( spcsCompositionFile, "%d,%s", Index(t), sp->name );
+      for (a = 0; a < nPresent; a++)
+        fprintf( spcsCompositionFile, ",%d", counts[ presentList[a] ] );
+      fprintf( spcsCompositionFile, "\n" );
+    }
+  }
+
+  /* Free allocated memory */
+  free(spc_elist); free(rxn_elist); free(val_elist);
+  free(irow_stoicm);
+  free(icol_stoicm);
+  free(ccol_stoicm);
+  free(stoicm);
+
+}
 
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -2877,6 +3045,8 @@ int i, dn;
      else                { WriteAll("#STOCHASTIC   - OFF\n");                }
   if( useStoicmat )      { WriteAll("#STOICMAT     - ON\n");                 }
      else                { WriteAll("#STOICMAT     - OFF\n");                }
+  if( useGraph )         { WriteAll("#GRAPH        - %s\n", graphType );  }
+     else                { WriteAll("#GRAPH        - OFF\n");                }
   if( upperCaseF90 )     { WriteAll("#UPPERCASEF90 - ON\n");                 }
      else                { WriteAll("#UPPERCASEF90 - OFF\n");                }
 
@@ -3687,6 +3857,12 @@ int n;
         GenerateStoicmSparseHeader();
     GenerateDFunDRcoeff();
     GenerateDJacDRcoeff();
+  }
+
+  if (useGraph ) {
+    printf("\nKPP is generating the graph data:");
+    printf("\n    - %s_Graph",rootFileName);
+    GenerateGraphStoic();
   }
 
   printf("\nKPP is generating the driver from %s.%s:", driver, f90Suffix);

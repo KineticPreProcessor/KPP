@@ -1,132 +1,132 @@
- #define MAX(a,b) ( ((a) >= (b)) ?(a):(b)  )
- #define MIN(b,c) ( ((b) <  (c)) ?(b):(c)  )
- #define ABS(x)   ( ((x) >=  0 ) ?(x):(-x) )
- #define SQRT(d)  ( pow((d),0.5)  )
- /* SIGN transfer function */
- #define SIGN(x,y) (((y) >=  0 ) ?(ABS(x)):(-ABS(x)) ) 
+#define MAX(a,b) ( ((a) >= (b)) ?(a):(b)  )
+#define MIN(b,c) ( ((b) <  (c)) ?(b):(c)  )
+#define ABS(x)   ( ((x) >=  0 ) ?(x):(-x) )
+#define SQRT(d)  ( pow((d),0.5)  )
+/* SIGN transfer function */
+#define SIGN(x,y) (((y) >=  0 ) ?(ABS(x)):(-ABS(x)) )
 
 /*~~> Numerical constants */
- #define  ZERO     (KPP_REAL)0.0
- #define  ONE      (KPP_REAL)1.0
+#define  ZERO     (KPP_REAL)0.0
+#define  ONE      (KPP_REAL)1.0
 
 /*~~~> Statistics on the work performed by the Runge-Kutta method */
- #define Nfun	0
- #define Njac	1
- #define Nstp	2
- #define Nacc	3
- #define Nrej	4
- #define Ndec	5
- #define Nsol	6
- #define Nsng	7
- #define Ntexit	0
- #define Nhacc	1
- #define Nhnew	2
+#define Nfun	0
+#define Njac	1
+#define Nstp	2
+#define Nacc	3
+#define Nrej	4
+#define Ndec	5
+#define Nsol	6
+#define Nsng	7
+#define Ntexit	0
+#define Nhacc	1
+#define Nhnew	2
 
 /*~~~> Runge-Kutta method parameters */
- #define RKmax 3
+#define RKmax 3
 
- #define R2A 1
- #define R1A 2
- #define L3C 3
- #define GAU 4
- #define L3A 5
+#define R2A 1
+#define R1A 2
+#define L3C 3
+#define GAU 4
+#define L3A 5
 
- int rkMethod,
-     SdirkError;
- KPP_REAL rkT[RKmax][RKmax],
+int rkMethod,
+    SdirkError;
+KPP_REAL rkT[RKmax][RKmax],
 	rkTinv[RKmax][RKmax],
-       	rkTinvAinv[RKmax][RKmax],
-   	rkAinvT[RKmax][RKmax],
-   	rkA[RKmax+1][RKmax+1],
-   	rkB[RKmax+1],
-      	rkC[RKmax+1],
-       	rkD[RKmax+1],
-       	rkE[RKmax+1],
-   	rkBgam[RKmax+2],
-       	rkBhat[RKmax+2],
-       	rkTheta[RKmax+1],
-       	rkF[RKmax+2],
-   	rkGamma,
-   	rkAlpha,
-   	rkBeta,
+      	rkTinvAinv[RKmax][RKmax],
+  	rkAinvT[RKmax][RKmax],
+  	rkA[RKmax+1][RKmax+1],
+  	rkB[RKmax+1],
+     	rkC[RKmax+1],
+      	rkD[RKmax+1],
+      	rkE[RKmax+1],
+  	rkBgam[RKmax+2],
+      	rkBhat[RKmax+2],
+      	rkTheta[RKmax+1],
+      	rkF[RKmax+2],
+  	rkGamma,
+  	rkAlpha,
+  	rkBeta,
 	rkELO;
 /*~~~> Function headers */
 // void INTEGRATE(KPP_REAL TIN, KPP_REAL TOUT, int ICNTRL_U[], KPP_REAL RCNTRL_U[],
-//		int ISTATUS_U[], KPP_REAL RSTATUS_U[], int IERR_U); 
- void INTEGRATE(KPP_REAL TIN, KPP_REAL TOUT); 
- void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
-     	       KPP_REAL RelTol[], KPP_REAL AbsTol[], KPP_REAL RCNTRL[],
+//		int ISTATUS_U[], KPP_REAL RSTATUS_U[], int IERR_U);
+void INTEGRATE(KPP_REAL TIN, KPP_REAL TOUT);
+void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
+    	       KPP_REAL RelTol[], KPP_REAL AbsTol[], KPP_REAL RCNTRL[],
 	       int ICNTRL[], KPP_REAL RSTATUS[], int ISTATUS[], int* IERR);
- void RK_Integrator(int N, KPP_REAL*  T, KPP_REAL  Tend, KPP_REAL Y[],
-     		   KPP_REAL AbsTol[], KPP_REAL RelTol[], int ITOL,
-     		   int ISTATUS[], KPP_REAL RSTATUS[], KPP_REAL Hmin,
+void RK_Integrator(int N, KPP_REAL*  T, KPP_REAL  Tend, KPP_REAL Y[],
+    		   KPP_REAL AbsTol[], KPP_REAL RelTol[], int ITOL,
+    		   int ISTATUS[], KPP_REAL RSTATUS[], KPP_REAL Hmin,
 		   KPP_REAL Hmax, KPP_REAL Hstart, KPP_REAL Roundoff,
 		   int Max_no_steps, int NewtonMaxit, int StartNewton,
 		   int Gustafsson, KPP_REAL ThetaMin, KPP_REAL NewtonTol,
 		   KPP_REAL FacSafe, KPP_REAL FacMax, KPP_REAL FacMin,
-     		   KPP_REAL FacRej, KPP_REAL Qmin, KPP_REAL Qmax, int* IERR);
- void RK_ErrorMsg(int Code, KPP_REAL T, KPP_REAL H, int* IERR);
- void RK_ErrorScale(int N, int ITOL, KPP_REAL AbsTol[], KPP_REAL RelTol[], 
+    		   KPP_REAL FacRej, KPP_REAL Qmin, KPP_REAL Qmax, int* IERR);
+void RK_ErrorMsg(int Code, KPP_REAL T, KPP_REAL H, int* IERR);
+void RK_ErrorScale(int N, int ITOL, KPP_REAL AbsTol[], KPP_REAL RelTol[],
 		KPP_REAL Y[], KPP_REAL SCAL[]);
- /*void RK_Transform(int N, KPP_REAL Tr[][RKmax], KPP_REAL Z1[], KPP_REAL Z2[],
-                KPP_REAL Z3[], KPP_REAL W1[], KPP_REAL W2[], KPP_REAL W3[]);*/
- void RK_Interpolate(char action[], int N, KPP_REAL H, KPP_REAL Hold,
+/*void RK_Transform(int N, KPP_REAL Tr[][RKmax], KPP_REAL Z1[], KPP_REAL Z2[],
+               KPP_REAL Z3[], KPP_REAL W1[], KPP_REAL W2[], KPP_REAL W3[]);*/
+void RK_Interpolate(char action[], int N, KPP_REAL H, KPP_REAL Hold,
 	 KPP_REAL Z1[], KPP_REAL Z2[], KPP_REAL Z3[], KPP_REAL CONT[][RKmax]);
- void RK_PrepareRHS(int N, KPP_REAL T, KPP_REAL H, KPP_REAL Y[], KPP_REAL FO[],
-        KPP_REAL Z1[], KPP_REAL Z2[], KPP_REAL Z3[], KPP_REAL R1[], KPP_REAL R2[],
-        KPP_REAL R3[]);
- void RK_Decomp(int N, KPP_REAL H, KPP_REAL FJAC[], KPP_REAL E1[],
-                int IP1[], KPP_REAL E2R[], KPP_REAL E2I[], 
-		int IP2[], int* ISING, int ISTATUS[]);
- void RK_Solve(int N, KPP_REAL H, KPP_REAL E1[], int IP1[], KPP_REAL E2R[],
+void RK_PrepareRHS(int N, KPP_REAL T, KPP_REAL H, KPP_REAL Y[], KPP_REAL FO[],
+       KPP_REAL Z1[], KPP_REAL Z2[], KPP_REAL Z3[], KPP_REAL R1[], KPP_REAL R2[],
+       KPP_REAL R3[]);
+void RK_Decomp(int N, KPP_REAL H, KPP_REAL FJAC[], KPP_REAL E1[],
+               int IP1[], KPP_REAL E2R[], KPP_REAL E2I[],
+        	int IP2[], int* ISING, int ISTATUS[]);
+void RK_Solve(int N, KPP_REAL H, KPP_REAL E1[], int IP1[], KPP_REAL E2R[],
 	KPP_REAL E2I[], int IP2[], KPP_REAL R1[], KPP_REAL R2[], KPP_REAL R3[],
 	int ISTATUS[]);
- void RK_ErrorEstimate(int N, KPP_REAL H, KPP_REAL T, KPP_REAL Y[],
-        KPP_REAL FO[], KPP_REAL E1[], int IP1[], KPP_REAL Z1[],
-        KPP_REAL Z2[], KPP_REAL Z3[], KPP_REAL SCAL[], KPP_REAL* Err,
-        int FirstStep, int Reject, int ISTATUS[]);
- void Radau2A_Coefficients();
- void Lobatto3C_Coefficients ();
- void Gauss_Coefficients();
- void Radau1A_Coefficients();
- void Lobatto3A_Coefficients();
- void FUN_CHEM(KPP_REAL T, KPP_REAL V[], KPP_REAL FCT[]);
- void JAC_CHEM(KPP_REAL T, KPP_REAL V[], KPP_REAL JF[]);
- KPP_REAL RK_ErrorNorm(int N, KPP_REAL SCAL[], KPP_REAL DY[]);
- void Fun(KPP_REAL Y[], KPP_REAL FIX[], KPP_REAL RCONST[], KPP_REAL Ydot[]);
- void Jac_SP(KPP_REAL Y[], KPP_REAL FIX[], KPP_REAL RCONST[], KPP_REAL Ydot[]);
- void WCOPY(int N, KPP_REAL X[], int incX, KPP_REAL Y[], int incY);
- void WADD(int N, KPP_REAL Y[], KPP_REAL Z[], KPP_REAL TMP[]);
- void WAXPY(int N, KPP_REAL Alpha, KPP_REAL X[], int incX, KPP_REAL Y[], int incY );
- KPP_REAL WLAMCH( char C );
- void KppSolveCmplxR(KPP_REAL JVSR[], KPP_REAL JVSI[], KPP_REAL XR[], KPP_REAL XI[]);
- int KppDecompCmplxR(KPP_REAL *JVSR, KPP_REAL *JVSI);
- void Set2Zero(int N, KPP_REAL A[]);
- int KppDecomp( KPP_REAL A[] );
- void KppSolve ( KPP_REAL A[], KPP_REAL b[] );
- void Update_SUN();
- void Update_RCONST();
- void Update_PHOTO();
- 
+void RK_ErrorEstimate(int N, KPP_REAL H, KPP_REAL T, KPP_REAL Y[],
+       KPP_REAL FO[], KPP_REAL E1[], int IP1[], KPP_REAL Z1[],
+       KPP_REAL Z2[], KPP_REAL Z3[], KPP_REAL SCAL[], KPP_REAL* Err,
+       int FirstStep, int Reject, int ISTATUS[]);
+void Radau2A_Coefficients();
+void Lobatto3C_Coefficients ();
+void Gauss_Coefficients();
+void Radau1A_Coefficients();
+void Lobatto3A_Coefficients();
+void FUN_CHEM(KPP_REAL T, KPP_REAL V[], KPP_REAL FCT[]);
+void JAC_CHEM(KPP_REAL T, KPP_REAL V[], KPP_REAL JF[]);
+KPP_REAL RK_ErrorNorm(int N, KPP_REAL SCAL[], KPP_REAL DY[]);
+void Fun(KPP_REAL Y[], KPP_REAL FIX[], KPP_REAL RCONST[], KPP_REAL Ydot[]);
+void Jac_SP(KPP_REAL Y[], KPP_REAL FIX[], KPP_REAL RCONST[], KPP_REAL Ydot[]);
+void WCOPY(int N, KPP_REAL X[], int incX, KPP_REAL Y[], int incY);
+void WADD(int N, KPP_REAL Y[], KPP_REAL Z[], KPP_REAL TMP[]);
+void WAXPY(int N, KPP_REAL Alpha, KPP_REAL X[], int incX, KPP_REAL Y[], int incY );
+KPP_REAL WLAMCH( char C );
+void KppSolveCmplxR(KPP_REAL JVSR[], KPP_REAL JVSI[], KPP_REAL XR[], KPP_REAL XI[]);
+int KppDecompCmplxR(KPP_REAL *JVSR, KPP_REAL *JVSI);
+void Set2Zero(int N, KPP_REAL A[]);
+int KppDecomp( KPP_REAL A[] );
+void KppSolve ( KPP_REAL A[], KPP_REAL b[] );
+void Update_SUN();
+void Update_RCONST();
+void Update_PHOTO();
+
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 //void INTEGRATE(KPP_REAL TIN, KPP_REAL TOUT, int ICNTRL_U[], KPP_REAL RCNTRL_U[],
 //	       int ISTATUS_U[], KPP_REAL RSTATUS_U[], int IERR_U )
 void INTEGRATE(KPP_REAL TIN, KPP_REAL TOUT )
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /* RungeKutta - Fully Implicit 3-stage Runge-Kutta methods based on:
-          * Radau-2A   quadrature (order 5)                        
-          * Radau-1A   quadrature (order 5)                              
-          * Lobatto-3C quadrature (order 4)                              
-          * Gauss      quadrature (order 6)                              
-  By default the code employs the KPP sparse linear algebra routines     
-  Compile with -DFULL_ALGEBRA to use full linear algebra (LAPACK)        
-                                                                         
-    (C)  Adrian Sandu, August 2005                                       
-    Virginia Polytechnic Institute and State University                  
-    Contact: sandu@cs.vt.edu                                             
-    Revised by Philipp Miehe and Adrian Sandu, May 2006  
-    F90 to C translation by Tinting Jiang and Don Jacob, July 2006                
-    This implementation is part of KPP - the Kinetic PreProcessor        
+          * Radau-2A   quadrature (order 5)
+          * Radau-1A   quadrature (order 5)
+          * Lobatto-3C quadrature (order 4)
+          * Gauss      quadrature (order 6)
+  By default the code employs the KPP sparse linear algebra routines
+  Compile with -DFULL_ALGEBRA to use full linear algebra (LAPACK)
+
+    (C)  Adrian Sandu, August 2005
+    Virginia Polytechnic Institute and State University
+    Contact: sandu@cs.vt.edu
+    Revised by Philipp Miehe and Adrian Sandu, May 2006
+    F90 to C translation by Tinting Jiang and Don Jacob, July 2006
+    This implementation is part of KPP - the Kinetic PreProcessor
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 {
    int IERR;
@@ -137,7 +137,7 @@ void INTEGRATE(KPP_REAL TIN, KPP_REAL TOUT )
    int ICNTRL[20],
        ISTATUS[20];
    static int Ntotal = 0; /* for printing the number of steps */
-   
+
    int i;
    for ( i = 0; i < 20; i++ ) {
      RCNTRL[i] = ZERO;
@@ -149,10 +149,10 @@ void INTEGRATE(KPP_REAL TIN, KPP_REAL TOUT )
    ICNTRL[4]  = 8;    /* Max no. of Newton iterations */
    ICNTRL[5]  = 0;    /* Starting values for Newton are interpolated(0) or zero(1) */
    ICNTRL[9]  = 1;    /* 0 - classic or 1 - SDIRK error estimation */
-   ICNTRL[10] = 0;    /* Gustaffson(0) or classic(1) controller */ 
-   
+   ICNTRL[10] = 0;    /* Gustaffson(0) or classic(1) controller */
+
 //   /*~~~> if optional parameters are given, and if they are >0,
-//          then use them to overwrite default settings */	
+//          then use them to overwrite default settings */
 //   if (ICNTRL_U != NULL) {
 //	for ( i = 0; i < 20; i++) {
 //	   if (ICNTRL_U[i] > 0) {
@@ -173,7 +173,7 @@ void INTEGRATE(KPP_REAL TIN, KPP_REAL TOUT )
    T2 = TOUT;
    /*printf("T2=%f\n", T2);*/
    RungeKutta(NVAR, T1, T2, VAR, RTOL, ATOL, RCNTRL,ICNTRL,RSTATUS,ISTATUS, &IERR);
-   
+
    Ntotal += ISTATUS[Nstp];
    printf("NSTEPS=%d (%d)  O3=%E ", ISTATUS[Nstp], Ntotal, VAR[ind_O3]);
 
@@ -195,7 +195,7 @@ void INTEGRATE(KPP_REAL TIN, KPP_REAL TOUT )
    if (IERR < 0) {
 	printf("Runge-Kutta: Unsuccessful exit at T=%f(IERR=%d)", TIN, IERR);
    } /* end if */
-   
+
 } /* end INTEGRATE */
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -216,7 +216,7 @@ void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
 	UNIVERSITE DE GENEVE, DEPT. DE MATHEMATIQUES
 	CH-1211 GENEVE 24, SWITZERLAND
     	E-MAIL:  HAIRER@DIVSUN.UNIGE.CH,  WANNER@DIVSUN.UNIGE.CH
-   
+
     Methods:
 	 * Radau-2A	quadrature (order 5)
       	 * Radau-1A	quadrature (order 5)
@@ -247,7 +247,7 @@ void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
   *~~~>   Integer input parameters:
 
      ICNTRL[0] = not used
-     
+
      ICNTRL[1] = 0: AbsTol, RelTol are NVAR-dimensional vectors
                = 1: AbsTol, RelTol are scalars
 
@@ -291,7 +291,7 @@ void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
 
      RCNTRL[2]  -> Hstart, the starting step size
 
-     RCNTRL[3]  -> FacMin, lower bound on step decrease factor 
+     RCNTRL[3]  -> FacMin, lower bound on step decrease factor
 		(default=0.2)
 
      RCNTRL[4]  -> FacMax, upper bound on step increase factor
@@ -314,7 +314,7 @@ void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
 
      RCNTRL[10] -> Qmax. If Qmin < Hnew/Hold < Qmax, then the
 		 step size is kept constant and the LU factorization
-		 reused (default Qmin=1, Qmax=1.2)	
+		 reused (default Qmin=1, Qmax=1.2)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   *~~~>     OUTPUT ARGUMENTS:
@@ -337,7 +337,7 @@ void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
      ISTATUS[6] -> No. of forward/backward substitutions
      ISTATUS[7] -> No. of singular matrix decompositions
 
-     RSTATUS[0] -> Texit, the time corresponding to the 
+     RSTATUS[0] -> Texit, the time corresponding to the
 		 computed Y upon return
      RSTATUS[1] -> Hexit, last accepted step before exit
      RSTATUS[2] -> Hnew, last predicted step (not yet taken)
@@ -386,14 +386,14 @@ void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
        ITOL,
        i,
        StartNewton,
-       Gustafsson; 
+       Gustafsson;
 
    *IERR = 0;
    for (i = 0; i < 20; i++) {
 	ISTATUS[i] = 0;
 	RSTATUS[i] = ZERO;
    } /* end for */
-   
+
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
   /*~~~> ICNTRL[0] - autonomous system - not used */
@@ -410,7 +410,7 @@ void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
 	SdirkError = 0;
    }
    else {
-	/*printf("Entering if ICNTRL[9] == 1\n");*/    
+	/*printf("Entering if ICNTRL[9] == 1\n");*/
 	SdirkError = 1;
    } /* end if */
   /*~~~> Method Selection */
@@ -431,7 +431,7 @@ void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
 		printf("\n ICNTRL[2]=%d\n", ICNTRL[2]);
 		RK_ErrorMsg(-13, T, ZERO, IERR);
    } /* end switch */
- 
+
  /*~~~> Max_no_steps: the maximal number of time steps */
    if (ICNTRL[3] == 0) {
 	Max_no_steps = 200000;
@@ -449,7 +449,7 @@ void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
  /*~~~> NewtonMaxit: maximal number of Newton iterations */
    if (ICNTRL[4] == 0)
 	NewtonMaxit = 8;
-   else 
+   else
    {
 	NewtonMaxit = ICNTRL[4];
 	if (NewtonMaxit <= 0) {
@@ -476,13 +476,13 @@ void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
    else {
 	Gustafsson = 0;
    } /* end if */
-  
+
  /*~~~> Roundoff: smallest number s.t. 1.0 + Roundoff > 1.0 */
    Roundoff = WLAMCH('E');
    /*printf("Roundoff=%f\n", Roundoff);*/
  /*~~~> Hmin = minimal step size */
    if (RCNTRL[0] == ZERO) {
-	/*printf("Entering if RCNTRL[0]=%f == ZERO\n", RCNTRL[0]);*/   
+	/*printf("Entering if RCNTRL[0]=%f == ZERO\n", RCNTRL[0]);*/
 	Hmin = ZERO;
    }
    else {
@@ -490,7 +490,7 @@ void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
    } /* end if */
  /*~~~> Hmax = maximal step size */
    if (RCNTRL[1] == ZERO) {
-	/*printf("Entering if RCNTRL[1]=%f == ZERO\n", RCNTRL[1]);*/   
+	/*printf("Entering if RCNTRL[1]=%f == ZERO\n", RCNTRL[1]);*/
       	Hmax = ABS(Tend-T);
    }
    else {
@@ -498,7 +498,7 @@ void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
    } /* end if */
  /*~~~> Hstart = starting step size */
    if (RCNTRL[2] == ZERO) {
-	/*printf("Entering if RCNTRL[2]=%f == ZERO\n", RCNTRL[2]);*/   
+	/*printf("Entering if RCNTRL[2]=%f == ZERO\n", RCNTRL[2]);*/
     	Hstart = ZERO;
    }
    else {
@@ -506,7 +506,7 @@ void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
    } /* end if */
  /*~~~> FacMin: lower bound on step decrease factor */
    if (RCNTRL[3] == ZERO) {
-	/*printf("Entering if RCNTRL[3]=%f == ZERO\n", RCNTRL[3]);*/   
+	/*printf("Entering if RCNTRL[3]=%f == ZERO\n", RCNTRL[3]);*/
 	FacMin = (KPP_REAL)0.2;
    }
    else {
@@ -514,7 +514,7 @@ void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
    } /* end if */
  /*~~~> FacMax: upper bound on step increase factor */
    if (RCNTRL[4] == ZERO) {
-	/*printf("Entering if RCNTRL[4]=%f == ZERO\n", RCNTRL[4]);*/   
+	/*printf("Entering if RCNTRL[4]=%f == ZERO\n", RCNTRL[4]);*/
     	FacMax = (KPP_REAL)8.0;
    }
    else {
@@ -531,7 +531,7 @@ void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
  /*~~~> FacSafe: by which the new step is slightly smaller
 		 than the predicted value */
    if (RCNTRL[6] == ZERO) {
-	/*printf("Entering if RCNTRL[6]=%f == ZERO\n", RCNTRL[6]);*/   
+	/*printf("Entering if RCNTRL[6]=%f == ZERO\n", RCNTRL[6]);*/
     	FacSafe = (KPP_REAL)0.9;
    }
    else {
@@ -603,7 +603,7 @@ void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
    if (*IERR < 0)
 	return;
 
- /*~~~> Call the core method */	
+ /*~~~> Call the core method */
    RK_Integrator(N, &T, Tend, Y, AbsTol, RelTol, ITOL, ISTATUS, RSTATUS,
 		   Hmin, Hmax, Hstart, Roundoff, Max_no_steps, NewtonMaxit,
 		   StartNewton, Gustafsson, ThetaMin, NewtonTol,
@@ -611,57 +611,57 @@ void RungeKutta(int N, KPP_REAL T, KPP_REAL Tend, KPP_REAL Y[],
   /*printf("*IERR = %d\n", *IERR);*/
   /*printf("Ending RungeKutta\n");*/
 } /* RungeKutta */
-   
+
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-void RK_Integrator( int N, 
-	/*~~~> Input: integration interval */        
-     	KPP_REAL*  T, KPP_REAL  Tend, KPP_REAL Y[],
-     	KPP_REAL AbsTol[], KPP_REAL RelTol[], int ITOL,
-  /*~~~> Input: the initial condition at T; output: the solution at Tend */     
-     	int ISTATUS[], KPP_REAL RSTATUS[], KPP_REAL Hmin, KPP_REAL Hmax, 
-	KPP_REAL Hstart, KPP_REAL Roundoff, int Max_no_steps, int NewtonMaxit,
-       	int StartNewton, int Gustafsson, KPP_REAL ThetaMin,
-       	KPP_REAL NewtonTol, KPP_REAL FacSafe, KPP_REAL FacMax, KPP_REAL FacMin,
-     	KPP_REAL FacRej, KPP_REAL Qmin, KPP_REAL Qmax, int* IERR)
-{  
-   /*printf("Starting RK_Integrator\n");*/
+void RK_Integrator( int N,
+        /*~~~> Input: integration interval */
+        KPP_REAL*  T, KPP_REAL  Tend, KPP_REAL Y[],
+        KPP_REAL AbsTol[], KPP_REAL RelTol[], int ITOL,
+  /*~~~> Input: the initial condition at T; output: the solution at Tend */
+        int ISTATUS[], KPP_REAL RSTATUS[], KPP_REAL Hmin, KPP_REAL Hmax,
+        KPP_REAL Hstart, KPP_REAL Roundoff, int Max_no_steps, int NewtonMaxit,
+        int StartNewton, int Gustafsson, KPP_REAL ThetaMin,
+        KPP_REAL NewtonTol, KPP_REAL FacSafe, KPP_REAL FacMax, KPP_REAL FacMin,
+        KPP_REAL FacRej, KPP_REAL Qmin, KPP_REAL Qmax, int* IERR)
+{
    KPP_REAL FJAC[LU_NONZERO],
-  	  E1[LU_NONZERO],
-	  E2R[LU_NONZERO],
-	  E2I[LU_NONZERO];
+          E1[LU_NONZERO],
+          E2R[LU_NONZERO],
+          E2I[LU_NONZERO];
    KPP_REAL Z1[NVAR],
-  	  Z2[NVAR],
-	  Z3[NVAR],
-	  Z4[NVAR],
-	  SCAL[NVAR],
-	  DZ1[NVAR],
-	  DZ2[NVAR],
-	  DZ3[NVAR],
-	  DZ4[NVAR],
-	  G[NVAR],
-	  TMP[NVAR],
-	  FO[NVAR];   
+          Z2[NVAR],
+          Z3[NVAR],
+          Z4[NVAR],
+          SCAL[NVAR],
+          DZ1[NVAR],
+          DZ2[NVAR],
+          DZ3[NVAR],
+          DZ4[NVAR],
+          G[NVAR],
+          TMP[NVAR],
+          FO[NVAR];
    KPP_REAL CONT[NVAR][RKmax],
-  	  Tdirection,
-	  H,
-	  Hacc,
-	  Hnew,
-	  Hold,
-	  Fac,
-	  FacGus, 
-   	  Theta,
-	  Err,
-	  ErrOld,
-	  NewtonRate,
-	  NewtonIncrement,
-	  Hratio,
-	  Qnewton, 
-	  NewtonPredictedErr,
-	  NewtonIncrementOld,
-	  ThetaSD;
+          Tdirection,
+          H,
+          Hacc,
+          Hnew,
+          Hold,
+          Fac,
+          FacGus,
+          Theta,
+          Err,
+          ErrOld,
+          NewtonRate,
+          NewtonIncrement,
+          Hratio,
+          Qnewton,
+          NewtonPredictedErr,
+          NewtonIncrementOld,
+          ThetaSD;
    int IP1[NVAR],
        IP2[NVAR],
        NewtonIter,
+       NewtonIterMain,    /* BUG 4 FIX: separate variable to save main loop count */
        Nconsecutive,
        i;
    int ISING;
@@ -674,180 +674,141 @@ void RK_Integrator( int N,
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
   /*~~~>  INITIAL setting */
-   /*printf("ONE=%f Tend-*T=%f\n", ONE, Tend-*T);*/
    Tdirection = SIGN(ONE, Tend-*T);
-   /*printf("Tdirection=%f\n", Tdirection);*/
-   /*printf("Hmin=%g Hstart=%g \n", Hmin, Hstart);*/
-   /*printf("ABS(Hmin)=%g ABS(Hstart)=%g \n", ABS(Hmin), ABS(Hstart));*/
-   H = MIN( MAX(ABS(Hmin), ABS(Hstart)), Hmax ); 
+   H = MIN( MAX(ABS(Hmin), ABS(Hstart)), Hmax );
    if (ABS(H) <= ((KPP_REAL)10.0*Roundoff)) {
-	/*printf("Entering if ABS(H)=%g <= 10.0*Roundoff=%g\n", ABS(H),(KPP_REAL)10.0*Roundoff);*/
         H = (KPP_REAL)(1.0e-06);
    } /* end if */
    H = SIGN(H, Tdirection);
    Hold = H;
-   /*printf("Hold=%f\n", Hold);*/ 
    Reject = 0;
    FirstStep = 1;
    SkipJac = 0;
    SkipLU = 0;
-   if ((*T+H*((KPP_REAL)1.0001)-Tend)*Tdirection >= ZERO) {   
-	H = Tend - *T;
+   if ((*T+H*((KPP_REAL)1.0001)-Tend)*Tdirection >= ZERO) {
+        H = Tend - *T;
    } /* end if */
    Nconsecutive = 0;
    RK_ErrorScale(N, ITOL, AbsTol, RelTol, Y, SCAL);
-   /*for(i=0; i<NVAR; i++) {
-        printf("AbsTol=%g RelTol=%g Y=%g SCAL=%g \n", AbsTol[i], RelTol[i], Y[i], SCAL[i] );
-   }*/
-   
+
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-  /*~~~> Time loop begins */ 
-  /* while Tloop */
+  /*~~~> Time loop begins */
 Tloop:   while ( (Tend-*T)*Tdirection - Roundoff > ZERO ) {
-      /*printf("Starting Tloop: (Tend-*T)*Tdirection - Roundoff=%g > ZERO\n", (Tend-*T)*Tdirection-Roundoff);*/
-      /*if ( Reject == 0 ) { */
-	FUN_CHEM(*T,Y,FO);
-	ISTATUS[Nfun]++;
-      /* } * end if */ 
-      if ( SkipLU == 0 ) { /* This time around skip the Jac update and LU */
-	/*~~~> Compute the Jacobian matrix */
-	/*printf("Entering if SkipLU == 0\n");*/
-	if ( SkipJac == 0 ) {
-	   /*printf("Entering if SkipJac == 0\n");*/
-	   JAC_CHEM(*T,Y,FJAC);
-	   ISTATUS[Njac]++;
-	} /* end if */
-	/*~~~> Compute the matrices E1 and E2 and their decompositions */
-	RK_Decomp(N,H,FJAC,E1,IP1,E2R,E2I,IP2,&ISING,ISTATUS);
-	/*printf("ISING=%d\n", ISING);*/
-	if ( ISING != 0 ) {
-	   /*printf("Entering if ISING != 0\n");*/
-	   ISTATUS[Nsng]++;
-	   Nconsecutive++;
-	   if (Nconsecutive >= 5) {
-		RK_ErrorMsg(-12,*T,H,IERR);
-	   }
-	   H = H * ((KPP_REAL)0.5);
-	   Reject = 1;
-	   SkipJac = 1;
-	   SkipLU = 0;
-	   goto Tloop;
-	}
-	else {
-	   /*printf("Entering if ISING == 0\n");*/
-	   Nconsecutive = 0;
-	} /* end if */
+
+        FUN_CHEM(*T,Y,FO);
+        ISTATUS[Nfun]++;
+
+      if ( SkipLU == 0 ) {
+        if ( SkipJac == 0 ) {
+           JAC_CHEM(*T,Y,FJAC);
+           ISTATUS[Njac]++;
+        } /* end if */
+        RK_Decomp(N,H,FJAC,E1,IP1,E2R,E2I,IP2,&ISING,ISTATUS);
+        if ( ISING != 0 ) {
+           ISTATUS[Nsng]++;
+           Nconsecutive++;
+           if (Nconsecutive >= 5) {
+                RK_ErrorMsg(-12,*T,H,IERR);
+           }
+           H = H * ((KPP_REAL)0.5);
+           Reject = 1;
+           SkipJac = 1;
+           SkipLU = 0;
+           goto Tloop;
+        }
+        else {
+           Nconsecutive = 0;
+        } /* end if */
       } /* end if !SkipLU */
 
-      /*printf("NSTEPS=%d\n", ISTATUS[Nstp]);*/
       ISTATUS[Nstp]++;
-      /*printf("NSTEPS=%d\n", ISTATUS[Nstp]);*/
       if (ISTATUS[Nstp] > Max_no_steps) {
-	printf("\n Max number of time steps is = %d", Max_no_steps);
-	RK_ErrorMsg(-9,*T,H,IERR);
+        printf("\n Max number of time steps is = %d", Max_no_steps);
+        RK_ErrorMsg(-9,*T,H,IERR);
       } /* end if */
       if (((KPP_REAL)0.1)*ABS(H) <= ABS(*T)*Roundoff)
-	RK_ErrorMsg(-10,*T,H,IERR);
- 
+        RK_ErrorMsg(-10,*T,H,IERR);
+
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  /*~~~>  Loop for the simplified Newton iterations */
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-      /*~~~> Starting values for Newton iteration */  
+      /*~~~> Starting values for Newton iteration */
       if ( (FirstStep == 1) || (StartNewton == 0) ) {
-	/*printf("Entering if FirstStep or Not StartNewton\n");*/
-	Set2Zero(N,Z1);
-	Set2Zero(N,Z2);
-	Set2Zero(N,Z3);
+        Set2Zero(N,Z1);
+        Set2Zero(N,Z2);
+        Set2Zero(N,Z3);
       }
       else
       {
-    	/* Evaluate quadratic polynomial */
-   	RK_Interpolate("eval",N,H,Hold,Z1,Z2,Z3,CONT);
+        RK_Interpolate("eval",N,H,Hold,Z1,Z2,Z3,CONT);
       } /* end if */
 
       /*~~~> Initializations for Newton iteration */
       NewtonDone = 0;
-      Fac = (KPP_REAL)0.5; /* Step reduction if too many iterations */
-  
+      Fac = (KPP_REAL)0.5;
+
       /* for NewtonLoop */
       for (NewtonIter = 1; NewtonIter <= NewtonMaxit; NewtonIter++)
       {
-	/*printf("Starting NewtonIter loop: NewtonIter=%d\n", NewtonIter);*/
-   	/* Prepare the right-hand side */
-      	RK_PrepareRHS(N,*T,H,Y,FO,Z1,Z2,Z3,DZ1,DZ2,DZ3);
+        RK_PrepareRHS(N,*T,H,Y,FO,Z1,Z2,Z3,DZ1,DZ2,DZ3);
+        RK_Solve(N,H,E1,IP1,E2R,E2I,IP2,DZ1,DZ2,DZ3,ISTATUS);
 
-	/* Solve the linear systems */
-  	RK_Solve(N,H,E1,IP1,E2R,E2I,IP2,DZ1,DZ2,DZ3,ISTATUS);
+        NewtonIncrement =
+                SQRT((RK_ErrorNorm(N,SCAL,DZ1) * RK_ErrorNorm(N,SCAL,DZ1)
+                    + RK_ErrorNorm(N,SCAL,DZ2) * RK_ErrorNorm(N,SCAL,DZ2)
+                    + RK_ErrorNorm(N,SCAL,DZ3) * RK_ErrorNorm(N,SCAL,DZ3))
+                    / (KPP_REAL)3.0 );
 
-	NewtonIncrement = 
-		SQRT((RK_ErrorNorm(N,SCAL,DZ1) * RK_ErrorNorm(N,SCAL,DZ1)
-		    + RK_ErrorNorm(N,SCAL,DZ2) * RK_ErrorNorm(N,SCAL,DZ2) 
-		    + RK_ErrorNorm(N,SCAL,DZ3) * RK_ErrorNorm(N,SCAL,DZ3))
-	            / (KPP_REAL)3.0 );
-	/*printf( "NewtonIncrement=%g \n", NewtonIncrement );*/
-	if (NewtonIter == 1) {
-	   /*printf("Entering NewtonIter=%d == 1\n", NewtonIter);*/
-	   Theta = ABS(ThetaMin);
-	   NewtonRate = (KPP_REAL)2.0;
-	}
-	else {
-	   /*printf("Entering else from NewtonIter=%d == 1\n", NewtonIter);*/
-	   Theta = NewtonIncrement / NewtonIncrementOld;
-	   /*printf("Theta=%f\n", Theta);*/
-	   if (Theta < (KPP_REAL)0.99) {
-		/*printf( "Entering if Theta=%g < 0.99\n", Theta );*/
-		NewtonRate = Theta / (ONE-Theta);
-	   }
-	   else { /* Non-convergence of Newton: Theta too large */
-       	      break; /* EXIT NewtonLoop */
-	   } /* end if */
-	   if (NewtonIter < NewtonMaxit) {
-	      /*printf("Entering if NewtonIter=%d < NewtonMaxit=%d\n", NewtonIter, NewtonMaxit);*/
-	      /* Predict error at the end of Newton process */
- 	      NewtonPredictedErr = NewtonIncrement
+        if (NewtonIter == 1) {
+           Theta = ABS(ThetaMin);
+           NewtonRate = (KPP_REAL)2.0;
+        }
+        else {
+           Theta = NewtonIncrement / NewtonIncrementOld;
+           if (Theta < (KPP_REAL)0.99) {
+                NewtonRate = Theta / (ONE-Theta);
+           }
+           else {
+                break; /* EXIT NewtonLoop */
+           } /* end if */
+           if (NewtonIter < NewtonMaxit) {
+              NewtonPredictedErr = NewtonIncrement
                              *pow(Theta,(NewtonMaxit-NewtonIter))/(ONE-Theta);
-	      /*printf("NewtonRate=%g NewtonPredictedErr=%g \n", NewtonRate, NewtonPredictedErr);*/
-	      if (NewtonPredictedErr >= NewtonTol) {
-		/*printf( "Entering if NewtonPredictedErr=%g >= NewtonTol%g \n", NewtonPredictedErr, NewtonTol );*/
-	      	/* Non-convergence of Newton: predicted error too large */
-	        Qnewton = MIN((KPP_REAL)10.0, NewtonPredictedErr/NewtonTol);
-	        Fac = (KPP_REAL)0.8*pow(Qnewton,(-ONE/(1+NewtonMaxit-NewtonIter)));
-	        break; /* EXIT NewtonLoop */
-	      } /* end if */
-	   } /* end if */
-   	} /* end if */
-	    
-   	NewtonIncrementOld = MAX(NewtonIncrement, Roundoff);
-	/*printf("NewtonIncrementOld=%f\n", NewtonIncrementOld);*/
-  	/*~~~> Update solution */
-   	WAXPY(N,-ONE,DZ1,1,Z1,1);	/* Z1 <- Z1 - DZ1 */
-   	WAXPY(N,-ONE,DZ2,1,Z2,1);	/* Z2 <- Z2 - DZ2 */
-   	WAXPY(N,-ONE,DZ3,1,Z3,1);	/* Z3 <- Z3 - DZ3 */
-        /*for(i=0; i<N; i++) 
-	   printf("DZ1[%d]=%g Z1[%d]=%g\n", i, DZ1[i], i, Z1[i]);*/
-  	/*~~~> Check error in Newton iterations */
-	/*printf( "NewtonRate=%g NewtonIncrement=%g NewtonTol=%g \n", NewtonRate, NewtonIncrement, NewtonTol );*/
-	NewtonDone = (NewtonRate*NewtonIncrement <= NewtonTol);
-	/*printf( "NewtonDone=%d \n", NewtonDone );*/
-   	if (NewtonDone == 1)
-	   break; /* Exit NewtonLoop */
-   	if (NewtonIter == NewtonMaxit)
-   	{
-	   printf("\n Slow or no convergence in Newton Iteration:");
-	   printf(" Max no. of Newton iterations reached");
-   	} /* end if */
+              if (NewtonPredictedErr >= NewtonTol) {
+                Qnewton = MIN((KPP_REAL)10.0, NewtonPredictedErr/NewtonTol);
+                Fac = (KPP_REAL)0.8*pow(Qnewton,(-ONE/(1+NewtonMaxit-NewtonIter)));
+                break; /* EXIT NewtonLoop */
+              } /* end if */
+           } /* end if */
+        } /* end if */
+
+        NewtonIncrementOld = MAX(NewtonIncrement, Roundoff);
+        WAXPY(N,-ONE,DZ1,1,Z1,1);  /* Z1 <- Z1 - DZ1 */
+        WAXPY(N,-ONE,DZ2,1,Z2,1);  /* Z2 <- Z2 - DZ2 */
+        WAXPY(N,-ONE,DZ3,1,Z3,1);  /* Z3 <- Z3 - DZ3 */
+
+        NewtonDone = (NewtonRate*NewtonIncrement <= NewtonTol);
+        if (NewtonDone == 1)
+           break; /* Exit NewtonLoop */
+        if (NewtonIter == NewtonMaxit)
+        {
+           printf("\n Slow or no convergence in Newton Iteration:");
+           printf(" Max no. of Newton iterations reached");
+        } /* end if */
       }/* end for NewtonLoop */
+
+      /* BUG 4 FIX: save the main Newton iteration count before
+         the SDIRK loop overwrites NewtonIter */
+      NewtonIterMain = NewtonIter;
 
       if ( NewtonDone == 0)
       {
-	/*printf( "Entering if NewtonDone == 0\n" );*/
-	/*RK_ErrorMsg(-12,*T,H,IERR); */
-	H = Fac*H;
-	Reject  = 1;
-	SkipJac = 1;
-	SkipLU  = 0;
-	goto Tloop;
+        H = Fac*H;
+        Reject  = 1;
+        SkipJac = 1;
+        SkipLU  = 0;
+        goto Tloop;
       } /* end if */
 
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -855,208 +816,178 @@ Tloop:   while ( (Tend-*T)*Tdirection - Roundoff > ZERO ) {
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
       if (SdirkError == 1)
       {
-	/*printf("Entering if SdirkError=%d==1\n", SdirkError);*/
-      	/*~~~> Starting values for Newton iterations */
-   	for (i = 0; i < N; i++)
-	{
-	   Z4[i] = Z3[i];
- 	}
-      	/*~~~> Prepare the loop-independent part of the right-hand side */
-      	/* G = H*rkBgam(0)*FO + rkTheta(1)*Z1 
-		+ rkTheta(2)*Z2 + rkTheta(3)*Z3; */
-      	Set2Zero(N,G);
-      	if (rkMethod != L3A)
-	   WAXPY(N,rkBgam[0]*H, FO,1,G,1);
-      	WAXPY(N,rkTheta[0],Z1,1,G,1);  
-      	WAXPY(N,rkTheta[1],Z2,1,G,1);  
-      	WAXPY(N,rkTheta[2],Z3,1,G,1);  
+        /*~~~> Starting values for Newton iterations */
+        for (i = 0; i < N; i++)
+        {
+           Z4[i] = Z3[i];
+        }
+        /*~~~> Prepare the loop-independent part of the right-hand side */
+        Set2Zero(N,G);
+        if (rkMethod != L3A)
+           WAXPY(N,rkBgam[0]*H, FO,1,G,1);
+        WAXPY(N,rkTheta[0],Z1,1,G,1);
+        WAXPY(N,rkTheta[1],Z2,1,G,1);
+        WAXPY(N,rkTheta[2],Z3,1,G,1);
 
-      	/*~~~> Initializations for Newton iteration */
-      	NewtonDone = 0;
-      	Fac = (KPP_REAL)0.5; /* Step reduction factor if too many iterations */
+        /*~~~> Initializations for Newton iteration */
+        NewtonDone = 0;
+        Fac = (KPP_REAL)0.5;
 
-      	/* for SDNewtonLoop */
-      	for (NewtonIter = 1; NewtonIter <= NewtonMaxit; NewtonIter++)
-      	{
-	   /*printf("Starting NewtonIter loop: NewtonIter=%d\n", NewtonIter);*/
-	   /*~~~> Prepare the loop-dependent part of right-hand side */
-	   WADD(N,Y,Z4,TMP);	/* TMP <- Y + Z4 */
-	   FUN_CHEM(*T+H,TMP,DZ4);	/* DZ4 <- Fun(Y+Z4) */
-	   ISTATUS[Nfun]++;
-	   /* DZ4[1,N] = (D[1, N]-Z4[1,N])*(rkGamma/H) + DZ4[1,N]; */
-	   WAXPY(N,-ONE*rkGamma/H,Z4,1,DZ4,1);
-	   WAXPY(N,rkGamma/H,G,1,DZ4,1);
+        /* for SDNewtonLoop */
+        for (NewtonIter = 1; NewtonIter <= NewtonMaxit; NewtonIter++)
+        {
+           WADD(N,Y,Z4,TMP);          /* TMP <- Y + Z4 */
+           FUN_CHEM(*T+H,TMP,DZ4);    /* DZ4 <- Fun(Y+Z4) */
+           ISTATUS[Nfun]++;
+           WAXPY(N,-ONE*rkGamma/H,Z4,1,DZ4,1);
+           WAXPY(N,rkGamma/H,G,1,DZ4,1);
 
-	   /*~~~> Solve the linear system */
-	   KppSolve(E1, DZ4);
-	   /*~~~> Note: for a full matrix use Lapack:
-		DGETRS('N', 5, 1, E1, N, IP1, DZ4, 5, ISING) */
+           KppSolve(E1, DZ4);
 
-	   /*~~~> Check convergence of Newton iterations */
-	   NewtonIncrement = RK_ErrorNorm(N,SCAL,DZ4);
-	   /*printf( "NewtonIncrement=%g \n", NewtonIncrement );*/
-	   if (NewtonIter == 1) {
-	      /*printf("Entering NewtonIter=%d == 1\n", NewtonIter);*/
-	      ThetaSD = ABS(ThetaMin);
+           NewtonIncrement = RK_ErrorNorm(N,SCAL,DZ4);
+
+           if (NewtonIter == 1) {
+              ThetaSD = ABS(ThetaMin);
               NewtonRate = (KPP_REAL)2.0;
-	   }
-	   else {
-	      /*printf("Entering else from NewtonIter=%d == 1\n", NewtonIter);*/
-	      ThetaSD = NewtonIncrement / NewtonIncrementOld;
-	      if (ThetaSD < (KPP_REAL)0.99) {
-		/*printf( "Entering if Theta=%g < 0.99\n", Theta );*/
-		NewtonRate = ThetaSD / (ONE-ThetaSD);
-		/* Predict error at the end of Newton process */
-		NewtonPredictedErr = NewtonIncrement
-			*pow(ThetaSD,(NewtonMaxit-NewtonIter))/(ONE-ThetaSD);
-	        /*printf("NewtonRate=%g NewtonPredictedErr=%g \n", NewtonRate, NewtonPredictedErr);*/
-		if (NewtonPredictedErr >= NewtonTol) {
-		   /*printf( "Entering if NewtonPredictedErr=%g >= NewtonTol%g \n", NewtonPredictedErr, NewtonTol );*/
-		   /* Non-convergence of Newton: predicted error too large */
-		   /* printf("\n Error too large", NewtonPredictedErr); */
-		   Qnewton = MIN((KPP_REAL)10.0,NewtonPredictedErr/NewtonTol);
-		   Fac = (KPP_REAL)0.8*pow(Qnewton,(-ONE/(1+NewtonMaxit-NewtonIter)));
-		   break; /* EXIT SDNewtonLoop */
-		} /* end if */
-	      }
-	      /* Non-convergence of Newton: Theta too large */
-	      else {
-		/* prinf("\n Theta too large", ThetaSD); */
-		break; /* EXIT SDNewtonLoop */
-	      } /* end if */
-	   } /* end if */
-     	   NewtonIncrementOld = NewtonIncrement;
-	   /*printf("NewtonIncrementOld=%f\n", NewtonIncrementOld);*/
-	   /* Update solution: Z4 <-- Z4 + DZ4; */
-	   WAXPY(N,ONE,DZ4,1,Z4,1);
+           }
+           else {
+              ThetaSD = NewtonIncrement / NewtonIncrementOld;
+              if (ThetaSD < (KPP_REAL)0.99) {
+                NewtonRate = ThetaSD / (ONE-ThetaSD);
+                NewtonPredictedErr = NewtonIncrement
+                        *pow(ThetaSD,(NewtonMaxit-NewtonIter))/(ONE-ThetaSD);
+                if (NewtonPredictedErr >= NewtonTol) {
+                   Qnewton = MIN((KPP_REAL)10.0,NewtonPredictedErr/NewtonTol);
+                   Fac = (KPP_REAL)0.8*pow(Qnewton,(-ONE/(1+NewtonMaxit-NewtonIter)));
+                   break; /* EXIT SDNewtonLoop */
+                } /* end if */
+              }
+              else {
+                break; /* EXIT SDNewtonLoop */
+              } /* end if */
+           } /* end if */
+           NewtonIncrementOld = NewtonIncrement;
+           WAXPY(N,ONE,DZ4,1,Z4,1);
 
-	   /* Check error in Newton iterations */
-	   NewtonDone = (NewtonRate*NewtonIncrement <= NewtonTol);
-	   /*printf( "NewtonDone=%d \n", NewtonDone );*/
-	   if (NewtonDone == 1)
-		break;	/* EXIT SDNewtonLoop */
-      	} /* end for SDNewtonLoop */
-      
-      	if ( NewtonDone == 0 ) {
-	   /*printf( "Entering if NewtonDone == 0\n" );*/
-	   H       = Fac*H;
-	   Reject  = 1;
-	   SkipJac = 1;
-	   SkipLU  = 0;
-	   goto Tloop;
-      	} /* end if */
-      } /* end if */
-      /*~~~> End of implified SDIRK Newton iterations */
+           NewtonDone = (NewtonRate*NewtonIncrement <= NewtonTol);
+           if (NewtonDone == 1)
+                break;  /* EXIT SDNewtonLoop */
+        } /* end for SDNewtonLoop */
+
+        if ( NewtonDone == 0 ) {
+           H       = Fac*H;
+           Reject  = 1;
+           SkipJac = 1;
+           SkipLU  = 0;
+           goto Tloop;
+        } /* end if */
+      } /* end if SdirkError */
+      /*~~~> End of simplified SDIRK Newton iterations */
 
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  /*~~~> Error estimation */
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
       if (SdirkError == 1) {
-      	Set2Zero(N, DZ4);
-      	if (rkMethod == L3A) {
-	   for (i = 0; i < N; i++)
-		DZ4[i] = H*rkF[0]*FO[i];
-	   if (rkF[0] != ZERO)
-		WAXPY(N, rkF[0], Z1, 1, DZ4, 1);
-	   if (rkF[1] != ZERO)
-		WAXPY(N, rkF[1], Z2, 1, DZ4, 1);
-	   if (rkF[2] != ZERO)
-		WAXPY(N, rkF[2], Z3, 1, DZ4, 1);
-	   for (i = 0; i < N; i++)
-		 TMP[i] = Y[i] + Z4[i];
-	   FUN_CHEM(*T+H, TMP, DZ1);
-	   WAXPY(N, H*rkBgam[4], DZ1, 1, DZ4, 1);
-      	}
-      	else {
-	   /* DZ4(1,N) = rkD(1)*Z1 + rkD(2)*Z2 + rkD(3)*Z3 - Z4; */
-	   if (rkD[0] != ZERO)
-		WAXPY(N, rkD[0], Z1, 1, DZ4, 1);
-	   if (rkD[1] != ZERO)
-		WAXPY(N, rkD[1], Z2, 1, DZ4, 1);
-	   if (rkD[2] != ZERO)
-		WAXPY(N, rkD[2], Z3, 1, DZ4, 1);
-	   WAXPY(N, -ONE, Z4, 1, DZ4, 1);
-      	} /* end if */
-      	Err = RK_ErrorNorm(N,SCAL,DZ4);
+        Set2Zero(N, DZ4);
+        if (rkMethod == L3A) {
+           for (i = 0; i < N; i++)
+                DZ4[i] = H*rkF[0]*FO[i];
+           if (rkF[0] != ZERO)
+                WAXPY(N, rkF[0], Z1, 1, DZ4, 1);
+           if (rkF[1] != ZERO)
+                WAXPY(N, rkF[1], Z2, 1, DZ4, 1);
+           if (rkF[2] != ZERO)
+                WAXPY(N, rkF[2], Z3, 1, DZ4, 1);
+           for (i = 0; i < N; i++)
+                 TMP[i] = Y[i] + Z4[i];
+           FUN_CHEM(*T+H, TMP, DZ1);
+           WAXPY(N, H*rkBgam[4], DZ1, 1, DZ4, 1);
+        }
+        else {
+           if (rkD[0] != ZERO)
+                WAXPY(N, rkD[0], Z1, 1, DZ4, 1);
+           if (rkD[1] != ZERO)
+                WAXPY(N, rkD[1], Z2, 1, DZ4, 1);
+           if (rkD[2] != ZERO)
+                WAXPY(N, rkD[2], Z3, 1, DZ4, 1);
+           WAXPY(N, -ONE, Z4, 1, DZ4, 1);
+        } /* end if */
+        Err = RK_ErrorNorm(N,SCAL,DZ4);
       }
       else
       {
-      	RK_ErrorEstimate(N,H,*T,Y,FO,E1,IP1,Z1,Z2,Z3,SCAL,&Err,
-			FirstStep,Reject,ISTATUS);
+        RK_ErrorEstimate(N,H,*T,Y,FO,E1,IP1,Z1,Z2,Z3,SCAL,&Err,
+                        FirstStep,Reject,ISTATUS);
       } /* end if */
 
-      /*~~~> Computation of new step size Hnew */
+      /*~~~> Computation of new step size Hnew
+             BUG 4 FIX: use NewtonIterMain (count from main Newton loop)
+             instead of NewtonIter (which holds the SDIRK loop count) */
       Fac = pow(Err, (-ONE/rkELO))
-	    *MIN(FacSafe,(ONE+2*NewtonMaxit)/(NewtonIter+2*NewtonMaxit));
+            *MIN(FacSafe,(ONE+2*NewtonMaxit)/(NewtonIterMain+2*NewtonMaxit));
       Fac = MIN(FacMax,MAX(FacMin,Fac));
       Hnew = Fac*H;
 
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  /*~~~> Accept/reject step */
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-      // accept:
       if (Err < ONE) { /*~~~> STEP IS ACCEPTED */
-      	FirstStep = 0;
-      	ISTATUS[Nacc]++;
-      	if (Gustafsson == 1) {
-	   /*~~~> Predictive controller of Gustafsson */
-	   if (ISTATUS[Nacc] > 1) {
-	      FacGus = FacSafe*(H/Hacc)*pow(Err*Err/ErrOld,(KPP_REAL)(-0.25));
-	      FacGus = MIN(FacMax,MAX(FacMin,FacGus));
-	      Fac = MIN(Fac,FacGus);	
-	      Hnew = Fac*H;
-	   } /* end if */
-	   Hacc = H;
-	   ErrOld = MAX((KPP_REAL)1.0e-02,Err);
-      	} /* end if */
-        Hold = H;
-      	*T = *T + H;
-      	/* Update solution: Y <- Y + sum(d_i Z-i) */
-      	if (rkD[0] != ZERO)
-	   WAXPY(N, rkD[0], Z1, 1, Y, 1);
-      	if (rkD[1] != ZERO)
-	   WAXPY(N, rkD[1], Z2, 1, Y, 1);
-      	if (rkD[2] != ZERO)
-	   WAXPY(N, rkD[2], Z3, 1, Y, 1);
-      	/* Construct the solution quadratic interpolant Q(c_i) = Z_i, i=1:3 */
-      	if (StartNewton == 1)
-	   RK_Interpolate("make",N,H,Hold,Z1,Z2,Z3,CONT);
-      	RK_ErrorScale(N,ITOL,AbsTol,RelTol,Y,SCAL);
-	RSTATUS[Ntexit] = *T;
-	RSTATUS[Nhnew] = Hnew;
-	RSTATUS[Nhacc] = H;
-      	Hnew = Tdirection*MIN( MAX(ABS(Hnew),Hmin), Hmax );
-      	if (Reject == 1)
-	   Hnew = Tdirection*MIN(ABS(Hnew),ABS(H));
-      	Reject = 0;
-      	if ((*T+Hnew/Qmin-Tend)*Tdirection >= ZERO)
-	   H = Tend - *T;
-      	else {
-	   Hratio = Hnew/H;
-	   /* Reuse the LU decomposition */
-	   SkipLU = (Theta <= ThetaMin) && (Hratio >= Qmin) && (Hratio <= Qmax);
-	   if ( SkipLU == 0)
-	   	H = Hnew;
+        FirstStep = 0;
+        ISTATUS[Nacc]++;
+        if (Gustafsson == 1) {
+           /*~~~> Predictive controller of Gustafsson */
+           if (ISTATUS[Nacc] > 1) {
+              FacGus = FacSafe*(H/Hacc)*pow(Err*Err/ErrOld,(KPP_REAL)(-0.25));
+              FacGus = MIN(FacMax,MAX(FacMin,FacGus));
+              Fac = MIN(Fac,FacGus);
+              Hnew = Fac*H;
+           } /* end if */
+           Hacc = H;
+           ErrOld = MAX((KPP_REAL)1.0e-02,Err);
         } /* end if */
-        /* If convergence is fast enough, do not update Jacobian */
-      	/* SkipJac = (Theta <= ThetaMin); */
-      	SkipJac = 0;
+        Hold = H;
+        *T = *T + H;
+        if (rkD[0] != ZERO)
+           WAXPY(N, rkD[0], Z1, 1, Y, 1);
+        if (rkD[1] != ZERO)
+           WAXPY(N, rkD[1], Z2, 1, Y, 1);
+        if (rkD[2] != ZERO)
+           WAXPY(N, rkD[2], Z3, 1, Y, 1);
+        if (StartNewton == 1)
+           RK_Interpolate("make",N,H,Hold,Z1,Z2,Z3,CONT);
+        RK_ErrorScale(N,ITOL,AbsTol,RelTol,Y,SCAL);
+        RSTATUS[Ntexit] = *T;
+        RSTATUS[Nhnew] = Hnew;
+        RSTATUS[Nhacc] = H;
+        Hnew = Tdirection*MIN( MAX(ABS(Hnew),Hmin), Hmax );
+        if (Reject == 1)
+           Hnew = Tdirection*MIN(ABS(Hnew),ABS(H));
+        Reject = 0;
+        if ((*T+Hnew/Qmin-Tend)*Tdirection >= ZERO)
+           H = Tend - *T;
+        else {
+           Hratio = Hnew/H;
+           SkipLU = (Theta <= ThetaMin) && (Hratio >= Qmin) && (Hratio <= Qmax);
+           if ( SkipLU == 0)
+                H = Hnew;
+        } /* end if */
+        SkipJac = 0;
       }
 
       /*~~~> Step is rejected */
       else {
-      	if ((FirstStep == 1)  || (Reject == 1))
-	   H = FacRej*H;
+        if ((FirstStep == 1)  || (Reject == 1))
+           H = FacRej*H;
         else
-	   H = Hnew;
+           H = Hnew;
         Reject  = 1;
-        SkipJac = 1; /* Skip if rejected - Jac is independent of H */
+        SkipJac = 1;
         SkipLU  = 0;
-      	if (ISTATUS[Nacc] >= 1)
-	   ISTATUS[Nrej]++;
+        if (ISTATUS[Nacc] >= 1)
+           ISTATUS[Nrej]++;
       } /* end if accept */
    } /* while: time Tloop */
- 
+
    /*~~~> Successful exit */
    *IERR = 1;
 
@@ -1067,7 +998,8 @@ Tloop:   while ( (Tend-*T)*Tdirection - Roundoff > ZERO ) {
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void RK_ErrorMsg(int Code, KPP_REAL T, KPP_REAL H, int* IERR)
 {
-   Code = *IERR;
+   //Code = *IERR;
+   *IERR = Code;
    printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
    printf("\nForced exit from RungeKutta due to the following error:\n");
 
@@ -1113,7 +1045,7 @@ void RK_ErrorMsg(int Code, KPP_REAL T, KPP_REAL H, int* IERR)
       break;
    default:
       printf("Unknown Error code: %d \n", Code);
-   } /* end switch */ 
+   } /* end switch */
 
    printf("\n     T=%e,  H =%e", T, H);
    printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
@@ -1123,7 +1055,7 @@ void RK_ErrorMsg(int Code, KPP_REAL T, KPP_REAL H, int* IERR)
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /*	Handles all error messages and returns SCAL */
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-void RK_ErrorScale(int N, 
+void RK_ErrorScale(int N,
    /*~~~> Input arguments: */
 	int ITOL, KPP_REAL AbsTol[], KPP_REAL RelTol[], KPP_REAL Y[],
    /*~~~> Output arguments: */
@@ -1142,12 +1074,12 @@ void RK_ErrorScale(int N,
 	} /* end for loop */
    } /* end if */
    /*printf("Ending RK_ErrorScale\n");*/
-} /* RK_ErrorScale */  
+} /* RK_ErrorScale */
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void RK_Transform(int N, KPP_REAL Tr[][3], KPP_REAL Z1[], KPP_REAL Z2[],
 		KPP_REAL Z3[], KPP_REAL W1[], KPP_REAL W2[], KPP_REAL W3[])
--->	W <-- Tr x Z 
+-->	W <-- Tr x Z
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 {
    int i;
@@ -1155,8 +1087,8 @@ void RK_Transform(int N, KPP_REAL Tr[][3], KPP_REAL Z1[], KPP_REAL Z2[],
    for (i = 0; i < N; i++)
    {
 	x1 = Z1[i];
-	x2 = Z2[i]; 
-	x3 = Z3[i]; 
+	x2 = Z2[i];
+	x3 = Z3[i];
 	W1[i] = Tr[0][0]*x1 + Tr[0][1]*x2 + Tr[0][2]*x3;
 	W2[i] = Tr[1][0]*x1 + Tr[1][1]*x2 + Tr[1][2]*x3;
 	W1[i] = Tr[2][0]*x1 + Tr[2][1]*x2 + Tr[2][2]*x3;
@@ -1173,9 +1105,9 @@ void RK_Interpolate(char action[], int N, KPP_REAL H, KPP_REAL Hold, KPP_REAL Z1
 {
    int i;
    KPP_REAL r,x1,x2,x3,den;
- 
+
    /* Construct the solution quadratic interpolant Q(c_i) = Z_i, i=1:3 */
-   if ( strncmp(action, "make", 4 ) ) {
+   if ( strncmp(action, "make", 4 ) == 0 ) {
 	den = (rkC[2]-rkC[1])*(rkC[1]-rkC[0])*(rkC[0]-rkC[2]);
 	for (i = 0; i < N; i++)
 	{
@@ -1194,15 +1126,15 @@ void RK_Interpolate(char action[], int N, KPP_REAL H, KPP_REAL Hold, KPP_REAL Z1
 	} /* end for loop */
    }
    /* Evaluate quadratic polynomial */
-   else if ( strncmp( action, "eval", 4 ) ) {
+   else if ( strncmp( action, "eval", 4 ) == 0 ) {
         r  = H / Hold;
 	x1 = ONE + rkC[0]*r;
 	x2 = ONE + rkC[1]*r;
 	x3 = ONE + rkC[2]*r;
 	for (i = 0; i < N; i++)
 	{
-	   Z1[i] = CONT[i][0]+x1*(CONT[i][1]+x1*CONT[i][2]);	
-	   Z2[i] = CONT[i][0]+x2*(CONT[i][1]+x2*CONT[i][2]);	
+	   Z1[i] = CONT[i][0]+x1*(CONT[i][1]+x1*CONT[i][2]);
+	   Z2[i] = CONT[i][0]+x2*(CONT[i][1]+x2*CONT[i][2]);
 	   Z3[i] = CONT[i][0]+x3*(CONT[i][1]+x3*CONT[i][2]);
 	} /* end for loop */
    } /* end if */
@@ -1217,10 +1149,10 @@ void RK_PrepareRHS(int N, KPP_REAL T, KPP_REAL H, KPP_REAL Y[], KPP_REAL FO[],
 	KPP_REAL R3[])
 {
    KPP_REAL TMP[N], F[N];
-   WCOPY(N,Z1,1,R1,1); /* R1 <- Z1 */	
-   WCOPY(N,Z2,1,R2,1); /* R2 <- Z2 */	
-   WCOPY(N,Z3,1,R3,1); /* R3 <- Z3 */	
- 
+   WCOPY(N,Z1,1,R1,1); /* R1 <- Z1 */
+   WCOPY(N,Z2,1,R2,1); /* R2 <- Z2 */
+   WCOPY(N,Z3,1,R3,1); /* R3 <- Z3 */
+
    if (rkMethod == L3A)
    {
 	WAXPY(N,-H*rkA[0][0],FO,1,R1,1); /* R1 <- R1 - h*A_10*FO */
@@ -1251,8 +1183,8 @@ void RK_PrepareRHS(int N, KPP_REAL T, KPP_REAL H, KPP_REAL Y[], KPP_REAL FO[],
 /*~~~> Compute the matrices E1 and E2 and their decompositions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void RK_Decomp(int N, KPP_REAL H, KPP_REAL FJAC[], KPP_REAL E1[],
-	int IP1[], KPP_REAL E2R[], KPP_REAL E2I[], int IP2[], 
-	int* ISING, int ISTATUS[]) 
+	int IP1[], KPP_REAL E2R[], KPP_REAL E2I[], int IP2[],
+	int* ISING, int ISTATUS[])
 {
    /*printf("Starting RK_Decomp\n");*/
    KPP_REAL Alpha, Beta, Gamma;
@@ -1273,7 +1205,7 @@ void RK_Decomp(int N, KPP_REAL H, KPP_REAL FJAC[], KPP_REAL E1[],
    /*~~~> Note: for a full matrix use Lapack:
    for (j = 0; j < N; j++) {
 	for (i = 0; i < N; i++)
-	{  
+	{
 	   E1[i,j] = -FJAC[i][j];
 	}
 	E1[i][j] = E1[i][j]+Gamma;
@@ -1308,7 +1240,7 @@ void RK_Decomp(int N, KPP_REAL H, KPP_REAL FJAC[], KPP_REAL E1[],
    ISTATUS[Ndec]++;
 } /*RK_Decomp */
 
-/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/ 
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void RK_Solve(int N, KPP_REAL H, KPP_REAL E1[], int IP1[], KPP_REAL E2R[],
 	KPP_REAL E2I[], int IP2[],KPP_REAL R1[], KPP_REAL R2[], KPP_REAL R3[],
 	int ISTATUS[])
@@ -1326,7 +1258,7 @@ void RK_Solve(int N, KPP_REAL H, KPP_REAL E1[], int IP1[], KPP_REAL E2R[],
         R1[i] = rkTinvAinv[0][0]*x1 + rkTinvAinv[0][1]*x2 + rkTinvAinv[0][2]*x3;
 	R2[i] = rkTinvAinv[1][0]*x1 + rkTinvAinv[1][1]*x2 + rkTinvAinv[1][2]*x3;
 	R3[i] = rkTinvAinv[2][0]*x1 + rkTinvAinv[2][1]*x2 + rkTinvAinv[2][2]*x3;
-   } 
+   }
    KppSolve(E1,R1);
    /*~~~> Note: for a full matrix use Lapack:
    DGETRS('N',5,1,E1,N,IP1,R1,5,0); */
@@ -1353,13 +1285,13 @@ void RK_Solve(int N, KPP_REAL H, KPP_REAL E1[], int IP1[], KPP_REAL E2R[],
         R1[i] = rkT[0][0]*x1 + rkT[0][1]*x2 + rkT[0][2]*x3;
 	R2[i] = rkT[1][0]*x1 + rkT[1][1]*x2 + rkT[1][2]*x3;
 	R3[i] = rkT[2][0]*x1 + rkT[2][1]*x2 + rkT[2][2]*x3;
-   } 
+   }
    ISTATUS[Nsol]++;
 } /* RK_Solve */
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-void RK_ErrorEstimate(int N, KPP_REAL H, KPP_REAL T, KPP_REAL Y[], 
-	KPP_REAL FO[], KPP_REAL E1[], int IP1[], KPP_REAL Z1[], 
+void RK_ErrorEstimate(int N, KPP_REAL H, KPP_REAL T, KPP_REAL Y[],
+	KPP_REAL FO[], KPP_REAL E1[], int IP1[], KPP_REAL Z1[],
 	KPP_REAL Z2[], KPP_REAL Z3[], KPP_REAL SCAL[], KPP_REAL* Err,
 	int FirstStep, int Reject, int ISTATUS[])
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -1368,16 +1300,16 @@ void RK_ErrorEstimate(int N, KPP_REAL H, KPP_REAL T, KPP_REAL Y[],
    KPP_REAL HrkE1,HrkE2,HrkE3;
    int i;
 
-   HrkE1  = rkE[0]/H;
-   HrkE2  = rkE[1]/H;
-   HrkE3  = rkE[2]/H;
+   HrkE1  = rkE[1]/H;
+   HrkE2  = rkE[2]/H;
+   HrkE3  = rkE[3]/H;
 
    for (i = 0; i < N; i++)
    {
 	F2[i]  = HrkE1*Z1[i]+HrkE2*Z2[i]+HrkE3*Z3[i];
 	TMP[i] = rkE[0]*FO[i] + F2[i];
    }
-   
+
    KppSolve(E1, TMP);
    if ((rkMethod == R1A) || (rkMethod == GAU) || (rkMethod == L3A))
 	KppSolve(E1,TMP);
@@ -1420,7 +1352,7 @@ void RK_ErrorEstimate(int N, KPP_REAL H, KPP_REAL T, KPP_REAL Y[],
    KPP_REAL RK_ErrorNorm = ZERO;
    for (i = 0; i < N; i++) {
 	RK_ErrorNorm = RK_ErrorNorm + (DY[i]*SCAL[i]) * (DY[i]*SCAL[i]);
-   }    
+   }
    RK_ErrorNorm = MAX( SQRT(RK_ErrorNorm/N), (KPP_REAL)1.0e-10 );
    return RK_ErrorNorm;
 } /* RK_ErrorNorm */
@@ -1458,7 +1390,7 @@ void Radau2A_Coefficients()
 
    rkB[0] = (KPP_REAL)(3.764030627004672750500754423692808e-01);
    rkB[1] = (KPP_REAL)(5.124858261884216138388134465196080e-01);
-   rkB[2] = (KPP_REAL)(1111111111111111111111111111111111e-01);
+   rkB[2] = (KPP_REAL)(1.111111111111111111111111111111111e-01);
 
    rkC[0] = (KPP_REAL)(1.550510257216821901802715925294109e-01);
    rkC[1] = (KPP_REAL)(6.449489742783178098197284074705891e-01);
@@ -1468,7 +1400,7 @@ void Radau2A_Coefficients()
    rkD[0] = ZERO;
    rkD[1] = ZERO;
    rkD[2] = ONE;
-   
+
    /* Classical error estimator: */
    /* H* Sum (B_j-Bhat_j)*f(Z_j) = H*E(0)*f(0) + Sum E_j*Z_j */
    rkE[0] = ONE*b0;
@@ -1561,14 +1493,14 @@ void Radau2A_Coefficients()
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void Lobatto3C_Coefficients ()
 {
-   KPP_REAL b0;	
+   KPP_REAL b0;
    rkMethod = L3C;
    /* b0 = 1.0d0 */
    if (SdirkError == 1)
 	b0 = (KPP_REAL)0.2;
    else
 	b0 = (KPP_REAL)0.5;
-    
+
    /* The coefficients of the Lobatto3C method */
    rkA[0][0] = (KPP_REAL).1666666666666666666666666666666667;
    rkA[0][1] = (KPP_REAL)(-.3333333333333333333333333333333333);
@@ -1636,7 +1568,7 @@ void Lobatto3C_Coefficients ()
    rkAlpha = (KPP_REAL)1.687091590520766641994055533117359;
    rkBeta  = (KPP_REAL)2.508731754924880510838743672432351;
 
-   rkT[0][1] = ONE;
+   rkT[0][0] = ONE;
    rkT[0][1] = ONE;
    rkT[0][2] = ZERO;
    rkT[1][0] = (KPP_REAL).4554100411010284672111720348287483;
@@ -1686,7 +1618,7 @@ void Lobatto3C_Coefficients ()
 void Gauss_Coefficients()
 {
    rkMethod = GAU;
-   
+
    /* The coefficients of the Gauss method */
    KPP_REAL b0;
    /*b0 = (KPP_REAL)4.0; */
