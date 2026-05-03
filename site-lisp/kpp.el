@@ -95,21 +95,21 @@
    ;; Fortran-90 / KPP inline comment: ! comment to end of line
    '("!.*"                0 font-lock-comment-face t)
 
-   ;; {@...} – alternative LaTeX text (documentation)
+   ;; {@...} – alternative LaTeX text
    ;; '("{@[^}]+}"           0 font-lock-doc-face t)
 
    ;; uncertainty of rate coefficient
    ;; '("{§[^}]*}"           0 font-lock-builtin-face t)
 
-   ;; {$...} – alternative LaTeX math text
-   ;; '("{\\$[^}]+}"         0 font-lock-string-face t)
+   ;; {$...} – alternative LaTeX text
+   ;; '("{\\$[^}]+}"         0 font-lock-doc-face t)
 
    ;; {&...} – BibTeX reference
    ;; '("{&[^}]+}"           0 font-lock-function-name-face t)
 
    ;; {%...} – marker tag, e.g. {%TrG}
    ;; Fix #2: same [A-z] → [A-Za-z] correction as above.
-   '("{%[A-Za-z0-9#]+}"   0 font-lock-type-face t)
+   ;; '("{%[A-Za-z0-9#]+}"   0 font-lock-type-face t)
 
    ;; KPP sections, commands, and fragments
    ;; (Tables 3, 13, and 17 in the KPP manual / thesis)
@@ -155,11 +155,13 @@
    ;; LaTeX note
    ;; '("//.*"               0 font-lock-string-face t)
 
+   ;; C++-style line comment: // comment
+   '("^//.*"              0 font-lock-comment-face t)
+
    ;; Fixme
    ;; '("qqq"                0 font-lock-warning-face t)       
 
-   ;; C++-style line comment: // comment
-   '("^//.*"              0 font-lock-comment-face t))
+   )
   "Font-lock keyword specification for `kpp-mode'.")
 
 ;; ---------------------------------------------------------------------------
