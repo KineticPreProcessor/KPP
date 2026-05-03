@@ -61,19 +61,6 @@
   :group 'kpp)
 
 ;; ---------------------------------------------------------------------------
-;; Faces
-;; ---------------------------------------------------------------------------
-
-(defface kpp-doc-face
-  ;; Fix #6: `font-lock-doc-face' was introduced in Emacs 22.  Defining our
-  ;; own face that *inherits* from it gives graceful degradation on older
-  ;; Emacs versions while using the correct face on modern ones.
-  '((t (:inherit font-lock-doc-face)))
-  "Face for KPP LaTeX documentation strings, e.g. {@...}.
-Inherits from `font-lock-doc-face'; compatible with Emacs 21+."
-  :group 'kpp)
-
-;; ---------------------------------------------------------------------------
 ;; Syntax table  (defined once at load time; shared by all kpp buffers)
 ;; ---------------------------------------------------------------------------
 
@@ -109,16 +96,16 @@ Inherits from `font-lock-doc-face'; compatible with Emacs 21+."
    '("!.*"                0 font-lock-comment-face t)
 
    ;; {@...} – alternative LaTeX text (documentation)
-   ;; Uses kpp-doc-face rather than font-lock-doc-face directly; see Fix #6.
-   '("{@[^}]+}"           0 kpp-doc-face t)
+   ;; '("{@[^}]+}"           0 font-lock-doc-face t)
+
+   ;; uncertainty of rate coefficient
+   ;; '("{§[^}]*}"           0 font-lock-builtin-face t)
 
    ;; {$...} – alternative LaTeX math text
-   ;; Fix: the original "{$[^}]+}" relied on $ being treated as literal
-   ;; when not at end of regexp.  Using \\$ is explicit and unambiguous.
-   '("{\\$[^}]+}"         0 font-lock-string-face t)
+   ;; '("{\\$[^}]+}"         0 font-lock-string-face t)
 
    ;; {&...} – BibTeX reference
-   '("{&[^}]+}"           0 font-lock-builtin-face t)
+   ;; '("{&[^}]+}"           0 font-lock-function-name-face t)
 
    ;; {%...} – marker tag, e.g. {%TrG}
    ;; Fix #2: same [A-z] → [A-Za-z] correction as above.
@@ -164,6 +151,12 @@ Inherits from `font-lock-doc-face'; compatible with Emacs 21+."
           "\\|#XGRID\\|#YGRID\\|#ZGRID"
           "\\)\\>")
          'font-lock-keyword-face)
+
+   ;; LaTeX note
+   ;; '("//.*"               0 font-lock-string-face t)
+
+   ;; Fixme
+   ;; '("qqq"                0 font-lock-warning-face t)       
 
    ;; C++-style line comment: // comment
    '("^//.*"              0 font-lock-comment-face t))
