@@ -1,9 +1,6 @@
 ;;; kpp.el --- Major mode for KPP (Kinetic PreProcessor) files  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2005  Rolf Sander <sander@mpch-mainz.mpg.de>
-
-;; Author:     Rolf Sander <sander@mpch-mainz.mpg.de>
-;; Maintainer: Rolf Sander <sander@mpch-mainz.mpg.de>
+;; Author:     Rolf Sander <rolf.sander@mpic.de>
 ;; Version:    1.2
 ;; Keywords:   languages, kpp, chemistry
 
