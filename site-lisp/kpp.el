@@ -25,13 +25,7 @@
 ;;     (require 'kpp)
 ;;   to your Emacs init file (~/.emacs or ~/.emacs.d/init.el).
 ;;
-;; File extensions automatically associated with kpp-mode: .kpp, .eqn
-;;
-;; Note on .def and .spc extensions:
-;;   These are intentionally NOT registered by default because they are used
-;;   by many other file types (C preprocessor, Win32 module definitions,
-;;   SPICE netlists, R packages, etc.).  Uncomment the relevant lines near
-;;   the bottom of this file if you want them.
+;; File extensions automatically associated with kpp-mode: .kpp, .eqn, .def, .spc
 ;;
 ;; Known issue:
 ;;   ":" inside KPP inline comments (between reaction products and the rate
