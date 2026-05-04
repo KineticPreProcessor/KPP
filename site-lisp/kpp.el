@@ -269,14 +269,10 @@ and the rate constant) may confuse font-lock.
 (add-to-list 'auto-mode-alist '("\\.kpp\\'" . kpp-mode))
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.eqn\\'" . kpp-mode))
-
-;; Fix #17: .def and .spc are intentionally omitted.  Those extensions are
-;; claimed by many unrelated file types (C preprocessor, Win32 .def, SPICE,
-;; R packages, …).  Uncomment the lines below ONLY if you use these
-;; extensions exclusively for KPP files.
-;;
-;; (add-to-list 'auto-mode-alist '("\\.def\\'" . kpp-mode))
-;; (add-to-list 'auto-mode-alist '("\\.spc\\'" . kpp-mode))
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.def\\'" . kpp-mode))
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.spc\\'" . kpp-mode))
 
 (provide 'kpp)
 
