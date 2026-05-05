@@ -1,6 +1,7 @@
 ;;; kpp.el --- Major mode for KPP (Kinetic PreProcessor) files  -*- lexical-binding: t; -*-
 
-;; Author:     Rolf Sander <rolf.sander@mpic.de>
+;; Authors:    Rolf Sander <rolf.sander@mpic.de>
+;;             Bob Yantosca (used AI to "lint")
 ;; Version:    1.2
 ;; Keywords:   languages, kpp, chemistry
 
@@ -25,11 +26,8 @@
 ;;     (require 'kpp)
 ;;   to your Emacs init file (~/.emacs or ~/.emacs.d/init.el).
 ;;
-;; File extensions automatically associated with kpp-mode: .kpp, .eqn, .def, .spc
-;;
-;; Known issue:
-;;   ":" inside KPP inline comments (between reaction products and the rate
-;;   constant) may confuse font-lock.
+;; File extensions automatically associated with kpp-mode:
+;;   .def, .eqn, .kpp, .spc
 
 ;;; Code:
 
@@ -105,44 +103,30 @@
    ;; Fix #2: same [A-z] → [A-Za-z] correction as above.
    ;; '("{%[A-Za-z0-9#]+}"   0 font-lock-type-face t)
 
-   ;; KPP sections, commands, and fragments
-   ;; (Tables 3, 13, and 17 in the KPP manual / thesis)
+   ;; KPP sections and commands
    ;;
    ;; ORDERING RULE: in Emacs regex alternation (\|) the leftmost match
    ;; wins.  Any keyword that is a strict prefix of another must therefore
-   ;; appear AFTER the longer form:
-   ;;
-   ;;   Pair                  Original order   Fixed order
-   ;;   #CHECK / #CHECKALL    CHECKALL first   ✓ already correct
-   ;;   #LOOKAT / #LOOKATALL  LOOKATALL first  ✓ already correct
-   ;;   #TRANSPORT / …ALL     …ALL first       ✓ already correct
-   ;;   #USE / #USES          USE first        ✗ BUG → fixed below (#Fix 3)
+   ;; appear AFTER the longer form.
    ;;
    ;; \> (end-of-word boundary) prevents a short keyword from matching
    ;; as a prefix of an unknown longer token.
    (cons (concat
           "\\("
           "#ATOMS\\|#AUTOREDUCE"
-          "\\|#CHECKALL\\|#CHECK"
-          "\\|#DEFFIX\\|#DEFRAD\\|#DEFVAR"
-          "\\|#DOUBLE\\|#DRIVER\\|#DUMMYINDEX"
+          "\\|#CHECKALL\\|#CHECK" ; CHECKALL before CHECK
+          "\\|#DEFFIX\\|#DEFVAR\\|#DOUBLE\\|#DRIVER\\|#DUMMYINDEX"
           "\\|#ENDINLINE\\|#EQNTAGS\\|#EQUATIONS"
-          "\\|#FAMILIES\\|#FUNCTION\\|#GRAPH"
+          "\\|#FAMILIES\\|#FUNCTION"
+          "\\|#GRAPH"
           "\\|#HESSIAN"
-          "\\|#INCLUDE\\|#INITVALUES\\|#INITIALIZE\\|#INLINE"
-          "\\|#INTEGRATOR\\|#INTFILE"
+          "\\|#INCLUDE\\|#INITVALUES\\|#INLINE\\|#INTEGRATOR\\|#INTFILE"
           "\\|#JACOBIAN"
-          "\\|#LANGUAGE"
-          "\\|#LOOKATALL\\|#LOOKAT\\|#LUMP"
+          "\\|#LANGUAGE\\|#LOOKATALL\\|#LOOKAT" ; LOOKATALL before LOOKAT
           "\\|#MEX\\|#MINVERSION\\|#MODEL\\|#MONITOR"
-          "\\|#REORDER\\|#RUN"
-          "\\|#SETFIX\\|#SETRAD\\|#SETVAR"
-          "\\|#SPARSEDATA\\|#STOCHASTIC\\|#STOICMAT"
-          "\\|#TRANSPORTALL\\|#TRANSPORT"
+          "\\|#REORDER"
+          "\\|#SETFIX\\|#SETVAR\\|#STOCHASTIC\\|#STOICMAT"
           "\\|#UPPERCASEF90"
-          "\\|#USES\\|#USE"           ; Fix #3: #USES before #USE
-          "\\|#WRITE_ATM\\|#WRITE_MAT\\|#WRITE_OPT\\|#WRITE_SPC"
-          "\\|#XGRID\\|#YGRID\\|#ZGRID"
           "\\)\\>")
          'font-lock-keyword-face)
 
@@ -260,11 +244,11 @@ and the rate constant) may confuse font-lock.
 ;; pattern appended duplicate entries every time the file was reloaded.
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.kpp\\'" . kpp-mode))
+(add-to-list 'auto-mode-alist '("\\.def\\'" . kpp-mode))
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.eqn\\'" . kpp-mode))
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.def\\'" . kpp-mode))
+(add-to-list 'auto-mode-alist '("\\.kpp\\'" . kpp-mode))
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.spc\\'" . kpp-mode))
 
