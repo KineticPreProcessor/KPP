@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased] - TBD
+### Fixed
+- Fixed several emacs font-lock issues in `site-lisp/kpp.el`
+
 ## [3.4.0] - 2026-04-29
 ### Added
 - Added `Rodas3_1` integration method (with updated coefficents by @msl3v) to `rosenbrock_autoreduce.f90`, `rosenbrock.{c,f90,m}`, `rosenbrock_adj.{c,f90}`, `rosenbrock_tlm.f90`
