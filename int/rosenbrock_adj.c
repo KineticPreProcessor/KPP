@@ -1173,7 +1173,7 @@ int ros_FwdInt ( KPP_REAL Y[], KPP_REAL Tstart, KPP_REAL Tend, KPP_REAL T,
     free(Ystage);
   }
 
-/*~~~> Succesful exit */
+/*~~~> Successful exit */
   return 1;  /*~~~> The integration was successful */
 } /* End of ros_FwdInt */
 
@@ -1316,7 +1316,7 @@ int ros_DadjInt ( int NADJ, KPP_REAL Lambda[][NVAR], KPP_REAL Tstart,
   } /* End of TimeLoop */
 
   /*~~~> Save last state */
-  /*~~~> Succesful exit */
+  /*~~~> Successful exit */
   return 1;  /*~~~> The integration was successful */
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -1557,7 +1557,7 @@ int ros_CadjInt ( int NADJ, KPP_REAL Y[][NVAR], KPP_REAL Tstart, KPP_REAL Tend,
 
   } /* End of TimeLoop */
 
-  /*~~~> Succesful exit */
+  /*~~~> Successful exit */
   return 1;  /*~~~> The integration was successful */
 } /* End of ros_CadjInt */
 
@@ -1738,7 +1738,7 @@ int ros_SimpleCadjInt ( int NADJ, KPP_REAL Y[][NVAR], KPP_REAL Tstart,
     }
   } /* End of TimeLoop */
 
-/*~~~> Succesful exit */
+/*~~~> Successful exit */
   return 1;  /*~~~> The integration was successful */
 
 } /* End of ros_SimpleCadjInt */

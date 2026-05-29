@@ -1133,7 +1133,7 @@ UntilAccepted: DO
         END IF
    END IF
 
-!~~~> Succesful exit
+!~~~> Successful exit
    IERR = 1  !~~~> The integration was successful
 
   END SUBROUTINE ros_FwdInt
@@ -1300,7 +1300,7 @@ Stage: DO istage = ros_S, 1, -1
 
 !~~~> Save last state
 
-!~~~> Succesful exit
+!~~~> Successful exit
    IERR = 1  !~~~> The integration was successful
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1554,7 +1554,7 @@ Stage: DO istage = 1, ros_S
 
    END DO TimeLoop
 
-!~~~> Succesful exit
+!~~~> Successful exit
    IERR = 1  !~~~> The integration was successful
 
   END SUBROUTINE ros_CadjInt
@@ -1739,7 +1739,7 @@ Stage: DO istage = 1, ros_S
 
    END DO TimeLoop
 
-!~~~> Succesful exit
+!~~~> Successful exit
    IERR = 1  !~~~> The integration was successful
 
   END SUBROUTINE ros_SimpleCadjInt

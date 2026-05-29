@@ -756,7 +756,7 @@ Stage: DO istage = 1, ros_S
 
    END DO TimeLoop
 
-!~~~> Succesful exit
+!~~~> Successful exit
    IERR = 1  !~~~> The integration was successful
 
   END SUBROUTINE ros_TLM_Int

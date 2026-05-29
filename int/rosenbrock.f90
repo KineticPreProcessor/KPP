@@ -670,7 +670,7 @@ UntilAccepted: DO
 
    END DO TimeLoop
 
-!~~~> Succesful exit
+!~~~> Successful exit
    IERR = 1  !~~~> The integration was successful
 
   END SUBROUTINE ros_Integrator
