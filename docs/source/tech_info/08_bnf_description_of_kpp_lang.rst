@@ -31,6 +31,7 @@ Following is the BNF-like specification of the KPP language:
                             #DUMMYINDEX [ ON | OFF ]                              |
                             #EQNTAGS [ ON | OFF ]                                 |
                             #FUNCTION [ AGGREGATE | SPLIT ]                       |
+                            #GRAPH [ OFF | STOIC | EDGELIST ]                     |
                             #HESSIAN [ ON | OFF ]                                 |
                             #INCLUDE file_name                                    |
                             #INTEGRATOR integrator_name                           |
