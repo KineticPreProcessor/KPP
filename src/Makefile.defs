@@ -112,6 +112,16 @@ ifeq ($(wildcard $(FLEX_LIB_DIR)/libfl.*),)
   FLEX_LIB_DIR := /usr/lib/$(firstword $(SYSTEM_M))-linux-gnu
 endif
 
+# Homebrew on Apple Silicon (arm64) macOS
+ifeq ($(wildcard $(FLEX_LIB_DIR)/libfl.*),)
+  FLEX_LIB_DIR := /opt/homebrew/opt/flex/lib
+endif
+
+# Homebrew on Intel macOS
+ifeq ($(wildcard $(FLEX_LIB_DIR)/libfl.*),)
+  FLEX_LIB_DIR := /usr/local/opt/flex/lib
+endif
+
 # If we can't find the flex library path, then specify it
 # from the user's environment variable KPP_FLEX_LIB_DIR.
 ifneq ($(KPP_FLEX_LIB_DIR),)
@@ -129,17 +139,47 @@ endif
 
 # Settings for MacOS
 ifeq ($(strip $(SYSTEM)),Darwin)
-  CC_FLAGS += -DMACOS -O
+  # NOTE: We intentionally do NOT define -DMACOS here. The MACOS branch in
+  # gdata.h clamps MAX_EQN=2000 and MAX_SPECIES=1000 to fit the default
+  # 8 MB Darwin stack, but full MECCA mechanisms blow past 1000 species.
+  # Instead we rely on the user raising the soft stack limit
+  # (`ulimit -s 65520` -- the macOS hard limit) before invoking KPP, and
+  # we also enlarge the linker stack reservation of the kpp binary below.
+  CC_FLAGS += -O
+  # Increase the executable's stack reservation so the large static
+  # arrays in gen.c (snames[8000], strans[8000], ...) fit. The default
+  # macOS stack reservation is 8 MB; bump it to ~64 MB.
+  CC_FLAGS += -Wl,-stack_size,0x4000000
   ifeq ($(strip $(SYSTEM_M)),x86_64)
     # Build for Intel x86_64 chipsets
     CC_FLAGS += -arch x86_64
+    BREW_PREFIX ?= /usr/local
   else
     ifeq ($(strip $(SYSTEM_M)),arm64)
       # Build for Apple Silicon chipsets
       CC_FLAGS += -arch arm64
+      BREW_PREFIX ?= /opt/homebrew
     else
       $(warning Unknown architecture: $(strip $(SYSTEM_M)))
+      BREW_PREFIX ?= /usr/local
     endif
+  endif
+
+  # Apple ships an ancient bison (2.3) and a flex without libfl in the
+  # system path. Prefer Homebrew's modern flex/bison when present so the
+  # scanner and parser actually build on macOS.
+  ifneq ($(wildcard $(BREW_PREFIX)/opt/flex/bin/flex),)
+    FLEX := $(BREW_PREFIX)/opt/flex/bin/flex
+  endif
+  ifneq ($(wildcard $(BREW_PREFIX)/opt/bison/bin/bison),)
+    BISON := $(BREW_PREFIX)/opt/bison/bin/bison
+  endif
+
+  # Use the active Xcode/CLT SDK for system headers rather than the
+  # non-existent /usr/include directory.
+  SDK_PATH := $(shell xcrun --show-sdk-path 2>/dev/null)
+  ifneq ($(SDK_PATH),)
+    INCLUDE_DIR := $(SDK_PATH)/usr/include
   endif
 endif
 #############################################################
