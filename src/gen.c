@@ -2382,6 +2382,8 @@ int YIN, Y;
     bprintf("  if (present(YIN)) Y(1:NVAR) = YIN(1:NVAR)\n");
     NewLines(1);
 
+    // Zero the UPDATE_RCONST to avoid compiler warnings
+    UPDATE_RCONST = 0;
   } else {
     //
     // For other languages, declare function w/o any arguments
