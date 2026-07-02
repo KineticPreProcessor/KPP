@@ -59,8 +59,8 @@ function print_compiler_versions() {
 "###########################################################################"
     echo "         KPP CONTINUOUS INTEGRATION TESTS, USING THESE COMPILERS:"
     echo ""
-    gcc --version
-    gfortran --version
+    ${CC} --version
+    ${FC} --version
     echo \
 "###########################################################################"
 }

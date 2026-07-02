@@ -13,8 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [Unreleased] - TBD
+### Changed
+- Updated `Makefile.defs` and `util/Makefile*` to look for the value of `CC` or `FC` from the shell before explicitly setting it
+- Updated documentation about forcing MacOSX to prefer GNU compilers over Clang
+- Updated `Makefile.defs` with robust cross-architecture code
+- Updated the C-I test function `print_compiler_versions` to display the proper compiler info
+
 ### Fixed
 - Fixed several emacs font-lock issues in `site-lisp/kpp.el`
+- Fixed `src/gen.c` to avoid generating an uninitialized variable compiler warning
 
 ## [3.4.0] - 2026-04-29
 ### Added

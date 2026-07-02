@@ -28,9 +28,9 @@
 #  E-mail: sandu@cs.vt.edu
 #
 ##############################################################################
-
+#
 # In order to compile KPP you have to provide the following information:
-
+#
 # 1. CC
 #    The name of the compiler you want to use. Normally this
 #    is either GNU C compiler (gcc) or the native compiler (cc)
@@ -52,7 +52,7 @@
 #
 # 4. FLEX_LIB_DIR
 #    The complete pathname of the FLEX library (libfl.a).
-#    On many systems this is either:
+#    On many systems this is:
 #    /usr/lib, /usr/lib64, /usr/local/util/lib/flex
 #
 # 5. BISON
@@ -62,12 +62,12 @@
 #    Path to include additional directories
 #    Typically: /usr/include on Linux
 #               /usr/include/sys on Mac OS X
-
+#
 ############################################################
 ### Default settings                                     ###
 ############################################################
 
-CC           := gcc
+CC           ?= gcc
 CC_FLAGS     := -g -Wall -Wno-unused-function
 FLEX         := flex
 FLEX_LIB_DIR := /usr/lib
@@ -80,11 +80,6 @@ HOST         := $(shell hostname)    # name of machine
 ############################################################
 ### Keep looking for the flex library until found        ###
 ### Otherwise use the path specified in KPP_FLEX_LIB_DIR ###
-###                                                      ###
-### NOTE for MacOS X: IF you have installed flex with    ###
-### HomeBrew, then flex will be installed to a path such ###
-### as /usr/local/Cellar/flex/X.Y.Z/lib, where X.Y.Z is  ###
-### the version number.  --  Bob Yantosca (01 Nov 2021)  ###
 ############################################################
 
 # Try /usr/lib64
@@ -112,6 +107,18 @@ ifeq ($(wildcard $(FLEX_LIB_DIR)/libfl.*),)
   FLEX_LIB_DIR := /usr/lib/$(firstword $(SYSTEM_M))-linux-gnu
 endif
 
+# Homebrew macOS: "brew --prefix" flex resolves to the correct lib
+# path on both Apple Silicon (/opt/homebrew/opt/flex/lib) and Intel
+# (/usr/local/opt/flex/lib) without any architecture branching.
+# This block is safe on any non-MacOSX system.
+# It will also execute if the user has Homebrew on Linux.
+ifeq ($(wildcard $(FLEX_LIB_DIR)/libfl.*),)
+  _BREW_FLEX := $(shell brew --prefix flex 2>/dev/null)
+  ifneq ($(_BREW_FLEX),)
+    FLEX_LIB_DIR := $(_BREW_FLEX)/lib
+  endif
+endif
+
 # If we can't find the flex library path, then specify it
 # from the user's environment variable KPP_FLEX_LIB_DIR.
 ifneq ($(KPP_FLEX_LIB_DIR),)
@@ -129,17 +136,50 @@ endif
 
 # Settings for MacOS
 ifeq ($(strip $(SYSTEM)),Darwin)
-  CC_FLAGS += -DMACOS -O
+
+  # NOTE: We intentionally do NOT define -DMACOS here. The MACOS branch in
+  # gdata.h clamps MAX_EQN=2000 and MAX_SPECIES=1000 to fit the default
+  # 8 MB Darwin stack, but full MECCA mechanisms blow past 1000 species.
+  # Instead we rely on the user raising the soft stack limit
+  # (`ulimit -s 65520` -- the macOS hard limit) before invoking KPP, and
+  # we also enlarge the linker stack reservation of the kpp binary below.
+  CC_FLAGS += -O
+
+  # Increase the executable's stack reservation so the large static
+  # arrays in gen.c (snames[8000], strans[8000], ...) fit. The default
+  # macOS stack reservation is 8 MB; bump it to ~64 MB.
+  CC_FLAGS += -Wl,-stack_size,0x4000000
+
+  # Tell the compiler if we are on x86_64 or arm64 architecture
   ifeq ($(strip $(SYSTEM_M)),x86_64)
-    # Build for Intel x86_64 chipsets
     CC_FLAGS += -arch x86_64
+  else ifeq ($(strip $(SYSTEM_M)),arm64)
+    CC_FLAGS += -arch arm64
   else
-    ifeq ($(strip $(SYSTEM_M)),arm64)
-      # Build for Apple Silicon chipsets
-      CC_FLAGS += -arch arm64
-    else
-      $(warning Unknown architecture: $(strip $(SYSTEM_M)))
+    $(warning Unknown architecture: $(strip $(SYSTEM_M)))
+  endif
+
+  # brew --prefix returns /usr/local (Intel) or /opt/homebrew (Apple Silicon)
+  # automatically — no architecture branching required.
+  BREW_PREFIX ?= $(shell brew --prefix 2>/dev/null)
+
+  # Apple ships an ancient bison (2.3) and a flex without libfl in the
+  # system path. Prefer Homebrew's modern flex/bison when present so the
+  # scanner and parser actually build on macOS.
+  ifneq ($(BREW_PREFIX),)
+    ifneq ($(wildcard $(BREW_PREFIX)/opt/flex/bin/flex),)
+      FLEX := $(BREW_PREFIX)/opt/flex/bin/flex
     endif
+    ifneq ($(wildcard $(BREW_PREFIX)/opt/bison/bin/bison),)
+      BISON := $(BREW_PREFIX)/opt/bison/bin/bison
+    endif
+  endif
+
+  # Use the active Xcode/CLT SDK for system headers rather than the
+  # non-existent /usr/include directory.
+  SDK_PATH := $(shell xcrun --show-sdk-path 2>/dev/null)
+  ifneq ($(SDK_PATH),)
+    INCLUDE_DIR := $(SDK_PATH)/usr/include
   endif
 endif
 #############################################################
