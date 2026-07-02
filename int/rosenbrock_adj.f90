@@ -1744,35 +1744,66 @@ Stage: DO istage = 1, ros_S
 
   END SUBROUTINE ros_SimpleCadjInt
 
+
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   KPP_REAL FUNCTION ros_ErrorNorm ( Y, Ynew, Yerr, &
-               AbsTol, RelTol, VectorTol )
+                               AbsTol, RelTol, VectorTol )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~> Computes the "scaled norm" of the error vector Yerr
+!~~~>
+!~~~> Now uses separate loops for scalar and vector tolerances,
+!~~~> as this facilitates loop vectorization for better performance.
+!~~~>
+!~~~> Also uses NonPassiveSpc_Count and NonPassiveSpc_Indices (constructed
+!~~~> in Initialize), so that we can exclude "passive" (e.g. prod/loss)
+!~~~> species from the error norm computation.
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    IMPLICIT NONE
 
 ! Input arguments
-   KPP_REAL, INTENT(IN) :: Y(NVAR), Ynew(NVAR), &
-          Yerr(NVAR), AbsTol(NVAR), RelTol(NVAR)
+   KPP_REAL, INTENT(IN) :: Y(NVAR), Ynew(NVAR), Yerr(NVAR)
+   KPP_REAL, INTENT(IN) :: AbsTol(NVAR), RelTol(NVAR)
    LOGICAL, INTENT(IN) ::  VectorTol
 ! Local variables
    KPP_REAL :: Err, Scale, Ymax
-   INTEGER  :: i
+   INTEGER  :: I, IDX
 
    Err = ZERO
-   DO i=1,NVAR
-     Ymax = MAX(ABS(Y(i)),ABS(Ynew(i)))
-     IF (VectorTol) THEN
-       Scale = AbsTol(i)+RelTol(i)*Ymax
-     ELSE
-       Scale = AbsTol(1)+RelTol(1)*Ymax
-     END IF
-     Err = Err+(Yerr(i)/Scale)**2
-   END DO
-   Err  = SQRT(Err/NVAR)
 
-   ros_ErrorNorm = MAX(Err,1.0d-10)
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   !~~~> Vector Tolerances (per-species AbsTol & RelTol)
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   IF ( VectorTol ) THEN
+
+      DO IDX = 1, NonPassiveSpc_Count
+         I     = NonPassiveSpc_Indices(IDX)
+         Ymax  = MAX( ABS( Y(I) ), ABS( Ynew(I) ) )
+         Scale = AbsTol(I) + RelTol(I) * Ymax
+         Err   = Err + ( Yerr(I) / Scale )**2
+      ENDDO
+
+      ! Normalize the error norm by the number of non-dummy species
+      ! and prevent it from getting smaller than 1e-10
+      Err           = SQRT( Err / NonPassiveSpc_Count )
+      ros_ErrorNorm = MAX( Err, 1.0d-10 )
+      RETURN
+
+   ENDIF
+
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   !~~~> Scalar Tolerance (same AbsTol & RelTol for all species)
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   DO IDX = 1, NonPassiveSpc_Count
+      I     = NonPassiveSpc_Indices(IDX)
+      Ymax  = MAX( ABS( Y(I) ), ABS( Ynew(I) ) )
+      Scale = AbsTol(1) + RelTol(1) * Ymax
+      Err   = Err + ( Yerr(I) / Scale )**2
+   ENDDO
+   
+   ! Normalize the error norm by the number of non-dummy species
+   ! and prevent it from getting smaller than 1e-10
+   Err           = SQRT( Err / NonPassiveSpc_Count )
+   ros_ErrorNorm = MAX( Err, 1.0d-10 )
 
   END FUNCTION ros_ErrorNorm
 
