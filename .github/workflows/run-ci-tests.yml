@@ -20,7 +20,7 @@ jobs:
       KPP_FLEX_LIB_DIR: /usr/lib/x86_64-linux-gnu
     strategy:
       matrix:
-        gcc-version: [9, 10, 11, 12, 13]
+        gcc-version: [9, 10, 11, 12, 13, 14, 15]
 
 
     name: Run C-I tests with GCC ${{ matrix.gcc-version }}
