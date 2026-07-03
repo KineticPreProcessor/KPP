@@ -673,6 +673,11 @@ void RK_Integrator( int N,
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
+   // Initialize variables to avoid compiler warnings
+   //   -- Bob Yantosca (06 Jul 2026)
+   Hacc = ZERO;
+   ErrOld = ZERO;
+
   /*~~~>  INITIAL setting */
    Tdirection = SIGN(ONE, Tend-*T);
    H = MIN( MAX(ABS(Hmin), ABS(Hstart)), Hmax );

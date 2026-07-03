@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated documentation about forcing MacOSX to prefer GNU compilers over Clang
 - Updated `Makefile.defs` with robust cross-architecture code
 - Updated the C-I test function `print_compiler_versions` to display the proper compiler info
+- Initialized `Hacc` and `ErrOld` variables to `ZERO` in `int/runge_kutta.c`, to avoid compiler warnings
 
 ### Fixed
 - Fixed several emacs font-lock issues in `site-lisp/kpp.el`
