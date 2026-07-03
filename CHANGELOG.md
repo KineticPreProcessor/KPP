@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added function `F90_FunctionBeginNoArgDecl` in `src/code_f90.c` with corresponding function prototypes in `src/code.c` and `src/code.h`
 - Added macro `DefElmO` in `src/code.h`, which writes a scalar F90 variable with the `OPTIONAL` attribute
+- Added code to `src/gen.c` to add `NonPassiveSpc_Count` and `NonPassiveSpc_Indices` to `ROOT_Global` (only for F90)
+- Added code to `src/gen.c` to filter out passive species if the `PassiveSpc_ATOL_Threshold` optioal argument is passed to `ROOT_Initialize` (F90-only)
 
 ### Changed
 - Updated `Makefile.defs` and `util/Makefile*` to look for the value of `CC` or `FC` from the shell before explicitly setting it
@@ -23,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated `Makefile.defs` with robust cross-architecture code
 - Updated the C-I test function `print_compiler_versions` to display the proper compiler info
 - Initialized `Hacc` and `ErrOld` variables to `ZERO` in `int/runge_kutta.c`, to avoid compiler warnings
+- Updated all `int/rosenbrock*.f90` integrators to use `NonPassiveSpc_Count` and `NonPassiveSpc_Indices` to exclude passive species from the error norm calculation
 
 ### Fixed
 - Fixed several emacs font-lock issues in `site-lisp/kpp.el`

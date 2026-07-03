@@ -75,7 +75,6 @@ int ATOL, RTOL, STEPMIN, STEPMAX, CFACTOR;
 int V_USER, CL;
 int NMLCV, NMLCF, SCT, PROPENSITY, VOLUME, IRCT;
 int FAM,NFAM;
-int NON_PASV_SPC_CT, NON_PASV_SPC_IND;
 
 int Jac_NZ, LU_Jac_NZ, nzr;
 
@@ -279,20 +278,6 @@ int i,j;
   FAM_NAMES  = DefvElm( "FAM_NAMES", STRING, -NFAM, "Names of chemical familes" );
 
   CFACTOR  = DefElm( "CFACTOR", real, "Conversion factor for concentration units");
-  //
-  // Define variables that will allow us to exclude "passive" species (those
-  // added to reactions for diagnostic purposes), for Fortran90 only.
-  //   -- Bob Yantosca (02 Jul 2026)
-  //
-  if ( useLang == F90_LANG ) {
-    NON_PASV_SPC_CT = DefElm( "NonPassiveSpc_Count", INT,
-			      "Number of non-passive species in mechanism" );
-    NON_PASV_SPC_IND = DefvElm( "NonPassiveSpc_Indices", INT, -NVAR,
-				"Indices of non-passive species in mechanism" );
-  } else {
-    NON_PASV_SPC_CT = 0;
-    NON_PASV_SPC_IND = 0;
-  }
   //
   // Autoreduction structures
   //
@@ -2363,7 +2348,7 @@ int YIN, Y;
 
   UseFile( rateFile );
 
-  if (useLang==F90_LANG) {
+  if ( useLang==F90_LANG ) {
     //
     // SPECIAL HANDLING FOR FORTRAN-90
     // -------------------------------
@@ -2418,6 +2403,8 @@ int YIN, Y;
     UPDATE_RCONST = DefFnc( "Update_RCONST", 0,
 			    "function to update rate constants");
     FunctionBegin( UPDATE_RCONST );
+    YIN = 0;
+    Y = 0;
   }
   //
   // Inline F77 and MATLAB include files
@@ -2477,7 +2464,10 @@ int YIN, Y;
   //
   FunctionEnd( UPDATE_RCONST );
   FreeVariable( UPDATE_RCONST );
-  FreeVariable( YIN );
+  if ( useLang == F90_LANG ) {
+    FreeVariable( YIN );
+    FreeVariable( Y );
+  }
 }
 
 
@@ -2732,7 +2722,6 @@ int j,dummy_species;
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateGlobalHeader()
 {
-  int useFortran;
   //
   // Modify code to inline the F77/F90 THREADPRIVATE declarations, and also
   // declare extra arrays and scalars.  These declarations begin with a
@@ -2742,9 +2731,27 @@ void GenerateGlobalHeader()
   //
   // Define a flag to denote if we are using Fortran (either F90 or F77)
   //
+  int useFortran;
   if ( useLang == F90_LANG || useLang == F77_LANG ) { useFortran = 1; }
   else                                              { useFortran = 0; }
-
+  //
+  // Define variables that will allow us to exclude "passive" species (those
+  // added to reactions for diagnostic purposes), for Fortran90 only.
+  //   -- Bob Yantosca (02 Jul 2026)
+  //
+  int NON_PASV_SPC_CT, NON_PASV_SPC_IND;
+  if ( useLang == F90_LANG ) {
+    NON_PASV_SPC_CT = DefElm( "NonPassiveSpc_Count", INT,
+			      "Number of non-passive species in mechanism" );
+    NON_PASV_SPC_IND = DefvElm( "NonPassiveSpc_Indices", INT, -NVAR,
+				"Indices of non-passive species in mechanism" );
+  } else {
+    NON_PASV_SPC_CT = 0;
+    NON_PASV_SPC_IND = 0;
+  }
+  //
+  // Initialize
+  //
   UseFile( global_dataFile );
 
   CommonName = "GDATA";
@@ -2942,6 +2949,10 @@ void GenerateGlobalHeader()
   NewLines(1);
   WriteComment("End inlined code from F90_GLOBAL");
   NewLines(1);
+  if ( useLang == F90_LANG ) {
+    FreeVariable( NON_PASV_SPC_CT );
+    FreeVariable( NON_PASV_SPC_IND );
+  }
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
