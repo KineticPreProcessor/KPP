@@ -218,11 +218,6 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !        =  0 :    Allow negative concentrations (default)
 !        =  1 :    Aet negative concentrations to zero
 !
-!    ICNTRL(19) -> Specify # of species to use when computing the error norm
-!        =  0 :    Use N species (default)
-!        =  X :    Use N-X species, where X is the number of "dummy" species
-!                  (i.e. species added to reactions for diagnostic purposes).
-!
 !    RCNTRL(1)  -> Hmin, lower bound for the integration step size.
 !                  It is strongly recommended to keep Hmin = ZERO
 !
@@ -354,15 +349,6 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
       CALL ros_ErrorMsg(-1,Tstart,ZERO,IERR)
       RETURN
    END IF
-
-!~~~>  Number of species to use when computing the Rosenbrock error norm
-!~~~>  in function "ros_ErrorNorm".  This allows us to exclude any "dummy"
-!~~~>  species that have been added for diagnostic purposes.
-   IF ( ICNTRL(19) == 0 ) THEN
-      ErrNormSpcCount = N
-   ELSE
-      ErrNormSpcCount = ICNTRL(19)
-   ENDIF
 
 !~~~>  Unit roundoff (1+Roundoff>1)
    Roundoff = EPSILON( 0.0_dp )

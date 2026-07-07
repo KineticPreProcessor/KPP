@@ -219,52 +219,63 @@ SUBROUTINE RosenbrockTLM(N,Y,NTLM,Y_tlm,                      &
 !~~~>     INPUT PARAMETERS:
 !
 !    Note: For input parameters equal to zero the default values of the
-!       corresponding variables are used.
+!          corresponding variables are used.
 !
-!    ICNTRL(1)   = 1: F = F(y)   Independent of T (AUTONOMOUS)
-!              = 0: F = F(t,y) Depends on T (NON-AUTONOMOUS)
+!    ICNTRL(1)  -> Specify time-dependence of the function to be integrated
+!        =  0 :    F = F(t,y) Depends on T (NON-AUTONOMOUS)
+!        =  1 :    F = F(y)   Independent of T (AUTONOMOUS)
 !
-!    ICNTRL(2)   = 0: AbsTol, RelTol are N-dimensional vectors
-!              = 1:  AbsTol, RelTol are scalars
+!    ICNTRL(2)  -> Specify vector or scalar tolerances
+!        =  0 :    AbsTol, RelTol are N-dimensional vectors
+!        =  1 :    AbsTol, RelTol are scalars
 !
-!    ICNTRL(3)  -> selection of a particular Rosenbrock method
-!        = 0 :  default method is Rodas3
-!        = 1 :  method is  Ros2
-!        = 2 :  method is  Ros3
-!        = 3 :  method is  Ros4
-!        = 4 :  method is  Rodas3
-!        = 5 :  method is  Rodas4
-!        = 7 :  method is  Rodas3.1
+!    ICNTRL(3)  -> Select a particular Rosenbrock method
+!        =  0 :    Rodas3 (default)
+!        =  1 :    Ros2
+!        =  2 :    Ros3
+!        =  3 :    Ros4
+!        =  4 :    Rodas3
+!        =  5 :    Rodas4
+!        =  6 :    Rang3
+!        =  7 :    Rodas3.1
 !
-!    ICNTRL(4)  -> maximum number of integration steps
-!        For ICNTRL(4)=0) the default value of 200000 is used
+!    ICNTRL(4)  -> Specify maximum number of integration steps
+!        =  0 :    Use up to 20000 integration steps (default)
+!        =  X :    Use up to X integration steps (X = any integer)
 !
-!    ICNTRL(12) -> switch for TLM truncation error control
-!        ICNTRL(12) = 0: TLM error is not used
-!        ICNTRL(12) = 1: TLM error is computed and used
+!    ICNTRL(12) -> Switch for TLM truncation error control
+!        =  0 :    TLM error is not used
+!        =  1 :    TLM error is computed and used
 !
-!    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
-!        = -1 :  Do not call Update_* functions within the integrator
-!        =  0 :  Status quo
-!        =  1 :  Call Update_RCONST from within the integrator
-!        =  2 :  Call Update_PHOTO from within the integrator
-!        =  3 :  Call Update_RCONST and Update_PHOTO from w/in the int.
-!        =  4 :  Call Update_SUN from within the integrator
-!        =  5 :  Call Update_SUN and Update_RCONST from within the int.
-!        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
-!        =  7 :  Call Update_SUN, Update_PHOTO, Update_RCONST w/in the int.
+!    ICNTRL(15) -> Toggle calling of Update_* functions w/in the integrator
+!        = -1 :    Do not call Update_* functions within the integrator
+!        =  0 :    Status quo
+!        =  1 :    Call Update_RCONST from within the integrator
+!        =  2 :    Call Update_PHOTO from within the integrator
+!        =  3 :    Call Update_RCONST and Update_PHOTO from w/in the int.
+!        =  4 :    Call Update_SUN from within the integrator
+!        =  5 :    Call Update_SUN and Update_RCONST from within the int.
+!        =  6 :    Call Update_SUN and Update_PHOTO from within the int.
+!        =  7 :    Call Update_SUN, Update_PHOTO, Update_RCONST w/in the int.
 
-!    RCNTRL(1)  -> Hmin, lower bound for the integration step size
-!          It is strongly recommended to keep Hmin = ZERO
+!    RCNTRL(1)  -> Hmin, lower bound for the integration step size.
+!                  It is strongly recommended to keep Hmin = ZERO
+!
 !    RCNTRL(2)  -> Hmax, upper bound for the integration step size
+!
 !    RCNTRL(3)  -> Hstart, starting value for the integration step size
 !
-!    RCNTRL(4)  -> FacMin, lower bound on step decrease factor (default=0.2)
-!    RCNTRL(5)  -> FacMin,upper bound on step increase factor (default=6)
+!    RCNTRL(4)  -> FacMin, lower bound on step decrease factor 
+!                  (default = 0.2)
+!
+!    RCNTRL(5)  -> FacMax, upper bound on step increase factor
+!                  (default = 6)
+!
 !    RCNTRL(6)  -> FacRej, step decrease factor after multiple rejections
-!                       (default=0.1)
+!                  (default = 0.1)
+!
 !    RCNTRL(7)  -> FacSafe, by which the new step is slightly smaller
-!         than the predicted value  (default=0.9)
+!                  than the predicted value  (default=0.9)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
 !~~~>     OUTPUT PARAMETERS:
