@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added macro `DefElmO` in `src/code.h`, which writes a scalar F90 variable with the `OPTIONAL` attribute
 - Added code to `src/gen.c` to add `NonPassiveSpc_Count` and `NonPassiveSpc_Indices` to `ROOT_Global` (only for F90)
 - Added code to `src/gen.c` to filter out passive species if the `PassiveSpc_ATOL_Threshold` optioal argument is passed to `ROOT_Initialize` (F90-only)
-- Added GCC 14 and GCC 15 to the list of compilers used to run C-I tests in GitHub Actions
+- Added GCC 14, 15, and 16 to the list of compilers used to run C-I tests in GitHub Actions
 - Added `F90_ros_passivespc` C-I test to validate filtering out of passive species
 - Added `drv/general_passivespc.f90` driver program, which passes optional `PassiveSpc_ATOL_Threshold` argument to `ROOT_Initialize`
 
