@@ -35,6 +35,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed several emacs font-lock issues in `site-lisp/kpp.el`
 - Fixed `src/gen.c` to avoid generating an uninitialized variable compiler warning
 
+### Removed
+- Removed references to unneccessary `azure-cli` and `microsoft-prod` packages in `.github/workflows/run-ci-tests.yml`
+
 ## [3.4.0] - 2026-04-29
 ### Added
 - Added `Rodas3_1` integration method (with updated coefficents by @msl3v) to `rosenbrock_autoreduce.f90`, `rosenbrock.{c,f90,m}`, `rosenbrock_adj.{c,f90}`, `rosenbrock_tlm.f90`
