@@ -3274,7 +3274,7 @@ int INITVAL, PASV_SPC_ATOL_THRESH;
     // C, FORTRAN-77, MATLAB
     // ---------------------
     // Initialize CFACTOR, VAR, FIX.  Assign values to VAR and FIX
-    // which then point to C (or for F77, are EQUIVALENCEd to C).
+    // which then point to C (or for F77, which are EQUIVALENCEd to C).
     //
     Assign( Elm( X ), Mul( Elm( IV, varDefault ), Elm( CFACTOR ) ) );
     C_Inline("  for( i = 0; i < NVAR; i++ )" );
