@@ -3243,14 +3243,14 @@ int INITVAL, PASV_SPC_ATOL_THRESH;
   WriteComment("~~~ Define scale factor for units");
   WriteAssign( varTable[CFACTOR]->name , ascid( (double)cfactor ) );
   NewLines(1);
-  //
-  // For F90, assign values to C directly (since VAR and FIX now point to C
-  // instead of the other way around).  Otherwise, preserve prior code.
-  //  -- Bob Yantosca (25 Apr 2022)
-  //
+
   if ( useLang == F90_LANG ) {
     //
-    // FORTRAN-90 only
+    // FORTRAN-90
+    // -----------
+    // For F90, assign values to C directly (since VAR and FIX
+    // now point to C instead of the other way around).
+    //  -- Bob Yantosca (25 Apr 2022)
     //
     WriteComment("~~~ Zero C array");
     if ( useDouble )
@@ -3268,43 +3268,13 @@ int INITVAL, PASV_SPC_ATOL_THRESH;
     }
 
     NewLines(1);
-    //
-    // Determine the count and index list of "non-passive" species,
-    // which have an absolute tolerance below a very high threshold.
-    // This will allow us to filter these dummy species out of
-    // e.g. Rosenbrock error norm calculations.  For F90-only.
-    //  -- Bob Yantosca (02 Jul 2026)
-    //
-    WriteComment(
-     "~~~ Determine the count and indices of actual species (as opposed to");
-    WriteComment(
-     "~~~ (""passive"" species used for diagnostics.  Denote passive species");
-    WriteComment(
-     "~~~ as those having ATOL > PassiveSpc_ATOL_Threshold.  If the optional");
-    WriteComment(
-     "~~~ argument PassiveSpc_ATOL_Threshold is not specified, then treat");
-    WriteComment(
-     "~~~ all variable species as non-passive species.");
-    F90_Inline("  NonPassiveSpc_Count   = 0");
-    F90_Inline("  NonPassiveSpc_Indices = 0");
-    F90_Inline("  IF ( PRESENT( PassiveSpc_ATOL_Threshold ) ) THEN");
-    F90_Inline("     DO I = 1, NVAR");
-    F90_Inline("        IF ( ATOL(I) < PassiveSpc_ATOL_Threshold ) THEN");
-    F90_Inline("           NonPassiveSpc_Count = NonPassiveSpc_Count + 1");
-    F90_Inline("           NonPassiveSpc_Indices(NonPassiveSpc_Count) = I");
-    F90_Inline("        ENDIF");
-    F90_Inline("     ENDDO");
-    F90_Inline("  ELSE");
-    F90_Inline("     NonPassiveSpc_Count = NVAR");
-    F90_Inline("     DO I = 1, NVAR");
-    F90_Inline("        NonPassiveSpc_Indices(I) = I");
-    F90_Inline("     ENDDO");
-    F90_Inline("  ENDIF");
-    NewLines(1);
 
   } else {
     //
-    // Initialize CFACTOR, VAR, FIX for C, FORTRAN-77, and MATLAB
+    // C, FORTRAN-77, MATLAB
+    // ---------------------
+    // Initialize CFACTOR, VAR, FIX.  Assign values to VAR and FIX
+    // which then point to C (or for F77, are EQUIVALENCEd to C).
     //
     Assign( Elm( X ), Mul( Elm( IV, varDefault ), Elm( CFACTOR ) ) );
     C_Inline("  for( i = 0; i < NVAR; i++ )" );
@@ -3369,12 +3339,52 @@ int INITVAL, PASV_SPC_ATOL_THRESH;
                  break;
   }
   FlushBuf();
-
+ 
   NewLines(1);
   WriteComment("End inlined code from F90_INIT");
   NewLines(1);
 
   MATLAB_Inline("   VAR = VAR(:);\n   FIX = FIX(:);\n" );
+  //
+  if ( useLang == F90_LANG) {
+    //
+    // FORTRAN-90
+    // ----------
+    // Determine the count and index list of "non-passive" species, which
+    // have an absolute tolerance below a very high threshold.  This will
+    // allow us to filter these dummy species out of e.g. Rosenbrock error
+    // norm calculations.  Place this after the afer the F90_INIT block
+    // to avoid overwriting any inlined ATOL values.
+    //  -- Bob Yantosca (07 Jul 2026)
+    //
+    WriteComment(
+     "~~~ Determine the count and indices of actual species (as opposed to");
+    WriteComment(
+     "~~~ (""passive"" species used for diagnostics.  Denote passive species");
+    WriteComment(
+     "~~~ as those having ATOL > PassiveSpc_ATOL_Threshold.  If the optional");
+    WriteComment(
+     "~~~ argument PassiveSpc_ATOL_Threshold is not specified, then treat");
+    WriteComment(
+     "~~~ all variable species as non-passive species.");
+    F90_Inline("  NonPassiveSpc_Count   = 0");
+    F90_Inline("  NonPassiveSpc_Indices = 0");
+    F90_Inline("  IF ( PRESENT( PassiveSpc_ATOL_Threshold ) ) THEN");
+    F90_Inline("     DO I = 1, NVAR");
+    F90_Inline("        IF ( ATOL(I) < PassiveSpc_ATOL_Threshold ) THEN");
+    F90_Inline("           NonPassiveSpc_Count = NonPassiveSpc_Count + 1");
+    F90_Inline("           NonPassiveSpc_Indices(NonPassiveSpc_Count) = I");
+    F90_Inline("        ENDIF");
+    F90_Inline("     ENDDO");
+    F90_Inline("  ELSE");
+    F90_Inline("     NonPassiveSpc_Count = NVAR");
+    F90_Inline("     DO I = 1, NVAR");
+    F90_Inline("        NonPassiveSpc_Indices(I) = I");
+    F90_Inline("     ENDDO");
+    F90_Inline("  ENDIF");
+    NewLines(1);
+   
+  }
   //
   // Cleanup
   //
@@ -3382,6 +3392,9 @@ int INITVAL, PASV_SPC_ATOL_THRESH;
   FreeVariable( I );
   FunctionEnd( INITVAL );
   FreeVariable( INITVAL );
+  if ( useLang == F90_LANG ) {
+    FreeVariable( PASV_SPC_ATOL_THRESH );
+  }
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
