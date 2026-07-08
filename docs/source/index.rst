@@ -58,16 +58,32 @@ guidelines.  If you find something hard to understand---let us know!
    :caption: Getting Started
    :maxdepth: 2
 
-   getting_started/00_revision_history.rst
-   getting_started/01_installation.rst
-   getting_started/02_running_kpp_sample_mech.rst
+   getting_started/revision_history.rst
+   getting_started/installation.rst
+   getting_started/running_kpp_sample_mech.rst
 
 .. toctree::
-   :caption: Using KPP
-   :maxdepth: 2
+   :caption: Input for KPP
+   :maxdepth: 3
 
-   using_kpp/04_input_for_kpp.rst
-   using_kpp/05_output_from_kpp.rst
+   using_kpp/input_overview.rst
+   using_kpp/kpp_sections.rst
+   using_kpp/kpp_commands.rst
+   using_kpp/inlined_code.rst
+   using_kpp/auxiliary_files.rst
+   using_kpp/controlling_the_integrator.rst
+   using_kpp/filter-passive-spc.rst
+
+.. toctree::
+   :caption: Output from KPP
+   :maxdepth: 3
+
+   using_kpp/code_f90.rst
+   using_kpp/code_c.rst
+   using_kpp/code_matlab.rst
+   using_kpp/makefile.rst
+   using_kpp/log_file.rst
+   using_kpp/output_from_integrators.rst
 
 .. toctree::
    :caption: Technical information
