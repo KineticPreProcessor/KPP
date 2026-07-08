@@ -13,7 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - TBD
 ### Changed
-- Updaed `int/lsode.f90` to be OpenMP thread-safe
+- Updated `int/lsode.f90` to be OpenMP thread-safe
+- Declared STEPMIN as threadprivate in the created `ROOT_Global.f90` and `ROOT_Global.F90` files
 
 ## [3.5.0] - 2026-07-09
 ### Added

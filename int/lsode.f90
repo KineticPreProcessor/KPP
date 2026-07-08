@@ -3,17 +3,29 @@
 !  By default the code employs the KPP sparse linear algebra routines     !
 !  Compile with -DFULL_ALGEBRA to use full linear algebra (LAPACK)        !
 !                                                                         !
-!  THREAD-SAFE VERSION for OpenMP parallelisation                         !
-!  Key change: COMMON /DLS001/ removed; all state variables are now       !
-!  LOCAL to each call of DLSODE (stack allocation).  Internal procedures  !
-!  access host variables via Fortran host-association instead of COMMON.  !
-!  This guarantees bitwise-identical results regardless of thread count.  !
+!  A. Sandu - version of July 2005                                        !
+!                                                                         !
+!  plus                                                                   !
+!                                                                         !
+!  THREAD-SAFE MODIFICATIONS for OpenMP parallelization:                  !
+!                                                                         !
+!  (1) COMMON /DLS001/ removed; all state variables are now LOCAL to      !
+!      each call of DLSODE (stack allocation).  Internal procedures       !
+!      access host variables via Fortran host-association instead of      !
+!      COMMON.  This guarantees bitwise-identical results regardless of   !
+!      thread count. across DLSODE and all its internal procedures.       !
+!                                                                         !
+!  (2) LUNIT and MESFLG (in routine IXSAV) have been declared as          !
+!      THREADPRIVATE.  These variables still have static storage shared   !
+!      across all threads/calls despite the COMMON /DLS001/ removal       !
+!      above.                                                             !
+!                                                                         !
+!  (3) STEPMIN in KPP_ROOT_Global has now been declared THREADPRIVATE     !
+!      (see gen.c), since INTEGRATE() writes it on every call and some    !
+!      integrators read it back as the next call's Hstart.                !
+!                                                                         !
+!  -- Bob Yantosca (with Claude AI), 08 Jul 2026                          !
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
-! A. Sandu - version of July 2005
-!
-! Thread-safe refactoring: based on analysis of COMMON /DLS001/ 
-! usage  across DLSODE and all its internal procedures.
-!  -- Bob Yantosca (with Claude AI), 23 Apr 2026
 
 MODULE KPP_ROOT_Integrator
 
@@ -30,14 +42,17 @@ MODULE KPP_ROOT_Integrator
 !~~~> Flags to determine if we should call the UPDATE_* routines from within
 !~~~> the integrator.  If using KPP in an external model, you might want to
 !~~~> disable these calls (via ICNTRL(15)) to avoid excess computations.
-!
-!  THREAD-SAFETY CHANGE: these three flags are now THREADPRIVATE so that
-!  each OpenMP thread has its own independent copy.  INTEGRATE sets them
-!  at the start of every call, so no COPYIN clause is needed.
+!~~~>
+!~~~> THREAD-SAFETY CHANGE: these three flags are now THREADPRIVATE so that
+!~~~> each OpenMP thread has its own independent copy.  INTEGRATE sets them
+!~~~> at the start of every call, so no COPYIN clause is needed.
+!~~~>   -- Bob Yantosca (with Claude AI), 08 Jul 2026     
   LOGICAL, PRIVATE :: Do_Update_RCONST
+  !$OMP THREADPRIVATE( Do_Update_RCONST )
   LOGICAL, PRIVATE :: Do_Update_PHOTO
+  !$OMP THREADPRIVATE( Do_Update_PHOTO  )
   LOGICAL, PRIVATE :: Do_Update_SUN
-  !$OMP THREADPRIVATE( Do_Update_RCONST, Do_Update_PHOTO, Do_Update_SUN )
+  !$OMP THREADPRIVATE( Do_Update_SUN    )
 
   !~~~>  Statistics on the work performed by the LSODE method
   INTEGER :: Nfun,Njac,Nstp,Nacc,Nrej,Ndec,Nsol,Nsng
@@ -297,6 +312,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !  this version.  In the KPP framework DLSODE is always called fresh
 !  with ISTATE=1, so this is not a practical restriction.
 !  If continuation is ever needed, save/restore state with DSRCOM.
+!    -- Bob Yantosca (with Claude AI), 08 Jul 2026
 !
       EXTERNAL F, JAC
       INTEGER NEQ, ITOL, ITASK, ISTATE, IOPT, LRW, LIW, IWORK(LIW), MF
@@ -1311,7 +1327,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !     now declared as local variables in the DLSODE routine, which
 !     are accessible to other routines CONTAINed by DLSODE by
 !     Fortran host-association.
-!       -- Bob Yantosca, with Claude AI (23 Apr 2026)
+!       -- Bob Yantosca, with Claude AI (08 Jul 2026)
 !
 !                                                                       
 !              Part 4.  Optionally Replaceable Solver Routines          
@@ -1443,7 +1459,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 ! 20031105  Restored 'own' variables to Common block /DLS001/, to       
 !           enable interrupt/restart feature. (ACH)                     
 ! 20031112  Added SAVE statements for data-loaded constants.            
-! 20260423  (Thread-safe) COMMON /DLS001/ replaced by host association.
+! 20260806  (Thread-safe) COMMON /DLS001/ replaced by host association.
 !***END PROLOGUE  DLSODE                  
 !
 !*Internal Notes:
@@ -2256,7 +2272,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !   031105  Restored 'own' variables to Common block /DLS001/, to       
 !           enable interrupt/restart feature. (ACH)                     
 !   050427  Corrected roundoff decrement in TP. (ACH)
-! 20260423  (Thread-safe) COMMON /DLS001/ replaced by host association.
+! 20260806  (Thread-safe) COMMON /DLS001/ replaced by host association.
 !***END PROLOGUE  DINTDY
 !**End
       INTEGER K, NYH, IFLAG
@@ -2372,7 +2388,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !   010418  Reduced size of Common block /DLS001/. (ACH)                
 !   031105  Restored 'own' variables to Common block /DLS001/, to       
 !           enable interrupt/restart feature. (ACH)       
-! 20260423 (Thread-safe) COMMON /DLS001/ replaced by host association.
+! 20260806 (Thread-safe) COMMON /DLS001/ replaced by host association.
 !***END PROLOGUE  DPREPJ
 !**End
       EXTERNAL F, JAC
@@ -2472,7 +2488,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !   010418  Reduced size of Common block /DLS001/. (ACH)                
 !   031105  Restored 'own' variables to Common block /DLS001/, to       
 !           enable interrupt/restart feature. (ACH)        
-! 20260423 (Thread-safe) COMMON /DLS001/ replaced by host association.
+! 20260806 (Thread-safe) COMMON /DLS001/ replaced by host association.
 !***END PROLOGUE  DSOLSY
 !**End
       INTEGER IWM(*)
@@ -2508,6 +2524,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !  Continuation (ISTATE = 2 or 3) is not supported by this thread-safe
 !  version.  In the KPP framework DLSODE is always entered with
 !  ISTATE = 1, so this restriction has no practical impact.
+!    -- Bob Yantosca (with Claude AI), 08 Jul 2026
 !
 !***SEE ALSO  DLSODE
 !***REVISION HISTORY  (YYMMDD)
@@ -2522,7 +2539,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !   031105  Restored 'own' variables to Common block /DLS001/, to       
 !           enable interrupt/restart feature. (ACH)                     
 !   031112  Added SAVE statement for data-loaded constants.    
-! 20260423  (Thread-safe) Converted to no-op; COMMON /DLS001/ eliminated.
+! 20260806  (Thread-safe) Converted to no-op; COMMON /DLS001/ eliminated.
 !***END PROLOGUE  DSRCOM
 !**End
       INTEGER ISAV(*), JOB
@@ -2625,7 +2642,7 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !   010418  Reduced size of Common block /DLS001/. (ACH)                
 !   031105  Restored 'own' variables to Common block /DLS001/, to       
 !           enable interrupt/restart feature. (ACH)        
-! 20260423  (Thread-safe) COMMON /DLS001/ replaced by host association.
+! 20260806  (Thread-safe) COMMON /DLS001/ replaced by host association.
 !***END PROLOGUE  DSTODE
 !**End
       EXTERNAL F, JAC !, PJAC, SLVS
@@ -3347,11 +3364,21 @@ SUBROUTINE INTEGRATE( TIN,       TOUT,      ICNTRL_U, RCNTRL_U,  &
 !-----------------------------------------------------------------------
       INTEGER LUNIT, MESFLG!, IUMACH
 !-----------------------------------------------------------------------
-! The following Fortran-77 declaration is to cause the values of the    
-! listed (local) variables to be saved between calls to this routine.   
+! The following Fortran-77 declaration is to cause the values of the
+! listed (local) variables to be saved between calls to this routine.
 !-----------------------------------------------------------------------
-      SAVE LUNIT, MESFLG 
-      DATA LUNIT/-1/, MESFLG/1/ 
+      SAVE LUNIT, MESFLG
+      DATA LUNIT/-1/, MESFLG/1/
+      ! THREAD-SAFETY NOTE: LUNIT/MESFLG have the SAVE attribute, 
+      ! which them static storage shared by every thread and every 
+      ! call, regardless of the fact that IXSAV is nested inside 
+      ! DLSODE.  XERRWD reads them via IXSAV on every error or 
+      ! warning path, so two threads hitting an error condition 
+      ! concurrently would race on this state.   Declaring them 
+      ! THREADPRIVATE gives each OpenMP thread its own persistent 
+      ! copy instead. 
+      !   -- Bob Yantosca (with Claude AI), 08 Jul 2026
+      !$OMP THREADPRIVATE( LUNIT, MESFLG )
 !                                                                       
 !***FIRST EXECUTABLE STATEMENT  IXSAV                                   
       IF (IPAR .EQ. 1) THEN 
