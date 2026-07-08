@@ -52,6 +52,7 @@ void (*DeclareConstant)( int v, char *val );
 void (*FunctionStart)( int f, int *vars );
 void (*FunctionPrototipe)( int f, ... );
 void (*FunctionBegin)( int f, ... );
+void (*FunctionBeginNoArgDecl)( int f, ... );
 void (*FunctionEnd)( int f );
 
 // Local definitions of function prototypes just for code.c

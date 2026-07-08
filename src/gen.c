@@ -147,12 +147,11 @@ int i,j;
 
   /* PI      = DefConst( "PI",     real, "Value of pi" ); */
 
-//============================================================================
-// MODIFICATION by Bob Yantosca (25 Apr 2022)
-//
-// For Fortran-90, declare VAR and FIX as POINTER variables, which will
-// allow us to remove the non-threadsafe EQUIVALENCE statements.
-//
+  //
+  // For Fortran-90, declare VAR and FIX as POINTER variables, which will
+  // allow us to remove the non-threadsafe EQUIVALENCE statements.
+  //  -- Bob Yantosca (25 Apr 2022)
+  //
   if ( useLang == F90_LANG ) {
     VAR = DefvElmP( "VAR", real,
                     "Concentrations of variable species (global)" );
@@ -163,8 +162,8 @@ int i,j;
                    "Concentrations of variable species (global)" );
     FIX = DefvElm( "FIX", real, -NFIX,
                    "Concentrations of fixed species (global)" );
-}
-//============================================================================
+  }
+
   V = DefvElm( "V", real, -NVAR, "Concentrations of variable species (local)" );
   F = DefvElm( "F", real, -NFIX, "Concentrations of fixed species (local)" );
 
@@ -245,18 +244,18 @@ int i,j;
   IV = DefeElm( "IV", 0 );
 
   C_DEFAULT = DefvElm( "C_DEFAULT", real, -NSPEC, "Default concentration for all species" );
-//============================================================================
-// MODIFICATION by Bob Yantosca (25 Apr 2002)
-// For Fortran-90, declare C with the TARGET attribute.  This will allow
-// VAR and FIX to point to C, which will let us remove the non-threadsafe
-// EQUIVALENCE statements.
-//
+  //
+  // For Fortran-90, declare C with the TARGET attribute.  This will allow
+  // VAR and FIX to point to C, which will let us remove the non-threadsafe
+  // EQUIVALENCE statements.
+  //  -- Bob Yantosca (25 Apr 2022)
+  //
   if ( useLang == F90_LANG ) {
     C = DefvElmT( "C", real, -NSPEC, "Concentration of all species" );
   } else {
     C = DefvElm( "C", real, -NSPEC, "Concentration of all species" );
   }
-//============================================================================
+
   CL = DefvElm( "CL", real, -NSPEC, "Concentration of all species (local)" );
   ATOL = DefvElm( "ATOL", real, -NVAR, "Absolute tolerance" );
   RTOL = DefvElm( "RTOL", real, -NVAR, "Relative tolerance" );
@@ -279,8 +278,9 @@ int i,j;
   FAM_NAMES  = DefvElm( "FAM_NAMES", STRING, -NFAM, "Names of chemical familes" );
 
   CFACTOR  = DefElm( "CFACTOR", real, "Conversion factor for concentration units");
-
-  /* Autoreduction structures */
+  //
+  // Autoreduction structures
+  //
   NVARP1        = DefConst( "NVAR+1",  INT, "Number of Variable species + 1" );
   DO_JVS        = DefvElm("DO_JVS", LOGICAL, -LU_NONZERO, "");
   DO_SLV        = DefvElm("DO_SLV", LOGICAL, -NVARP1    , "");
@@ -300,8 +300,9 @@ int i,j;
 
   Aout = DefvElmO( "Aout", real, -NREACT,
                    "Optional argument to return equation rate constants" );
-
-  /* Elements of Stochastic simulation*/
+  //
+  // Elements of Stochastic simulation
+  //
   NMLCV = DefvElm( "NmlcV", INT, -NVAR, "No. molecules of variable species" );
   NMLCF = DefvElm( "NmlcF", INT, -NFIX, "No. molecules of fixed species" );
   SCT   = DefvElm( "SCT",  real, -NREACT, "Stochastic rate constants" );
@@ -312,8 +313,9 @@ int i,j;
   for ( i=0; i<EqnNr; i++ )
     for ( j=0; j<SpcNr; j++ )
       structB[i][j] = ( Stoich_Left[j][i] != 0 ) ? 1 : 0;
-
-  /* Constant values are useful to declare vectors of this size */
+  //
+  // Constant values are useful to declare vectors of this size
+  //
   if (useDeclareValues) {
     varTable[ NSPEC ]   -> value  = max(SpcNr,1);
     varTable[ NVAR  ]   -> value  = max(VarNr,1);
@@ -648,13 +650,14 @@ int F_VAR, FSPLIT_VAR;
 
   if (useLang != MATLAB_LANG)  /* Matlab generates an additional file per function */
        UseFile( functionFile );
-
+  //
   // Note: When changing the FunctionBegin declarations below,
   // the number of arguments minus one must be changed in DefFnc here
   // as well. (hplin, 7/6/22)
   // 
   // For F90, add an extra argument to Fun and Fun_Split to return
   // the Aout array. (hplin, bmy, 30 Apr 2024)
+  //
   if (useLang == F90_LANG) {
     F_VAR = DefFnc("Fun", 5,
 		   "time derivatives of variables - Aggregate form");
@@ -666,7 +669,7 @@ int F_VAR, FSPLIT_VAR;
     FSPLIT_VAR = DefFnc("Fun_SPLIT", 6,
                         "time derivatives of variables - Split form");
   }
-
+  //
   // We have added the capability to return equation rates and the
   // time derivative of variable species from Fun via optional arguments
   // Aout and VdotOut (when z_useAggregate=1)
@@ -675,6 +678,7 @@ int F_VAR, FSPLIT_VAR;
   // Vdotout functionality can be accomplished using Vdot (hplin, 7/6/22)
   //
   // F90 needs Fun to have an extra argument for Aout (hplin, bmy, 30 Apr 2024)
+  //
   if( z_useAggregate ) {
     if (useLang == F90_LANG) {
       FunctionBegin( F_VAR, V, F, RCT, Vdot, Aout );\
@@ -733,9 +737,10 @@ int F_VAR, FSPLIT_VAR;
       Assign( Elm( A, j ), prod );
     }
   }
-
+  //
   // Add code to return equation rates via optional argument Aout
   //   -- Bob Yantosca (29 Apr 2022)
+  //
   NewLines(1);
   if ( useLang == F90_LANG ) {
     fprintf(functionFile, "  !### Use Aout to return equation rates\n");
@@ -789,8 +794,9 @@ int F_VAR, FSPLIT_VAR;
       if( doAutoReduce ) F90_Inline("IF (DO_FUN(%d)) &",i+1);
       Assign( Elm( D_VAR, i ), sum );
     }
-
+    //
     // Add code to calculate Vdot also for split function:
+    //
     NewLines(1);
     if ( useLang == F90_LANG ) {
       // For F90, we can do operations on arrays:
@@ -813,8 +819,11 @@ int F_VAR, FSPLIT_VAR;
 
   FreeVariable( F_VAR );
   FreeVariable( FSPLIT_VAR );
-
-  /** hplin 4/10/22 add FUN_Split2 which overrides DO_FUN. only used for 1st order-autoreduce **/
+  //
+  // hplin 4/10/22
+  // add FUN_Split2 which overrides DO_FUN.
+  // only used for 1st order-autoreduce
+  //
   if(!z_useAggregate && doAutoReduce) {
     /* add a copy of FSPLIT that does not react to DO_FUN() */
     fprintf(functionFile, "! ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
@@ -2339,23 +2348,25 @@ int YIN, Y;
 
   UseFile( rateFile );
 
-  if (useLang==F90_LANG) {
+  if ( useLang==F90_LANG ) {
     //
-    // SPECIAL HANDLING FOR F90:
-    // -------------------------
-    // Manually write the "SUBROUTINE RCONST ( YIN )" line instead of
-    // using the FunctionBegin( UPDATE_RCONST ).  This will allow us
-    // to add any inlined F90 use statements immediately afterwards.
-    // Recall that F90 "USE" statements must precede variable
-    // declarations or any other executable statements, or else a
-    // compilation error will be generated.
+    // SPECIAL HANDLING FOR FORTRAN-90
+    // -------------------------------
+    // Use FunctionBeginNoArgDecl to create the subroutine interface.
+    // Then manually declare subroutine arguments after inlining USE
+    // statements from the F90_RCONST_USE section.  This will avoid
+    // compile-time errors caused by variable declarations preceding
+    // USE statements.
+    //    -- Bob Yantosca (02 Jul 2026)
     //
-    //    -- Bob Yantosca (19 Dec 2024)
+    UPDATE_RCONST = DefFnc( "Update_RCONST", 1,
+			    "function to update rate constants");
+    YIN = DefvElmO( "YIN", real, -NVAR,
+		    "Optional input concentrations of variable species" );
+    FunctionBeginNoArgDecl( UPDATE_RCONST, YIN );
     //
-    bprintf("SUBROUTINE Update_RCONST ( YIN )");
-    NewLines(2);
-
-    // Inline USE statements right after the subroutine declaration
+    // Inline USE statements immediately following the subroutine interface
+    //
     WriteComment("Begin inlined code from F90_RCONST_USE");
     NewLines(1);
     bprintf( InlineCode[ F90_RCONST_USE ].code );
@@ -2363,35 +2374,41 @@ int YIN, Y;
     NewLines(1);
     WriteComment("End inlined code from F90_RCONST_USE");
     NewLines(1);
-
-    // Declare optional YIN argument
-    YIN = DefvElmO( "YIN", real, -NVAR, "Optional input concentrations of variable species" );
+    //
+    // Declare optional YIN argument after USE statements are inlined
+    //
     Declare(YIN);
     NewLines(1);
-
+    //
     // Declare local Y variable
+    //
     Y = DefvElm( "Y", real, -NSPEC, "Concentrations of species (local)" );
     Declare(Y);
     NewLines(1);
-
+    //
     // Copy values of YIN to Y if YIN is present
+    //
     WriteComment("Ensure local Y array is filled with variable and constant concentrations");
-    bprintf("  Y(1:NSPEC) = C(1:NSPEC)\n");
+    F90_Inline("  Y(1:NSPEC) = C(1:NSPEC)");
     NewLines(1);
     WriteComment("Update local Y array if variable concentrations are provided");
-    bprintf("  if (present(YIN)) Y(1:NVAR) = YIN(1:NVAR)\n");
+    F90_Inline("  if (present(YIN)) Y(1:NVAR) = YIN(1:NVAR)\n");
     NewLines(1);
-
-    // Zero the UPDATE_RCONST to avoid compiler warnings
-    UPDATE_RCONST = 0;
   } else {
     //
-    // For other languages, declare function w/o any arguments
+    // C, FORTRAN-77, MATLAB
+    // ---------------------
+    // Declare UPDATE_RCONST function without any arguments
     //
-    UPDATE_RCONST = DefFnc( "Update_RCONST", 0, "function to update rate constants");
+    UPDATE_RCONST = DefFnc( "Update_RCONST", 0,
+			    "function to update rate constants");
     FunctionBegin( UPDATE_RCONST );
- }
-
+    YIN = 0;
+    Y = 0;
+  }
+  //
+  // Inline F77 and MATLAB include files
+  //
   F77_Inline("      INCLUDE '%s_Global.h'", rootFileName);
   MATLAB_Inline("global SUN TEMP RCONST");
 
@@ -2399,28 +2416,31 @@ int YIN, Y;
       IncludeCode( "%s/util/UserRateLaws_FcnHeader", Home );
 
   NewLines(1);
-
+  //
   // Inline code from {C,F77,F90_MATLAB}_RCONST inline keys
+  //
   NewLines(1);
   WriteComment("Begin inlined code from F90_RCONST");
   NewLines(1);
 
   switch( useLang ) {
-    case C_LANG:  bprintf( InlineCode[ C_RCONST ].code );
-                 break;
-    case F77_LANG: bprintf( InlineCode[ F77_RCONST ].code );
-                 break;
-    case F90_LANG: bprintf( InlineCode[ F90_RCONST ].code );
-                 break;
+    case C_LANG:      bprintf( InlineCode[ C_RCONST ].code );
+                      break;
+    case F77_LANG:    bprintf( InlineCode[ F77_RCONST ].code );
+                      break;
+    case F90_LANG:    bprintf( InlineCode[ F90_RCONST ].code );
+                      break;
     case MATLAB_LANG: bprintf( InlineCode[ MATLAB_RCONST ].code );
-                 break;
+                      break;
   }
   FlushBuf();
 
   NewLines(1);
   WriteComment("End inlined code from F90_RCONST");
   NewLines(1);
-
+  //
+  // Inline the reaction rate coefficients
+  //
   for( i = 0; i < EqnNr; i++) {
     /*  mz_rs_20220701+ */
     if (useEqntags==1) {
@@ -2440,20 +2460,13 @@ int YIN, Y;
 
   MATLAB_Inline("   RCONST = RCONST(:);");
   //
-  // SPECIAL HANDLING FOR F90:
-  // -------------------------
-  // Manually write the "END SUBROUTINE UPDATE_RCONST" line when
-  // generating F90 output.  But if generating C, F77, MatLab output,
-  // then close the UPDATE_RCONST routine as we normally would.
-  //   -- Bob Yantosca (19 Dec 2024)
+  // Cleanup
   //
-  if (useLang == F90_LANG) {
-    NewLines(1);
-    bprintf("END SUBROUTINE UPDATE_RCONST");
-    NewLines(1);
-  } else {
-    FunctionEnd( UPDATE_RCONST );
-    FreeVariable( UPDATE_RCONST );
+  FunctionEnd( UPDATE_RCONST );
+  FreeVariable( UPDATE_RCONST );
+  if ( useLang == F90_LANG ) {
+    FreeVariable( YIN );
+    FreeVariable( Y );
   }
 }
 
@@ -2476,6 +2489,7 @@ int UPDATE_PHOTO;
     // SPECIAL HANDLING FOR F90:
     // -------------------------
     // Inline USE statements right after the subroutine declaration
+    //
     WriteComment("Begin inlined code from F90_RCONST_USE");
     NewLines(1);
     bprintf( InlineCode[ F90_RCONST_USE ].code );
@@ -2708,26 +2722,42 @@ int j,dummy_species;
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 void GenerateGlobalHeader()
 {
+  //
+  // Modify code to inline the F77/F90 THREADPRIVATE declarations, and also
+  // declare extra arrays and scalars.  These declarations begin with a
+  // comment character and will be ignored unless the Fortran-90 code is
+  // compiled with OpenMP.
+  //  -- Bob Yantosca (26 Mar 2021)
+  //
+  // Define a flag to denote if we are using Fortran (either F90 or F77)
+  //
   int useFortran;
-
-//===========================================================================
-// MODIFICATION: Bob Yantosca (26 Mar 2021)
-//
-// Modify code to inline the F77/F90 THREADPRIVATE declarations, and also
-// declare extra arrays and scalars.  These declarations begin with a
-// comment character and will be ignored unless the Fortran-90 code is
-// compiled with OpenMP.
-//===========================================================================
-
-  /*** Define a flag to denote if we are using F90 or F77 ***/
   if ( useLang == F90_LANG || useLang == F77_LANG ) { useFortran = 1; }
   else                                              { useFortran = 0; }
-
+  //
+  // Define variables that will allow us to exclude "passive" species (those
+  // added to reactions for diagnostic purposes), for Fortran90 only.
+  //   -- Bob Yantosca (02 Jul 2026)
+  //
+  int NON_PASV_SPC_CT, NON_PASV_SPC_IND;
+  if ( useLang == F90_LANG ) {
+    NON_PASV_SPC_CT = DefElm( "NonPassiveSpc_Count", INT,
+			      "Number of non-passive species in mechanism" );
+    NON_PASV_SPC_IND = DefvElm( "NonPassiveSpc_Indices", INT, -NVAR,
+				"Indices of non-passive species in mechanism" );
+  } else {
+    NON_PASV_SPC_CT = 0;
+    NON_PASV_SPC_IND = 0;
+  }
+  //
+  // Initialize
+  //
   UseFile( global_dataFile );
 
   CommonName = "GDATA";
-
-  /*** Write comment header ***/
+  //
+  // Write comment header
+  //
   NewLines(1);
   WriteComment("Declaration of global variables");
   if ( useFortran ) {
@@ -2753,12 +2783,14 @@ void GenerateGlobalHeader()
       "~~~ with OpenMP parallelization turned on.");
   }
   NewLines(1);
-
-  /*** Declare C, concentration array ***/
+  //
+  // Declare C, concentration array
+  //
   ExternDeclare( C );
   if ( useFortran ) { WriteOMPThreadPrivate("C"); }
-
-  /*** Declare VAR and FIX for F90 (these are now pointers!) ***/
+  //
+  // Declare VAR and FIX for F90 (these are now pointers!)
+  //
   if ( useLang == F90_LANG ) {
     ExternDeclare( VAR );
     WriteOMPThreadPrivate("VAR");
@@ -2766,9 +2798,10 @@ void GenerateGlobalHeader()
     ExternDeclare( FIX );
     WriteOMPThreadPrivate("FIX");
   }
-
-  /*** Declare VAR and fix for F77                             ***/
-  /*** We need to keep the EQUIVALENCE statement for F77 only! ***/
+  //
+  // Declare VAR and fix for F77
+  // We need to keep the EQUIVALENCE statement for F77 only!
+  //
   if ( useLang == F77_LANG ) {
     Declare( VAR );
     WriteOMPThreadPrivate("VAR");
@@ -2783,20 +2816,23 @@ void GenerateGlobalHeader()
                  varTable[C]->name, VarNr+1, varTable[FIX]->name );
     }
   }
-
-  /*** Declare VAR and FIX for MatLab ***/
+  //
+  // Declare VAR and FIX for MatLab
+  //
   if ( useLang == MATLAB_LANG ) {
     ExternDeclare( VAR );
     ExternDeclare( FIX );
   }
-
-  /*** Declare VAR and FIX for C with the extern property ***/
+  //
+  // Declare VAR and FIX for C with the extern property
+  //
   if ( useLang == C_LANG ) {
     C_Inline("  extern %s * %s;", C_types[real], varTable[VAR]->name );
     C_Inline("  extern %s * %s;", C_types[real], varTable[FIX]->name );
   }
-
-  /*** Declare all other threadprivate variables ***/
+  //
+  // Declare all other threadprivate variables
+  //
   ExternDeclare( RCONST );
   if ( useFortran ) { WriteOMPThreadPrivate("RCONST"); }
 
@@ -2808,8 +2844,9 @@ void GenerateGlobalHeader()
 
   ExternDeclare( TEMP );
   if ( useFortran ) { WriteOMPThreadPrivate("TEMP"); }
-
-  /*** Declare non-threadprivate variables ***/
+  //
+  // Declare non-threadprivate variables
+  //
   NewLines(1);
   if ( useFortran ) {
     WriteComment(
@@ -2826,7 +2863,50 @@ void GenerateGlobalHeader()
   ExternDeclare( RTOL );
   ExternDeclare( STEPMIN );
   ExternDeclare( STEPMAX );
+  //
+  // Declare variables that can be used to exclude "passive" species
+  // from the Rosenbrock error norm and other computations (F90-only).
+  //   -- Bob Yantosca (02 Jul 2026)
+  //
+  if ( useLang == F90_LANG ) {
+    ExternDeclare( NON_PASV_SPC_CT );
+    ExternDeclare( NON_PASV_SPC_IND );
+  }
+  //
+  // Declare other variables
+  //
+  ExternDeclare( CFACTOR );
+  if (useStochastic)
+      ExternDeclare( VOLUME );
+
+  CommonName = "INTGDATA";
+  if ( useHessian ) {
+     ExternDeclare( DDMTYPE );
+  }
+
+  if ( (useLang == C_LANG) || (useLang == F77_LANG) ) {
+     CommonName = "INTGDATA";
+     ExternDeclare( LOOKAT );
+     ExternDeclare( MONITOR );
+     CommonName = "CHARGDATA";
+     ExternDeclare( SPC_NAMES );
+     ExternDeclare( SMASS );
+     ExternDeclare( EQN_NAMES );
+     ExternDeclare( EQN_TAGS );
+     ExternDeclare( FAM_NAMES );
+  }
+  //
+  // Special section for rosenbrock_autoreduce integrator variables (F90-only)
+  // Move this below the non-threadprivate variables.
+  //   -- Bob Yantosca (02 Jul 2026)
+  //
   if (doAutoReduce) {
+
+    NewLines(1);
+    WriteComment(
+     "~~~ Variables for the ""rosenbrock_autoreduce"" integrator");
+    NewLines(1);
+
     ExternDeclare(DO_JVS);
     ExternDeclare(DO_SLV);
     ExternDeclare(DO_FUN);
@@ -2846,28 +2926,9 @@ void GenerateGlobalHeader()
     WriteOMPThreadPrivate(" DO_JVS, DO_SLV, DO_FUN, cLU_IROW, cLU_ICOL, cLU_CROW");
     WriteOMPThreadPrivate(" cLU_DIAG, JVS_MAP, SPC_MAP, iSPC_MAP, RMV, rNVAR, cNONZERO, KEEPACTIVE "); /* msl_20160419 */
   }
-  ExternDeclare( CFACTOR );
-  if (useStochastic)
-      ExternDeclare( VOLUME );
-
-  CommonName = "INTGDATA";
-  if ( useHessian ) {
-     ExternDeclare( DDMTYPE );
-  }
-
-
-  if ( (useLang == C_LANG) || (useLang == F77_LANG) ) {
-     CommonName = "INTGDATA";
-     ExternDeclare( LOOKAT );
-     ExternDeclare( MONITOR );
-     CommonName = "CHARGDATA";
-     ExternDeclare( SPC_NAMES );
-     ExternDeclare( SMASS );
-     ExternDeclare( EQN_NAMES );
-     ExternDeclare( EQN_TAGS );
-     ExternDeclare( FAM_NAMES );
-  }
-
+  //
+  // Inline code from the F90_GLOBAL section here
+  //
   NewLines(1);
   WriteComment("Begin inlined code from F90_GLOBAL");
 
@@ -2882,10 +2943,16 @@ void GenerateGlobalHeader()
                  break;
   }
   FlushBuf();
-
+  //
+  // Cleanup
+  //
   NewLines(1);
   WriteComment("End inlined code from F90_GLOBAL");
   NewLines(1);
+  if ( useLang == F90_LANG ) {
+    FreeVariable( NON_PASV_SPC_CT );
+    FreeVariable( NON_PASV_SPC_IND );
+  }
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -3106,40 +3173,84 @@ void GenerateInitialize()
 {
 int i;
 int I, X;
-int INITVAL;
+int INITVAL, PASV_SPC_ATOL_THRESH;
 
   if ( (useLang==C_LANG)||(useLang==F77_LANG)||(useLang==F90_LANG) )
       UseFile( initFile );
 
-  INITVAL    = DefFnc( "Initialize",    0, "function to initialize concentrations");
-  FunctionBegin( INITVAL );
+  if ( useLang == F90_LANG ) {
+    //
+    // SPECIAL HANDLING FOR FORTRAN-90
+    // -------------------------------
+    // Pass the optional "PassiveSpc_ATOL_Threshold" variable to the
+    // F90 Initialize routine.  This will allow the user to specify
+    // an absolute tolerance threshold that will be used to filter out
+    // "passive" species (i.e. species added to reactions for diagnostic
+    // purposes).
+    //
+    // Use FunctionBeginNoArgDecl to declare the subroutine interface.
+    // Then manually insert the subroutine argument declarations below
+    // all USE statements.  This will avoid compile-time errors caused
+    // by variable declarations preceding USE statements.
+    //   -- Bob Yantosca (02 Jul 2026)
+    //
+    INITVAL = DefFnc( "Initialize", 1,
+		      "function to initialize concentrations");
+    PASV_SPC_ATOL_THRESH = DefElmO( "PassiveSpc_ATOL_Threshold", real,
+			        "Species with ATOL > this value are passive");
+    FunctionBeginNoArgDecl( INITVAL, PASV_SPC_ATOL_THRESH );
+  } else {
+    //
+    // C, FORTRAN-77, MATLAB
+    // ---------------------
+    // Do not declare any subroutine arguments
+    //
+    INITVAL = DefFnc( "Initialize", 0,
+		      "function to initialize concentrations");
+    PASV_SPC_ATOL_THRESH = 0;
+    FunctionBegin( INITVAL );
+  }
+  //
+  // Inline include statements and/or USE statements
+  //
   F77_Inline("      INCLUDE '%s_Global.h'", rootFileName);
   F90_Inline("  USE %s_Global\n", rootFileName);
   MATLAB_Inline("global CFACTOR VAR FIX NVAR NFIX", rootFileName);
 
   F77_Inline("      INCLUDE '%s_Parameters.h'", rootFileName);
   F90_Inline("  USE %s_Parameters\n", rootFileName);
-
+  //
+  // Manually declare F90 function arguments after USE statements
+  // so as to avoid any compile-time errors.
+  //  -- Bob Yantosca (02 Jul 2026)
+  //
+  if ( useLang == F90_LANG ) {
+    Declare( PASV_SPC_ATOL_THRESH );
+    NewLines(1);
+  }
+  //
+  // Declare local variables
+  //
+  WriteComment("~~~ Local variables");
   I = DefElm( "i", INT, 0);
   X = DefElm( "x", real, 0);
   Declare( I );
   Declare( X );
-
+  //
+  // Assign CFACTOR
+  //
   NewLines(1);
   WriteComment("~~~ Define scale factor for units");
   WriteAssign( varTable[CFACTOR]->name , ascid( (double)cfactor ) );
   NewLines(1);
 
-  //=========================================================================
-  // MODIFICATION by Bob Yantosca (25 Apr 2022)
-  //
-  // For F90, assign values to C directly (since VAR and FIX now point to C
-  // instead of the other way around).  Otherwise, preserve prior code.
-  //=========================================================================
   if ( useLang == F90_LANG ) {
-
     //
-    // Fortran-90
+    // FORTRAN-90
+    // -----------
+    // For F90, assign values to C directly (since VAR and FIX
+    // now point to C instead of the other way around).
+    //  -- Bob Yantosca (25 Apr 2022)
     //
     WriteComment("~~~ Zero C array");
     if ( useDouble )
@@ -3159,9 +3270,11 @@ int INITVAL;
     NewLines(1);
 
   } else {
-
     //
-    // Fortran-77, C, and Matlab
+    // C, FORTRAN-77, MATLAB
+    // ---------------------
+    // Initialize CFACTOR, VAR, FIX.  Assign values to VAR and FIX
+    // which then point to C (or for F77, which are EQUIVALENCEd to C).
     //
     Assign( Elm( X ), Mul( Elm( IV, varDefault ), Elm( CFACTOR ) ) );
     C_Inline("  for( i = 0; i < NVAR; i++ )" );
@@ -3200,14 +3313,18 @@ int INITVAL;
               Elm( CFACTOR ) ) );
     }
   }
-
+  //
+  // Inline constant rate coefficients here
+  //
   WriteComment("Begin constant rate coefficients");
   for( i = 0; i < EqnNr; i++) {
     if ( kr[i].type == NUMBER )
        Assign( Elm( RCONST, i ), Const( kr[i].val.f ) );
   }
   WriteComment("End constant rate coefficients");
-
+  //
+  // Inline code from C_INIT, F77_INIT, F90_INIT, MATLAB_INIT sections here
+  //
   NewLines(1);
   WriteComment("Begin inlined code from F90_INIT");
 
@@ -3222,17 +3339,62 @@ int INITVAL;
                  break;
   }
   FlushBuf();
-
+ 
   NewLines(1);
   WriteComment("End inlined code from F90_INIT");
   NewLines(1);
 
   MATLAB_Inline("   VAR = VAR(:);\n   FIX = FIX(:);\n" );
-
+  //
+  if ( useLang == F90_LANG) {
+    //
+    // FORTRAN-90
+    // ----------
+    // Determine the count and index list of "non-passive" species, which
+    // have an absolute tolerance below a very high threshold.  This will
+    // allow us to filter these dummy species out of e.g. Rosenbrock error
+    // norm calculations.  Place this after the afer the F90_INIT block
+    // to avoid overwriting any inlined ATOL values.
+    //  -- Bob Yantosca (07 Jul 2026)
+    //
+    WriteComment(
+     "~~~ Determine the count and indices of actual species (as opposed to");
+    WriteComment(
+     "~~~ (""passive"" species used for diagnostics.  Denote passive species");
+    WriteComment(
+     "~~~ as those having ATOL > PassiveSpc_ATOL_Threshold.  If the optional");
+    WriteComment(
+     "~~~ argument PassiveSpc_ATOL_Threshold is not specified, then treat");
+    WriteComment(
+     "~~~ all variable species as non-passive species.");
+    F90_Inline("  NonPassiveSpc_Count   = 0");
+    F90_Inline("  NonPassiveSpc_Indices = 0");
+    F90_Inline("  IF ( PRESENT( PassiveSpc_ATOL_Threshold ) ) THEN");
+    F90_Inline("     DO I = 1, NVAR");
+    F90_Inline("        IF ( ATOL(I) < PassiveSpc_ATOL_Threshold ) THEN");
+    F90_Inline("           NonPassiveSpc_Count = NonPassiveSpc_Count + 1");
+    F90_Inline("           NonPassiveSpc_Indices(NonPassiveSpc_Count) = I");
+    F90_Inline("        ENDIF");
+    F90_Inline("     ENDDO");
+    F90_Inline("  ELSE");
+    F90_Inline("     NonPassiveSpc_Count = NVAR");
+    F90_Inline("     DO I = 1, NVAR");
+    F90_Inline("        NonPassiveSpc_Indices(I) = I");
+    F90_Inline("     ENDDO");
+    F90_Inline("  ENDIF");
+    NewLines(1);
+   
+  }
+  //
+  // Cleanup
+  //
   FreeVariable( X );
   FreeVariable( I );
   FunctionEnd( INITVAL );
   FreeVariable( INITVAL );
+  if ( useLang == F90_LANG ) {
+    FreeVariable( PASV_SPC_ATOL_THRESH );
+  }
 }
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/

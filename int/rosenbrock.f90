@@ -166,7 +166,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !-    RCNTRL(1:20)    = real inputs parameters
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
-!~~~>     OUTPUT ARGUMENTS:
+!~~~>   OUTPUT ARGUMENTS:
 !
 !-    Y(N)    -> vector of final states (at T->Tend)
 !-    ISTATUS(1:20)   -> integer output parameters
@@ -176,56 +176,66 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !                        failure (negative value)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
-!~~~>     INPUT PARAMETERS:
+!~~~>   INPUT PARAMETERS:
 !
 !    Note: For input parameters equal to zero the default values of the
-!       corresponding variables are used.
+!          corresponding variables are used.
 !
-!    ICNTRL(1) = 1: F = F(y)   Independent of T (AUTONOMOUS)
-!              = 0: F = F(t,y) Depends on T (NON-AUTONOMOUS)
+!    ICNTRL(1)  -> Specify time-dependence of the function to be integrated
+!        =  0 :    F = F(t,y) Depends on T (NON-AUTONOMOUS)
+!        =  1 :    F = F(y)   Independent of T (AUTONOMOUS)
 !
-!    ICNTRL(2) = 0: AbsTol, RelTol are N-dimensional vectors
-!              = 1: AbsTol, RelTol are scalars
+!    ICNTRL(2)  -> Specify vector or scalar tolerances
+!        =  0 :    AbsTol, RelTol are N-dimensional vectors
+!        =  1 :    AbsTol, RelTol are scalars
 !
-!    ICNTRL(3)  -> selection of a particular Rosenbrock method
-!        = 0 :    Rodas3 (default)
-!        = 1 :    Ros2
-!        = 2 :    Ros3
-!        = 3 :    Ros4
-!        = 4 :    Rodas3
-!        = 5 :    Rodas4
-!        = 6 :    Rang3
-!        = 7 :    Rodas3.1
+!    ICNTRL(3)  -> Select a particular Rosenbrock method
+!        =  0 :    Rodas3 (default)
+!        =  1 :    Ros2
+!        =  2 :    Ros3
+!        =  3 :    Ros4
+!        =  4 :    Rodas3
+!        =  5 :    Rodas4
+!        =  6 :    Rang3
+!        =  7 :    Rodas3.1
 !
-!    ICNTRL(4)  -> maximum number of integration steps
-!        For ICNTRL(4)=0) the default value of 200000 is used
+!    ICNTRL(4)  -> Specify maximum number of integration steps
+!        =  0 :    Use up to 20000 integration steps (default)
+!        =  X :    Use up to X integration steps (X = any integer)
 !
-!    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
-!        = -1 :  Do not call Update_* functions within the integrator
-!        =  0 :  Status quo
-!        =  1 :  Call Update_RCONST from within the integrator
-!        =  2 :  Call Update_PHOTO from within the integrator
-!        =  3 :  Call Update_RCONST and Update_PHOTO from w/in the int.
-!        =  4 :  Call Update_SUN from within the integrator
-!        =  5 :  Call Update_SUN and Update_RCONST from within the int.
-!        =  6 :  Call Update_SUN and Update_PHOTO from within the int.
-!        =  7 :  Call Update_SUN, Update_PHOTO, Update_RCONST w/in the int.
+!    ICNTRL(15) -> Toggle calling of Update_* functions w/in the integrator
+!        = -1 :    Do not call Update_* functions within the integrator
+!        =  0 :    Status quo
+!        =  1 :    Call Update_RCONST from within the integrator
+!        =  2 :    Call Update_PHOTO from within the integrator
+!        =  3 :    Call Update_RCONST and Update_PHOTO from w/in the int.
+!        =  4 :    Call Update_SUN from within the integrator
+!        =  5 :    Call Update_SUN and Update_RCONST from within the int.
+!        =  6 :    Call Update_SUN and Update_PHOTO from within the int.
+!        =  7 :    Call Update_SUN, Update_PHOTO, Update_RCONST w/in the int.
 !
-!    ICNTRL(16) ->
-!        = 0 : allow negative concentrations (default)
-!        = 1 : set negative concentrations to zero
+!    ICNTRL(16) -> Specify how negative concentrations are handled
+!        =  0 :    Allow negative concentrations (default)
+!        =  1 :    Aet negative concentrations to zero
 !
-!    RCNTRL(1)  -> Hmin, lower bound for the integration step size
-!          It is strongly recommended to keep Hmin = ZERO
+!    RCNTRL(1)  -> Hmin, lower bound for the integration step size.
+!                  It is strongly recommended to keep Hmin = ZERO
+!
 !    RCNTRL(2)  -> Hmax, upper bound for the integration step size
+!
 !    RCNTRL(3)  -> Hstart, starting value for the integration step size
 !
-!    RCNTRL(4)  -> FacMin, lower bound on step decrease factor (default=0.2)
-!    RCNTRL(5)  -> FacMax, upper bound on step increase factor (default=6)
+!    RCNTRL(4)  -> FacMin, lower bound on step decrease factor 
+!                  (default = 0.2)
+!
+!    RCNTRL(5)  -> FacMax, upper bound on step increase factor
+!                  (default = 6)
+!
 !    RCNTRL(6)  -> FacRej, step decrease factor after multiple rejections
-!                          (default=0.1)
+!                  (default = 0.1)
+!
 !    RCNTRL(7)  -> FacSafe, by which the new step is slightly smaller
-!         than the predicted value  (default=0.9)
+!                  than the predicted value (default = 0.9)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
 !
@@ -284,7 +294,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
    KPP_REAL :: Roundoff, FacMin, FacMax, FacRej, FacSafe
    KPP_REAL :: Hmin, Hmax, Hstart
    KPP_REAL :: Texit
-   INTEGER       :: i, UplimTol, Max_no_steps
+   INTEGER       :: i, UplimTol, Max_no_steps, ErrNormSpcCount
    LOGICAL       :: Autonomous, VectorTol
 !~~~>   Parameters
    KPP_REAL, PARAMETER :: ZERO = 0.0_dp, ONE  = 1.0_dp
@@ -297,8 +307,8 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
 !~~~>  Autonomous (1) or time dependent ODE (0). Default is time dependent.
    Autonomous = .NOT.(ICNTRL(1) == 0)
 
-!~~~>  For Scalar tolerances (ICNTRL(2).NE.0)  the code uses AbsTol(1) and RelTol(1)
-!   For Vector tolerances (ICNTRL(2) == 0) the code uses AbsTol(1:N) and RelTol(1:N)
+!~~~>  For Scalar tolerances (ICNTRL(2).NE.0), use AbsTol(1) and RelTol(1)
+!~~~>  For Vector tolerances (ICNTRL(2) == 0), use AbsTol(1:N) and RelTol(1:N)
    IF (ICNTRL(2) == 0) THEN
       VectorTol = .TRUE.
       UplimTol  = N
@@ -329,7 +339,7 @@ SUBROUTINE Rosenbrock(N,Y,Tstart,Tend, &
        RETURN
    END SELECT
 
-!~~~>   The maximum number of steps admitted
+!~~~>  The maximum number of steps admitted
    IF (ICNTRL(4) == 0) THEN
       Max_no_steps = 200000
    ELSEIF (ICNTRL(4) > 0) THEN
@@ -681,31 +691,59 @@ UntilAccepted: DO
                                AbsTol, RelTol, VectorTol )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~> Computes the "scaled norm" of the error vector Yerr
+!~~~>
+!~~~> Now uses separate loops for scalar and vector tolerances,
+!~~~> as this facilitates loop vectorization for better performance.
+!~~~>
+!~~~> Also uses NonPassiveSpc_Count and NonPassiveSpc_Indices (constructed
+!~~~> in Initialize), so that we can exclude "passive" (e.g. prod/loss)
+!~~~> species from the error norm computation.
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    IMPLICIT NONE
 
 ! Input arguments
-   KPP_REAL, INTENT(IN) :: Y(N), Ynew(N), &
-          Yerr(N), AbsTol(N), RelTol(N)
+   KPP_REAL, INTENT(IN) :: Y(N), Ynew(N), Yerr(N), AbsTol(N), RelTol(N)
    LOGICAL, INTENT(IN) ::  VectorTol
 ! Local variables
    KPP_REAL :: Err, Scale, Ymax
-   INTEGER  :: i
-   KPP_REAL, PARAMETER :: ZERO = 0.0_dp
+   INTEGER  :: I, IDX
 
    Err = ZERO
-   DO i=1,N
-     Ymax = MAX(ABS(Y(i)),ABS(Ynew(i)))
-     IF (VectorTol) THEN
-       Scale = AbsTol(i)+RelTol(i)*Ymax
-     ELSE
-       Scale = AbsTol(1)+RelTol(1)*Ymax
-     END IF
-     Err = Err+(Yerr(i)/Scale)**2
-   END DO
-   Err  = SQRT(Err/N)
 
-   ros_ErrorNorm = MAX(Err,1.0d-10)
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   !~~~> Vector Tolerances (per-species AbsTol & RelTol)
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   IF ( VectorTol ) THEN
+
+      DO IDX = 1, NonPassiveSpc_Count
+         I     = NonPassiveSpc_Indices(IDX)
+         Ymax  = MAX( ABS( Y(I) ), ABS( Ynew(I) ) )
+         Scale = AbsTol(I) + RelTol(I) * Ymax
+         Err   = Err + ( Yerr(I) / Scale )**2
+      ENDDO
+
+      ! Normalize the error norm by the number of non-dummy species
+      ! and prevent it from getting smaller than 1e-10
+      Err           = SQRT( Err / NonPassiveSpc_Count )
+      ros_ErrorNorm = MAX( Err, 1.0d-10 )
+      RETURN
+
+   ENDIF
+
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   !~~~> Scalar Tolerance (same AbsTol & RelTol for all species)
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   DO IDX = 1, NonPassiveSpc_Count
+      I     = NonPassiveSpc_Indices(IDX)
+      Ymax  = MAX( ABS( Y(I) ), ABS( Ynew(I) ) )
+      Scale = AbsTol(1) + RelTol(1) * Ymax
+      Err   = Err + ( Yerr(I) / Scale )**2
+   ENDDO
+   
+   ! Normalize the error norm by the number of non-dummy species
+   ! and prevent it from getting smaller than 1e-10
+   Err           = SQRT( Err / NonPassiveSpc_Count )
+   ros_ErrorNorm = MAX( Err, 1.0d-10 )
 
   END FUNCTION ros_ErrorNorm
 

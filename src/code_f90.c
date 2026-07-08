@@ -241,8 +241,16 @@ char maxj[20];
   *buf = 0;
 
   switch( var->type ) {
-    case ELM:
-                sprintf( buf, "%s :: %s", baseType, var->name );
+    case ELM:   //
+                // Modify the IF block so that F90 scalar variables
+                // can be declared with the OPTIONAL attribute.
+                //  -- Bob Yantosca (02 Jul 2026)
+                //
+                if ( var->attr == ATTR_F90_OPT ) {
+		  sprintf( buf, "%s, OPTIONAL :: %s", baseType, var->name );
+                } else {
+                  sprintf( buf, "%s :: %s", baseType, var->name );
+                }
 		break;
     case VELM:
                 if( var->maxi > 0 ) sprintf( maxi, "%d", var->maxi );
@@ -257,12 +265,12 @@ char maxj[20];
 		      sprintf( maxi, "%d", (varTable[-var->maxi]->value)==0?
 		           1:varTable[-var->maxi]->value );
 		}
-
-		//=============================================================
+		//
 		// MODIFICATION by Bob Yantosca (28 Apr 2022)
 		//
 		// Modify the IF block so that F90 variables can be declared
 		// with either the POINTER, TARGET, or OPTIONAL attribute.
+		//  -- Bob Yantosca (28 Apr 2022)
 		//
 		if ( var->attr == ATTR_F90_PTR )
 		  sprintf( buf, "%s, POINTER :: %s(:)", baseType,
@@ -281,7 +289,6 @@ char maxj[20];
 			                                           maxi );
 		else
 		  sprintf( buf, "%s :: %s(%s)", baseType, var->name, maxi );
-		//=============================================================
  		break;
 
     case MELM:
@@ -383,10 +390,9 @@ int maxCols = MAX_COLS;
           strcat( maxi, "+1");
 	bprintf( "  %s, " , baseType);
         if( n>0 ) bprintf( "PARAMETER, " ); /* if values are assigned now */
-	//====================================================================
-	// MODIFICATION by Bob Yantosca (28 Apr 2022)
 	//
 	// Add the POINTER, TARGET, or OPTIONAL attributes to F90 variables.
+	//   - Bob Yantosca (28 Apr 2022)
 	//
 	if ( var->attr == ATTR_F90_PTR ) {
           bprintf( ", POINTER :: %s(:)", var->name ) ;
@@ -404,7 +410,7 @@ int maxCols = MAX_COLS;
           bprintf( ", OPTIONAL, POINTER :: %s(%s)", var->name, maxi ) ;
 	  if( n<=0 ) break;
         }
-	//====================================================================
+	//
         if ( maxi_div==0 ) { /* define array in one piece */
           bprintf( "DIMENSION(%s) :: %s",
                    maxi, var->name) ;
@@ -723,6 +729,38 @@ int narg;
 }
 
 /*************************************************************************************************/
+void F90_FunctionBeginNoArgDecl( int f, ... )
+{
+//
+// FunctionBeginNoArgDecl is similar to FunctionBegin, except that function
+// arguments are not declared.  This allows the user to manually declare
+// F90 function arguments lower down in the code, following any F90 USE
+// statements.  This will help to avoid compilation errors.
+//   -- Bob Yantosca (02 Jul 2026)
+//
+Va_list args;
+int i;
+int vars[20];
+int narg;
+
+  narg = varTable[ f ]->maxi;
+
+  Va_start( args, f );
+  for( i = 0; i < narg; i++ )
+    vars[ i ] = va_arg( args, int );
+  va_end( args );
+
+  CommentFncBegin( f, vars );
+  F90_FunctionStart( f, vars );
+  NewLines(1);
+
+  bprintf("\n");
+  FlushBuf();
+
+  LogFunctionComment( f, vars );
+}
+
+/*************************************************************************************************/
 void F90_FunctionEnd( int f )
 {
   bprintf("      \nEND SUBROUTINE %s\n\n", varTable[ f ]->name );
@@ -769,6 +807,7 @@ void Use_F90( char* rootFileName )
   FunctionStart         = F90_FunctionStart;
   FunctionPrototipe     = F90_FunctionPrototipe;
   FunctionBegin         = F90_FunctionBegin;
+  FunctionBeginNoArgDecl= F90_FunctionBeginNoArgDecl;
   FunctionEnd           = F90_FunctionEnd;
 
   // Parameters

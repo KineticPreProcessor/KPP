@@ -76,6 +76,15 @@ contains the subroutine :code:`Initialize`, which defines initial
 values of the chemical species. The driver calls the subroutine once
 before the time integration loop starts.
 
+.. note::
+
+   In KPP 3.5.0 and later versions, you may pass the optional
+   :code:`PassiveSpc_ATOL_Threshold` to subroutine :code:`Initialize`
+   to prevent "passive" species intended for diagnostic purposes from
+   being used in certain computations (such as the Rosenbrock error
+   norm).  At present this option is limited to Fortran90.  For more
+   information, please see the :ref:`filter-passive-spc` section.
+
 .. _Integrator:
 
 ROOT_Integrator
@@ -151,18 +160,19 @@ The code to update the rate constants is in :file:`ROOT_Rates.f90` (or
 
 .. _table-rat-fun:
 
-.. table:: Fortran90 subrotutines in ROOT_Rates
+.. list-table:: Fortran90 subrotutines in ROOT_Rates
    :align: center
+   :header-rows: 1
+   :widths: 25 75
 
-   +-----------------------+--------------------------------------+
-   | Function              | Description                          |
-   +=======================+======================================+
-   | :code:`Update_PHOTO`  | Update photolysis rate coefficients  |
-   +-----------------------+--------------------------------------+
-   | :code:`Update_RCONST` | Update all rate coefficients         |
-   +-----------------------+--------------------------------------+
-   | :code:`Update_SUN`    | Update sun intensity                 |
-   +-----------------------+--------------------------------------+
+   * - Function
+     - Description
+   * - :code:`Update_PHOTO`
+     - Update photolysis rate coefficients
+   * - :code:`Update_RCONST`
+     - Update all rate coefficients
+   * - :code:`Update_SUN`
+     - Update sun intensity
 
 .. _Parameters:
 
@@ -174,34 +184,47 @@ Global parameters are defined and initialized in
 
 .. _table-par:
 
-.. table:: Parameters Declared in ROOT_Parameters
+.. list-table:: Parameters Declared in ROOT_Parameters
    :align: center
+   :widths: 20 60 20
+   :header-rows: 1
 
-   +----------------+---------------------------------------------+---------+
-   | Parameter      | Represents                                  | Example |
-   +================+=============================================+=========+
-   | ``NSPEC``      | No. chemical species (``NVAR`` + ``NFIX``)  | 7       |
-   +----------------+---------------------------------------------+---------+
-   | ``NVAR``       | No. variable species                        | 5       |
-   +----------------+---------------------------------------------+---------+
-   | ``NFIX``       | No. fixed species                           | 2       |
-   +----------------+---------------------------------------------+---------+
-   | ``NREACT``     | No. reactions                               | 10      |
-   +----------------+---------------------------------------------+---------+
-   | ``NONZERO``    | No. nonzero entries Jacobian                | 18      |
-   +----------------+---------------------------------------------+---------+
-   | ``LU_NONZERO`` | As above, after LU factorization            | 19      |
-   +----------------+---------------------------------------------+---------+
-   | ``NHESS``      | Length, sparse Hessian                      | 10      |
-   +----------------+---------------------------------------------+---------+
-   | ``NJVRP``      | Length, sparse Jacobian JVRP                | 13      |
-   +----------------+---------------------------------------------+---------+
-   | ``NSTOICM``    | Length, stoichiometric matrix               | 22      |
-   +----------------+---------------------------------------------+---------+
-   | ``ind_spc``    | Index of species *spc* in :code:`C`         |         |
-   +----------------+---------------------------------------------+---------+
-   | ``indf_spc``   | Index of fixed species *spc* in :code:`FIX` |         |
-   +----------------+---------------------------------------------+---------+
+   * - Parameter
+     - Represents
+     - Example
+   * - ``NSPEC``
+     - No. chemical species (``NVAR`` + ``NFIX``)
+     - 7
+   * - ``NVAR``
+     - No. variable species
+     - 5
+   * - ``NFIX``
+     - No. fixed species
+     - 2
+   * - ``NREACT``
+     - No. reactions
+     - 10
+   * - ``NONZERO``
+     - No. nonzero entries Jacobian
+     - 18
+   * - ``LU_NONZERO``
+     - As above, after LU factorization
+     - 19
+   * - ``NHESS``
+     - Length, sparse Hessian
+     - 10
+   * - ``NJVRP``
+     - Length, sparse Jacobian JVRP
+     - 13
+   * - ``NSTOICM``
+     - Length, stoichiometric matrix
+     - 22
+   * - ``ind_spc``
+     - Index of species *spc* in :code:`C`
+     -
+   * - ``indf_spc``
+     - Index of fixed species *spc* in :code:`FIX`
+     -
 
 Example values listed in the 3rd column are taken from the
 :program:`small_strato` mechanism (cf.
@@ -236,40 +259,41 @@ Several global variables are declared in :file:`ROOT_Global.f90` (or
 
 .. _table-glob:
 
-.. table:: Global Variables Declared in ROOT_Global
+.. list-table:: Global Variables Declared in ROOT_Global
    :align: center
+   :widths: 35 65
+   :header-rows: 1
 
-   +-------------------------+---------------------------------------------+
-   | Global variable         | Represents                                  |
-   +=========================+=============================================+
-   | :code:`C(NSPEC)`        | Concentrations, all species                 |
-   +-------------------------+---------------------------------------------+
-   | :code:`VAR(:)`          | Concentrations, variable species (pointer)  |
-   +-------------------------+---------------------------------------------+
-   | :code:`FIX(:)`          | Concentrations, fixed species (pointer)     |
-   +-------------------------+---------------------------------------------+
-   | :code:`RCONST(NREACT)`  | Rate coefficient values                     |
-   +-------------------------+---------------------------------------------+
-   | :code:`TIME`            | Current integration time                    |
-   +-------------------------+---------------------------------------------+
-   | :code:`SUN`             | Sun intensity between 0 and 1               |
-   +-------------------------+---------------------------------------------+
-   | :code:`TEMP`            | Temperature                                 |
-   +-------------------------+---------------------------------------------+
-   | :code:`TSTART, TEND`    | Simulation start/end time                   |
-   +-------------------------+---------------------------------------------+
-   | :code:`DT`              | Simulation time step                        |
-   +-------------------------+---------------------------------------------+
-   | :code:`ATOL(NSPEC)`     | Absolute tolerances                         |
-   +-------------------------+---------------------------------------------+
-   | :code:`RTOL(NSPEC)`     | Relative tolerances                         |
-   +-------------------------+---------------------------------------------+
-   | :code:`STEPMIN`         | Lower bound for time step                   |
-   +-------------------------+---------------------------------------------+
-   | :code:`STEPMAX`         | Upper bound for time step                   |
-   +-------------------------+---------------------------------------------+
-   | :code:`CFACTOR`         | Conversion factor                           |
-   +-------------------------+---------------------------------------------+
+   * - Global variable
+     - Represents
+   * - :code:`C(NSPEC)`
+     - Concentrations, all species
+   * - :code:`VAR(:)`
+     - Concentrations, variable species (pointer)
+   * - :code:`FIX(:)`
+     - Concentrations, fixed species (pointer)
+   * - :code:`RCONST(NREACT)`
+     - Rate coefficient values
+   * - :code:`TIME`
+     - Current integration time
+   * - :code:`SUN`
+     - Sun intensity between 0 and 1
+   * - :code:`TEMP`
+     - Temperature
+   * - :code:`TSTART, TEND`
+     - Simulation start/end time
+   * - :code:`DT`
+     - Simulation time step
+   * - :code:`ATOL(NSPEC)`
+     - Absolute tolerances
+   * - :code:`RTOL(NSPEC)`
+     - Relative tolerances
+   * - :code:`STEPMIN`
+     - Lower bound for time step
+   * - :code:`STEPMAX`
+     - Upper bound for time step
+   * - :code:`CFACTOR`
+     - Conversion factor
 
 Both variable and fixed species are stored in the one-dimensional
 array :code:`C`. The first part (indices from :code:`1` to :code:`NVAR`)
@@ -438,22 +462,23 @@ fill-in is accounted for) are:
 
 .. _table-jac:
 
-.. table:: Sparse Jacobian Data Structures
+.. list-table:: Sparse Jacobian Data Structures
    :align: center
+   :widths: 35 65
+   :header-rows: 1
 
-   +------------------------------+-------------------------------------+
-   | Global variable              | Represents                          |
-   +==============================+=====================================+
-   | :code:`JVS(LU_NONZERO)`      | Jacobian nonzero elements           |
-   +------------------------------+-------------------------------------+
-   | :code:`LU_IROW(LU_NONZERO)`  | Row indices                         |
-   +------------------------------+-------------------------------------+
-   | :code:`LU_ICOL(LU_NONZERO)`  | Column indices                      |
-   +------------------------------+-------------------------------------+
-   | :code:`LU_CROW(NVAR+1)`      | Start of rows                       |
-   +------------------------------+-------------------------------------+
-   | :code:`LU_DIAG(NVAR+1)`      | Diagonal entries                    |
-   +------------------------------+-------------------------------------+
+   * - Global variable
+     - Represents
+   * - :code:`JVS(LU_NONZERO)`
+     - Jacobian nonzero elements
+   * - :code:`LU_IROW(LU_NONZERO)`
+     - Row indices
+   * - :code:`LU_ICOL(LU_NONZERO)`
+     - Column indices
+   * - :code:`LU_CROW(NVAR+1)`
+     - Start of rows
+   * - :code:`LU_DIAG(NVAR+1)`
+     - Diagonal entries
 
 :code:`JVS` stores the :code:`LU_NONZERO` elements of the
 Jacobian in row order. Each row :code:`I` starts at position
@@ -499,20 +524,21 @@ user-supplied vector :code:`UV` without any indirect addressing.
 
 .. _table-jac-fun:
 
-.. table:: Fortran90 subroutines in ROOT_Jacobian
+.. list-table:: Fortran90 subroutines in ROOT_Jacobian
    :align: center
+   :widths: 30 70
+   :header-rows: 1
 
-   +----------------------+----------------------------------------------+
-   | Function             | Description                                  |
-   +======================+==============================================+
-   | :code:`Jac_SP`       | ODE Jacobian in sparse format                |
-   +----------------------+----------------------------------------------+
-   | :code:`Jac_SP_Vec`   | Sparse multiplication                        |
-   +----------------------+----------------------------------------------+
-   | :code:`JacTR_SP_Vec` | Sparse multiplication                        |
-   +----------------------+----------------------------------------------+
-   | :code:`Jac`          | ODE Jacobian in full format                  |
-   +----------------------+----------------------------------------------+
+   * - Function
+     - Description
+   * - :code:`Jac_SP`
+     - ODE Jacobian in sparse format
+   * - :code:`Jac_SP_Vec`
+     - Sparse multiplication
+   * - :code:`JacTR_SP_Vec`
+     - Sparse multiplication
+   * - :code:`Jac`
+     - ODE Jacobian in full format
 
 .. _Hessian-and-HessianSP:
 
@@ -537,18 +563,19 @@ KPP generates the routine :code:`Hessian`:
 
 .. _table-hess-fun:
 
-.. table:: Fortran90 functions in ROOT_Hessian
+.. list-table:: Fortran90 functions in ROOT_Hessian
    :align: center
+   :widths: 30 70
+   :header-rows: 1
 
-   +--------------------+--------------------------------------+
-   | Function           | Description                          |
-   +====================+======================================+
-   | :code:`Hessian`    | ODE Hessian in sparse format         |
-   +--------------------+--------------------------------------+
-   | :code:`Hess_Vec`   | Hessian action on vectors            |
-   +--------------------+--------------------------------------+
-   | :code:`HessTR_Vec` | Transposed Hessian action on vectors |
-   +--------------------+--------------------------------------+
+   * - Function
+     - Description
+   * - :code:`Hessian`
+     - ODE Hessian in sparse format
+   * - :code:`Hess_Vec`
+     - Hessian action on vectors
+   * - :code:`HessTR_Vec`
+     - Transposed Hessian action on vectors
 
 Using the variable species :code:`V`, the fixed species :code:`F`, and
 the rate coefficients :code:`RCT` as input, the subroutine
@@ -572,20 +599,21 @@ hold the indices of nonzero entries as illustrated in :ref:`table-hess`.
 
 .. _table-hess:
 
-.. table:: Sparse Hessian Data
+.. list-table:: Sparse Hessian Data
    :align: center
+   :widths: 35 65
+   :header-rows: 1
 
-   +-------------------------+----------------------------------------------+
-   | Variable                | Represents                                   |
-   +=========================+==============================================+
-   | :code:`HESS(NHESS)`     | Hessian nonzero elements :math:`H_{i,j,k}`   |
-   +-------------------------+----------------------------------------------+
-   | :code:`IHESS_I(NHESS)`  | Index :math:`i` of element :math:`H_{i,j,k}` |
-   +-------------------------+----------------------------------------------+
-   | :code:`IHESS_J(NHESS)`  | Index :math:`j` of element :math:`H_{i,j,k}` |
-   +-------------------------+----------------------------------------------+
-   | :code:`IHESS_J(NHESS)`  | Index :math:`k` of element :math:`H_{i,j,k}` |
-   +-------------------------+----------------------------------------------+
+   * - Variable
+     - Represents
+   * - :code:`HESS(NHESS)`
+     - Hessian nonzero elements :math:`H_{i,j,k}`
+   * - :code:`IHESS_I(NHESS)`
+     - Index :math:`i` of element :math:`H_{i,j,k}`
+   * - :code:`IHESS_J(NHESS)`
+     - Index :math:`j` of element :math:`H_{i,j,k}`
+   * - :code:`IHESS_K(NHESS)`
+     - Index :math:`k` of element :math:`H_{i,j,k}`
 
 Since the time derivative function is smooth, these Hessian matrices
 are symmetric, :math:`\tt HESS_{i,j,k}`\ =\ :math:`\tt HESS_{i,k,j}`.
@@ -634,18 +662,19 @@ returns a value that is nonzero if singularity is detected.
 
 .. _table-la-fun:
 
-.. table:: Fortran90 functions in ROOT_LinearAlgebra
+.. list-table:: Fortran90 functions in ROOT_LinearAlgebra
    :align: center
+   :widths: 30 70
+   :header-rows: 1
 
-   +--------------------+--------------------------------------+
-   | Function           | Description                          |
-   +====================+======================================+
-   | :code:`KppDecomp`  | Sparse LU decomposition              |
-   +--------------------+--------------------------------------+
-   | :code:`KppSolve`   | Sparse back subsitution              |
-   +--------------------+--------------------------------------+
-   | :code:`KppSolveTR` | Transposed sparse back substitution  |
-   +--------------------+--------------------------------------+
+   * - Function
+     - Description
+   * - :code:`KppDecomp`
+     - Sparse LU decomposition
+   * - :code:`KppSolve`
+     - Sparse back substitution
+   * - :code:`KppSolveTR`
+     - Transposed sparse back substitution
 
 The subroutines :code:`KppSolve` and :code:`KppSolveTr` and use the
 in-place LU factorization :math:`P` as computed by and perform sparse
@@ -690,37 +719,39 @@ vector at position :code:`CCOL_STOICM(j)` and ends at
 
 .. _table-sto:
 
-.. table:: Sparse Stoichiometric Matrix
+.. list-table:: Sparse Stoichiometric Matrix
    :align: center
+   :widths: 35 65
+   :header-rows: 1
 
-   +-------------------------------+-----------------------------------------+
-   | Variable                      | Represents                              |
-   +===============================+=========================================+
-   | :code:`STOICM(NSTOICM)`       | Stoichiometric matrix                   |
-   +-------------------------------+-----------------------------------------+
-   | :code:`IROW_STOICM(NSTOICM)`  | Row indices                             |
-   +-------------------------------+-----------------------------------------+
-   | :code:`ICOL_STOICM(NSTOICM)`  | Column indices                          |
-   +-------------------------------+-----------------------------------------+
-   | :code:`CCOL_STOICM(NREACT+1)` | Start of columns                        |
-   +-------------------------------+-----------------------------------------+
+   * - Variable
+     - Represents
+   * - :code:`STOICM(NSTOICM)`
+     - Stoichiometric matrix
+   * - :code:`IROW_STOICM(NSTOICM)`
+     - Row indices
+   * - :code:`ICOL_STOICM(NSTOICM)`
+     - Column indices
+   * - :code:`CCOL_STOICM(NREACT+1)`
+     - Start of columns
 
 .. _table-sto-fun:
 
-.. table:: Fortran90 functions in ROOT_Stoichiom
+.. list-table:: Fortran90 functions in ROOT_Stoichiom
    :align: center
+   :widths: 35 65
+   :header-rows: 1
 
-   +-------------------------+--------------------------------------------+
-   | Variable                | Represents                                 |
-   +=========================+============================================+
-   | :code:`dFun_dRcoeff`    | Derivatives of Fun w/r/t rate coefficients |
-   +-------------------------+--------------------------------------------+
-   | :code:`dJac_dRcoeff`    | Derivatives of Jac w/r/t rate coefficients |
-   +-------------------------+--------------------------------------------+
-   | :code:`ReactantProd`    | Reactant products                          |
-   +-------------------------+--------------------------------------------+
-   | :code:`JacReactantProd` | Jacobian of reactant products              |
-   +-------------------------+--------------------------------------------+
+   * - Variable
+     - Represents
+   * - :code:`dFun_dRcoeff`
+     - Derivatives of Fun w/r/t rate coefficients
+   * - :code:`dJac_dRcoeff`
+     - Derivatives of Jac w/r/t rate coefficients
+   * - :code:`ReactantProd`
+     - Reactant products
+   * - :code:`JacReactantProd`
+     - Jacobian of reactant products
 
 The subroutine :code:`ReactantProd` (see :ref:`table-sto-fun`)
 computes the reactant products :code:`ARP` for each reaction, and the
@@ -746,20 +777,21 @@ parameter :code:`NJVRP` holds the number of nonzero elements. For our
 
 .. _table-jvrp:
 
-.. table:: Sparse Data for Jacobian of Reactant Products
+.. list-table:: Sparse Data for Jacobian of Reactant Products
    :align: center
+   :widths: 35 65
+   :header-rows: 1
 
-   +-------------------------------+-----------------------------------------+
-   | Variable                      | Represents                              |
-   +===============================+=========================================+
-   | :code:`JVRP(NJVRP)`           | Nonzero elements of :code:`JVRP`        |
-   +-------------------------------+-----------------------------------------+
-   | :code:`ICOL_JVRP(NJVRP)`      | Column indices of :code:`JVRP`          |
-   +-------------------------------+-----------------------------------------+
-   | :code:`IROW_JVRP(NJVRP)`      | Row indices of :code:`JVRP`             |
-   +-------------------------------+-----------------------------------------+
-   | :code:`CROW_JVRP(NREACT+1)`   | Start of rows in :code:`JVRP`           |
-   +-------------------------------+-----------------------------------------+
+   * - Variable
+     - Represents
+   * - :code:`JVRP(NJVRP)`
+     - Nonzero elements of :code:`JVRP`
+   * - :code:`ICOL_JVRP(NJVRP)`
+     - Column indices of :code:`JVRP`
+   * - :code:`IROW_JVRP(NJVRP)`
+     - Row indices of :code:`JVRP`
+   * - :code:`CROW_JVRP(NREACT+1)`
+     - Start of rows in :code:`JVRP`
 
 If :command:`#STOICMAT` is set to :command:`ON`, the stoichiometric
 formulation allows a direct computation of the derivatives with
@@ -834,28 +866,29 @@ KPP generates several utility subroutines and functions in the file
 
 .. _table-util-fun:
 
-.. table:: Fortran90 subroutines and functions in ROOT_Util
+.. list-table:: Fortran90 subroutines and functions in ROOT_Util
    :align: center
+   :widths: 30 70
+   :header-rows: 1
 
-   +-----------------------------------+---------------------------------------------+
-   | Function                          | Description                                 |
-   +===================================+=============================================+
-   | :code:`GetMass`                   | Check mass balance for selected atoms       |
-   +-----------------------------------+---------------------------------------------+
-   | :code:`Shuffle_kpp2user`          | Shuffle concentration vector                |
-   +-----------------------------------+---------------------------------------------+
-   | :code:`Shuffle_user2kpp`          | Shuffle concentration vector                |
-   +-----------------------------------+---------------------------------------------+
-   | :code:`InitSaveData`              | Utility for :command:`#LOOKAT` command      |
-   +-----------------------------------+---------------------------------------------+
-   | :code:`SaveData`                  | Utility for :command:`#LOOKAT` command      |
-   +-----------------------------------+---------------------------------------------+
-   | :code:`CloseSaveData`             | Utility for :command:`#LOOKAT` command      |
-   +-----------------------------------+---------------------------------------------+
-   | :code:`tag2num`                   | Calculate reaction number from equation tag |
-   +-----------------------------------+---------------------------------------------+
-   | :code:`Integrator_Update_Options` | Choose :code:`Update_RCONST/PHOTO/SUN`      |
-   +-----------------------------------+---------------------------------------------+
+   * - Function
+     - Description
+   * - :code:`GetMass`
+     - Check mass balance for selected atoms
+   * - :code:`Shuffle_kpp2user`
+     - Shuffle concentration vector
+   * - :code:`Shuffle_user2kpp`
+     - Shuffle concentration vector
+   * - :code:`InitSaveData`
+     - Utility for :command:`#LOOKAT` command
+   * - :code:`SaveData`
+     - Utility for :command:`#LOOKAT` command
+   * - :code:`CloseSaveData`
+     - Utility for :command:`#LOOKAT` command
+   * - :code:`tag2num`
+     - Calculate reaction number from equation tag
+   * - :code:`Integrator_Update_Options`
+     - Choose :code:`Update_RCONST/PHOTO/SUN`
 
 The subroutines :code:`InitSaveData`, :code:`SaveData`, and
 :code:`CloseSaveData` can be used to print the concentration of the
@@ -1014,65 +1047,63 @@ format into a Matlab sparse matrix.
 
 .. _table-matlab:
 
-.. table:: List of Matlab model files
+.. list-table:: List of Matlab model files
    :align: center
+   :widths: 35 65
+   :header-rows: 1
 
-   +----------------------------------+-------------------------------------+
-   | Function                         | Description                         |
-   +==================================+=====================================+
-   | :file:`ROOT.m`                   | Driver                              |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_parameter_defs.m`    | Global parameters                   |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_global_defs.m`       | Global variables                    |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_sparse_defs.m`       | Global sparsity data                |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_Fun_Chem.m`          | Template for ODE function           |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_Fun.m`               | ODE function                        |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_Jac_Chem.m`          | Template for ODE Jacobian           |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_Jac_SP.m`            | Jacobian in sparse format           |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_JacobianSP.m`        | Sparsity data structures            |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_Hessian.m`           | ODE Hessian in sparse format        |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_HessianSP.m`         | Sparsity data structures            |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_Hess_Vec.m`          | Hessian action on vectors           |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_HessTR_Vec.m`        | Transposed Hessian action on        |
-   |                                  | vectors                             |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_stoichiom.m`         | Derivatives of Fun and Jac w/r/t    |
-   |                                  | rate coefficients                   |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_stochiomSP.m`        | Sparse data                         |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_ReactantProd.m`      | Reactant products                   |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_JacReactantProd.m`   | Jacobian of reactant products       |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_Rates.m`             | User-defined rate reaction laws     |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_Update_PHOTO.m`      | Update photolysis rate coefficients |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_Update_RCONST.m`     | Update all rate coefficients        |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_Update_SUN.m`        | Update sola intensity               |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_GetMass.m`           | Check mass balance for selected     |
-   |                                  | atoms                               |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_Initialize.m`        | Set initial values                  |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_Shuffle_kpp2user.m`  | Shuffle concentration vector        |
-   +----------------------------------+-------------------------------------+
-   | :file:`ROOT_Shuffle_user2kpp.m`  | Shuffle concentration vector        |
-   +----------------------------------+-------------------------------------+
+   * - Function
+     - Description
+   * - :file:`ROOT.m`
+     - Driver
+   * - :file:`ROOT_parameter_defs.m`
+     - Global parameters
+   * - :file:`ROOT_global_defs.m`
+     - Global variables
+   * - :file:`ROOT_sparse_defs.m`
+     - Global sparsity data
+   * - :file:`ROOT_Fun_Chem.m`
+     - Template for ODE function
+   * - :file:`ROOT_Fun.m`
+     - ODE function
+   * - :file:`ROOT_Jac_Chem.m`
+     - Template for ODE Jacobian
+   * - :file:`ROOT_Jac_SP.m`
+     - Jacobian in sparse format
+   * - :file:`ROOT_JacobianSP.m`
+     - Sparsity data structures
+   * - :file:`ROOT_Hessian.m`
+     - ODE Hessian in sparse format
+   * - :file:`ROOT_HessianSP.m`
+     - Sparsity data structures
+   * - :file:`ROOT_Hess_Vec.m`
+     - Hessian action on vectors
+   * - :file:`ROOT_HessTR_Vec.m`
+     - Transposed Hessian action on vectors
+   * - :file:`ROOT_stoichiom.m`
+     - Derivatives of Fun and Jac w/r/t rate coefficients
+   * - :file:`ROOT_stoichiomSP.m`
+     - Sparse data
+   * - :file:`ROOT_ReactantProd.m`
+     - Reactant products
+   * - :file:`ROOT_JacReactantProd.m`
+     - Jacobian of reactant products
+   * - :file:`ROOT_Rates.m`
+     - User-defined rate reaction laws
+   * - :file:`ROOT_Update_PHOTO.m`
+     - Update photolysis rate coefficients
+   * - :file:`ROOT_Update_RCONST.m`
+     - Update all rate coefficients
+   * - :file:`ROOT_Update_SUN.m`
+     - Update sola intensity
+   * - :file:`ROOT_GetMass.m`
+     - Check mass balance for selected atoms
+   * - :file:`ROOT_Initialize.m`
+     - Set initial values
+   * - :file:`ROOT_Shuffle_kpp2user.m`
+     - Shuffle concentration vector
+   * - :file:`ROOT_Shuffle_user2kpp.m`
+     - Shuffle concentration vector
 
 .. _Makefile:
 
@@ -1144,27 +1175,29 @@ ISTATUS
    +----------------------------+---+---+---+---+---+---+---+---+---+
    | radau5                     | Y | Y | Y | Y | Y | Y | Y | Y |   |
    +----------------------------+---+---+---+---+---+---+---+---+---+
-   | rosenbrock_adj             | Y | Y | Y | Y | Y | Y | Y | Y |   |
-   +----------------------------+---+---+---+---+---+---+---+---+---+
    | rosenbrock                 | Y | Y | Y | Y | Y | Y | Y | Y |   |
    +----------------------------+---+---+---+---+---+---+---+---+---+
-   | rosenbrock_tlm             | Y | Y | Y | Y | Y | Y | Y | Y | Y |
+   | rosenbrock_adj             | Y | Y | Y | Y | Y | Y | Y | Y |   |
    +----------------------------+---+---+---+---+---+---+---+---+---+
    | rosenbrock_autoreduce      | Y | Y | Y | Y | Y | Y | Y | Y |   |
    +----------------------------+---+---+---+---+---+---+---+---+---+
-   | runge_kutta_adj            | Y | Y | Y | Y | Y | Y | Y | Y |   |
+   | rosenbrock_h211b_qssa      | Y | Y | Y | Y | Y | Y | Y | Y |   |
+   +----------------------------+---+---+---+---+---+---+---+---+---+
+   | rosenbrock_tlm             | Y | Y | Y | Y | Y | Y | Y | Y | Y |
    +----------------------------+---+---+---+---+---+---+---+---+---+
    | runge_kutta                | Y | Y | Y | Y | Y | Y | Y | Y |   |
    +----------------------------+---+---+---+---+---+---+---+---+---+
+   | runge_kutta_adj            | Y | Y | Y | Y | Y | Y | Y | Y |   |
+   +----------------------------+---+---+---+---+---+---+---+---+---+
    | runge_kutta_tlm            | Y | Y | Y | Y | Y | Y | Y | Y |   |
-   +----------------------------+---+---+---+---+---+---+---+---+---+
-   | sdirk4                     | Y | Y | Y | Y | Y | Y | Y | Y |   |
-   +----------------------------+---+---+---+---+---+---+---+---+---+
-   | sdirk_adj                  | Y | Y | Y | Y | Y | Y | Y | Y |   |
    +----------------------------+---+---+---+---+---+---+---+---+---+
    | sdirk                      | Y | Y | Y | Y | Y | Y | Y | Y |   |
    +----------------------------+---+---+---+---+---+---+---+---+---+
+   | sdirk_adj                  | Y | Y | Y | Y | Y | Y | Y | Y |   |
+   +----------------------------+---+---+---+---+---+---+---+---+---+
    | sdirk_tlm                  | Y | Y | Y | Y | Y | Y | Y | Y |   |
+   +----------------------------+---+---+---+---+---+---+---+---+---+
+   | sdirk4                     | Y | Y | Y | Y | Y | Y | Y | Y |   |
    +----------------------------+---+---+---+---+---+---+---+---+---+
    | seulex                     | Y | Y | Y | Y | Y | Y | Y |   |   |
    +----------------------------+---+---+---+---+---+---+---+---+---+
@@ -1248,27 +1281,29 @@ RSTATUS
    +----------------------------+---+---+---+---+
    | radau5                     |   |   |   |   |
    +----------------------------+---+---+---+---+
-   | rosenbrock_adj             | Y | Y | Y |   |
-   +----------------------------+---+---+---+---+
    | rosenbrock                 | Y | Y | Y |   |
    +----------------------------+---+---+---+---+
-   | rosenbrock_tlm             | Y | Y | Y |   |
+   | rosenbrock_adj             | Y | Y | Y |   |
    +----------------------------+---+---+---+---+
    | rosenbrock_autoreduce      | Y | Y | Y | s |
    +----------------------------+---+---+---+---+
-   | runge_kutta_adj            | Y | Y | Y |   |
+   | rosenbrock_h211b_qssa      | Y | Y | Y |   |
+   +----------------------------+---+---+---+---+
+   | rosenbrock_tlm             | Y | Y | Y |   |
    +----------------------------+---+---+---+---+
    | runge_kutta                | Y | Y | Y |   |
    +----------------------------+---+---+---+---+
+   | runge_kutta_adj            | Y | Y | Y |   |
+   +----------------------------+---+---+---+---+
    | runge_kutta_tlm            | Y | Y | Y |   |
-   +----------------------------+---+---+---+---+
-   | sdirk4                     | Y | Y |   |   |
-   +----------------------------+---+---+---+---+
-   | sdirk_adj                  | Y | Y | Y |   |
    +----------------------------+---+---+---+---+
    | sdirk                      | Y | Y | Y |   |
    +----------------------------+---+---+---+---+
+   | sdirk_adj                  | Y | Y | Y |   |
+   +----------------------------+---+---+---+---+
    | sdirk_tlm                  | Y | Y | Y |   |
+   +----------------------------+---+---+---+---+
+   | sdirk4                     | Y | Y |   |   |
    +----------------------------+---+---+---+---+
    | seulex                     |   |   |   |   |
    +----------------------------+---+---+---+---+
