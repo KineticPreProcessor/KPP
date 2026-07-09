@@ -1,90 +1,8 @@
-.. _numerical-methods:
-
-#################
-Numerical methods
-#################
-
-The KPP numerical library contains a set of numerical integrators
-selected to be very efficient in the low to medium accuracy regime
-(relative errors :math:`\sim 10^{-2} \dots 10^{-5}`). In addition, the
-KPP numerical integrators preserve the linear invariants (i.e., mass) of
-the chemical system.
-
-KPP implements several Rosenbrock methods: ROS–2
-(:cite:t:`Verwer_et_al._1999`), ROS–3 (:cite:t:`Sandu_et_al._1997b`),
-RODAS–3 (:cite:t:`Sandu_et_al._1997b`), ROS–4
-(:cite:t:`Hairer_and_Wanner_1991`), and RODAS–4
-(:cite:t:`Hairer_and_Wanner_1991`). For each of them KPP implements the
-tangent linear model (direct decoupled sensitivity) and the adjoint
-models. The implementations distinguish between sensitivities with
-respect to initial values and sensitivities with respect to parameters
-for efficiency.
-
-Note that KPP produces the building blocks for the simulation and also
-for the sensitivity calculations. It also provides application
-programming templates. Some minimal programming may be required from the
-users in order to construct their own application from the KPP building
-blocks.
-
-The symbols used in the formulas of the following sections are:
-
-.. _table-symbols:
-
-.. list-table:: Symbols used in numerical methods
-   :align: center
-   :header-rows: 1
-   :widths: auto
-
-   * - Symbol
-     - Description
-   * - :math:`s`
-     - Number of stages
-   * - :math:`t^n`
-     - Discrete time moment
-   * - :math:`h`
-     - Time step :math:`h=t^{n+1}-t^n`
-   * - :math:`y^n`
-     - Numerical solution (concentration) at :math:`t^n`
-   * - :math:`\delta y^n`
-     - Tangent linear solution at :math:`t^n`
-   * - :math:`\lambda^n`
-     - Adjoint numerical solution at :math:`t^n`
-   * - :math:`f(\cdot,\cdot)`
-     - The ODE derivative function: :math:`y'=f(t,y)`
-   * - :math:`f_t(\cdot,\cdot)`
-     - Partial time derivative
-       :math:`f_t(t,y)=\partial f(t,y)/\partial t`
-   * - :math:`J(\cdot,\cdot)`
-     - The Jacobian
-       :math:`J(t,y)=\partial f(t,y)/\partial y`
-   * - :math:`J_t(\cdot,\cdot)`
-     - Partial time derivative of Jacobian
-       :math:`J_t(t,y)=\partial J(t,y)/\partial t`
-   * - :math:`A`
-     - The system matrix
-   * - :math:`H(\cdot,\cdot)`
-     - The Hessian
-       :math:`H(t,y)=\partial^2 f(t,y)/\partial y^2`
-   * - :math:`T_i`
-     - Internal stage time moment for Runge-Kutta and
-       Rosenbrock methods
-   * - :math:`Y_i`
-     - Internal stage solution for Runge-Kutta and
-       Rosenbrock methods
-   * - :math:`k_i`, :math:`\ell_i`,
-       :math:`u_i`, :math:`v_i`
-     - Internal stage vectors for Runge-Kutta and Rosenbrock
-       methods, their tangent linear and adjoint models
-   * - :math:`\alpha_i`, :math:`\alpha_{ij}`,
-       :math:`a_{ij}`, :math:`b_i`, :math:`c_i`,
-       :math:`c_{ij}`, :math:`e_i`, :math:`m_i`
-     - Method coefficients
-
 .. _rosenbrock-methods:
 
-==================
+##################
 Rosenbrock methods
-==================
+##################
 
 **Integrator file:** :file:`int/rosenbrock.f90`
 
@@ -122,8 +40,9 @@ The coefficients of the methods implemented in KPP are shown below:
 
 .. _rosenbrock-ros-2:
 
+=====
 ROS-2
------
+=====
 - Stages (:math:`s`): 2
 - Funcion calls: 2
 - Order: 2(1)
@@ -141,8 +60,10 @@ ROS-2
 
 .. _rosenbrock-ros-3:
 
+=====
 ROS-3
------
+=====
+
 - Stages (:math:`s`): 3
 - Funcion calls: 2
 - Order: 3(2)
@@ -162,8 +83,10 @@ ROS-3
 
 .. _rosenbrock-ros-4:
 
+=====
 ROS-4
------
+=====
+
 - Stages (:math:`s`): 4
 - Funcion calls: 3
 - Order: 4(3)
@@ -187,8 +110,10 @@ ROS-4
 
 .. _rosenbrock-rodas-3:
 
+=======
 RODAS-3
--------
+=======
+
 - Stages (:math:`s`): 4
 - Funcion calls: 3
 - Order: 3(2)
@@ -210,11 +135,12 @@ RODAS-3
    \gamma_4 = 0
    \end{aligned}
 
-
 .. _rosenbrock-rodas-3-1:
 
+=========
 RODAS-3.1
----------
+=========
+
 - Reference: :cite:t:`Long_et_al._2026`
 - Stages (:math:`s`): 4
 - Funcion calls: 3
@@ -243,8 +169,10 @@ RODAS-3.1
 
 .. _rosenbrock-rodas-4:
 
+=======
 RODAS-4
--------
+=======
+
 - Stages (:math:`s`): 6
 - Funcion calls: 5
 - Order: 4(3)
@@ -276,8 +204,9 @@ RODAS-4
 
 .. _rosenbrock-tlm:
 
+===============================
 Rosenbrock tangent linear model
---------------------------------
+===============================
 
 **Integrator file:** :file:`int/rosenbrock_tlm.f90`
 
@@ -321,8 +250,9 @@ efficiency.
 
 .. _rosenbrock-adjoint:
 
+=================================
 Rosenbrock discrete adjoint model
----------------------------------
+=================================
 
 **Integrator file:** :file:`int/rosenbrock_adj.f90`
 
@@ -356,8 +286,9 @@ for each of the Rosenbrock methods (:ref:`rosenbrock-ros-2`,
 
 .. _rosenbrock-autoreduce:
 
+========================================
 Rosenbrock with mechanism auto-reduction
------------------------------------------
+========================================
 
 **Integrator file:** :file:`int/rosenbrock_autoreduce.f90`
 
@@ -393,240 +324,11 @@ Rosenbrock solver.
 
 .. _rosenbrock-h211b-qssa:
 
+===================================
 Rosenbrock with H211b time stepping
------------------------------------
+===================================
 
 **Integrator file:** :file:`int/rosenbrock_h211b_qssa.f90`
 
 H211b time stepping according to :cite:t:`Soederlind_2003`, as
 implemented by :cite:t:`Dreger_2025`.
-
-.. _rk-methods:
-
-============================
-Runge-Kutta (aka RK) methods
-============================
-
-A general :math:`s`-stage Runge-Kutta method is defined as (see
-Section II.1 of :cite:t:`Hairer_Norsett_and_Wanner_1987`)
-
-.. math::
-
-   \begin{aligned}
-   y^{n+1} &=& y^n + h \sum_{i=1}^s b_i k_i~,\\
-   \nonumber
-   T_i &=& t^n + c_i h~, \quad
-   Y_i = y^n + h \sum_{j=1}^{s} a_{ij} k_j~,\\
-   \nonumber
-   k_i &=& f\left( \, T_i, \, Y_i \,\right)~,\end{aligned}
-
-where the coefficients :math:`a_{ij}`, :math:`b_i` and :math:`c_i` are
-prescribed for the desired accuracy and stability properties. The stage
-derivative values :math:`k_i` are defined implicitly, and require
-solving a (set of) nonlinear system(s). Newton-type methods solve
-coupled linear systems of dimension (at most) :math:`n \times s`.
-
-The Runge-Kutta methods implemented in KPP are summarized below:
-
-.. _rk-methods-3stage:
-
-3-stage Runge-Kutta
--------------------
-
-**Integrator file:** :file:`int/runge_kutta.f90`
-
-Fully implicit 3-stage Runge-Kutta methods.  Several variants are available:
-
-- RADAU-2A: order 5
-- RADAU-1A: order 5
-- Lobatto-3C: order 4
-- Gauss: order 6
-
-.. _rk-methods-radau5:
-
-RADAU5
-------
-**Integrator file:** :file:`int/radau5.f90`
-
-This Runge-Kutta method of order 5 based on RADAU-IIA quadrature
-is stiffly accurate. The KPP implementation follows the original
-implementation of :cite:t:`Hairer_and_Wanner_1991`, Section IV.10. While
-RADAU5 is relatively expensive (when compared to the Rosenbrock
-methods), it is more robust and is useful to obtain accurate reference
-solutions.
-
-.. _rk-methods-sdirk:
-
-SDIRK
------
-**Integrator file:** :file:`int/sdirk.f90`,
-
-SDIRK is an L-stable, singly-diagonally-implicit Runge-Kutta method. The
-implementation is based on :cite:t:`Hairer_and_Wanner_1991`. Several
-variants are available:
-
-  - Sdirk 2a, 2b: 2 stages, order 2
-  - Sdirk 3a: 3 stages, order 2
-  - Sdirk 4a, 4b: 5 stages, order 4
-
-.. _rk-methods-sdirk4:
-
-SDIRK4
-------
-**Integrator file:** :file:`int/sdirk4.f90`
-
-SDIRK4 is an L-stable, singly-diagonally-implicit Runge-Kutta method
-of order 4. The implementation is based on :cite:t:`Hairer_and_Wanner_1991`.
-
-.. _rk-methods-seulex:
-
-SEULEX
-------
-**Integrator file:** :file:`int/seulex.f90`
-
-SEULEX is a variable  order stiff extrapolation code able to produce
-highly accurate solutions. The KPP implementation is based on the
-implementation of :cite:t:`Hairer_and_Wanner_1991`.
-
-.. _rk-methods-tlm:
-
-RK tangent linear model
------------------------
-
-The tangent linear method associated with the Runge-Kutta method is
-
-.. math::
-
-   \begin{aligned}
-   %y^{n+1} &=& y^n + h \sum_{i=1}^s b_i k_i~,\\
-   \delta y^{n+1} &=& \delta y^n + h \sum_{i=1}^s b_i \ell_i~,\\
-   \nonumber
-   %Y_i &=& y^n + h \sum_{j=1}^{s} a_{ij} k_j~,\\
-   \delta Y_i& =& \delta y^n + h \sum_{j=1}^{s} a_{ij} \ell_j~,\\
-   \nonumber
-   %k_i &=& f\left( \, T_i, \, Y_i \,\right)~,\\
-   \ell_i &=& J\left(T_i, \, Y_i \right) \cdot \delta Y_i ~.\end{aligned}
-
-The system is linear and does not require an iterative
-procedure. However, even for a SDIRK method (:math:`a_{ij}=0` for
-:math:`i>j` and :math:`a_{ii}=\gamma`) each stage requires the LU
-factorization of a different matrix.
-
-.. _rk-methods-adj:
-
-RK discrete adjoint model
--------------------------
-
-The first order Runge-Kutta adjoint is
-
-.. math::
-
-   \begin{aligned}
-   u_i &=& h \, J^T(T_i,Y_i)\cdot
-   \left( b_i \lambda^{n+1} + \sum_{j=1}^s a_{ji} u_j \right)\\ %\quad i = 1 \cdots s\\
-   \nonumber
-   \lambda^{n} &=& \lambda^{n+1} +\sum_{j=1}^s u_j~.\end{aligned}
-
-For :math:`b_i \ne 0` the Runge-Kutta adjoint can be rewritten as
-another Runge-Kutta method:
-
-.. math::
-
-   \begin{aligned}
-   u_i &=& h \, J^T(T_i,Y_i)\cdot
-   \left( \lambda^{n+1} + \sum_{j=1}^s \frac{b_j \,
-   a_{ji}}{b_i} u_j \right)\\ %~, \quad i = 1 \cdots s\\
-   \nonumber
-   \lambda^{n} &=& \lambda^{n+1} +\sum_{j=1}^s b_j \, u_j~.\end{aligned}
-
-.. _back-diff:
-
-=================================
-Backward differentiation formulas
-=================================
-
-Backward differentiation formulas (BDF) are linear multistep methods
-with excellent stability properties for the integration of chemical
-systems (cf. :cite:t:`Hairer_and_Wanner_1991`, Section V.1). The
-:math:`k`-step BDF method reads
-
-.. math::
-
-   \sum_{i=0}^k \alpha_i y^{n-i} = h_n \beta\; f\left(t^{n},y^{n}\right)
-   \label{BDF}
-
-where the coefficients :math:`\alpha_i` and :math:`\beta` are chosen
-such that the method has order of consistency :math:`k`.
-
-The KPP library contains two off-the-shelf, highly popular
-implementations of BDF methods, described in the following sections:
-
-.. _back-diff-lsode:
-
-LSODE
------
-**Integrator file:** :file:`int/lsode.f90`
-
-LSODE, the Livermore ODE solver
-(:cite:t:`Radhakrishnan_and_Hindmarsh_1993`), implements backward
-differentiation formula (BDF) methods for stiff problems.  LSODE has
-been translated to Fortran90 for the incorporation into the KPP library.
-
-.. attention::
-
-   We have discovered that the current implementation of the LSODE
-   integrator is not thread-safe for `OpenMP parallelization
-   <https://www.openmp.org/>`_.  When LSODE is called from within
-   an OpenMP parallel loop, the integration will fail because key
-   internal variables in LSODE will be overwritten by concurrent
-   threads.
-
-.. _back-diff-vode:
-
-VODE
-----
-
-**Integrator file:** :file:`int/dvode.f90`
-
-VODE (:cite:t:`Brown_Byrne_and_Hindmarsh_1989`) uses another formulation
-of backward differentiation formulas. The version of VODE present in
-the KPP library uses directly the KPP sparse linear algebra routines.
-
-.. _back-diff-beuler:
-
-BEULER
-------
-
-**Integrator file:** :file:`int/sdirk.f90`
-
-Backward Euler integration method.  To request this method, make sure
-you select
-
-.. code-block:: console
-
-   #INTEGRATOR sdirk
-
-in your definition file, and then set :code:`ICNTRL(3) = 6`.
-
-.. _other-methods:
-
-=========================
-Other integration methods
-=========================
-
-.. _other-methods-feuler:
-
-FEULER
-------
-
-**Integrator file:** :file:`int/feuler.f90`
-
-Forward Euler is an explicit integration method for non-stiff problems.
-FEULER computes
-:math:`y^{n+1}` as
-
-.. math::
-
-   \begin{aligned}
-   y^{n+1} = y^n + hf\left(t^{n},y^{n}\right)
-   \end{aligned}
