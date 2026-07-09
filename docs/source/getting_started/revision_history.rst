@@ -24,6 +24,8 @@ Unreleased
   GitHub Action
 - Fixed several build issues for MacOSX with ARM chipsets
 - Fixed emacs font-lock issues in :file:`site_lisp/kpp.el`
+- Split ReadTheDocs documentation into smaller files and reorganized
+  documentation folders
 
 .. _kpp340:
 

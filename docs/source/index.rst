@@ -66,39 +66,51 @@ guidelines.  If you find something hard to understand---let us know!
    :caption: Input for KPP
    :maxdepth: 3
 
-   using_kpp/input_overview.rst
-   using_kpp/kpp_sections.rst
-   using_kpp/kpp_commands.rst
-   using_kpp/inlined_code.rst
-   using_kpp/auxiliary_files.rst
-   using_kpp/controlling_the_integrator.rst
-   using_kpp/filter-passive-spc.rst
+   input/input_overview.rst
+   input/kpp_sections.rst
+   input/kpp_commands.rst
+   input/inlined_code.rst
+   input/auxiliary_files.rst
+   input/filter-passive-spc.rst
 
 .. toctree::
    :caption: Output from KPP
    :maxdepth: 3
 
-   using_kpp/code_f90.rst
-   using_kpp/code_c.rst
-   using_kpp/code_matlab.rst
-   using_kpp/makefile.rst
-   using_kpp/log_file.rst
-   using_kpp/output_from_integrators.rst
+   output/code_f90.rst
+   output/code_c.rst
+   output/code_matlab.rst
+   output/makefile.rst
+   output/log_file.rst
+
+.. toctree::
+   :caption: Numerical Integration Methods
+   :maxdepth: 3
+
+   num_methods/rosenbrock-methods.rst
+   num_methods/runge_kutta_methods.rst
+   num_methods/backward_diff.rst
+   num_methods/forward_diff.rst
+   num_methods/controlling_the_integrator.rst
+   num_methods/output_from_integrators.rst
 
 .. toctree::
    :caption: Technical information
-   :maxdepth: 2
+   :maxdepth: 3
 
-   tech_info/06_info_for_kpp_developers.rst
-   tech_info/07_numerical_methods.rst
-   tech_info/08_bnf_description_of_kpp_lang.rst
+   tech_info/kpp_dir_structure.rst
+   tech_info/kpp_env_vars.rst
+   tech_info/kpp_internal_modules.rst
+   tech_info/adding_new_commands.rst
+   tech_info/about_ci_tests.rst
+   tech_info/bnf_description_of_kpp_lang.rst
 
 .. toctree::
    :caption: KPP Reference
    :maxdepth: 2
 
-   citations/09_acknowledgments.rst
-   citations/10_kpp_references.rst
+   citations/acknowledgments.rst
+   citations/kpp_references.rst
 
 .. toctree::
    :caption: Help and Support

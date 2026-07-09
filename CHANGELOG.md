@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated the C-I test function `print_compiler_versions` to display the proper compiler info
 - Initialized `Hacc` and `ErrOld` variables to `ZERO` in `int/runge_kutta.c`, to avoid compiler warnings
 - Updated all `int/rosenbrock*.f90` integrators to use `NonPassiveSpc_Count` and `NonPassiveSpc_Indices` to exclude passive species from the error norm calculation
+- Split ReadTheDocs documentation files into smaller files and reorganized folders in `docs/source`
 
 ### Fixed
 - Fixed several emacs font-lock issues in `site-lisp/kpp.el`
