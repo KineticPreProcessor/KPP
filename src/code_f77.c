@@ -554,6 +554,9 @@ void Use_F( char* rootFileName )
   FunctionBegin     = F77_FunctionBegin;
   FunctionEnd       = F77_FunctionEnd;
 
+  // FunctionBeginNoArgDecl is only defined for Fortran-90
+  FunctionBeginNoArgDecl = NULL;
+
   OpenFile( &param_headerFile,   rootFileName, "_Parameters.h", "Parameter Header File" );
   OpenFile( &initFile, rootFileName, "_Initialize.f", "Initialization File" );
   OpenFile( &driverFile, rootFileName, "_Main.f", "Main Program File" );

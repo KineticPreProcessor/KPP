@@ -1,6 +1,6 @@
 # Set here the desired C compiler and its optimization options
-CC   = gcc
-COPT = -O -Wall  
+CC   ?= gcc
+COPT  = -O -Wall
 
 # To create Matlab gateway routines
 # Note: use $(CC) as the mex C compiler
@@ -57,6 +57,10 @@ distclean:
 	rm -f $(SPOBJ) $(OBJ) KPP_ROOT.exe KPP_ROOT*.dat \
 	KPP_ROOT_*.c KPP_ROOT_*.h KPP_ROOT*.log KPP_ROOT_*.mexglx *.csv
 
+list:
+	@echo "CC : $(CC)"
+	@$(CC) --version
+
 KPP_ROOT_Monitor.o: KPP_ROOT_Monitor.c $(HEADERS)
 	$(CC) $(COPT) -c $<
 
@@ -101,4 +105,3 @@ KPP_ROOT_Stoichiom.o: KPP_ROOT_Stoichiom.c  $(HEADERS) $(SPOBJ)
 
 KPP_ROOT_Util.o: KPP_ROOT_Util.c  $(HEADERS) $(SPOBJ)
 	$(CC) $(COPT) -c $<
-

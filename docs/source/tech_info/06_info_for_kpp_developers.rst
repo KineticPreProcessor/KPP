@@ -25,48 +25,49 @@ Contains the KPP source code files:
 
 .. _table-kpp-dirs:
 
-.. table:: KPP source code files
+.. list-table:: KPP source code files
    :align: center
+   :widths: 30 70
+   :header-rows: 1
 
-   +-----------------------+-------------------------------------+
-   | File                  | Description                         |
-   +=======================+=====================================+
-   | :file:`kpp.c`         | Main program                        |
-   +-----------------------+-------------------------------------+
-   | :file:`code.c`        | generic code generation functions   |
-   +-----------------------+-------------------------------------+
-   | :file:`code.h`        | Header file                         |
-   +-----------------------+-------------------------------------+
-   | :file:`code_c.c`      | Generation of C code                |
-   +-----------------------+-------------------------------------+
-   | :file:`code_f90.c`    | Generation of F90 code              |
-   +-----------------------+-------------------------------------+
-   | :file:`code_matlab.c` | Generation of Matlab code           |
-   +-----------------------+-------------------------------------+
-   | :file:`debug.c`       | Debugging output                    |
-   +-----------------------+-------------------------------------+
-   | :file:`gdata.h`       | Header file                         |
-   +-----------------------+-------------------------------------+
-   | :file:`gdef.h`        | Header file                         |
-   +-----------------------+-------------------------------------+
-   | :file:`gen.c`         | Generic code generation functions   |
-   +-----------------------+-------------------------------------+
-   | :file:`lex.yy.c`      | Flex generated file                 |
-   +-----------------------+-------------------------------------+
-   | :file:`scan.h`        | Input for Flex and Bison            |
-   +-----------------------+-------------------------------------+
-   | :file:`scan.l`        | Input for Flex                      |
-   +-----------------------+-------------------------------------+
-   | :file:`scan.y`        | Input for Bison                     |
-   +-----------------------+-------------------------------------+
-   | :file:`scanner.c`     | Evaluate parsed input               |
-   +-----------------------+-------------------------------------+
-   | :file:`scanutil.c`    | Evaluate parsed input               |
-   +-----------------------+-------------------------------------+
-   | :file:`y.tab.c`       | Bison generated file                |
-   +-----------------------+-------------------------------------+
-   | :file:`y.tab.h`       | Bison generated header file         |
-   +-----------------------+-------------------------------------+
+   * - File
+     - Description
+   * - :file:`kpp.c`
+     - Main program
+   * - :file:`code.c`
+     - generic code generation functions
+   * - :file:`code.h`
+     - Header file
+   * - :file:`code_c.c`
+     - Generation of C code
+   * - :file:`code_f90.c`
+     - Generation of F90 code
+   * - :file:`code_matlab.c`
+     - Generation of Matlab code
+   * - :file:`debug.c`
+     - Debugging output
+   * - :file:`gdata.h`
+     - Header file
+   * - :file:`gdef.h`
+     - Header file
+   * - :file:`gen.c`
+     - Generic code generation functions
+   * - :file:`lex.yy.c`
+     - Flex generated file
+   * - :file:`scan.h`
+     - Input for Flex and Bison
+   * - :file:`scan.l`
+     - Input for Flex
+   * - :file:`scan.y`
+     - Input for Bison
+   * - :file:`scanner.c`
+     - Evaluate parsed input
+   * - :file:`scanutil.c`
+     - Evaluate parsed input
+   * - :file:`y.tab.c`
+     - Bison generated file
+   * - :file:`y.tab.h`
+     - Bison generated header file
 
 bin/
 ----
@@ -371,131 +372,167 @@ List of continuous integration tests
      - Language
      - Model
      - Integrator
+     - What it tests
    * - :code:`C_rk`
      - C
      - small_strato
      - runge_kutta
+     - :ref:`Runge-Kutta integrator <rk-methods-3stage>`
    * - :code:`C_rosadj`
      - C
      - small_strato
      - rosenbrock_adj
+     - :ref:`Rosenbrock discrete adjoint <rosenbrock-adjoint>`
    * - :code:`C_sd`
      - C
      - small_strato
      - sdirk
+     - :ref:`SDIRK integrator <rk-methods-sdirk>`
    * - :code:`C_sdadj`
      - C
      - small_strato
      - sdirk_adj
+     - :ref:`SDIRK discrete adjoint <rk-methods-sdirk>`
    * - :code:`C_small_strato`
      - C
      - small_strato
      - rosenbrock
+     - :ref:`Rosenbrock integrator <rosenbrock-methods>`
    * - :code:`F90_feuler`
      - Fortran90
      - carbon
      - feuler
+     - :ref:`Forward Euler integrator <other-methods-feuler>`
    * - :code:`F90_graph`
      - Fortran90
      - small_strato
      - rosenbrock
+     - :ref:`#GRAPH command <graph-cmd>`
    * - :code:`F90_lsode`
      - Fortran90
      - small_strato
      - lsode
+     - :ref:`LSODE integrator <back-diff-lsode>`
    * - :code:`F90_mcm`
      - Fortran90
      - mcm
      - rosenbrock
+     - Master Chemical Mechanism
    * - :code:`F90_mcm_h211b`
      - Fortran90
      - mcm
      - rosenbrock_h211b_qssa
+     - :ref:`Rosenbrock int. w/ H211b time stepping <rosenbrock-h211b-qssa>`
    * - :code:`F90_radau`
      - Fortran90
      - saprc99
      - radau5
+     - :ref:`RADAU5 integrator <rk-methods-radau5>`
    * - :code:`F90_rk`
      - Fortran90
      - small_strato
      - runge_kutta
+     - :ref:`Runge-Kutta integrator <rk-methods-3stage>`
    * - :code:`F90_rkadj`
      - Fortran90
      - small_strato
      - runge_kutta_adj
+     - :ref:`Runge-Kutta discrete adjoint <rk-methods-adj>`
    * - :code:`F90_rktlm`
      - Fortran90
      - small_strato
      - runge_kutta_tlm
+     - :ref:`Runge-Kutta tangent linear model <rk-methods-tlm>`
    * - :code:`F90_ros`
      - Fortran90
      - small_strato
      - rosenbrock
+     - :ref:`Rosenbrock integrator <rosenbrock-methods>`
    * - :code:`F90_rosadj`
      - Fortran90
      - small_strato
      - rosenbrock_adj
+     - :ref:`Rosenbrock discrete adjoint <rosenbrock-adjoint>`
    * - :code:`F90_ros_autoreduce`
      - Fortran90
      - saprc99
      - rosenbrock_autoreduce
+     - :ref:`Rosenbrock integrator w/ auto-reduction <rosenbrock-autoreduce>`
    * - :code:`F90_rosenbrock`
      - Fortran90
      - saprc99
      - rosenbrock
+     - :ref:`Rosenbrock integrator <rosenbrock-methods>`
    * - :code:`F90_ros_h211b`
      - Fortran90
      - saprc99
      - rosenbrock_h211b_qssa
+     - :ref:`Rosenbrock int. w/ H211b time stepping <rosenbrock-h211b-qssa>`
+   * - :code:`F90_ros_passivespc`
+     - Fortran90
+     - small_strato
+     - rosenbrock
+     - Excluding passive species
    * - :code:`F90_ros_split`
      - Fortran90
      - small_strato
      - rosenbrock
+     - :ref:`#FUNCTION SPLIT <function-cmd>`
    * - :code:`F90_rostlm`
      - Fortran90
      - small_strato
      - rosenbrock_tlm
+     - :ref:`Rosenbrock tangent linear model <rosenbrock-tlm>`
    * - :code:`F90_ros_upcase`
      - Fortran90
      - saprc99
      - rosenbrock
+     - :ref:`#UPPERCASEF90 ON <uppercasef90-cmd>`
    * - :code:`F90_saprc_2006`
      - Fortran90
      - saprcnov
      - rosenbrock
+     - :ref:`Rosenbrock integrator <rosenbrock-methods>`
    * - :code:`F90_sd4`
      - Fortran90
      - small_strato
      - sdirk4
+     - :ref:`Rosenbrock integrator <rosenbrock-methods>`
    * - :code:`F90_sd`
      - Fortran90
      - small_strato
      - sdirk
+     - :ref:`SDIRK integrator <rk-methods-sdirk>`
    * - :code:`F90_sdadj`
      - Fortran90
      - small_strato
      - sdirk_adj
+     - :ref:`SDIRK discrete adjoint <rk-methods-sdirk>`
    * - :code:`F90_sdtlm`
      - Fortran90
      - small_strato
      - sdirk_tlm
+     - :ref:`SDIRK tangent linear model <rk-methods-sdirk>`
    * - :code:`F90_seulex`
      - Fortran90
      - saprcnov
      - seulex
+     - :ref:`SEULEX integrator <rk-methods-seulex>`
    * - :code:`F90_small_strato`
      - Fortran90
      - small_strato
      - rosenbrock
+     - :ref:`Rosenbrock integrator <rosenbrock-methods>`
    * - :code:`X_minver`
      - Fortran90
      - small_strato
      - runge_kutta
+     - :ref:`#MINVERSION command <minversion-cmd>`
 
 Notes about C-I tests:
 
-#. :file:`F90_ros_split` also uses :command:`#FUNCTION SPLIT`.
-#. :file:`F90_ros_upcase` also uses :command:`#UPPERCASEF90 ON`.
+#. :file:`F90_ros_split` uses :command:`#FUNCTION SPLIT`.
+#. :file:`F90_ros_upcase` uses :command:`#UPPERCASEF90 ON`.
 #. :file:`F90_small_strato` is the example from
    :ref:`running-kpp-with-an-example-mechanism`.
 #. :file:`X_minver` tests if the :ref:`minversion-cmd` command works
@@ -544,17 +581,17 @@ local computer system.
 ci-cleanup-script.sh
 ~~~~~~~~~~~~~~~~~~~~
 
-**Path:** :file:`$KPP_HOME/.ci-pipelines/ci-cleanup-script.sh` 
+**Path:** :file:`$KPP_HOME/.ci-pipelines/ci-cleanup-script.sh`
 
 **Description:** Removes compiler-generated files (e.g. :file:`*.o`,
 :file:`.mod` , and  :file:`.exe`) from C-I test folders.
 
 .. _running-ci-tests-defs:
-      
+
 ci-common-defs.sh
 ~~~~~~~~~~~~~~~~~~
 
-**Path:** :file:`$KPP_HOME/.ci-pipelines/ci-common-defs.sh` 
+**Path:** :file:`$KPP_HOME/.ci-pipelines/ci-common-defs.sh`
 
 **Description** Contains common variable and function definitions needed by
 :ref:`running-ci-tests-testing` and :ref:`running-ci-tests-cleanup`.

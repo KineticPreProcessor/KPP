@@ -178,7 +178,7 @@ CONTAINS
     ! Return updated concentrations
     Y = Ynew
 
-    ! Succesful exit
+    ! Successful exit
     IERR = 1
 
   END SUBROUTINE ForwardEuler

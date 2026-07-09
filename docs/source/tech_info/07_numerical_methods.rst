@@ -428,7 +428,7 @@ coupled linear systems of dimension (at most) :math:`n \times s`.
 
 The Runge-Kutta methods implemented in KPP are summarized below:
 
-.. _rk-method-comparison:
+.. _rk-methods-3stage:
 
 3-stage Runge-Kutta
 -------------------
@@ -442,6 +442,8 @@ Fully implicit 3-stage Runge-Kutta methods.  Several variants are available:
 - Lobatto-3C: order 4
 - Gauss: order 6
 
+.. _rk-methods-radau5:
+
 RADAU5
 ------
 **Integrator file:** :file:`int/radau5.f90`
@@ -452,6 +454,8 @@ implementation of :cite:t:`Hairer_and_Wanner_1991`, Section IV.10. While
 RADAU5 is relatively expensive (when compared to the Rosenbrock
 methods), it is more robust and is useful to obtain accurate reference
 solutions.
+
+.. _rk-methods-sdirk:
 
 SDIRK
 -----
@@ -465,12 +469,16 @@ variants are available:
   - Sdirk 3a: 3 stages, order 2
   - Sdirk 4a, 4b: 5 stages, order 4
 
+.. _rk-methods-sdirk4:
+
 SDIRK4
 ------
 **Integrator file:** :file:`int/sdirk4.f90`
 
 SDIRK4 is an L-stable, singly-diagonally-implicit Runge-Kutta method
 of order 4. The implementation is based on :cite:t:`Hairer_and_Wanner_1991`.
+
+.. _rk-methods-seulex:
 
 SEULEX
 ------
@@ -480,7 +488,7 @@ SEULEX is a variable  order stiff extrapolation code able to produce
 highly accurate solutions. The KPP implementation is based on the
 implementation of :cite:t:`Hairer_and_Wanner_1991`.
 
-.. _rk-tlm:
+.. _rk-methods-tlm:
 
 RK tangent linear model
 -----------------------
@@ -504,7 +512,7 @@ procedure. However, even for a SDIRK method (:math:`a_{ij}=0` for
 :math:`i>j` and :math:`a_{ii}=\gamma`) each stage requires the LU
 factorization of a different matrix.
 
-.. _rk-adj:
+.. _rk-methods-adj:
 
 RK discrete adjoint model
 -------------------------
@@ -553,6 +561,8 @@ such that the method has order of consistency :math:`k`.
 The KPP library contains two off-the-shelf, highly popular
 implementations of BDF methods, described in the following sections:
 
+.. _back-diff-lsode:
+
 LSODE
 -----
 **Integrator file:** :file:`int/lsode.f90`
@@ -571,6 +581,8 @@ been translated to Fortran90 for the incorporation into the KPP library.
    internal variables in LSODE will be overwritten by concurrent
    threads.
 
+.. _back-diff-vode:
+
 VODE
 ----
 
@@ -579,6 +591,8 @@ VODE
 VODE (:cite:t:`Brown_Byrne_and_Hindmarsh_1989`) uses another formulation
 of backward differentiation formulas. The version of VODE present in
 the KPP library uses directly the KPP sparse linear algebra routines.
+
+.. _back-diff-beuler:
 
 BEULER
 ------
@@ -599,6 +613,8 @@ in your definition file, and then set :code:`ICNTRL(3) = 6`.
 =========================
 Other integration methods
 =========================
+
+.. _other-methods-feuler:
 
 FEULER
 ------

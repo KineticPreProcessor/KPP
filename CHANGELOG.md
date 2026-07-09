@@ -12,6 +12,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [Unreleased] - TBD
+### Added
+- Added function `F90_FunctionBeginNoArgDecl` in `src/code_f90.c` with corresponding function prototypes in `src/code.c` and `src/code.h`
+- Added macro `DefElmO` in `src/code.h`, which writes a scalar F90 variable with the `OPTIONAL` attribute
+- Added code to `src/gen.c` to add `NonPassiveSpc_Count` and `NonPassiveSpc_Indices` to `ROOT_Global` (only for F90)
+- Added code to `src/gen.c` to filter out passive species if the `PassiveSpc_ATOL_Threshold` optioal argument is passed to `ROOT_Initialize` (F90-only)
+- Added GCC 14, 15, and 16 to the list of compilers used to run C-I tests in GitHub Actions
+- Added `F90_ros_passivespc` C-I test to validate filtering out of passive species
+- Added `drv/general_passivespc.f90` driver program, which passes optional `PassiveSpc_ATOL_Threshold` argument to `ROOT_Initialize`
+- Added documentation about excluding passive species to ReadTheDocs
+
+### Changed
+- Updated `Makefile.defs` and `util/Makefile*` to look for the value of `CC` or `FC` from the shell before explicitly setting it
+- Updated documentation about forcing MacOSX to prefer GNU compilers over Clang
+- Updated `Makefile.defs` with robust cross-architecture code
+- Updated the C-I test function `print_compiler_versions` to display the proper compiler info
+- Initialized `Hacc` and `ErrOld` variables to `ZERO` in `int/runge_kutta.c`, to avoid compiler warnings
+- Updated all `int/rosenbrock*.f90` integrators to use `NonPassiveSpc_Count` and `NonPassiveSpc_Indices` to exclude passive species from the error norm calculation
+
+### Fixed
+- Fixed several emacs font-lock issues in `site-lisp/kpp.el`
+- Fixed `src/gen.c` to avoid generating an uninitialized variable compiler warning
+
+### Removed
+- Removed references to unneccessary `azure-cli` and `microsoft-prod` packages in `.github/workflows/run-ci-tests.yml`
+
 ## [3.4.0] - 2026-04-29
 ### Added
 - Added `Rodas3_1` integration method (with updated coefficents by @msl3v) to `rosenbrock_autoreduce.f90`, `rosenbrock.{c,f90,m}`, `rosenbrock_adj.{c,f90}`, `rosenbrock_tlm.f90`

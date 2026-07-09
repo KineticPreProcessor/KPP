@@ -1,0 +1,66 @@
+#INCLUDE    atoms.kpp              { Periodic table definitions              }
+#INTEGRATOR rosenbrock             { Use rosenbrock integrator               }
+#LANGUAGE   Fortran90              { Use F90 language                        }
+#DRIVER     general_passivespc     { Use the general driver program          }
+
+
+#DEFVAR                            { VARIABLE SPECIES                        }
+O     = O;                         { Oxygen atomic ground state              }
+O1D   = O;                         { Oxygen atomic excited state             }
+O3    = O + O + O;                 { Ozone                                   }
+NO    = N + O;                     { Nitric oxide                            }
+NO2   = N + O + O;                 { Nitrogen dioxide                        }
+PASV1 = IGNORE;                    { Passive species 1                       }
+PASV2 = IGNORE;                    { Passive species 2                       }
+PASV3 = IGNORE;                    { Passive species 3                       }
+
+
+#DEFFIX                            { FIXED SPECIES                           }
+M     = O + O + N + N;             { Atmospheric generic molecule            }
+O2    = O + O;                     { Molecular oxygen                        }
+
+
+#EQUATIONS                         { SMALL STRATOSPHERIC MECHANISM           }
+<R1>  O2   + hv = 2O               : (2.643E-10) * SUN*SUN*SUN;
+<R2>  O    + O2 = O3               : (8.018E-17);
+<R3>  O3   + hv = O   + O2         : (6.120E-04) * SUN;
+<R4>  O    + O3 = 2O2              : (1.576E-15);
+<R5>  O3   + hv = O1D + O2         : (1.070E-03) * SUN*SUN;
+<R6>  O1D  + M  = O   + M          : (7.110E-11);
+<R7>  O1D  + O3 = 2O2      + PASV1 : (1.200E-10);
+<R8>  NO   + O3 = NO2 + O2 + PASV2 : (6.062E-15);
+<R9>  NO2  + O  = NO  + O2         : (1.069E-11);
+<R10> NO2  + hv = NO  + O  + PASV3 : (1.289E-02) * SUN;
+
+
+                                   { OUTPUT OPTIONS                          }
+#LOOKATALL                         { Output all species to small_strato.dat  }
+#MONITOR O3;N;O2;O;NO;O1D;NO2;     { Print selected species to screen        }
+
+
+#CHECK O; N;                       { Check Mass Balance of oxygen & nitrogen }
+
+
+#INITVALUES                        { Set initial values of species           }
+  CFACTOR = 1.0e0     ;            { and set units conversion factor to 1    }
+  O1D     = 9.906E+01 ;
+  O       = 6.624E+08 ;
+  O3      = 5.326E+11 ;
+  O2      = 1.697E+16 ;
+  NO      = 8.725E+08 ;
+  NO2     = 2.240E+08 ;
+  M       = 8.120E+16 ;
+  PASV1   = 0.0e0     ;
+  PASV2   = 0.0e0     ;
+  PASV3   = 0.0e0     ;
+
+                                   { F90 code to be inlined into ROOT_Global }
+#INLINE F90_INIT
+  ATOL(ind_PASV1) = 1.0d25
+  ATOL(ind_PASV2) = 1.0d25
+  ATOL(ind_PASV3) = 1.0d25
+  TSTART          = (12 * 3600)
+  TEND            = TSTART + (3* 24 * 3600)
+  DT              = 0.25 * 3600
+  TEMP            = 270
+#ENDINLINE

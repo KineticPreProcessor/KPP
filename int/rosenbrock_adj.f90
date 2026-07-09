@@ -232,76 +232,84 @@ SUBROUTINE RosenbrockADJ( Y, NADJ, Lambda,             &
 !~~~>     INPUT PARAMETERS:
 !
 !    Note: For input parameters equal to zero the default values of the
-!       corresponding variables are used.
+!          corresponding variables are used.
 !
-!    ICNTRL(1)   = 1: F = F(y)   Independent of T (AUTONOMOUS)
-!              = 0: F = F(t,y) Depends on T (NON-AUTONOMOUS)
+!    ICNTRL(1)  -> Specify time-dependence of the function to be integrated
+!        =  0 :    F = F(t,y) Depends on T (NON-AUTONOMOUS)
+!        =  1 :    F = F(y)   Independent of T (AUTONOMOUS)
 !
-!    ICNTRL(2)   = 0: AbsTol, RelTol are NVAR-dimensional vectors
-!              = 1:  AbsTol, RelTol are scalars
+!    ICNTRL(2)  -> Specify vector or scalar tolerances
+!        =  0 :    AbsTol, RelTol are N-dimensional vectors
+!        =  1 :    AbsTol, RelTol are scalars
 !
-!    ICNTRL(3)  -> selection of a particular Rosenbrock method
-!        = 0 :  default method is Rodas3
-!        = 1 :  method is  Ros2
-!        = 2 :  method is  Ros3
-!        = 3 :  method is  Ros4
-!        = 4 :  method is  Rodas3
-!        = 5 :  method is  Rodas4
-!        = 7 :  method is  Rodas3.1
+!    ICNTRL(3)  -> Select a particular Rosenbrock method
+!        =  0 :    Rodas3 (default)
+!        =  1 :    Ros2
+!        =  2 :    Ros3
+!        =  3 :    Ros4
+!        =  4 :    Rodas3
+!        =  5 :    Rodas4
+!        =  6 :    Rang3
+!        =  7 :    Rodas3.1
 !
-!    ICNTRL(4)  -> maximum number of integration steps
-!        For ICNTRL(4)=0) the default value of BUFSIZE is used
+!    ICNTRL(4)  -> Specify maximum number of integration steps
+!        =  0 :    Use up to BUFSIZE integration steps (default=200000)
+!        =  X :    Use up to X integration steps (X = any integer)
 !
-!    ICNTRL(6)  -> selection of a particular Rosenbrock method for the
-!                continuous adjoint integration - for cts adjoint it
-!                can be different than the forward method ICNTRL(3)
-!         Note 1: to avoid interpolation errors (which can be huge!)
-!                   it is recommended to use only ICNTRL(7) = 2 or 4
-!         Note 2: the performance of the full continuous adjoint
-!                   strongly depends on the forward solution accuracy Abs/RelTol
+!    ICNTRL(6)  -> Selection of a particular Rosenbrock method for the continuous 
+!                  adjoint integration; this may be different than the forward
+!                  method specified in ICNTRL(3).
 !
-!    ICNTRL(7) -> Type of adjoint algorithm
-!         = 0 : default is discrete adjoint ( of method ICNTRL(3) )
-!         = 1 : no adjoint
-!         = 2 : discrete adjoint ( of method ICNTRL(3) )
-!         = 3 : fully adaptive continuous adjoint ( with method ICNTRL(6) )
-!         = 4 : simplified continuous adjoint ( with method ICNTRL(6) )
+!                  Note 1: to avoid interpolation errors (which can be huge!)
+!                  it is recommended to use only ICNTRL(7) = 2 or 4
 !
-!    ICNTRL(8)  -> checkpointing the LU factorization at each step:
-!        ICNTRL(8)=0 : do *not* save LU factorization (the default)
-!        ICNTRL(8)=1 : save LU factorization
-!        Note: if ICNTRL(7)=1 the LU factorization is *not* saved
+!                  Note 2: the performance of the full continuous adjoint
+!                  strongly depends on the forward solution accuracy Abs/RelTol
 !
-!    ICNTRL(15) -> Toggles calling of Update_* functions w/in the integrator
-!        = -1 : Do not call Update_* functions within the integrator
-!        =  0 : Status quo
-!        =  1 : Call Update_RCONST from within the integrator
-!        =  2 : Call Update_PHOTO from within the integrator
-!        =  3 : Call Update_RCONST and Update_PHOTO from w/in the int.
-!        =  4 : Call Update_SUN from within the integrator
-!        =  5 : Call Update_SUN and Update_RCONST from within the int.
-!        =  6 : Call Update_SUN and Update_PHOTO from within the int.
-!        =  7 : Call Update_SUN, Update_PHOTO, Update_RCONST w/in the int.
+!    ICNTRL(7)  -> Type of adjoint algorithm
+!        =  0 :    default is discrete adjoint ( of method ICNTRL(3) )
+!        =  1 :    no adjoint
+!        =  2 :    discrete adjoint ( of method ICNTRL(3) )
+!        =  3 :    fully adaptive continuous adjoint ( with method ICNTRL(6) )
+!        =  4 :    simplified continuous adjoint ( with method ICNTRL(6) )
+!
+!    ICNTRL(8)  -> Checkpoint the LU factorization at each step?
+!        =  0 :    Do *not* save LU factorization (the default)
+!        =  1 :    Save LU factorization at each step
+!
+!                  Note: if ICNTRL(7)=1 the LU factorization is *not* saved
+!
+!    ICNTRL(15) -> Toggle calling of Update_* functions w/in the integrator
+!        = -1 :    Do not call Update_* functions within the integrator
+!        =  0 :    Status quo
+!        =  1 :    Call Update_RCONST from within the integrator
+!        =  2 :    Call Update_PHOTO from within the integrator
+!        =  3 :    Call Update_RCONST and Update_PHOTO from w/in the int.
+!        =  4 :    Call Update_SUN from within the integrator
+!        =  5 :    Call Update_SUN and Update_RCONST from within the int.
+!        =  6 :    Call Update_SUN and Update_PHOTO from within the int.
+!        =  7 :    Call Update_SUN, Update_PHOTO, Update_RCONST w/in the int.
 !
 !~~~>  Real input parameters:
 !
-!    RCNTRL(1)  -> Hmin, lower bound for the integration step size
-!          It is strongly recommended to keep Hmin = ZERO
+!    RCNTRL(1)  -> Hmin, lower bound for the integration step size.
+!                  It is strongly recommended to keep Hmin = ZERO
 !
 !    RCNTRL(2)  -> Hmax, upper bound for the integration step size
 !
 !    RCNTRL(3)  -> Hstart, starting value for the integration step size
 !
-!    RCNTRL(4)  -> FacMin, lower bound on step decrease factor (default=0.2)
+!    RCNTRL(4)  -> FacMin, lower bound on step decrease factor 
+!                  (default = 0.2)
 !
-!    RCNTRL(5)  -> FacMax, upper bound on step increase factor (default=6)
+!    RCNTRL(5)  -> FacMax, upper bound on step increase factor
+!                  (default = 6)
 !
 !    RCNTRL(6)  -> FacRej, step decrease factor after multiple rejections
-!            (default=0.1)
+!                  (default = 0.1)
 !
 !    RCNTRL(7)  -> FacSafe, by which the new step is slightly smaller
-!         than the predicted value  (default=0.9)
-!
+!                  than the predicted value (default = 0.9)
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !
 !~~~>     OUTPUT PARAMETERS:
@@ -1133,7 +1141,7 @@ UntilAccepted: DO
         END IF
    END IF
 
-!~~~> Succesful exit
+!~~~> Successful exit
    IERR = 1  !~~~> The integration was successful
 
   END SUBROUTINE ros_FwdInt
@@ -1300,7 +1308,7 @@ Stage: DO istage = ros_S, 1, -1
 
 !~~~> Save last state
 
-!~~~> Succesful exit
+!~~~> Successful exit
    IERR = 1  !~~~> The integration was successful
 
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1554,7 +1562,7 @@ Stage: DO istage = 1, ros_S
 
    END DO TimeLoop
 
-!~~~> Succesful exit
+!~~~> Successful exit
    IERR = 1  !~~~> The integration was successful
 
   END SUBROUTINE ros_CadjInt
@@ -1739,40 +1747,71 @@ Stage: DO istage = 1, ros_S
 
    END DO TimeLoop
 
-!~~~> Succesful exit
+!~~~> Successful exit
    IERR = 1  !~~~> The integration was successful
 
   END SUBROUTINE ros_SimpleCadjInt
 
+
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   KPP_REAL FUNCTION ros_ErrorNorm ( Y, Ynew, Yerr, &
-               AbsTol, RelTol, VectorTol )
+                               AbsTol, RelTol, VectorTol )
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !~~~> Computes the "scaled norm" of the error vector Yerr
+!~~~>
+!~~~> Now uses separate loops for scalar and vector tolerances,
+!~~~> as this facilitates loop vectorization for better performance.
+!~~~>
+!~~~> Also uses NonPassiveSpc_Count and NonPassiveSpc_Indices (constructed
+!~~~> in Initialize), so that we can exclude "passive" (e.g. prod/loss)
+!~~~> species from the error norm computation.
 !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
    IMPLICIT NONE
 
 ! Input arguments
-   KPP_REAL, INTENT(IN) :: Y(NVAR), Ynew(NVAR), &
-          Yerr(NVAR), AbsTol(NVAR), RelTol(NVAR)
+   KPP_REAL, INTENT(IN) :: Y(NVAR), Ynew(NVAR), Yerr(NVAR)
+   KPP_REAL, INTENT(IN) :: AbsTol(NVAR), RelTol(NVAR)
    LOGICAL, INTENT(IN) ::  VectorTol
 ! Local variables
    KPP_REAL :: Err, Scale, Ymax
-   INTEGER  :: i
+   INTEGER  :: I, IDX
 
    Err = ZERO
-   DO i=1,NVAR
-     Ymax = MAX(ABS(Y(i)),ABS(Ynew(i)))
-     IF (VectorTol) THEN
-       Scale = AbsTol(i)+RelTol(i)*Ymax
-     ELSE
-       Scale = AbsTol(1)+RelTol(1)*Ymax
-     END IF
-     Err = Err+(Yerr(i)/Scale)**2
-   END DO
-   Err  = SQRT(Err/NVAR)
 
-   ros_ErrorNorm = MAX(Err,1.0d-10)
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   !~~~> Vector Tolerances (per-species AbsTol & RelTol)
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   IF ( VectorTol ) THEN
+
+      DO IDX = 1, NonPassiveSpc_Count
+         I     = NonPassiveSpc_Indices(IDX)
+         Ymax  = MAX( ABS( Y(I) ), ABS( Ynew(I) ) )
+         Scale = AbsTol(I) + RelTol(I) * Ymax
+         Err   = Err + ( Yerr(I) / Scale )**2
+      ENDDO
+
+      ! Normalize the error norm by the number of non-dummy species
+      ! and prevent it from getting smaller than 1e-10
+      Err           = SQRT( Err / NonPassiveSpc_Count )
+      ros_ErrorNorm = MAX( Err, 1.0d-10 )
+      RETURN
+
+   ENDIF
+
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   !~~~> Scalar Tolerance (same AbsTol & RelTol for all species)
+   !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   DO IDX = 1, NonPassiveSpc_Count
+      I     = NonPassiveSpc_Indices(IDX)
+      Ymax  = MAX( ABS( Y(I) ), ABS( Ynew(I) ) )
+      Scale = AbsTol(1) + RelTol(1) * Ymax
+      Err   = Err + ( Yerr(I) / Scale )**2
+   ENDDO
+   
+   ! Normalize the error norm by the number of non-dummy species
+   ! and prevent it from getting smaller than 1e-10
+   Err           = SQRT( Err / NonPassiveSpc_Count )
+   ros_ErrorNorm = MAX( Err, 1.0d-10 )
 
   END FUNCTION ros_ErrorNorm
 
