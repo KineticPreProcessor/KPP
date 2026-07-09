@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `F90_ros_passivespc` C-I test to validate filtering out of passive species
 - Added `drv/general_passivespc.f90` driver program, which passes optional `PassiveSpc_ATOL_Threshold` argument to `ROOT_Initialize`
 - Added documentation about excluding passive species to ReadTheDocs
+- Added `.gitattributes`, `CLAUDE.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`
 
 ### Changed
 - Updated `Makefile.defs` and `util/Makefile*` to look for the value of `CC` or `FC` from the shell before explicitly setting it
