@@ -2845,6 +2845,18 @@ void GenerateGlobalHeader()
   ExternDeclare( TEMP );
   if ( useFortran ) { WriteOMPThreadPrivate("TEMP"); }
   //
+  // STEPMIN is written by INTEGRATE() on every call (to save the last
+  // exit step size), and is read back by some integrators (e.g. the TLM)
+  // as the starting step for the next call.  When INTEGRATE() is called
+  // from within an OpenMP parallel loop (e.g. looping over grid cells),
+  // a shared STEPMIN would be a data race, and could leak one thread's
+  // step size into another thread's integration.  So STEPMIN must be
+  // declared THREADPRIVATE.
+  //   -- Bob Yantosca (with Claude AI), 08 Jul 2026
+  //
+  ExternDeclare( STEPMIN );
+  if ( useFortran ) { WriteOMPThreadPrivate("STEPMIN"); }
+  //
   // Declare non-threadprivate variables
   //
   NewLines(1);
@@ -2861,7 +2873,6 @@ void GenerateGlobalHeader()
   ExternDeclare( DT );
   ExternDeclare( ATOL );
   ExternDeclare( RTOL );
-  ExternDeclare( STEPMIN );
   ExternDeclare( STEPMAX );
   //
   // Declare variables that can be used to exclude "passive" species

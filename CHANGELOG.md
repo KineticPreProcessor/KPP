@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - TBD
+### Changed
+- Updated `int/lsode.f90` to be OpenMP thread-safe
+- Declared STEPMIN as threadprivate in the created `ROOT_Global.f90` and `ROOT_Global.F90` files
 
 ## [3.5.0] - 2026-07-09
 ### Added
@@ -39,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Removed references to unneccessary `azure-cli` and `microsoft-prod` packages in `.github/workflows/run-ci-tests.yml`
+- Removed warnings that the LSODE integraor is not thread-safe in ReadTheDocs
 
 ## [3.4.0] - 2026-04-29
 ### Added
