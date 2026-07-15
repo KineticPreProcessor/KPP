@@ -133,6 +133,7 @@ void FreeVariable( int n );
 
 #define DefConst( name, bt, cmt ) DefineVariable( name, CONST, bt, 0, 0, cmt, 0 )
 #define DefElm( name, bt, cmt ) DefineVariable( name, ELM, bt, 0, 0, cmt, 0 )
+#define DefElmO( name, bt, cmt ) DefineVariable( name, ELM, bt, 0, 0, cmt, ATTR_F90_OPT )
 #define DefvElm( name, bt, n, cmt ) DefineVariable( name, VELM, bt, n, 0, cmt, 0 )
 #define DefmElm( name, bt, m, n, cmt ) DefineVariable( name, MELM, bt, m, n, cmt, 0)
 #define DefeElm( name, cmt ) DefineVariable( name, EELM, 0, 0, 0, cmt, 0 )
@@ -208,6 +209,7 @@ extern void (*DeclareConstant)( int v, char *val );
 extern void (*FunctionStart)( int f, int *vars );
 extern void (*FunctionPrototipe)( int f, ... );
 extern void (*FunctionBegin)( int f, ... );
+extern void (*FunctionBeginNoArgDecl)( int f, ... );
 extern void (*FunctionEnd)( int f );
 
 void WriteDelim();

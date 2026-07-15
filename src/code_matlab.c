@@ -677,6 +677,9 @@ void Use_MATLAB( char *rootFileName )
   FunctionBegin     = MATLAB_FunctionBegin;
   FunctionEnd       = MATLAB_FunctionEnd;
 
+  // FunctionBeginNoArgDecl is only defined for Fortran-90
+  FunctionBeginNoArgDecl = NULL;
+
   OpenFile( &param_headerFile,   rootFileName, "_Parameters.m","Parameter Definition File" );
   OpenFile( &driverFile, rootFileName, "_Main.m", "Main Program File" );
   OpenFile( &rateFile, rootFileName, "_Rates.m", 

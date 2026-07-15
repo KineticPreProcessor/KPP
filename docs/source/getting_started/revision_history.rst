@@ -10,6 +10,23 @@ of the changes, read `CHANGELOG.md
 
 .. _unreleased:
 
+==========
+Unreleased
+==========
+
+- Updated KPP code to exclude passive species from the Rosenbrock
+  error norm computation when the optional
+  :code:`PassiveSpc_ATOL_Threshold` argument is passed to the
+  :code:`Initialize` routine
+- Added `F90_ros_passivespc` C-I test and `drv/general_passivespc.f90`
+  driver program
+- Added GCC compiler versions 14, 15, and 16 to the "Run C-I tests"
+  GitHub Action
+- Fixed several build issues for MacOSX with ARM chipsets
+- Fixed emacs font-lock issues in :file:`site_lisp/kpp.el`
+- Split ReadTheDocs documentation into smaller files and reorganized
+  documentation folders
+
 .. _kpp340:
 
 =========

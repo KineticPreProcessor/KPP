@@ -20,7 +20,7 @@ jobs:
       KPP_FLEX_LIB_DIR: /usr/lib/x86_64-linux-gnu
     strategy:
       matrix:
-        gcc-version: [9, 10, 11, 12, 13]
+        gcc-version: [9, 10, 11, 12, 13, 14, 15, 16]
 
 
     name: Run C-I tests with GCC ${{ matrix.gcc-version }}
@@ -33,6 +33,10 @@ jobs:
 
       - name: Install libraries
         run: |
+          sudo grep -rl 'packages.microsoft.com' /etc/apt/sources.list.d/ | xargs -r sudo rm -f
+          sudo apt update -y
+          sudo apt install -y software-properties-common
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
           sudo apt update -y
           sudo apt install -y flex bison libfl-dev
           sudo apt install -y gcc-${{ matrix.gcc-version }} g++-${{ matrix.gcc-version }} gfortran-${{ matrix.gcc-version }}

@@ -24,6 +24,7 @@ F90_rosadj
 F90_ros_autoreduce
 F90_rosenbrock
 F90_ros_h211b
+F90_ros_passivespc
 F90_ros_split
 F90_rostlm
 F90_ros_upcase
@@ -59,8 +60,8 @@ function print_compiler_versions() {
 "###########################################################################"
     echo "         KPP CONTINUOUS INTEGRATION TESTS, USING THESE COMPILERS:"
     echo ""
-    gcc --version
-    gfortran --version
+    ${CC} --version
+    ${FC} --version
     echo \
 "###########################################################################"
 }

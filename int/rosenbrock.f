@@ -601,7 +601,7 @@
 
       END DO ! Time loop    
       
-!~~~> Succesful exit
+!~~~> Successful exit
       IERR = 1  !~~~> The integration was successful
 
       RETURN

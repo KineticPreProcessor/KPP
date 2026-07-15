@@ -510,7 +510,7 @@ while ( (Direction > 0) && ((T-Tend)+Roundoff <= ZERO) || ...
 
 end % TimeLoop
 
-%~~~> Succesful exit
+%~~~> Successful exit
 IERR = 1;  %~~~> The integration was successful
 
 return

@@ -35,7 +35,7 @@ FOPT_PGF   = -Mpreprocess -O -fast -pc 80 -Kieee
 FC_HPUX    = f90
 FOPT_HPUX  = -O -u +Oall +check=on
 
-FC_GFORTRAN     = gfortran
+FC_GFORTRAN    ?= gfortran
 FOPT_GFORTRAN   = -cpp -O -g
 
 # define FULL_ALGEBRA for non-sparse integration
@@ -205,6 +205,11 @@ distclean:
 	KPP_ROOT*.dat KPP_ROOT*.exe KPP_ROOT.log \
 	KPP_ROOT_*.f90 KPP_ROOT_*.F90 KPP_ROOT_*.mexglx \
 	results*.m *.dat *.csv
+
+list:
+	@echo "COMPILER : $(COMPILER)"
+	@echo "FC       : $(FC)"
+	@$(FC) --version
 
 KPP_ROOT_Precision.o: KPP_ROOT_Precision.F90
 	$(FC) $(FOPT) -c $<
