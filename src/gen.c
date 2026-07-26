@@ -800,6 +800,15 @@ int F_VAR, FSPLIT_VAR;
     NewLines(1);
     if ( useLang == F90_LANG ) {
       // For F90, we can do operations on arrays:
+      //
+      // NOTE: This whole-array statement assumes V, P_VAR, D_VAR, Vdot are
+      // rank-1 (NVAR) arrays.  Any transformed variant that widens the
+      // per-cell workspace to a leading cell dimension (e.g. a structure-
+      // of-arrays GPU port with V(LDC,NVAR) slices) must rewrite this
+      // statement with explicit index bounds -- an unindexed whole-array
+      // assignment would silently operate on the full leading dimension.
+      // See the #ACCELERATOR target, which emits the indexed form
+      //   Vdot(IC,1:NVAR) = P_VAR(IC,1:NVAR) - D_VAR(IC,1:NVAR)*V(IC,1:NVAR)
       fprintf(functionFile, "  Vdot = P_VAR - D_VAR*V\n");
     } else if ( useLang == C_LANG ) {
       // For C, we have to explicitly loop over elements:
