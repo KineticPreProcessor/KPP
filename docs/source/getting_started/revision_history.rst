@@ -6,13 +6,13 @@ KPP revision history
 
 Only the major new features are listed here. For a detailed description
 of the changes, read `CHANGELOG.md
-<https://github.com/KineticPreProcessor/KPP/blob/main/CHANGELOG.md>`_.
+<https://github.com/KineticPreProcessor/KPP/blob/main/CHANGELOG.md>`__.
 
-.. _unreleased:
+.. _kpp350:
 
-==========
-Unreleased
-==========
+=========
+KPP 3.5.0
+=========
 
 - Updated KPP code to exclude passive species from the Rosenbrock
   error norm computation when the optional
@@ -23,7 +23,7 @@ Unreleased
 - Added GCC compiler versions 14, 15, and 16 to the "Run C-I tests"
   GitHub Action
 - Fixed several build issues for MacOSX with ARM chipsets
-- Fixed emacs font-lock issues in :file:`site_lisp/kpp.el`
+- Fixed emacs font-lock issues in :file:`site-lisp/kpp.el`
 - Split ReadTheDocs documentation into smaller files and reorganized
   documentation folders
 
@@ -52,7 +52,7 @@ KPP 3.3.1
   Actions
 - Added new C-I tests: :literal:`F90_rkadj`, :literal:`F90_sd4`,
   :literal:`F90_sdtlm`
-- Fixed a compiliation issue that prevented
+- Fixed a compilation issue that prevented
   :literal:`KPP_ROOT_Stochiom.F90` from being compiled when
   :literal:`#STOCHIOM ON` and :literal:`#HESSIAN OFF` are used
 
@@ -116,7 +116,7 @@ KPP 3.1.0
 =========
 
 - Added :literal:`#AUTOREDUCE` to the list of KPP commands in the
-  ReadTheDocs documentaton
+  ReadTheDocs documentation
 - Added :file:`examples/mcm` folder with minimal example for the
   Master Chemical Mechanism
 - Added C-I test for MCM, based on the minimal example
@@ -184,7 +184,7 @@ KPP 3.0.0
   :file:`src/Makefile.defs`.  The build process will look for the
   :program:`flex:` library file (either :file:`libfl.so` or
   :file:`libfl.a`  file in several standard locations first.  If not
-  found, the build process will look in the path specfiied by
+  found, the build process will look in the path specified by
   environment variable :envvar:`KPP_FLEX_LIB_DIR`.
 
 - Added content to ReadTheDocs pages and fixed several formatting issues.
@@ -246,7 +246,7 @@ KPP 2.5.0
   assignments (Fortran90 only).
 
 - Converted the KPP user manual to Sphinx/ReadTheDocs format (this now
-  replaces the prior ReadTheDocs documentaton).
+  replaces the prior ReadTheDocs documentation).
 
 - Added updates to allow KPP to be built on MacOS X systems.
 
@@ -427,7 +427,7 @@ KPP 2.2.3
   :file:`runge_kutta.f90`, :file:`runge_kutta_tlm.f90`,
   :file:`sdirk_adj.f90`, :file:`sdirk_tlm.f90`.
 
-- New Rosebrock method :code:`Rang3` was added.
+- New Rosenbrock method :code:`Rang3` was added.
 
 - The new KPP command :command:`#DECLARE` was added (see:
   :ref:`declare-cmd`).

@@ -122,7 +122,7 @@ Selects a specific integration method.
    |                       +------------+-----------------------+
    |                       | 5          | Rodas4                |
    |                       +------------+-----------------------+
-   |                       | 6          | Rang                  |
+   |                       | 6          | Rang3                 |
    |                       +------------+-----------------------+
    |                       | 7          | Rodas3.1              |
    +-----------------------+------------+-----------------------+
@@ -198,20 +198,20 @@ Selects options for adjoint integrators.
 .. table:: Selection of adjoint algorithm
    :align: left
 
-   +-----------------+------------+----------------------------------+
-   | Integrator      | ICNTRL(7)  | Adjoint algorithm selected       |
-   +=================+============+==================================+
-   | rosenbrock_adj  | 0 or 2     | Discrete adjoint with method     |
-   |                 |            | ``ICNTRL(3)`` (default)          |
-   |                 +------------+----------------------------------+
-   |                 | 1          | No adjoint                       |
-   |                 +------------+----------------------------------+
-   |                 | 3          | Fully adaptive continous adjoint |
-   |                 |            | with method ``ICNTRL(6)``        |
-   |                 +------------+----------------------------------+
-   |                 | 4          | Simplified continuous adjoint    |
-   |                 |            | with method ``ICNTRL(6)``        |
-   +-----------------+------------+----------------------------------+
+   +-----------------+------------+-----------------------------------+
+   | Integrator      | ICNTRL(7)  | Adjoint algorithm selected        |
+   +=================+============+===================================+
+   | rosenbrock_adj  | 0 or 2     | Discrete adjoint with method      |
+   |                 |            | ``ICNTRL(3)`` (default)           |
+   |                 +------------+-----------------------------------+
+   |                 | 1          | No adjoint                        |
+   |                 +------------+-----------------------------------+
+   |                 | 3          | Fully adaptive continuous adjoint |
+   |                 |            | with method ``ICNTRL(6)``         |
+   |                 +------------+-----------------------------------+
+   |                 | 4          | Simplified continuous adjoint     |
+   |                 |            | with method ``ICNTRL(6)``         |
+   +-----------------+------------+-----------------------------------+
 
 .. table:: Method to solve the linear Adj equations
    :align: left
@@ -223,7 +223,7 @@ Selects options for adjoint integrators.
    |                 |            | (default)                        |
    |                 +------------+----------------------------------+
    |                 | 2          | Direct solution (additional one  |
-   |                 |            | LU factorizsation of 3Nx3N       |
+   |                 |            | LU factorization of 3Nx3N        |
    |                 |            | matrix per step; good for        |
    |                 |            | debugging                        |
    |                 +------------+----------------------------------+
@@ -235,7 +235,7 @@ Selects options for adjoint integrators.
    |                 |            | (default)                        |
    | sdirk_tlm       +------------+----------------------------------+
    |                 | 1          | Direct solution (additional one  |
-   |                 |            | LU factorizsation per stage)     |
+   |                 |            | LU factorization per stage)      |
    +-----------------+------------+----------------------------------+
 
 ICNTRL(8)
@@ -266,20 +266,20 @@ integrators.
 .. table:: Selection of adjoint algorithm
    :align: left
 
-   +-----------------+------------+----------------------------------+
-   | Integrator      | ICNTRL(9)  | Adjoint algorithm selected       |
-   +=================+============+==================================+
-   | runge_kutta_adj | 0 or 2     | Discrete adjoint with method     |
-   |                 |            | ``ICNTRL(3)`` (default)          |
-   |                 +------------+----------------------------------+
-   |                 | 1          | No adjoint                       |
-   |                 +------------+----------------------------------+
-   |                 | 3          | Fully adaptive continous adjoint |
-   |                 |            | with method ``ICNTRL(6)``        |
-   |                 +------------+----------------------------------+
-   |                 | 4          | Simplified continuous adjoint    |
-   |                 |            | with method ``ICNTRL(6)``        |
-   +-----------------+------------+----------------------------------+
+   +-----------------+------------+-----------------------------------+
+   | Integrator      | ICNTRL(9)  | Adjoint algorithm selected        |
+   +=================+============+===================================+
+   | runge_kutta_adj | 0 or 2     | Discrete adjoint with method      |
+   |                 |            | ``ICNTRL(3)`` (default)           |
+   |                 +------------+-----------------------------------+
+   |                 | 1          | No adjoint                        |
+   |                 +------------+-----------------------------------+
+   |                 | 3          | Fully adaptive continuous adjoint |
+   |                 |            | with method ``ICNTRL(6)``         |
+   |                 +------------+-----------------------------------+
+   |                 | 4          | Simplified continuous adjoint     |
+   |                 |            | with method ``ICNTRL(6)``         |
+   +-----------------+------------+-----------------------------------+
 
 .. table:: Selection of tangent linear method (TLM) error
 	      estimation strategy
@@ -411,7 +411,7 @@ Selects integrator-specific settings.
    |                       |            | throughout the internal timesteps |
    |                       |            | of the integrator.                |
    |                       +------------+-----------------------------------+
-   |                       | 1          | In auto-reduction, ensables       |
+   |                       | 1          | In auto-reduction, enables        |
    |                       |            | scanning species P and L rates    |
    |                       |            | throughout the internal timesteps |
    |                       |            | of the integrator, for            |
@@ -440,7 +440,7 @@ integrator.
    :header-rows: 1
 
    * - ICNTRL(15)
-     - Option selcted
+     - Option selected
    * - -1
      - Do not call any :code:`Update_*` subroutines
    * - 0
@@ -486,7 +486,7 @@ Specifies how negative values should be handled.
    :header-rows: 1
 
    * - ICNTRL(16)
-     - Option selcted
+     - Option selected
    * - 0
      - Leave negative values unchanged
    * - 1
@@ -506,7 +506,7 @@ Selects the amount of verbose output that will be generated.
    :header-rows: 1
 
    * - ICNTRL(17)
-     - Option selcted
+     - Option selected
    * - 0
      - Only return error number
    * - 1

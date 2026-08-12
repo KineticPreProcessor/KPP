@@ -5,7 +5,7 @@ Integrator status (:code:`ISTATUS` and :code:`RSTATUS`)
 #######################################################
 
 In order to obtain more information about the integration, KPP provides
-the arrays :code:`ISTATUS` (integ mer) and :code:`RSTATUS` (real). Each of
+the arrays :code:`ISTATUS` (integer) and :code:`RSTATUS` (real). Each of
 them is an array of 20 elements. Array elements not listed here are
 currently not used. Details can be found in the comment lines of the
 individual integrator files in :code:`$KPP_HOME/int/`.
@@ -189,7 +189,7 @@ RSTATUS(2)
 RSTATUS(3)
 ----------
 
-:code:`Hnew`: The last predicted step (not yet taken.  For multiple
+:code:`Hnew`: The last predicted step (not yet taken).  For multiple
 restarts, use :code:`Hnew` as :code:`Hstart` in the subsequent run.
 
 RSTATUS(4)

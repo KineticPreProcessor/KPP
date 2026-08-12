@@ -48,7 +48,7 @@ declaration and initialization of the Jacobian sparse data structures
 is in the file :file:`ROOT_JacobianSP.c`.
 
 Similarly, the :ref:`Hessian function and associated sparse
-multiplications <Hessian-and-HessianSP>`) are in
+multiplications <Hessian-and-HessianSP>` are in
 :file:`ROOT_Hessian.c`, and the declaration and initialization of
 Hessian sparse data structures are in :file:`ROOT_HessianSP.c`.
 
@@ -57,7 +57,7 @@ derivatives with respect to rate coefficients
 <Stoichiom-and-StoichiomSP>` are in the file :file:`ROOT_Stoichiom.c`.
 
 The declaration and initialization of the :ref:`stoichiometric matrix
-and the associated sparse data structures <table-sto>`) is done in
+and the associated sparse data structures <table-sto>` is done in
 :file:`ROOT_StoichiomSP.c`.
 
 :ref:`Sparse linear algebra routines <LinearAlgebra>` are in the file

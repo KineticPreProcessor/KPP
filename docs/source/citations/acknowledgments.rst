@@ -7,27 +7,27 @@ Acknowledgements
 This work has been supported by:
 
 - The US EPA `Science to Achieve Results (EPA-STAR)
-  <https://www.epa.gov/research-grants/air-research-grants>`_
+  <https://www.epa.gov/research-grants/air-research-grants>`__
   program (grant # `R840014
-  <https://cfpub.epa.gov/ncer_abstracts/index.cfm/fuseaction/display.abstractDetail/abstract_id/11083/report/0>`_);
+  <https://cfpub.epa.gov/ncer_abstracts/index.cfm/fuseaction/display.abstractDetail/abstract_id/11083/report/0>`__);
 
 - The NASA `Modeling, Analysis, and Prediction (MAP)
-  <https://map.nasa.gov>`_ program;
+  <https://astg.pages.smce.nasa.gov/website/esm/>`__ program;
 
 - The NASA `Atmospheric Composition Modeling and Analysis
   (ACMAP)
-  <https://airbornescience.nasa.gov/category/Discipline/Atmospheric_Composition_Modeling_and_Analysis_Program>`_ program;
+  <https://airbornescience.nasa.gov/category/Discipline/Atmospheric_Composition_Modeling_and_Analysis_Program>`__ program;
 
 - The NASA `Advanced Systems Information Technology (AIST)
-  <https://esto.nasa.gov/aist>`_ program (grant #
-  `AIST-18-0011 <https://esto.nasa.gov/project-selections-for-aist-18/#martin>`_)
+  <https://esto.nasa.gov/aist>`__ program (grant #
+  `AIST-18-0011 <https://esto.nasa.gov/project-selections-for-aist-18/#martin>`__)
 
 We thank Jason Lander for his suggestions how
 to migrate from :program:`yacc` to :program:`bison`.
 
 We would also like to thank Lucas Estrada for his assistance in
 setting up the :ref:`ci-tests` on `Azure DevOps Pipelines
-<https://azure.microsoft.com/en-us/services/devops/pipelines/>`_ and
+<https://azure.microsoft.com/en-us/services/devops/pipelines/>`__ and
 for assistance with debugging.
 
 Shaddy Ahmed and Jennie Thomas helped us with the Matlab
@@ -37,7 +37,7 @@ We thank Domenico Taraborrelli for providing the
 rosenbrock_posdef_h211b_qssa solver.
 
 Stuart Lacy wrote an export function for the `Master Chemical Mechanism
-<https://mcm.york.ac.uk/MCM/export>`_. It creates KPP files that can be
+<https://mcm.york.ac.uk/MCM/export>`__. It creates KPP files that can be
 used out-of-the-box for the small model in the :file:`examples/mcm`
 directory.
 

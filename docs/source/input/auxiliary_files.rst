@@ -4,12 +4,12 @@
 Auxiliary files and the substitution preprocessor
 #################################################
 
-The `auxiliary files <auxiliary-files-for-fortran-90_>`_ in the
+The :ref:`auxiliary files <auxiliary-files-for-fortran-90>` in the
 :file:`$KPP_HOME/util` subdirectory are templates for integrators,
 drivers, and utilities. They are inserted into the KPP output after
 being run through the substitution preprocessor. This preprocessor
-replaces `several placeholder symbols <list-of-symbols-replaced_>`_ in
-the template files with their particular values in the model at hand.
+replaces :ref:`several placeholder symbols <list-of-symbols-replaced>`
+in the template files with their particular values in the model at hand.
 Usually, only :command:`KPP_ROOT` and :command:`KPP_REAL` are needed
 because the other values can also be obtained via the variables listed
 in :ref:`table-inl-type`.
@@ -122,17 +122,17 @@ List of symbols replaced by the substitution preprocessor
      - Number of fixed species
      - 2
    * - **KPP_NREACT**
-     - Number of chemical reactopms
+     - Number of chemical reactions
      - 10
    * - **KPP_NONZERO**
      - Number of Jacobian nonzero elements
      - 18
    * - **KPP_LU_NONZERO**
-     - Number of Jacobian nonzero elements, with LU fill0in
+     - Number of Jacobian nonzero elements, with LU fill-in
      - 19
    * - **KPP_LU_NHESS**
      - Number of Hessian nonzero elements
      - 19
    * - **KPP_FUN_OR_FUN_SPLIT**
      - Name of the function to be called
-     - ``FUN(Y,FIX,RCONST,Ydot)``
+     - :code:`FUN(Y,FIX,RCONST,Ydot)`

@@ -114,7 +114,7 @@ We recommend using :command:`#DECLARE SYMBOL`, as most modern compilers
 will automatically replace each parameter (e.g. :code:`NSPEC`) with its
 value (e.g :code:`7`). However, if you are using a very old compiler
 that is not as sophisticated, :command:`#DECLARE VALUE` might result in
-better-optmized code.
+better-optimized code.
 
 .. _double-cmd:
 
@@ -232,7 +232,7 @@ This option generates two CSV files describing the structure of the
 mechanism based on stoichiometric balances and species composition.
 
 1. :file:`ROOT_BiadjacencyMatrix.csv`: A sparse matrix of the
-   the net stoichiometric coefficients for each species in each
+   net stoichiometric coefficients for each species in each
    reaction.
 
    .. list-table:: Structure of :file:`ROOT_BiadjacencyMatrix.csv`
@@ -249,14 +249,14 @@ mechanism based on stoichiometric balances and species composition.
         - species_index
         - Number of the species in the chemical mechanism
       * - 3
-	- reaction_index
+        - reaction_index
         - Number of the reaction in the chemical mechanism
       * - 4
-	- stoichiometric_coefficient
-	- The the net, weighted biadjacency matrix of the bipartite
-	  species-reaction graph, useful for automated detection of
-	  system-wide stoichiometric invariants and other mass
-	  conservation enforcing :cite:`Sturm_and_Wexler_2022`.
+        - stoichiometric_coefficient
+        - The net, weighted biadjacency matrix of the bipartite
+          species-reaction graph, useful for automated detection of
+          system-wide stoichiometric invariants and other mass
+          conservation enforcing :cite:`Sturm_and_Wexler_2022`.
 
 2. :file:`ROOT_SpeciesCompositionMatrix.csv`: This is a species
    composition dense matrix that for each variable species (row),
@@ -316,7 +316,7 @@ value.
      - To
      - Ending edge
    * - 5
-     - Stoichometric value
+     - Stoichiometric value
      - Directed stoichiometric value
 
 .. _hessian-cmd:
@@ -517,7 +517,7 @@ declared in the :command:`#DEFVAR` section.
 
 The option :command:`ON` of the :command:`#STOCHASTIC` command turns
 on the generation of code for stochastic kinetic simulations (see the
-section entitled :ref:`Stochastic`.  The default option is :command:`OFF`.
+section entitled :ref:`Stochastic`).  The default option is :command:`OFF`.
 
 .. _stoicmat-cmd:
 

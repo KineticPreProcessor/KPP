@@ -6,13 +6,13 @@ Filtering out passive species with an absolute tolerance threshold
 
 In some external models that use KPP (such as GEOS-Chem) it is common
 to attach "passive" species to reactions.  This is usually done to
-optain production or loss rates for diagnostic purposes.
+obtain production or loss rates for diagnostic purposes.
 
 We have created a simple passive species example C-I test (see the
-chemcial mechanism description file
+chemical mechanism description file
 :file:`ci-tests/F90_ros_passivespc/F90_ros_passivespc.kpp`).  In this
 example we add 3 passive species (:literal:`PASV1`, :literal:`PASV2`,
-:literal:`PASV3`) are to the :literal:`small_strato` mechanism:
+:literal:`PASV3`) to the :literal:`small_strato` mechanism:
 
 .. code-block:: console
 

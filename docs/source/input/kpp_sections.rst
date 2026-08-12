@@ -264,10 +264,10 @@ There are two sections in this category: :command:`#LOOKAT` and
 :command:`#MONITOR`.
 
 The section instructs the preprocessor what are the species for which
-the evolution of the concentration, should be saved in a data file. By
+the evolution of the concentration should be saved in a data file. By
 default, if no :command:`#LOOKAT` section is present, all the species
 are saved. If an atom is specified in the :command:`#LOOKAT` list then
-the total mass of the particular atom is reported. This allows to
+the total mass of the particular atom is reported. This allows one to
 check how the mass of a specific atom was conserved by the integration
 method. The :command:`#LOOKATALL` command can be used to specify all
 the species. Output of :command:`#LOOKAT` can be directed to the file

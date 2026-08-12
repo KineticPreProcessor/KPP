@@ -26,7 +26,7 @@ Where :code:`[target]` is one of the following optional values:
 all
 ====
 
-Synoymm for :ref:`Makefile_exe`.
+Synonym for :ref:`Makefile_exe`.
 
 .. _Makefile_gfortran:
 
@@ -34,7 +34,7 @@ Synoymm for :ref:`Makefile_exe`.
 COMPILER=GFORTRAN
 =================
 
-Builds KPP-genereated Fortran-90 code into an executable with the GNU
+Builds KPP-generated Fortran-90 code into an executable with the GNU
 :program:`gfortran` compiler.
 
 This is the default setting for when :command:`#LANGUAGE Fortran90` is

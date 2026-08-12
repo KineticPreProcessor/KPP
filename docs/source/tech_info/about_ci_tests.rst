@@ -13,9 +13,9 @@ tests help to ensure that new features and updates added to KPP will
 not break any existing functionality.
 
 C-I tests will run automatically as a `GitHub Action
-<https://github.com/KineticPreProcessor/KPP/actions>`_ when commits
+<https://github.com/KineticPreProcessor/KPP/actions>`__ when commits
 are pushed to the `KPP Github repository
-<https://github.com/KineticPreProcessor/KPP>`_, or when a new pull
+<https://github.com/KineticPreProcessor/KPP>`__, or when new pull
 requests are opened.  You may also run the integration tests
 :ref:`locally on your own computer <running-ci-tests-locally>`.
 
@@ -223,7 +223,7 @@ libraries, and run the C-I tests as a GitHub Action.
 
 C-I tests will run automatically when a commit is pushed to any branch
 at `https://github.com/KineticPreProcessor/KPP
-<https://github.com/KineticPreProcessor/KPP>`_, or when a new pull
+<https://github.com/KineticPreProcessor/KPP>`__, or when a new pull
 request is opened there.  This is the recommended setting, but you can
 restrict this so that only pushes or pull requests to certain branches
 will trigger the C-I tests.

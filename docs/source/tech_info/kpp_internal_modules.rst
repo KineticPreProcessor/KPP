@@ -48,7 +48,7 @@ operations. The species have to be first sorted such that all variable
 species and all fixed species are put together. Then if a sparsity
 structure of the Jacobian is required, it might be better to reorder the
 species in such a way that the factorization of the Jacobian will
-preserve the sparsity. This reordering is done using a Markovitz type
+preserve the sparsity. This reordering is done using a Markowitz type
 algorithm.
 
 .. _expression-trees:
@@ -59,7 +59,7 @@ Expression trees computation
 
 This is the core of the preprocessor. This module generates the
 production/destruction functions, the Jacobian and all the data
-structure nedeed by these functions. It builds a language-independent
+structure needed by these functions. It builds a language-independent
 structure of each function and statement in the target source file.
 Instead of using an intermediate format for this as some other compilers
 do, KPP generates the intermediate format for just one statement at a

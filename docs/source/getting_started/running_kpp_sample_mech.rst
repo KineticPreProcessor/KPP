@@ -38,8 +38,8 @@ languages are discussed in the :ref:`language-cmd` section.
 
 The KPP input files (with suffix :file:`.kpp`) specify the
 :ref:`target model <model-cmd>`, the :ref:`target language
-<language-cmd>`, the :ref:`integrator <integrator-cmd>` the
-:ref:`driver program <driver-cmd>`. etc. The file name (without the
+<language-cmd>`, the :ref:`integrator <integrator-cmd>`, and the
+:ref:`driver program <driver-cmd>`, etc. The file name (without the
 :file:`.kpp`) serves as the root name for the simulation. Here we will
 refer to this name as :code:`ROOT`.  Since the root name will  be
 incorporated into Fortran90 module names, it can only contain valid
@@ -107,7 +107,7 @@ this example, :program:`small_strato`). KPP will look in the path
 
 .. code-block:: console
 
-   #include small_strato.spc       { Includes file w/ species definitons     }
+   #include small_strato.spc       { Includes file w/ species definitions    }
    #include small_strato.eqn       { Includes file w/ chemical equations     }
 
    #LOOKATALL                      { Output all species to small_strato.dat}
@@ -154,7 +154,7 @@ The *definition file* :file:`small_strato.def` uses the
 :ref:`include-cmd` command to include the *species file* and the
 *equation file*. It also specifies parameters for running a "box-model"
 simulation, such as :ref:`species initial values <initvalues>`, start
-time, stop, time, and timestep (cf. :ref:`inlined-code`).
+time, stop time, and timestep (cf. :ref:`inlined-code`).
 
 The *species file* :file:`small_strato.spc` lists all the species in the
 model. Some of them are variable, meaning that their concentrations
@@ -221,7 +221,7 @@ from the templates provided in the :file:`$KPP_HOME/int` directory, or
 implemented by the user.
 
 In this example, the :ref:`Rosenbrock integrator <rosenbrock-methods>`
-and the Fortran90 language have been been specified. Therefore, the file
+and the Fortran90 language have been specified. Therefore, the file
 :file:`$KPP_HOME/int/rosenbrock.f90` will be used.
       
 .. _example-driver-general:
@@ -298,7 +298,7 @@ You should see output similar to:
        - small_strato_Main
    KPP is starting the code post-processing.
 
-   KPP has succesfully created the model "small_strato".
+   KPP has successfully created the model "small_strato".
 
 This will generate the Fortran90 code needed to solve the
 :program:`small_strato` mechanism. The file listing should be similar
@@ -379,7 +379,7 @@ as to a log file (:file:`small_strato.log`).
 
 If your simulation results exits abruptly with the :code:`Killed` error,
 you probably need to increase your stack memory limit. On most Linux
-systems the default stacksize limit is 8 kIb = or 8192 kB. You can max
+systems the default stacksize limit is 8192 KiB (or 8192 kB). You can max
 this out with the following commands:
 
 If you are using bash, type:

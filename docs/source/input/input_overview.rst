@@ -15,7 +15,7 @@ initial values of each of the species involved, the integration
 parameters, and many other options. The KPP preprocessor parses the
 kinetic description files and generates several output files. Files
 that are written in KPP syntax have one of the suffixes :file:`.kpp`,
-:file:`.spc`, :file:`.eqn`, or :file:`def`.
+:file:`.spc`, :file:`.eqn`, or :file:`.def`.
 
 The following general rules define the structure of a kinetic
 description file:
@@ -29,7 +29,7 @@ description file:
    a space "// ".
 
 -  Any name given by the user to denote an atom or a species is
-   restricted to be less than 32 character in length and can only
+   restricted to be less than 32 characters in length and can only
    contain letters, numbers, or the underscore character. The first
    character cannot be a number. All names are case insensitive.
 

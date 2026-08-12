@@ -9,7 +9,7 @@ Editing this User Guide
 #######################
 
 This user guide is generated with `Sphinx
-<https://www.sphinx-doc.org/>`_.  Sphinx is an open-source Python
+<https://www.sphinx-doc.org/>`__.  Sphinx is an open-source Python
 project designed to make writing software documentation easier.  The
 documentation is written in :ref:`reStructuredText (reST)
 <editing_this_user_guide_rest>`, a plaintext markup language that
@@ -39,24 +39,24 @@ Sphinx and its dependencies, which are listed in the table below.
    * - sphinx
      - Creates online user manual documentation from markup text files
      - 8.2.3
-   * - `sphinx-autobuild <https://github.com/sphinx-doc/sphinx-autobuild>`_
+   * - `sphinx-autobuild <https://github.com/sphinx-doc/sphinx-autobuild>`__
      - Dynamically builds Sphinx documentation and displays it in a
        browser
      - 2024.2.4
-   * - `sphinx_rtd_theme <https://github.com/readthedocs/sphinx_rtd_theme>`_
+   * - `sphinx_rtd_theme <https://github.com/readthedocs/sphinx_rtd_theme>`__
      - Sphinx theme for ReadTheDocs
      - 3.1.0
-   * - `sphinxcontrib-bibtex <https://pypi.org/project/sphinxcontrib-bibtex/>`_
+   * - `sphinxcontrib-bibtex <https://pypi.org/project/sphinxcontrib-bibtex/>`__
      - Inserts LaTeX-style bibliography citations into ReadTheDocs
        documentation
      - 2.6.5
-   * - `docutils <https://docutils.sourceforge.io/>`_
+   * - `docutils <https://docutils.sourceforge.io/>`__
      - Processes plaintext documentation into HTML and other formats
      - 0.21.2
-   * - `myst-parser <https://myst-parser.readthedocs.io/en/latest/>`_
+   * - `myst-parser <https://myst-parser.readthedocs.io/en/latest/>`__
      - Parses text for docutils
      - 5.0.0
-   * - `jinja2 <https://jinja.palletsprojects.com/en/stable/>`_
+   * - `jinja2 <https://jinja.palletsprojects.com/en/stable/>`__
      - Replaces tokenized strings with text
      - 3.1.6
 
@@ -121,7 +121,7 @@ Build the documentation
    reST-format documentation files in the :file:`docs/source`
    directory tree.  While :program:`sphinx-autobuild` is running, you
    will see your updates rendered in the web browser as soon as you
-   soon as you save your changes to disk. |br|
+   save your changes to disk. |br|
    |br|
 
 #. Once you are satisfied with your edits, commit your changes to Git
@@ -170,23 +170,23 @@ started. Dedicating an hour to learning reST will save you time in the
 long-run. Below are some good resources for learning reST.
 
 - `reStructuredText primer
-  <https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html>`_:
+  <https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html>`__:
   (single best resource; however, it's better read than skimmed) |br|
   |br|
 
 - Official `reStructuredText reference
-  <https://docutils.sourceforge.io/docs/user/rst/quickref.html>`_
+  <https://docutils.sourceforge.io/docs/user/rst/quickref.html>`__
   (there is *a lot* of information here) |br|
   |br|
 
 - `Presentation by Eric Holscher
-  <https://www.youtube.com/watch?v=eWNiwMwMcr4>`_ (co-founder of Read
+  <https://www.youtube.com/watch?v=eWNiwMwMcr4>`__ (co-founder of Read
   The Docs) at DjangoCon US 2015 (the entire presentation is good, but
   reST is described from 9:03 to 21:04) |br|
   |br|
 
 - `YouTube tutorial by Audrey Tavares
-  <https://www.youtube.com/watch?v=DSIuLnoKLd8>`_
+  <https://www.youtube.com/watch?v=DSIuLnoKLd8>`__
 
 A good starting point would be Eric Holscher's presentations followed
 by the reStructuredText primer.
@@ -213,7 +213,7 @@ Titles and headers
 
    * - Element
      - reST Markup
-   * - Section header |br| (aka "Heading 1)
+   * - Section header |br| (aka "Heading 1")
      - Overline by :literal:`#` and underline by :literal:`#`
    * - Sub-section header |br| (aka "Heading 2")
      - Overline by :literal:`=` and underline by :literal:`=`
@@ -241,8 +241,8 @@ References and links
      - ``:ref:`Getting Started <editing_this_user_guide_quickstart>``
      - :ref:`Getting Started <editing_this_user_guide_quickstart>`
    * - HTML link
-     - ```ReadTheDocs <https://geos-chem.readthedocs.io>`_``
-     - `GEOS-Chem Manual <https://geos-chem.readthedocs.io>`_
+     - ```KPP Manual <https://kpp.readthedocs.io>`__``
+     - `KPP Manual <https://kpp.readthedocs.io>`__
 
 Other common style elements
 ---------------------------

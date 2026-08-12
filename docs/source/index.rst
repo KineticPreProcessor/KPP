@@ -6,7 +6,7 @@
 The Kinetic PreProcessor: KPP
 #############################
 
-| **An Environment for the Simuation of Chemical Kinetic Systems**
+| **An Environment for the Simulation of Chemical Kinetic Systems**
 
 | **Adrian Sandu**\ :sup:`1`\ **, Rolf Sander**\ :sup:`2`\ **, Michael S. Long**\ :sup:`3`\ **, Haipeng Lin**\ :sup:`4`\ **,**
 | **Robert M. Yantosca**\ :sup:`4`\ **, Lucas Estrada**\ :sup:`4`\ **, Lu Shen**\ :sup:`5`\ **, and Daniel J. Jacob**\ :sup:`4`
@@ -58,65 +58,65 @@ guidelines.  If you find something hard to understand---let us know!
    :caption: Getting Started
    :maxdepth: 2
 
-   getting_started/revision_history.rst
-   getting_started/installation.rst
-   getting_started/running_kpp_sample_mech.rst
+   getting_started/revision_history
+   getting_started/installation
+   getting_started/running_kpp_sample_mech
 
 .. toctree::
    :caption: Input for KPP
    :maxdepth: 3
 
-   input/input_overview.rst
-   input/kpp_sections.rst
-   input/kpp_commands.rst
-   input/inlined_code.rst
-   input/auxiliary_files.rst
-   input/filter-passive-spc.rst
+   input/input_overview
+   input/kpp_sections
+   input/kpp_commands
+   input/inlined_code
+   input/auxiliary_files
+   input/filter-passive-spc
 
 .. toctree::
    :caption: Output from KPP
    :maxdepth: 3
 
-   output/code_f90.rst
-   output/code_c.rst
-   output/code_matlab.rst
-   output/makefile.rst
-   output/log_file.rst
+   output/code_f90
+   output/code_c
+   output/code_matlab
+   output/makefile
+   output/log_file
 
 .. toctree::
    :caption: Numerical Integration Methods
    :maxdepth: 3
 
-   num_methods/rosenbrock-methods.rst
-   num_methods/runge_kutta_methods.rst
-   num_methods/backward_diff.rst
-   num_methods/forward_diff.rst
-   num_methods/controlling_the_integrator.rst
-   num_methods/output_from_integrators.rst
+   num_methods/rosenbrock-methods
+   num_methods/runge_kutta_methods
+   num_methods/backward_diff
+   num_methods/forward_diff
+   num_methods/controlling_the_integrator
+   num_methods/output_from_integrators
 
 .. toctree::
    :caption: Technical information
    :maxdepth: 3
 
-   tech_info/kpp_dir_structure.rst
-   tech_info/kpp_env_vars.rst
-   tech_info/kpp_internal_modules.rst
-   tech_info/adding_new_commands.rst
-   tech_info/about_ci_tests.rst
-   tech_info/bnf_description_of_kpp_lang.rst
+   tech_info/kpp_dir_structure
+   tech_info/kpp_env_vars
+   tech_info/kpp_internal_modules
+   tech_info/adding_new_commands
+   tech_info/about_ci_tests
+   tech_info/bnf_description_of_kpp_lang
 
 .. toctree::
    :caption: KPP Reference
    :maxdepth: 2
 
-   citations/acknowledgments.rst
-   citations/kpp_references.rst
+   citations/acknowledgments
+   citations/kpp_references
 
 .. toctree::
    :caption: Help and Support
    :maxdepth: 2
 
-   reference/known-bugs.rst
-   reference/support.rst
-   reference/contributing.rst
-   reference/editing_these_docs.rst
+   reference/known-bugs
+   reference/support
+   reference/contributing
+   reference/editing_these_docs

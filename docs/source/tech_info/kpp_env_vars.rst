@@ -9,10 +9,10 @@ location where the KPP distribution is installed. This is achieved by
 setting the :envvar:`$KPP_HOME` environment variable to the path where
 KPP is installed.
 
-The :file:`$KPP_HOME/bin` directory. should be added to the
+The :file:`$KPP_HOME/bin` directory should be added to the
 :envvar:`PATH` variable.
 
-There are also several optional environment variable that control the places
+There are also several optional environment variables that control the places
 where KPP looks for module files, integrators, and drivers:
 
 ========

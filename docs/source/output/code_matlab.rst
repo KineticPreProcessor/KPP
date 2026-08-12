@@ -12,7 +12,7 @@ The Matlab code
    run-time integrator options across all target languages in a future
    KPP release.
 
-`Matlab <http://www.mathworks.com/products/matlab/>`_ provides a
+`Matlab <http://www.mathworks.com/products/matlab/>`__ provides a
 high-level programming environment that allows algorithm development,
 numerical computations, and data analysis and visualization. The
 KPP-generated Matlab code allows for a rapid prototyping of chemical
@@ -31,7 +31,7 @@ the sections entitled :ref:`Function` ,
 :ref:`Jacobian-and-JacobianSP`, :ref:`Hessian-and-HessianSP`,
 :ref:`Stoichiom-and-StoichiomSP`, :ref:`Util`.  The names of the
 m-function-files are the same as the names of the functions (prefixed
-by the model name :code:`ROOT`.
+by the model name :code:`ROOT`).
 
 The variables of :ref:`table-par` are defined as Matlab :code:`global`
 variables and initialized in the file
@@ -105,7 +105,7 @@ format into a Matlab sparse matrix.
    * - :file:`ROOT_Update_RCONST.m`
      - Update all rate coefficients
    * - :file:`ROOT_Update_SUN.m`
-     - Update sola intensity
+     - Update solar intensity
    * - :file:`ROOT_GetMass.m`
      - Check mass balance for selected atoms
    * - :file:`ROOT_Initialize.m`

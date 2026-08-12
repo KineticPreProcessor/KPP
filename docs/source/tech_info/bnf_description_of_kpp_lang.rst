@@ -37,14 +37,14 @@ Following is the BNF-like specification of the KPP language:
                             #INTEGRATOR integrator_name                           |
                             #INTFILE integrator_name                              |
                             #JACOBIAN [ OFF | FULL | SPARSE_LU_ROW | SPARSE_ROW ] |
-                            #LANGUAGE[ Fortran90 | Fortran77 | C | Matlab ]       |
+                            #LANGUAGE [ Fortran90 | Fortran77 | C | Matlab ]      |
                             #LOOKATALL                                            |
                             #MEX [ ON | OFF ]                                     |
                             #MINVERSION minimum_version_number                    |
                             #MODEL model_name                                     |
                             #REORDER [ ON | OFF ]                                 |
                             #STOCHASTIC [ ON | OFF ]                              |
-                            #STOICHMAT [ ON | OFF ]                               |
+                            #STOICMAT [ ON | OFF ]                                |
                             #UPPERCASEF90 [ ON | OFF ]
 
  inline_code ::=            #INLINE inline_type
@@ -68,7 +68,7 @@ Following is the BNF-like specification of the KPP language:
 
  equation_tag ::=           Alphanumeric expression, also including the
                             underscore. In scan.l it is defined as
-                            "[a-zA-Z_0-0]+".
+                            "[a-zA-Z_0-9]+".
 
  expression ::=             term                                                  |
                             term + expression                                     |
@@ -109,7 +109,7 @@ Following is the BNF-like specification of the KPP language:
 
  species_name ::=           Alphanumeric expression, also including the
                             underscore, starting with a letter.  In
-                            scan.l it is defined as "[a-zA-Z_][a-ZA-Z_0-9]*".
+                            scan.l it is defined as "[a-zA-Z_][a-zA-Z_0-9]*".
                             Its maximum length is 32.
 
  species_name_plus ::=      species_name                                          |

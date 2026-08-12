@@ -12,7 +12,6 @@ systems (cf. :cite:t:`Hairer_and_Wanner_1991`, Section V.1). The
 .. math::
 
    \sum_{i=0}^k \alpha_i y^{n-i} = h_n \beta\; f\left(t^{n},y^{n}\right)
-   \label{BDF}
 
 where the coefficients :math:`\alpha_i` and :math:`\beta` are chosen
 such that the method has order of consistency :math:`k`.
@@ -37,7 +36,7 @@ been translated to Fortran90 for the incorporation into the KPP library.
 
    We have discovered that the current implementation of the LSODE
    integrator is not thread-safe for `OpenMP parallelization
-   <https://www.openmp.org/>`_.  When LSODE is called from within
+   <https://www.openmp.org/>`__.  When LSODE is called from within
    an OpenMP parallel loop, the integration will fail because key
    internal variables in LSODE will be overwritten by concurrent
    threads.

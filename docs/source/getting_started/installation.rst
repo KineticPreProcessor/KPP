@@ -13,7 +13,7 @@ Download KPP from GitHub
 ========================
 
 Clone the KPP source code from the `KPP GitHub repository
-<https://github.com/KineticPreProcessor/KPP>`_:
+<https://github.com/KineticPreProcessor/KPP>`__:
 
 .. code-block:: console
 
@@ -35,7 +35,7 @@ may be placed in your shell startup file, as shown below.
 
 .. important::
 
-   The :file:`git clone` command above creates a directory named
+   The :command:`git clone` command above creates a directory named
    :file:`KPP` (uppercase).  Make sure that :envvar:`KPP_HOME` points
    to this exact directory name.  On case-sensitive Linux filesystems,
    :file:`KPP` and :file:`kpp` are **different** directories.
@@ -111,7 +111,7 @@ for the first time, test whether these are installed on your system.
 If any packages are missing, you can install them with your system
 package manager (e.g. :program:`apt` for Ubuntu, :program:`yum` for
 Fedora, :program:`homebrew` for macOS) or with
-`Spack <https://spack.readthedocs.io>`_.
+`Spack <https://spack.readthedocs.io>`__.
 
 .. _installation-gcc:
 
@@ -123,7 +123,7 @@ gcc
    macOS users: please read :ref:`installation-macos-gcc` before
    proceeding further.
 
-KPP uses the `GNU Compiler Collection <https://gcc.gnu.org>`_
+KPP uses the `GNU Compiler Collection <https://gcc.gnu.org>`__
 (:program:`gcc`) by default.  A version of :program:`gcc` comes
 pre-installed with most Linux systems.  To test whether
 :program:`gcc` is installed, type:
@@ -640,7 +640,7 @@ account for this, the KPP header file :file:`src/gdata.h` defines the
    #define MAX_EQN        2000   // Max number of equations (macOS only)
    #define MAX_SPECIES    1000   // Max number of species   (macOS only)
    #else
-   #define MAX_EQN       11000   // Max number of equations
+   #define MAX_EQN       18000   // Max number of equations
    #define MAX_SPECIES    6000   // Max number of species
    #endif
 

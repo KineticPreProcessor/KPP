@@ -44,7 +44,7 @@ The coefficients of the methods implemented in KPP are shown below:
 ROS-2
 =====
 - Stages (:math:`s`): 2
-- Funcion calls: 2
+- Function calls: 2
 - Order: 2(1)
 - Stability properties: L-stable
 - Method Coefficients:
@@ -65,7 +65,7 @@ ROS-3
 =====
 
 - Stages (:math:`s`): 3
-- Funcion calls: 2
+- Function calls: 2
 - Order: 3(2)
 - Stability properties: L-stable
 - Method Coefficients:
@@ -88,7 +88,7 @@ ROS-4
 =====
 
 - Stages (:math:`s`): 4
-- Funcion calls: 3
+- Function calls: 3
 - Order: 4(3)
 - Stability properties: L-stable
 - Method Coefficients:
@@ -115,7 +115,7 @@ RODAS-3
 =======
 
 - Stages (:math:`s`): 4
-- Funcion calls: 3
+- Function calls: 3
 - Order: 3(2)
 - Stability properties: Stiffly-accurate
 - Method Coefficients:
@@ -143,7 +143,7 @@ RODAS-3.1
 
 - Reference: :cite:t:`Long_et_al._2026`
 - Stages (:math:`s`): 4
-- Funcion calls: 3
+- Function calls: 3
 - Order: 3(2)
 - Stability properties: Stiffly-accurate
 - Method Coefficients:
@@ -174,7 +174,7 @@ RODAS-4
 =======
 
 - Stages (:math:`s`): 6
-- Funcion calls: 5
+- Function calls: 5
 - Order: 4(3)
 - Stability properties: Stiffly-accurate
 - Method Coefficients:
@@ -264,7 +264,6 @@ the (non-autonomous) Rosenbrock method is
 .. math::
 
    \begin{aligned}
-   \label{Ros_disc_adj}
    %A &=& \left[ \frac{1}{h \gamma} - J^T(t^n,y^n) \right]\\
    %\nonumber
    A \cdot u_i

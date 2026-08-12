@@ -59,14 +59,14 @@ Contains the KPP source code files:
    * - :file:`y.tab.h`
      - Bison generated header file
 
-====       
+====
 bin/
 ====
 
 Contains the KPP executable. This directory should be added to the
 :envvar:`PATH` environment variable.
 
-=====	
+=====
 util/
 =====
 
@@ -121,6 +121,7 @@ which can be used as templates for building simulations with KPP.
 ==========
 site-lisp/
 ==========
+
 Contains the file :file:`kpp.el` which provides a KPP mode for emacs
 with color highlighting.
 
@@ -136,7 +137,7 @@ Contains directories defining several :ref:`ci-tests`.
 
 Hidden directory containing a YAML file with settings for automatically
 running the continuous integration tests on `Azure DevOps Pipelines
-<https://azure.microsoft.com/en-us/services/devops/pipelines/>`_
+<https://azure.microsoft.com/en-us/services/devops/pipelines/>`__
 
 Also contains bash scripts (ending in :file:`.sh`) for running the
 continuous integration tests either automatically in Azure Dev
@@ -148,5 +149,5 @@ information, please see :ref:`ci-tests`.
 =================
 
 Contains configuration files for `GitHub Actions
-<https://github.com/KineticPreProcessor/KPP/actions>`_ that will run
+<https://github.com/KineticPreProcessor/KPP/actions>`__ that will run
 automatically when commits are pushed or when pull requests are opened.
