@@ -20,6 +20,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+# Give the GITHUB_TOKEN read-only access;
+# these jobs only check out and test code
+permissions:
+  contents: read
+
 # Workflow run - one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "lint"

@@ -109,11 +109,11 @@ char buf[100];
   
   step = (Xmax - Xmin) / nMax;
 
-  Xval = (float*)malloc( n * sizeof(float) );
+  Xval = (float*)malloc( (size_t)n * sizeof(float) );
   for( i = 0; i < n; i++ )
     Xval[i] = Xmin + step*i;
 
-  Yval = (float*)malloc( nGraphs * n * sizeof(float) );
+  Yval = (float*)malloc( (size_t)nGraphs * n * sizeof(float) );
   for( i = 0; i < nGraphs * n; i++ )
     Yval[i] = NULL/1;
 

@@ -1,0 +1,24 @@
+---
+#
+# Dependabot version updates for KPP
+# See: https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
+#
+# This file tells GitHub to check if newer versions of GitHub Actions
+# (e.g. checkout) are avaialble.  If so, a PR will be opened against
+# the dev branch with the suggested fixes.
+#
+# NOTE: The Python versions in docs/read_the_docs_environment.yml
+# are not scanned by Dependabot.  You must sync them manually
+# with the versions in docs/requirements.txt.
+#
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "dev"
+    schedule:
+      interval: "monthly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"

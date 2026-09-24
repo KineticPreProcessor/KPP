@@ -12,6 +12,11 @@ on:
     branches:
       - '**'
 
+# Give the GITHUB_TOKEN read-only access;
+# these jobs only check out and test code
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
